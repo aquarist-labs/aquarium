@@ -2,7 +2,7 @@
 
 Please contribute, we like that.
 
-## How to file a bug report (try using issue and pull request templates)
+## How to file a bug report
 
 I recommend clicking "Issue" in [Planning and Discussion](https://github.com/aquarists-labs/planning-and-discussion/issues) and filing one. Be nice, though.
 
