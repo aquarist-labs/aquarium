@@ -1,0 +1,13 @@
+venv/
+virtualenv/
+__pycache__/
+*.pyc
+*.swp
+*.swo
+*.orig
+*.patch
+*.rej
+wheelhouse/
+.pytest_cache/
+.vscode
+.mypy_cache/
