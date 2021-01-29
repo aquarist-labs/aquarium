@@ -9,7 +9,7 @@ cleanup.
 We are still orientating ourselves with the project, please be patient while this file
 and others continuously update.
 
-### Checking out the source
+## Clone the Source
 
 You can clone from github with:
 
@@ -76,7 +76,7 @@ If your PR has only one commit, the PR title can be the same as the commit title
 uggest this). If the PR has multiple commits, do not accept the title GitHub suggests. Either use
 the title of the most relevant commit, or write your own title.
 
-## Document your changes
+## Document Your Changes
 
 If you have added or modified any user-facing functionality, such as CLI commands or their output,
 then the pull request must include appropriate updates to documentation.
