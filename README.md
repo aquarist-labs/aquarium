@@ -1,5 +1,16 @@
-# rest-passthrough
+# Backend
+
 A REST API passthrough to bridge the gap between our backend and a Ceph cluster.
+
+## Checking out the source
+
+You can clone from github with
+
+	git clone git@github.com:aquarist-labs/backend
+
+or, if you are not a github user,
+
+	git clone git://github.com/aquarist-labs/backend
 
 ## What does this project do?
 
@@ -11,7 +22,7 @@ Stop asking hard questions.
 
 ## How do I get started?
 
-Look at the issue list, or contact the contributors and see what's up.
+Look at the [issue](https://github.com/aquarist-labs/backend/issues) list, or contact the [contributors](https://github.com/orgs/aquarist-labs/people) and see what's up.
 
 ## Where can I get more help, if I need it?
 
