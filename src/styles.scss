@@ -1,1 +1,12 @@
-/* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/theming";
+@import "defaults.scss";
+
+@include mat-core();
+
+$glass-light-theme: mat-light-theme(
+  mat-palette($eos-green-palette),
+  mat-palette($eos-cerulean-palette),
+  mat-palette($eos-red-palette)
+);
+
+@include angular-material-theme($glass-light-theme);
