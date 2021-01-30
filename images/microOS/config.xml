@@ -576,8 +576,7 @@
     </packages>
 
     <packages type="image" profiles="Ceph-base">
-        <package name="ceph-base"/>
-        <package name="ceph-common"/>
+        <package name="lvm2"/>
         <package name="chrony"/>
         <package name="tuned"/>
         <package name="python3-pip"/>
