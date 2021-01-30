@@ -22,7 +22,13 @@ Stop asking hard questions.
 
 ## How do I get started?
 
-Look at the [issue](https://github.com/aquarist-labs/backend/issues) list, or contact the [contributors](https://github.com/orgs/aquarist-labs/people) and see what's up.
+Look at the [issue](https://github.com/aquarist-labs/backend/issues) list, or
+contact the [contributors](https://github.com/orgs/aquarist-labs/people) and
+see what's up.
+
+If you want to get your hands dirty as soon as possible, you can also run the
+script at `tools/setup-dev.sh`. This will ensure you have a basic development
+environment as soon as possible so you can start hacking.
 
 ## Where can I get more help, if I need it?
 
