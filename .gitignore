@@ -13,3 +13,5 @@ wheelhouse/
 .mypy_cache/
 src/cephadm/cephadm.py
 images/build/
+tests/vagrant/setups/
+.vagrant
