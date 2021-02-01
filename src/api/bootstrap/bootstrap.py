@@ -28,6 +28,10 @@ class NetworkAddressNotFoundError(Exception):
     pass
 
 
+class BootstrapError(Exception):
+    pass
+
+
 class BootstrapStage(Enum):
     NONE = 0
     RUNNING = 1
@@ -56,6 +60,12 @@ class Bootstrap:
 
         assert selected_addr
         logger.info(f"bootstrap > selected addr: {selected_addr}")
+
+        try:
+            asyncio.create_task(self._do_bootstrap(selected_addr))
+        except Exception as e:
+            logger.error(f"bootstrap > error starting bootstrap task: {str(e)}")
+            return False
 
         return True
 
@@ -115,15 +125,24 @@ class Bootstrap:
         return selected
 
 
-    def _do_bootstrap(self, selected_addr: str) -> None:
+    async def _do_bootstrap(self, selected_addr: str) -> None:
         logger.debug("bootstrap > run in background")
         assert selected_addr is not None and len(selected_addr) > 0
         self.stage = BootstrapStage.RUNNING
 
-        # do the actual bootstrap here
-        #  we likely want to run this coroutine as a thread in the background
-        #  and call the process here so we can keep track of progress.
+        stdout: str = ""
+        stderr: str = ""
+        retcode: int = 0
+        try:
+            cmd = f"bootstrap --skip-prepare-host --mon-ip {selected_addr}"
+            cephadm: Cephadm = Cephadm()
+            stdout, stderr, retcode = await cephadm.call(cmd)
+        except Exception as e:
+            raise BootstrapError(e)
 
+        if retcode != 0:
+            raise BootstrapError(f"error bootstrapping: rc = {retcode}")
+        
         self.stage = BootstrapStage.DONE
 
 
