@@ -11,5 +11,5 @@ wheelhouse/
 .pytest_cache/
 .vscode
 .mypy_cache/
-src/cephadm/cephadm.py
+src/cephadm.bin
 
