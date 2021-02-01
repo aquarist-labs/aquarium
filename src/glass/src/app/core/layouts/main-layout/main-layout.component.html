@@ -1,0 +1,15 @@
+<block-ui>
+  <mat-sidenav-container autosize>
+    <mat-sidenav position="start"
+                 [mode]="sideNavMode"
+                 [opened]="sideNavOpened">
+      <!--
+      Add the side navigation component here.
+      -->
+    </mat-sidenav>
+    <mat-sidenav-content fxLayout="column">
+      <!-- The main content area -->
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</block-ui>
