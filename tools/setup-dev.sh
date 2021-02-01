@@ -8,8 +8,8 @@ fi
 # don't recurse into ceph.git unless we explicitly need a submodule.
 git submodule update --init || exit 1
 
-[[ ! -e "src/cephadm/cephadm.py" ]] && \
-  ln -vfs $(pwd)/ceph.git/src/cephadm/cephadm src/cephadm/cephadm.py
+[[ ! -e "src/cephadm.bin" ]] && \
+  ln -fs ../ceph.git/src/cephadm/cephadm src/cephadm.bin
 
 if [[ ! -e "venv" ]]; then
 
@@ -21,3 +21,4 @@ if [[ ! -e "venv" ]]; then
   pip install -r requirements.txt || exit 1
 
 fi
+
