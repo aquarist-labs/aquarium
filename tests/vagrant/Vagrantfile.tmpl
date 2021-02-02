@@ -3,7 +3,7 @@
 
 Vagrant.configure("2") do |config|
     config.vm.box = "{{BOXNAME}}"
-    config.vm.synced_folder "{{ROOTDIR}}", "/srv/backend", type: "nfs"
+    config.vm.synced_folder "{{ROOTDIR}}", "/srv/aquarium", type: "nfs"
     config.vm.synced_folder ".", "/vagrant", disabled: true
 
     config.vm.define :"node01", primary: true do |node|
