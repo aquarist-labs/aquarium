@@ -1,14 +1,15 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
 import { MainLayoutComponent } from './core/layouts/main-layout/main-layout.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/', pathMatch: 'full' },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: '',
     component: MainLayoutComponent,
-    children: [],
+    children: [{ path: 'dashboard', component: DashboardPageComponent }],
   },
 ];
 
