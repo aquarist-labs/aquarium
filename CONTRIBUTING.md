@@ -1,6 +1,6 @@
 # Contributing
 
-This document outlines some basic guidelines for contributing to the `backend` repository
+This document outlines some basic guidelines for contributing to the `aquarium` repository
 within *Aquarist Labs*. 
 
 We are very welcoming of new feature implementation, patches that fix bugs or code
@@ -13,15 +13,15 @@ and others continuously update.
 
 You can clone from github with:
 
-	git clone git@github.com:aquarist-labs/backend
+	git clone git@github.com:aquarist-labs/aquarium
 
 Or:
 
-	git clone git://github.com/aquarist-labs/backend
+	git clone git://github.com/aquarist-labs/aquarium
 
 ### Submitting Bugs and Requesting New Features
 
-All bugs and feature requests can be filed in "Issues" in [Planning and Discussion](https://github.com/aquarists-labs/planning-and-discussion/issues).
+All bugs and feature requests can be filed in "Issues" in [the Aquarium Project](https://github.com/aquarists-labs/aquarium/issues).
 We use GitHub templates to manage the requests. You will either select:
 
 - Feature
@@ -69,7 +69,7 @@ commit message. For example:
 
 ## Pull Request Best Practices
 
-PRs should be opened on branches contained in your fork of `aquarist-labs/backend.git`. PRs should
+PRs should be opened on branches contained in your fork of `aquarist-labs/aquarium.git`. PRs should
 target the `main` branch. 
 
 If your PR has only one commit, the PR title can be the same as the commit title (and GitHub will 

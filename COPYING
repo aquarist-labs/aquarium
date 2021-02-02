@@ -1,10 +1,10 @@
-Name: aquarium-backend
+Name: aquarium
 
 Files: *
 Copyright: (c) 2021 SUSE, LLC.
 License: LGPL-2.1 or LGPL-3 (see COPYING-LGPL2.1 and COPYING-LGPL3)
 
-Files: src/cephadm/cephadm
+Files: src/gravel/ceph.git
 Copyright: (c) Ceph and contributors
 Source: https://github.com/ceph/ceph
 License: LGPL-2.1 or LGPL-3 (see COPYING-LGPL2.1 and COPYING-LGPL3)
