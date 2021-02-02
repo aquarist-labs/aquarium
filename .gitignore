@@ -11,7 +11,7 @@ wheelhouse/
 .pytest_cache/
 .vscode
 .mypy_cache/
-src/cephadm.bin
+src/gravel/cephadm/cephadm.bin
 images/build/
 tests/vagrant/setups/
 .vagrant

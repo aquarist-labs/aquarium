@@ -8,8 +8,8 @@ fi
 # don't recurse into ceph.git unless we explicitly need a submodule.
 git submodule update --init || exit 1
 
-[[ ! -e "src/cephadm.bin" ]] && \
-  ln -fs ../ceph.git/src/cephadm/cephadm src/cephadm.bin
+[[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
+  ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
 if [[ ! -e "venv" ]]; then
 
