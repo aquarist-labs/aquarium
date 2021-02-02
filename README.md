@@ -1,6 +1,8 @@
 # Project Aquarium
 
-Easy to use, rock solid!, storage appliance thingy wrapped around Ceph.
+Aquarist Labs are an organization of like-minded individuals working on the Aquariums project. 
+
+We are investigating the beginnings of a new storage appliance project in an opinionated fashion. The Aquariums project is split into two clearly defined work streams: Gravel (backend) and Glass (frontend). 
 
 ## Checking out the source
 
