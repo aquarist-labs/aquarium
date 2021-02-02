@@ -1,16 +1,16 @@
-# Backend
+# Project Aquarium
 
-A REST API passthrough to bridge the gap between our backend and a Ceph cluster.
+Easy to use, rock solid!, storage appliance thingy wrapped around Ceph.
 
 ## Checking out the source
 
 You can clone from github with
 
-	git clone git@github.com:aquarist-labs/backend
+	git clone git@github.com:aquarist-labs/aquarium
 
 or, if you are not a github user,
 
-	git clone git://github.com/aquarist-labs/backend
+	git clone git://github.com/aquarist-labs/aquarium
 
 ## What does this project do?
 
@@ -22,13 +22,16 @@ Stop asking hard questions.
 
 ## How do I get started?
 
-Look at the [issue](https://github.com/aquarist-labs/backend/issues) list, or
+Look at the [issue](https://github.com/aquarist-labs/aquarium/issues) list, or
 contact the [contributors](https://github.com/orgs/aquarist-labs/people) and
 see what's up.
 
 If you want to get your hands dirty as soon as possible, you can also run the
 script at `tools/setup-dev.sh`. This will ensure you have a basic development
 environment as soon as possible so you can start hacking.
+
+You will be able to find the backend bits in `src/gravel`, while the frontend
+bits are located in `src/glass`.
 
 ## Where can I get more help, if I need it?
 

@@ -16,9 +16,9 @@ class Cephadm:
 
     def __init__(self):
 
-        if os.path.exists("./cephadm.bin"):
+        if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
-            self.cephadm = "sudo ./cephadm.bin"
+            self.cephadm = "sudo ./gravel/cephadm/cephadm.bin"
         else:
             # deployment environment
             self.cephadm = "sudo cephadm"

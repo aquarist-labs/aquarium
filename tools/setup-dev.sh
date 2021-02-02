@@ -8,8 +8,8 @@ fi
 # don't recurse into ceph.git unless we explicitly need a submodule.
 git submodule update --init || exit 1
 
-[[ ! -e "src/cephadm.bin" ]] && \
-  ln -fs ../ceph.git/src/cephadm/cephadm src/cephadm.bin
+[[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
+  ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
 if [[ ! -e "venv" ]]; then
 
@@ -18,7 +18,7 @@ if [[ ! -e "venv" ]]; then
   # ceph repo we keep as a submodule, but it might be overkill at the moment?
   python3 -m venv --system-site-packages venv || exit 1
   source venv/bin/activate
-  pip install -r requirements.txt || exit 1
+  pip install -r src/requirements.txt || exit 1
 
 fi
 
