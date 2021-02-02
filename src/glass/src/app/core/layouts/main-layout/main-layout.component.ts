@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDrawerMode } from '@angular/material/sidenav/drawer';
 
 @Component({
-  selector: 'app-main-layout',
+  selector: 'glass-main-layout',
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
 })
