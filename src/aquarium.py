@@ -62,6 +62,6 @@ app.mount(
 # mounting root "/" must be the last thing, so it does not override "/api".
 app.mount(
     "/",
-    StaticFiles(directory="dist", html=True),
+    StaticFiles(directory="./glass/dist/", html=True),
     name="static"
 )
