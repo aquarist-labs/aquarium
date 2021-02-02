@@ -22,8 +22,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger
 
-from api.bootstrap import bootstrap
-from api.orch import orch
+from gravel.api.bootstrap import bootstrap
+from gravel.api.orch import orch
 
 
 app = FastAPI()

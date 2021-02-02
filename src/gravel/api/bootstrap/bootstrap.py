@@ -15,8 +15,8 @@ from pydantic import BaseModel
 from typing import Optional, List, Tuple, Dict, Any
 from io import StringIO
 
-from controllers.gstate import gstate
-from cephadm.cephadm import Cephadm
+from gravel.controllers.gstate import gstate
+from gravel.cephadm.cephadm import Cephadm
 
 router: APIRouter = APIRouter(
     prefix="/bootstrap",
