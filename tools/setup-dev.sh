@@ -18,7 +18,7 @@ if [[ ! -e "venv" ]]; then
   # ceph repo we keep as a submodule, but it might be overkill at the moment?
   python3 -m venv --system-site-packages venv || exit 1
   source venv/bin/activate
-  pip install -r requirements.txt || exit 1
+  pip install -r src/requirements.txt || exit 1
 
 fi
 
