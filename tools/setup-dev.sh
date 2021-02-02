@@ -5,6 +5,16 @@ if ! ( echo "import rados" | python3 &>/dev/null ); then
   exit 1
 fi
 
+if ! which npm &>/dev/null ; then
+  echo "error: missing npm"
+  exit 1
+fi
+
+if ! which python3 &>/dev/null ; then
+  echo "error: missing python3"
+  exit 1
+fi
+
 # don't recurse into ceph.git unless we explicitly need a submodule.
 git submodule update --init || exit 1
 
@@ -17,8 +27,14 @@ if [[ ! -e "venv" ]]; then
   # be available as a package. It might be a good idea to compile it from the
   # ceph repo we keep as a submodule, but it might be overkill at the moment?
   python3 -m venv --system-site-packages venv || exit 1
-  source venv/bin/activate
-  pip install -r src/requirements.txt || exit 1
-
 fi
+
+source venv/bin/activate
+pip install -r src/requirements.txt || exit 1
+deactivate
+
+pushd src/glass
+npm install || exit 1
+npx ng build || exit 1
+popd
 
