@@ -7,10 +7,10 @@
     "build": "ng build",
     "test": "jest --watch",
     "test:ci": "jest",
-    "lint:tslint": "ng lint",
+    "lint:eslint": "ng lint",
     "lint": "run-p -csl --aggregate-output lint:*",
     "fix:prettier": "prettier --write \"{src,e2e}/**/*.{ts,scss}\"",
-    "fix:tslint": "npm run lint:tslint -- --fix",
+    "fix:eslint": "npm run lint:eslint -- --fix",
     "fix": "run-p -csl --aggregate-output fix:*",
     "e2e": "ng e2e"
   },
@@ -63,7 +63,17 @@
     "prettier": "^2.2.1",
     "protractor": "~7.0.0",
     "ts-node": "~8.3.0",
-    "tslint": "~6.1.0",
-    "typescript": "~4.1.2"
+    "typescript": "~4.1.3",
+    "eslint": "^7.6.0",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-jsdoc": "30.7.6",
+    "eslint-plugin-prefer-arrow": "1.2.2",
+    "@angular-eslint/builder": "1.1.0",
+    "@angular-eslint/eslint-plugin": "1.1.0",
+    "@angular-eslint/eslint-plugin-template": "1.1.0",
+    "@angular-eslint/schematics": "1.1.0",
+    "@angular-eslint/template-parser": "1.1.0",
+    "@typescript-eslint/eslint-plugin": "4.3.0",
+    "@typescript-eslint/parser": "4.3.0"
   }
 }

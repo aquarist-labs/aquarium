@@ -13,7 +13,7 @@ import { MainLayoutComponent } from './layouts/main-layout/main-layout.component
     BlockUIModule.forRoot(),
     CommonModule,
     MaterialModule,
-    RouterModule,
-  ],
+    RouterModule
+  ]
 })
 export class CoreModule {}

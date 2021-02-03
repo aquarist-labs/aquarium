@@ -9,7 +9,7 @@ describe('DashboardPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PagesModule],
+      imports: [PagesModule]
     }).compileComponents();
   });
 
