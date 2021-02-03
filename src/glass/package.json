@@ -7,10 +7,10 @@
     "build": "ng build",
     "test": "jest --watch",
     "test:ci": "jest",
-    "lint:tslint": "ng lint",
+    "lint:eslint": "ng lint",
     "lint": "run-p -csl --aggregate-output lint:*",
     "fix:prettier": "prettier --write \"{src,e2e}/**/*.{ts,scss}\"",
-    "fix:tslint": "npm run lint:tslint -- --fix",
+    "fix:eslint": "npm run lint:eslint -- --fix",
     "fix": "run-p -csl --aggregate-output fix:*",
     "e2e": "ng e2e"
   },
@@ -49,12 +49,24 @@
   "devDependencies": {
     "@angular-builders/jest": "^11.0.0",
     "@angular-devkit/build-angular": "~0.1101.2",
+    "@angular-eslint/builder": "1.1.0",
+    "@angular-eslint/eslint-plugin": "1.1.0",
+    "@angular-eslint/eslint-plugin-template": "1.1.0",
+    "@angular-eslint/schematics": "1.1.0",
+    "@angular-eslint/template-parser": "1.1.0",
     "@angular/cli": "~11.1.2",
     "@angular/compiler-cli": "~11.1.1",
     "@types/jasmine": "~3.6.0",
     "@types/jest": "^25.2.3",
     "@types/node": "^12.11.1",
+    "@typescript-eslint/eslint-plugin": "4.3.0",
+    "@typescript-eslint/parser": "4.3.0",
     "codelyzer": "^6.0.0",
+    "eslint": "^7.19.0",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-jsdoc": "30.7.6",
+    "eslint-plugin-prefer-arrow": "1.2.2",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "jest": "^26.6.3",
@@ -63,7 +75,6 @@
     "prettier": "^2.2.1",
     "protractor": "~7.0.0",
     "ts-node": "~8.3.0",
-    "tslint": "~6.1.0",
-    "typescript": "~4.1.2"
+    "typescript": "~4.1.3"
   }
 }

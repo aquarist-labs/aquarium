@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
 
-import { CoreModule } from './../../core.module';
-import { MainLayoutComponent } from './main-layout.component';
+import { CoreModule } from '~/app/core/core.module';
+import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
 
 describe('MainLayoutComponent', () => {
   let component: MainLayoutComponent;
@@ -11,7 +11,7 @@ describe('MainLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, NoopAnimationsModule, RouterTestingModule],
+      imports: [CoreModule, NoopAnimationsModule, RouterTestingModule]
     }).compileComponents();
   });
 

@@ -8,9 +8,9 @@
 
 import asyncio
 import os
-from typing import List
 from io import StringIO
 from typing import List, Tuple
+
 
 class Cephadm:
 
@@ -42,12 +42,10 @@ class Cephadm:
         )
         retcode = await asyncio.wait_for(process.wait(), None)
 
-        return stdout, stderr, retcode 
-
+        return stdout, stderr, retcode
 
     async def run_in_background(self, cmd: List[str]) -> None:
         pass
-
 
     async def _tee(self, reader: asyncio.StreamReader) -> str:
         collected = StringIO()

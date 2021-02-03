@@ -1,3 +1,6 @@
+$glass-color-transparent: transparent;
+$glass-color-white: white;
+
 $eos-green-palette: (
   50: #e6f7ef,
   100: #c1ead7,
@@ -27,8 +30,8 @@ $eos-green-palette: (
     A100: #000000,
     A200: #000000,
     A400: #000000,
-    A700: #000000,
-  ),
+    A700: #000000
+  )
 );
 
 $eos-red-palette: (
@@ -60,8 +63,8 @@ $eos-red-palette: (
     A100: #000000,
     A200: #000000,
     A400: #000000,
-    A700: #000000,
-  ),
+    A700: #000000
+  )
 );
 
 $eos-cerulean-palette: (
@@ -93,6 +96,6 @@ $eos-cerulean-palette: (
     A100: #000000,
     A200: #000000,
     A400: #000000,
-    A700: #000000,
-  ),
+    A700: #000000
+  )
 );

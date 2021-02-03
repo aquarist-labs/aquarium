@@ -12,10 +12,8 @@ from enum import Enum
 from fastapi.routing import APIRouter
 from fastapi.logger import logger
 from pydantic import BaseModel
-from typing import Optional, List, Tuple, Dict, Any
-from io import StringIO
+from typing import Optional, List, Dict, Any
 
-from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
 
 router: APIRouter = APIRouter(
@@ -51,7 +49,7 @@ class Bootstrap:
         logger.debug("bootstrap > do bootstrap")
 
         selected_addr: Optional[str] = None
-        
+
         try:
             selected_addr = await self._find_candidate_addr()
         except NetworkAddressNotFoundError as e:
@@ -69,10 +67,8 @@ class Bootstrap:
 
         return True
 
-
     async def get_stage(self) -> BootstrapStage:
         return self.stage
-
 
     async def _find_candidate_addr(self) -> str:
         logger.debug("bootstrap > find candidate address")
@@ -90,7 +86,7 @@ class Bootstrap:
         if retcode != 0:
             logger.error("bootstrap > error obtaining host facts!")
             raise NetworkAddressNotFoundError("error obtaining host facts")
-        
+
         hostinfo: Dict[str, Any] = {}
         try:
             hostinfo = json.loads(stdout)
@@ -124,7 +120,6 @@ class Bootstrap:
 
         return selected
 
-
     async def _do_bootstrap(self, selected_addr: str) -> None:
         logger.debug("bootstrap > run in background")
         assert selected_addr is not None and len(selected_addr) > 0
@@ -142,7 +137,7 @@ class Bootstrap:
 
         if retcode != 0:
             raise BootstrapError(f"error bootstrapping: rc = {retcode}")
-        
+
         self.stage = BootstrapStage.DONE
 
 
@@ -160,11 +155,11 @@ bootstrap = Bootstrap()
 @router.post("/start")
 async def start_bootstrap() -> BasicReply:
     res: bool = await bootstrap.bootstrap()
-    return { "success": res }
+    return BasicReply(success=res)
 
 
 @router.get("/status")
 async def get_status() -> StatusReply:
     stage: BootstrapStage = await bootstrap.get_stage()
     stagestr: str = stage.name.lower()
-    return { "status": stagestr }
+    return StatusReply(status=stagestr)

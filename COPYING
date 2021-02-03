@@ -8,3 +8,25 @@ Files: src/gravel/ceph.git
 Copyright: (c) Ceph and contributors
 Source: https://github.com/ceph/ceph
 License: LGPL-2.1 or LGPL-3 (see COPYING-LGPL2.1 and COPYING-LGPL3)
+
+Files: src/glass/src/assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg
+Source: https://unsplash.com/photos/pSmXVhWr9kE
+Copyright: Qijin Xu <https://unsplash.com/@obkim>
+License: Unsplash License
+ Unsplash grants you an irrevocable, nonexclusive, worldwide copyright
+ license to download, copy, modify, distribute, perform, and use photos
+ from Unsplash for free, including for commercial purposes, without
+ permission from or attributing the photographer or Unsplash. This
+ license does not include the right to compile photos from Unsplash to
+ replicate a similar or competing service.
+
+Files: src/glass/src/assets/images/mohamed-ahsan-pV4utCVv6vk-unsplash.jpg
+Source: https://unsplash.com/photos/pV4utCVv6vk
+Copyright: Mohamed Ahsan <https://unsplash.com/@shampzz>
+License: Unsplash License
+ Unsplash grants you an irrevocable, nonexclusive, worldwide copyright
+ license to download, copy, modify, distribute, perform, and use photos
+ from Unsplash for free, including for commercial purposes, without
+ permission from or attributing the photographer or Unsplash. This
+ license does not include the right to compile photos from Unsplash to
+ replicate a similar or competing service.

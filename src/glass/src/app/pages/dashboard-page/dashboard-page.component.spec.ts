@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PagesModule } from '../pages.module';
-import { DashboardPageComponent } from './dashboard-page.component';
+import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
+import { PagesModule } from '~/app/pages/pages.module';
 
 describe('DashboardPageComponent', () => {
   let component: DashboardPageComponent;
@@ -9,7 +9,7 @@ describe('DashboardPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PagesModule],
+      imports: [PagesModule]
     }).compileComponents();
   });
 

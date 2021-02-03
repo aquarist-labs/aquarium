@@ -1,0 +1,7 @@
+@import 'styles.scss';
+
+.mat-toolbar {
+  button .mat-icon {
+    color: $glass-color-primary-complementary;
+  }
+}
