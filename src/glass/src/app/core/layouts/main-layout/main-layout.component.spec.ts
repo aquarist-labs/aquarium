@@ -11,7 +11,7 @@ describe('MainLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, NoopAnimationsModule, RouterTestingModule],
+      imports: [CoreModule, NoopAnimationsModule, RouterTestingModule]
     }).compileComponents();
   });
 
