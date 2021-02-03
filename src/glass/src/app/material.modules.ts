@@ -1,7 +1,25 @@
 import { NgModule } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @NgModule({
-  exports: [MatSidenavModule]
+  exports: [
+    MatSidenavModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule
+  ]
 })
-export class MaterialModule {}
+export class MaterialModule {
+  constructor(domSanitizer: DomSanitizer, matIconRegistry: MatIconRegistry) {
+    matIconRegistry.addSvgIconSetInNamespace(
+      'mdi',
+      domSanitizer.bypassSecurityTrustResourceUrl('./assets/mdi.svg')
+    );
+  }
+}
