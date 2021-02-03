@@ -10,3 +10,13 @@ $glass-light-theme: mat-light-theme(
 );
 
 @include angular-material-theme($glass-light-theme);
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
+
+$glass-color-primary-complementary: white;

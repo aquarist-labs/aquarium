@@ -8,7 +8,7 @@ import { MatDrawerMode } from '@angular/material/sidenav/drawer';
 })
 export class MainLayoutComponent implements OnInit {
   public sideNavMode: MatDrawerMode = 'side';
-  public sideNavOpened = false;
+  public sideNavOpened = true;
 
   constructor() {}
 

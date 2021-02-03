@@ -6,9 +6,11 @@ import { BlockUIModule } from 'ng-block-ui';
 
 import { MaterialModule } from './../material.modules';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
+import { TopBarComponent } from './top-bar/top-bar.component';
+import { NavigationBarComponent } from './navigation-bar/navigation-bar.component';
 
 @NgModule({
-  declarations: [MainLayoutComponent],
+  declarations: [MainLayoutComponent, TopBarComponent, NavigationBarComponent],
   imports: [
     BlockUIModule.forRoot(),
     CommonModule,
