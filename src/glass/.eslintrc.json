@@ -1,18 +1,11 @@
 {
   "root": true,
-  "ignorePatterns": [
-    "projects/**/*"
-  ],
+  "ignorePatterns": ["projects/**/*"],
   "overrides": [
     {
-      "files": [
-        "*.ts"
-      ],
+      "files": ["*.ts"],
       "parserOptions": {
-        "project": [
-          "tsconfig.json",
-          "e2e/tsconfig.json"
-        ],
+        "project": ["tsconfig.json", "e2e/tsconfig.json"],
         "createDefaultProgram": true
       },
       "extends": [
@@ -20,10 +13,15 @@
         "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
         "plugin:@angular-eslint/template/process-inline-templates"
       ],
+      "plugins": ["simple-import-sort"],
       "rules": {
+        "simple-import-sort/imports": "error",
         "comma-dangle": ["error", "never"],
         "eol-last": ["error", "always"],
-        "no-trailing-spaces": ["error", { "skipBlankLines": false, "ignoreComments": false }],
+        "no-trailing-spaces": [
+          "error",
+          { "skipBlankLines": false, "ignoreComments": false }
+        ],
         "@angular-eslint/component-selector": [
           "error",
           {
@@ -43,12 +41,8 @@
       }
     },
     {
-      "files": [
-        "*.html"
-      ],
-      "extends": [
-        "plugin:@angular-eslint/template/recommended"
-      ],
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
       "rules": {}
     }
   ]
