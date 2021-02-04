@@ -15,7 +15,8 @@
     background-color: rgba(255, 255, 255, 0.1);
 
     .mat-button {
-      background-color: $glass-color-white;
+      color: $glass-color-accent-complementary;
+      background-color: $glass-color-accent;
     }
   }
 }
