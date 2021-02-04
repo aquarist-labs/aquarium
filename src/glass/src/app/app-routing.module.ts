@@ -3,7 +3,10 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
+import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
+import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
+import { InstTypePageComponent } from '~/app/pages/inst-type-page/inst-type-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 
 const routes: Routes = [
@@ -18,6 +21,9 @@ const routes: Routes = [
     component: InstallerLayoutComponent,
     children: [
       { path: '', redirectTo: 'welcome', pathMatch: 'full' },
+      { path: 'bootstrap', component: BootstrapPageComponent },
+      { path: 'deployment', component: DeploymentPageComponent },
+      { path: 'insttype', component: InstTypePageComponent },
       { path: 'welcome', component: WelcomePageComponent }
     ]
   }
