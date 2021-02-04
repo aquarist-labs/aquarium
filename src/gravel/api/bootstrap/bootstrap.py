@@ -12,10 +12,8 @@ from enum import Enum
 from fastapi.routing import APIRouter
 from fastapi.logger import logger
 from pydantic import BaseModel
-from typing import Optional, List, Tuple, Dict, Any
-from io import StringIO
+from typing import Optional, List, Dict, Any
 
-from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
 
 router: APIRouter = APIRouter(

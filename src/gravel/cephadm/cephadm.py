@@ -8,7 +8,6 @@
 
 import asyncio
 import os
-from typing import List
 from io import StringIO
 from typing import List, Tuple
 
