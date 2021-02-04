@@ -160,11 +160,11 @@ bootstrap = Bootstrap()
 @router.post("/start")
 async def start_bootstrap() -> BasicReply:
     res: bool = await bootstrap.bootstrap()
-    return { "success": res }
+    return BasicReply(success=res)
 
 
 @router.get("/status")
 async def get_status() -> StatusReply:
     stage: BootstrapStage = await bootstrap.get_stage()
     stagestr: str = stage.name.lower()
-    return { "status": stagestr }
+    return StatusReply(status=stagestr)
