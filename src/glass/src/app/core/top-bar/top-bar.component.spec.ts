@@ -1,6 +1,8 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TopBarComponent } from './top-bar.component';
+import { CoreModule } from '~/app/core/core.module';
+import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
 
 describe('TopBarComponent', () => {
   let component: TopBarComponent;
@@ -8,7 +10,7 @@ describe('TopBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TopBarComponent]
+      imports: [CoreModule, HttpClientTestingModule]
     }).compileComponents();
   });
 

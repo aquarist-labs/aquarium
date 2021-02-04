@@ -1,22 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { CoreModule } from '~/app/core/core.module';
-import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
+import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 
-describe('MainLayoutComponent', () => {
-  let component: MainLayoutComponent;
-  let fixture: ComponentFixture<MainLayoutComponent>;
+describe('InstallerLayoutComponent', () => {
+  let component: InstallerLayoutComponent;
+  let fixture: ComponentFixture<InstallerLayoutComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, NoopAnimationsModule, RouterTestingModule]
+      imports: [CoreModule, RouterTestingModule]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(MainLayoutComponent);
+    fixture = TestBed.createComponent(InstallerLayoutComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

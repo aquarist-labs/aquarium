@@ -3,18 +3,19 @@ import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { BlockUIModule } from 'ng-block-ui';
 
-import { MaterialModule } from './../material.modules';
-import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
-import { NavigationBarComponent } from './navigation-bar/navigation-bar.component';
-import { TopBarComponent } from './top-bar/top-bar.component';
+import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
+import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
+import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
+import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
+import { MaterialModule } from '~/app/material.modules';
 
 @NgModule({
-  declarations: [MainLayoutComponent, TopBarComponent, NavigationBarComponent],
-  imports: [
-    BlockUIModule.forRoot(),
-    CommonModule,
-    MaterialModule,
-    RouterModule
-  ]
+  declarations: [
+    MainLayoutComponent,
+    TopBarComponent,
+    NavigationBarComponent,
+    InstallerLayoutComponent
+  ],
+  imports: [BlockUIModule.forRoot(), CommonModule, MaterialModule, RouterModule]
 })
 export class CoreModule {}

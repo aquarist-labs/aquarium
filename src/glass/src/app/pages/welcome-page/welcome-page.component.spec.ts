@@ -1,20 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
-import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
+import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 
-describe('DashboardPageComponent', () => {
-  let component: DashboardPageComponent;
-  let fixture: ComponentFixture<DashboardPageComponent>;
+describe('WelcomePageComponent', () => {
+  let component: WelcomePageComponent;
+  let fixture: ComponentFixture<WelcomePageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PagesModule]
+      imports: [PagesModule, RouterTestingModule]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DashboardPageComponent);
+    fixture = TestBed.createComponent(WelcomePageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

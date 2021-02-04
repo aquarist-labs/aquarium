@@ -1,5 +1,5 @@
-@import "~@angular/material/theming";
-@import "defaults.scss";
+@import '~@angular/material/theming';
+@import 'defaults.scss';
 
 @include mat-core();
 
@@ -11,6 +11,10 @@ $glass-light-theme: mat-light-theme(
 
 @include angular-material-theme($glass-light-theme);
 
+$glass-color-primary: mat-color(map-get($glass-light-theme, primary));
+$glass-color-primary-complementary: white;
+$glass-color-accent: mat-color(map-get($glass-light-theme, accent));
+
 html,
 body {
   height: 100%;
@@ -18,5 +22,3 @@ body {
 body {
   margin: 0;
 }
-
-$glass-color-primary-complementary: white;
