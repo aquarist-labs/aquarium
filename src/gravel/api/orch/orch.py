@@ -22,4 +22,4 @@ class HostsReply(BaseModel):
 
 @router.get("/hosts")
 def get_hosts() -> HostsReply:
-    return { "hosts": [] }
+    return HostsReply(hosts=[])
