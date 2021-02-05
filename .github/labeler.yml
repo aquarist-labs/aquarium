@@ -1,0 +1,17 @@
+documentation:
+  - AUTHORS
+  - CONTRIBUTING.md
+  - COPYING*
+  - LICENSE*
+  - README.md
+  - doc/**
+  - "**/*.+(rst|md)"
+
+glass:
+  - src/glass/**
+
+gravel:
+  - src/gravel/**
+
+CI:
+  - .github/**
