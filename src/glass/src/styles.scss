@@ -16,6 +16,15 @@ $glass-color-primary-complementary: white;
 $glass-color-accent: mat-color(map-get($glass-light-theme, accent));
 $glass-color-accent-complementary: white;
 
+.glass-theme-primary {
+  color: $glass-color-primary-complementary;
+  background-color: $glass-color-primary;
+}
+.glass-theme-accent {
+  color: $glass-color-accent-complementary;
+  background-color: $glass-color-accent;
+}
+
 html,
 body {
   height: 100%;

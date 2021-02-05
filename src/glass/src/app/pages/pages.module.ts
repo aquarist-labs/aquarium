@@ -7,7 +7,7 @@ import { MaterialModule } from '~/app/material.modules';
 import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
-import { InstTypePageComponent } from '~/app/pages/inst-type-page/inst-type-page.component';
+import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 
 @NgModule({
@@ -15,7 +15,7 @@ import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.comp
     BootstrapPageComponent,
     DashboardPageComponent,
     DeploymentPageComponent,
-    InstTypePageComponent,
+    InstallModePageComponent,
     WelcomePageComponent
   ],
   imports: [CommonModule, FlexLayoutModule, MaterialModule, RouterModule]
