@@ -11,9 +11,11 @@ import json
 from enum import Enum
 from fastapi.routing import APIRouter
 from fastapi.logger import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 
+from gravel.controllers.config import DeploymentStage
+from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
 
 router: APIRouter = APIRouter(
@@ -30,11 +32,11 @@ class BootstrapError(Exception):
     pass
 
 
-class BootstrapStage(Enum):
-    NONE = 0
-    RUNNING = 1
-    DONE = 2
-    ERROR = 3
+class BootstrapStage(str, Enum):
+    NONE = "none"
+    RUNNING = "running"
+    DONE = "done"
+    ERROR = "error"
 
 
 class Bootstrap:
@@ -45,8 +47,25 @@ class Bootstrap:
         self.stage = BootstrapStage.NONE
         pass
 
+    async def _should_bootstrap(self) -> bool:
+        state: DeploymentStage = gstate.config.deployment_state.stage
+        if state == DeploymentStage.none or \
+           state == DeploymentStage.bootstrapping:
+            return True
+        return False
+
+    async def _is_bootstrapping(self) -> bool:
+        state: DeploymentStage = gstate.config.deployment_state.stage
+        return state == DeploymentStage.bootstrapping
+
     async def bootstrap(self) -> bool:
         logger.debug("bootstrap > do bootstrap")
+
+        if not await self._should_bootstrap():
+            return False
+
+        if await self._is_bootstrapping():
+            return True
 
         selected_addr: Optional[str] = None
 
@@ -124,6 +143,7 @@ class Bootstrap:
         logger.debug("bootstrap > run in background")
         assert selected_addr is not None and len(selected_addr) > 0
         self.stage = BootstrapStage.RUNNING
+        gstate.config.set_deployment_stage(DeploymentStage.bootstrapping)
 
         stdout: str = ""
         stderr: str = ""
@@ -139,27 +159,27 @@ class Bootstrap:
             raise BootstrapError(f"error bootstrapping: rc = {retcode}")
 
         self.stage = BootstrapStage.DONE
+        gstate.config.set_deployment_stage(DeploymentStage.bootstrapped)
 
 
-class BasicReply(BaseModel):
-    success: bool
+class StartReplyModel(BaseModel):
+    success: bool = Field(title="Operation started successfully")
 
 
-class StatusReply(BaseModel):
-    status: str
+class StatusReplyModel(BaseModel):
+    stage: BootstrapStage = Field(title="Current bootstrapping stage")
 
 
 bootstrap = Bootstrap()
 
 
-@router.post("/start")
-async def start_bootstrap() -> BasicReply:
+@router.post("/start", response_model=StartReplyModel)
+async def start_bootstrap() -> StartReplyModel:
     res: bool = await bootstrap.bootstrap()
-    return BasicReply(success=res)
+    return StartReplyModel(success=res)
 
 
-@router.get("/status")
-async def get_status() -> StatusReply:
+@router.get("/status", response_model=StatusReplyModel)
+async def get_status() -> StatusReplyModel:
     stage: BootstrapStage = await bootstrap.get_stage()
-    stagestr: str = stage.name.lower()
-    return StatusReply(status=stagestr)
+    return StatusReplyModel(stage=stage)
