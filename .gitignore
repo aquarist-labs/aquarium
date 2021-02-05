@@ -12,6 +12,7 @@ wheelhouse/
 .vscode
 .mypy_cache/
 src/gravel/cephadm/cephadm.bin
+src/.tox/
 images/build/
 tests/vagrant/setups/
 .vagrant/
