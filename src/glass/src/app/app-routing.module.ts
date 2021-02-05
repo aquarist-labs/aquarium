@@ -23,7 +23,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'welcome', pathMatch: 'full' },
       { path: 'bootstrap', component: BootstrapPageComponent },
       { path: 'deployment', component: DeploymentPageComponent },
-      { path: 'insttype', component: InstallModePageComponent },
+      { path: 'install-mode', component: InstallModePageComponent },
       { path: 'welcome', component: WelcomePageComponent }
     ]
   }

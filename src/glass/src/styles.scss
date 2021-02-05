@@ -25,6 +25,16 @@ $glass-color-accent-complementary: white;
   background-color: $glass-color-accent;
 }
 
+.glass-text-pre-wrap {
+  white-space: pre-wrap;
+}
+.glass-text-pre {
+  white-space: pre;
+}
+.glass-text-center {
+  text-align: center;
+}
+
 html,
 body {
   height: 100%;

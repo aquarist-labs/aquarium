@@ -2,19 +2,31 @@
      fxLayout="column"
      fxLayoutAlign="center center">
   <mat-card>
+    <mat-card-header>
+      <mat-card-title>Choose installation mode</mat-card-title>
+    </mat-card-header>
     <mat-card-content>
-      <h1>Choose installation mode</h1>
       <div fxLayout="row"
-           fxLayoutAlign="space-evenly center">
-        <button mat-button
-                routerLink="/installer/bootstrap">
-          Create new cluster
-        </button>
-        <button mat-button
-                routerLink="/installer/welcome"
-                disabled>
-          Join existing cluster
-        </button>
+           fxLayoutGap="16px">
+        <div fxFlex="50"
+             fxLayout="column">
+          <button mat-button
+                  routerLink="/installer/bootstrap">
+            <mat-icon svgIcon="mdi:plus"></mat-icon>
+            Create new cluster
+          </button>
+          <p class="glass-install-mode-description">Setup will create a new deployment from scratch, configuring this node as a standalone storage solution.</p>
+        </div>
+        <div fxFlex="50"
+             fxLayout="column">
+          <button mat-button
+                  routerLink="/installer/welcome"
+                  disabled>
+            <mat-icon svgIcon="mdi:vector-combine"></mat-icon>
+            Join existing cluster
+          </button>
+          <p class="glass-install-mode-description">Setup will search for existing deployments in the network and be assimilated.</p>
+        </div>
       </div>
     </mat-card-content>
     <mat-card-actions>
