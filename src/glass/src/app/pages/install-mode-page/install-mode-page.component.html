@@ -1,0 +1,27 @@
+<div class="glass-install-mode-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <mat-card>
+    <mat-card-content>
+      <h1>Choose installation mode</h1>
+      <div fxLayout="row"
+           fxLayoutAlign="space-evenly center">
+        <button mat-button
+                routerLink="/installer/bootstrap">
+          Create new cluster
+        </button>
+        <button mat-button
+                routerLink="/installer/welcome"
+                disabled>
+          Join existing cluster
+        </button>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-button
+              routerLink="/installer/welcome">
+        Back
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
