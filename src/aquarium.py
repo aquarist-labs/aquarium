@@ -24,7 +24,7 @@ from fastapi.logger import logger
 
 from gravel.api import bootstrap
 from gravel.api.orch import orch
-from gravel.api.status import status
+from gravel.api import status
 
 
 app = FastAPI()
