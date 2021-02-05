@@ -47,8 +47,25 @@ class Bootstrap:
         self.stage = BootstrapStage.NONE
         pass
 
+    async def _should_bootstrap(self) -> bool:
+        state: DeploymentStage = gstate.config.deployment_state.stage
+        if state == DeploymentStage.none or \
+           state == DeploymentStage.bootstrapping:
+            return True
+        return False
+
+    async def _is_bootstrapping(self) -> bool:
+        state: DeploymentStage = gstate.config.deployment_state.stage
+        return state == DeploymentStage.bootstrapping
+
     async def bootstrap(self) -> bool:
         logger.debug("bootstrap > do bootstrap")
+
+        if not await self._should_bootstrap():
+            return False
+
+        if await self._is_bootstrapping():
+            return True
 
         selected_addr: Optional[str] = None
 
