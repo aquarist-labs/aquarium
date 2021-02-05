@@ -23,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger
 
 from gravel.api import bootstrap
-from gravel.api.orch import orch
+from gravel.api import orch
 from gravel.api import status
 
 
