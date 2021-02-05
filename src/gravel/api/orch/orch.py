@@ -16,10 +16,10 @@ router: APIRouter = APIRouter(
 )
 
 
-class HostsReply(BaseModel):
+class HostsReplyModel(BaseModel):
     hosts: List[str]
 
 
-@router.get("/hosts")
-def get_hosts() -> HostsReply:
-    return HostsReply(hosts=[])
+@router.get("/hosts", response_model=HostsReplyModel)
+def get_hosts() -> HostsReplyModel:
+    return HostsReplyModel(hosts=[])
