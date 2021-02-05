@@ -8,18 +8,18 @@ Project Scope
 Aquarist Labs are an organization of like-minded individuals working on
 the Aquariums project. 
 
-The scope of Aquarist Labs is to investigate the beginnings of a new storage
-appliance project in an opinionated fashion. This includes the planning,
+The scope of Aquarist Labs is to investigate the beginnings of an opinionated
+new storage appliance project in an collaborative fashion. This includes the planning,
 design, development, testing and successful public release of a new project.
 
-The Aquariums project is a new project developed by SUSE engineers to develop
-a new storage appliance. Aquariums is initially designed to be a standalone
+The Aquariums project is a new project to develop
+a storage appliance. Aquariums is initially designed to be a standalone
 project, and not at all related to the SUSE product, SUSE Enterprise Storage.
 
 The scope of this project also includes successful external user adoption
-based on GitHub stars, testing, and documentation. The Aquariums project is
-split into two clearly defined work streams: Gravel (backend) and Glass
-(frontend). 
+based on feedback, issues, downloads, GitHub stars, testing and documentation.
+The Aquariums project is split into two clearly defined work streams: Gravel
+(backend) and Glass (frontend). 
 
 Project Success Metrics
 -----------------------
@@ -37,12 +37,12 @@ User Story
 ~~~~~~~~~~
 
 Currently, the perception is that Ceph is too complex to use for the average
-user. This complexity stems from ceph's flexibility that supports a huge
+user. This complexity stems from Ceph's flexibility that supports a huge
 matrix of use cases and the effects this has on available capacity,
 performance and thus availability. At least partially this perceived complexity
 can also be blamed on the current user interface abstraction.
 
-All current management tooling deploys ceph bottom-up, i.e. the user must
+All current management tooling deploys Ceph bottom-up, i.e. the user must
 specify deployment patterns at the daemon level, create pools and crushmaps
 (which encode various availability and performance requirements) and only
 then can a user deploy their workload.
@@ -59,9 +59,10 @@ with the feedback (be it positive or negative).
 Project Vision
 ~~~~~~~~~~~~~~
 
-The Aquariums project is designed to deliver FreeNAS for enterprise,
-built on on industry standard scripts, tools, and frameworks (lightweight,
-modern CI, no OBS, etc.) as an open source alternative to NetApp and EMC.
+The Aquarium project is designed to deliver a Ceph-based appliance for
+enterprise, built on on industry standard scripts, tools, and frameworks
+(lightweight, modern CI, lightweight build system, etc.) as an open source
+alternative to NetApp and EMC.
 
 Aquariums has the following:
 
@@ -130,7 +131,7 @@ Communication Management Plan
          - This includes meeting minutes that are regularly sent to the mailing list.
      - Weekly
      - Teams
-     - ceph@suse.de
+     - TBD
      - asettle@suse.com
    * - Chat
      -
