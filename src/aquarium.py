@@ -24,6 +24,7 @@ from fastapi.logger import logger
 
 from gravel.api.bootstrap import bootstrap
 from gravel.api.orch import orch
+from gravel.api.status import status
 
 
 app = FastAPI()
@@ -46,6 +47,7 @@ async def on_shutdown():
 
 api.include_router(bootstrap.router)
 api.include_router(orch.router)
+api.include_router(status.router)
 
 
 #
