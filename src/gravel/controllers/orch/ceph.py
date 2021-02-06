@@ -1,23 +1,30 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
 
-import rados
+import rados  # type: ignore
+import json
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
 
 class CephError(Exception):
     pass
 
+
 class CephNotConnectedError(CephError):
     pass
 
 
-class Ceph:
+class CephCommandError(CephError):
+    pass
+
+
+class Ceph(ABC):
 
     cluster: rados.Rados
 
-    def __init__(self, confpath: str="/etc/ceph/ceph.conf"):
+    def __init__(self, confpath: str = "/etc/ceph/ceph.conf"):
 
         path = Path(confpath)
         if not path.exists():
@@ -64,11 +71,60 @@ class Ceph:
         except Exception as e:
             raise CephError(e)
 
-    def call(self, cmd: Dict[str, Any]) -> str:
-        # just a stub for now
-        return ""
+    def mon(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        self.assert_is_ready()
+        try:
+            cmdstr: str = json.dumps(cmd)
+            rc, out, outstr = self.cluster.mon_command(cmdstr, b"")
+            res: Dict[str, Any] = {}
+            if rc != 0:
+                raise CephCommandError(outstr)
+            if out:
+                res = json.loads(out)
+            elif outstr:
+                res = json.loads(out)
+            return res
+        except Exception as e:
+            raise CephCommandError(e) from e
+
+    def mgr(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        return {}
+
+    @abstractmethod
+    def call(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        raise NotImplementedError("method 'call' has not been implemented")
+
+
+class Mgr(Ceph):
+
+    def __init__(self):
+        super().__init__()
+
+    def call(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        return self.mgr(cmd)
+
+
+class Mon(Ceph):
+
+    def __init__(self):
+        super().__init__()
+
+    def call(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        return self.mon(cmd)
+
+    @property
+    def status(self) -> Dict[str, Any]:
+        cmd: Dict[str, Any] = {
+            "prefix": "status",
+            "format": "json"
+        }
+        result = self.mon(cmd)  # propagate exception
+        return result
 
 
 if __name__ == "__main__":
-    mgr = Ceph()
+    mgr = Mgr()
     print(f"fsid: {mgr.fsid}")
+    mon = Mon()
+    print(f"fsid: {mon.fsid}")
+    print(f"status: {mon.status}")
