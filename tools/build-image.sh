@@ -110,7 +110,8 @@ build_glass() {
 bundle() {
   bundledir=${build}/bundle
   bundle_usr=${bundledir}/usr/share/aquarium
-  mkdir -p ${bundle_usr} || true
+  bundle_etc=${bundledir}/etc/systemd/system
+  mkdir -p ${bundle_usr} ${bundle_etc} || true
   build_glass || exit 1
 
   pushd ${srcdir}
@@ -120,8 +121,10 @@ bundle() {
   cp -R --parents --target-directory=${bundle_usr} glass/dist || exit 1
   popd
 
+  cp ${rootdir}/systemd/aquarium.service ${bundle_etc} || exit 1
+
   pushd ${build}
-  tar -C ${bundledir} usr -cf aquarium.tar || exit 1
+  tar -C ${bundledir} usr etc -cf aquarium.tar || exit 1
   popd
 }
 
