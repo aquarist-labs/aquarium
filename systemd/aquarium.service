@@ -1,0 +1,12 @@
+[Unit]
+Description=Project Aquarium
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/usr/share/aquarium
+ExecStart=uvicorn aquarium:app --host 0.0.0.0 --port 1337
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
