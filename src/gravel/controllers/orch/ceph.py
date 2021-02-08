@@ -1,6 +1,7 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
 
+from json.decoder import JSONDecodeError
 import rados  # type: ignore
 import json
 from abc import ABC, abstractmethod
@@ -64,7 +65,7 @@ class Ceph(ABC):
             raise CephNotConnectedError()
 
     @property
-    def fsid(self):
+    def fsid(self) -> str:
         self.assert_is_ready()
         try:
             return self.cluster.get_fsid()
@@ -80,9 +81,12 @@ class Ceph(ABC):
             if rc != 0:
                 raise CephCommandError(outstr)
             if out:
-                res = json.loads(out)
-            elif outstr:
-                res = json.loads(outstr)
+                try:
+                    res = json.loads(out)
+                except JSONDecodeError:  # maybe free-form?
+                    res = {"result": outstr}
+            elif outstr:  # assume 'outstr' always as free-form text
+                res = {"result": outstr}
             return res
         except Exception as e:
             raise CephCommandError(e) from e
