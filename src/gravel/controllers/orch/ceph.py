@@ -5,7 +5,7 @@ import rados  # type: ignore
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Any
+from typing import Callable, Dict, Any
 
 
 class CephError(Exception):
@@ -71,27 +71,30 @@ class Ceph(ABC):
         except Exception as e:
             raise CephError(e)
 
-    def mon(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+    def _cmd(self, func: Callable, cmd: Dict[str, Any]) -> Any:
         self.assert_is_ready()
         try:
             cmdstr: str = json.dumps(cmd)
-            rc, out, outstr = self.cluster.mon_command(cmdstr, b"")
+            rc, out, outstr = func(cmdstr, b"")
             res: Dict[str, Any] = {}
             if rc != 0:
                 raise CephCommandError(outstr)
             if out:
                 res = json.loads(out)
             elif outstr:
-                res = json.loads(out)
+                res = json.loads(outstr)
             return res
         except Exception as e:
             raise CephCommandError(e) from e
 
-    def mgr(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
-        return {}
+    def mon(self, cmd: Dict[str, Any]) -> Any:
+        return self._cmd(self.cluster.mon_command, cmd)
+
+    def mgr(self, cmd: Dict[str, Any]) -> Any:
+        return self._cmd(self.cluster.mgr_command, cmd)
 
     @abstractmethod
-    def call(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+    def call(self, cmd: Dict[str, Any]) -> Any:
         raise NotImplementedError("method 'call' has not been implemented")
 
 
@@ -100,7 +103,7 @@ class Mgr(Ceph):
     def __init__(self):
         super().__init__()
 
-    def call(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+    def call(self, cmd: Dict[str, Any]) -> Any:
         return self.mgr(cmd)
 
 
@@ -109,7 +112,7 @@ class Mon(Ceph):
     def __init__(self):
         super().__init__()
 
-    def call(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+    def call(self, cmd: Dict[str, Any]) -> Any:
         return self.mon(cmd)
 
     @property
@@ -118,7 +121,7 @@ class Mon(Ceph):
             "prefix": "status",
             "format": "json"
         }
-        result = self.mon(cmd)  # propagate exception
+        result: Dict[str, Any] = self.mon(cmd)  # propagate exception
         return result
 
 
