@@ -99,7 +99,7 @@ Milestones
      - February 17, 2021
    * - Milestone 2
      -
-          - Demonstration to internal stakeholders
+         - Demonstration to internal stakeholders
          - Multi-node deploy
          - Introduce CI/CD, testing, and documentation to support multi-node deploy
      - March 17, 2021
