@@ -64,9 +64,9 @@ done
   echo "error: setup with name '${setup_name} already exists" && \
   exit 1
 
-
+echo "=> Searching for Vagrant box '${box}' ..."
 if ! vagrant box list | grep -q "^${box}[ ]\+" ; then
-  echo "=> vagrant box '${box}' not found, searching for existing build"
+  echo "=> Vagrant box '${box}' not found, searching for existing build"
 
   imgdir=$(realpath ${basedir}/../../images)
 
@@ -88,6 +88,8 @@ if ! vagrant box list | grep -q "^${box}[ ]\+" ; then
     exit 1
 
   vagrant box add ${box} ${img} || exit 1
+else
+  echo "=> Vagrant box '${box}' already exists"
 fi
 
 sdir=${setupdir}/${setup_name}

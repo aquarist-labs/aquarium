@@ -1,0 +1,4 @@
+**/.github
+**/ceph.git
+**/venv/
+**/node_modules/
