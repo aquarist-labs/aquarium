@@ -1,24 +1,23 @@
 ======================
-Aquariums Project Plan
+Aquarium Project Plan
 ======================
 
 Project Scope
 ~~~~~~~~~~~~~
 
-Aquarist Labs are an organization of like-minded individuals working on
-the Aquariums project. 
+Aquarist Labs is an organization of like-minded individuals working on
+the Aquarium project. 
 
 The scope of Aquarist Labs is to investigate the beginnings of an opinionated
 new storage appliance project in an collaborative fashion. This includes the planning,
 design, development, testing and successful public release of a new project.
 
-The Aquariums project is initially designed to be a new
-standalone project to develop a Ceph based storage appliance.
+The Aquarium project aims to develop a standalone Ceph-based storage appliance.
 
-The scope of this project also includes successful external user adoption
-based on feedback, issues, downloads, GitHub stars, testing and documentation.
-The Aquariums project is split into two clearly defined work streams: Gravel
-(backend) and Glass (frontend). 
+The scope of this project also includes measuring successful external user adoption
+based on feedback, issues, downloads, GitHub stars, project telemetry, testing, and documentation.
+The Aquarium project is split into two development work streams: Gravel
+(backend) and Glass (frontend). Other work items include documentation and social media communications.
 
 Project Success Metrics
 -----------------------
@@ -74,7 +73,7 @@ Aquariums has the following:
 Quality Management
 ~~~~~~~~~~~~~~~~~~
 
-Testing
+Project quality is ensured by light-weight, modern CI/CD tools that automatically validate builds. The project team will also prioritize user feedback on quality over features. This will be refined in future milestones.
 
 Risk Management 
 ~~~~~~~~~~~~~~~
