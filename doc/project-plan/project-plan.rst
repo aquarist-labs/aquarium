@@ -121,7 +121,7 @@ Communication Management Plan
      - Format
      - Distribution
      - Owner
-   * - Team meeetings
+   * - Team meetings
      -
          - Weekly meeting (x3 per timezone) to discuss Aquarist Labs.
          - This includes meeting minutes that are regularly sent to the mailing list.
