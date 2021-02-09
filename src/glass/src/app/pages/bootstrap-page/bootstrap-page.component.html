@@ -1,9 +1,31 @@
-<p>bootstrap-page works!</p>
-<button mat-button
-        routerLink="/installer/install-mode">
-  Back
-</button>
-<button mat-button
-        routerLink="/installer/deployment">
-  Next
-</button>
+<div class="glass-bootstrap-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <div class="glass-bootstrap-page-background"></div>
+  <div class="glass-bootstrap-page-content"
+       fxLayout="column"
+       fxLayoutAlign="center center">
+    <mat-card *ngIf="visible">
+      <mat-card-header>
+        <mat-card-title>Bootstrap system</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div fxLayout="column"
+             fxLayoutAlign="center center">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin porttitor quam convallis hendrerit lacinia. Integer consectetur metus eu nibh fringilla, ac lobortis nisl porttitor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec at purus odio.</p>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-icon-button
+                matTooltip="Back"
+                routerLink="/installer/install-mode">
+          <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+        </button>
+        <button mat-button
+                (click)="startBootstrap()">
+          Start
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

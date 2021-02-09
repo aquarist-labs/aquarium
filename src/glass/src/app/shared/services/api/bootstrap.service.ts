@@ -7,7 +7,7 @@ export type BootstrapBasicReply = {
 };
 
 export type BootstrapStatusReply = {
-  status: 'none' | 'running' | 'done' | 'error';
+  stage: 'none' | 'running' | 'done' | 'error';
 };
 
 @Injectable({
