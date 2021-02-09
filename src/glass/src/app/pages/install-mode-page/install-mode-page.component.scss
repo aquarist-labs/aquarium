@@ -11,8 +11,7 @@
 
   .mat-card {
     width: 50%;
-    color: $glass-color-white;
-    background-color: rgba(255, 255, 255, 0.1);
+    @extend .glass-theme-white;
 
     ::ng-deep .mat-card-header > .mat-card-header-text {
       margin-left: unset;
@@ -20,7 +19,7 @@
 
     .mat-card-content {
       .mat-button {
-        @extend .glass-theme-primary;
+        @extend .glass-background-color-primary;
         height: 100px;
       }
     }
