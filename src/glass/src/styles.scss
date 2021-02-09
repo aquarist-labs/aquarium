@@ -24,6 +24,14 @@ $glass-color-accent-complementary: white;
   color: $glass-color-accent-complementary;
   background-color: $glass-color-accent;
 }
+.glass-theme-white {
+  color: $glass-color-white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-background-color-primary {
+  background-color: $glass-color-primary;
+}
 
 .glass-text-pre-wrap {
   white-space: pre-wrap;
