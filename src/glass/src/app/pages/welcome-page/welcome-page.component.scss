@@ -11,7 +11,7 @@
   position: absolute;
   height: 100%;
   width: 100%;
-  background-color: $glass-color-accent;
+  background-color: $glass-color-primary;
   background-image: url('./../../../assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg');
   background-blend-mode: multiply;
   background-size: cover;
@@ -34,7 +34,7 @@
     }
 
     .mat-button {
-      @extend .glass-theme-accent;
+      @extend .glass-theme-primary;
     }
   }
 }
