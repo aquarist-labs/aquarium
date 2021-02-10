@@ -64,3 +64,11 @@ class OrchDevicesPerHostModel(BaseModel):
     devices: List[OrchDeviceModel]
     labels: List[str]
     name: str
+
+
+class CephFSNameModel(BaseModel):
+    name: str
+
+
+class CephFSVolumeListModel(BaseModel):
+    volumes: List[CephFSNameModel]
