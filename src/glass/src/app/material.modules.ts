@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -14,7 +15,8 @@ import { DomSanitizer } from '@angular/platform-browser';
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    MatCardModule
+    MatCardModule,
+    MatSnackBarModule
   ]
 })
 export class MaterialModule {

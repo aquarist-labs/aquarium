@@ -11,7 +11,7 @@
         <div fxFlex="50"
              fxLayout="column">
           <button mat-button
-                  routerLink="/installer/bootstrap">
+                  routerLink="/installer/create/bootstrap">
             <mat-icon svgIcon="mdi:plus"></mat-icon>
             Create new cluster
           </button>
@@ -20,7 +20,7 @@
         <div fxFlex="50"
              fxLayout="column">
           <button mat-button
-                  routerLink="/installer/welcome"
+                  routerLink="/installer/join/unknown"
                   disabled>
             <mat-icon svgIcon="mdi:vector-combine"></mat-icon>
             Join existing cluster
@@ -30,9 +30,10 @@
       </div>
     </mat-card-content>
     <mat-card-actions>
-      <button mat-button
+      <button mat-icon-button
+              matTooltip="Back"
               routerLink="/installer/welcome">
-        Back
+        <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
       </button>
     </mat-card-actions>
   </mat-card>

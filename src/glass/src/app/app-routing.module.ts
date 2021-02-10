@@ -21,10 +21,15 @@ const routes: Routes = [
     component: InstallerLayoutComponent,
     children: [
       { path: '', redirectTo: 'welcome', pathMatch: 'full' },
-      { path: 'bootstrap', component: BootstrapPageComponent },
-      { path: 'deployment', component: DeploymentPageComponent },
       { path: 'install-mode', component: InstallModePageComponent },
-      { path: 'welcome', component: WelcomePageComponent }
+      { path: 'welcome', component: WelcomePageComponent },
+      {
+        path: 'create',
+        children: [
+          { path: 'bootstrap', component: BootstrapPageComponent },
+          { path: 'deployment', component: DeploymentPageComponent }
+        ]
+      }
     ]
   }
 ];

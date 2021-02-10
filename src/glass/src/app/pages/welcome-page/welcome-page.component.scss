@@ -1,39 +1,39 @@
 @import 'styles.scss';
 
-.glass-welcome-wrapper {
+.glass-welcome-page {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-}
 
-.glass-welcome-page-background {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  background-color: $glass-color-accent;
-  background-image: url('./../../../assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg');
-  background-blend-mode: multiply;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  animation: zoom-in 10s ease-in-out forwards;
-}
+  .glass-welcome-page-background {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: $glass-color-accent;
+    background-image: url('./../../../assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg');
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    animation: zoom-in 10s ease-in-out forwards;
+  }
 
-.glass-welcome-page-content {
-  height: 100%;
-  width: 100%;
+  .glass-welcome-page-content {
+    height: 100%;
+    width: 100%;
 
-  .mat-card {
-    width: 50%;
-    @extend .glass-theme-white;
+    .mat-card {
+      width: 50%;
+      @extend .glass-theme-white;
 
-    ::ng-deep .mat-card-header > .mat-card-header-text {
-      margin-left: unset;
-    }
+      ::ng-deep .mat-card-header > .mat-card-header-text {
+        margin-left: unset;
+      }
 
-    .mat-button {
-      @extend .glass-theme-accent;
+      .mat-button {
+        @extend .glass-theme-accent;
+      }
     }
   }
 }

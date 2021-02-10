@@ -28,9 +28,16 @@ $glass-color-accent-complementary: white;
   color: $glass-color-white;
   background-color: rgba(255, 255, 255, 0.1);
 }
+.glass-color-theme-error {
+  color: $glass-color-white;
+  background-color: $eos-bc-red-500;
+}
 
 .glass-background-color-primary {
   background-color: $glass-color-primary;
+}
+.glass-background-color-accent {
+  background-color: $glass-color-accent;
 }
 
 .glass-text-pre-wrap {
@@ -49,4 +56,9 @@ body {
 }
 body {
   margin: 0;
+}
+
+// BlockUI
+.block-ui-wrapper {
+  background: transparent !important;
 }
