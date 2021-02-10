@@ -6,6 +6,7 @@ import {
   HttpRequest
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import * as _ from 'lodash';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -21,8 +22,16 @@ export class HttpErrorInterceptorService implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((err) => {
         if (err instanceof HttpErrorResponse) {
-          this.notificationService.show(err.message, {
+          const notificationId: number = this.notificationService.show(err.message, {
             type: 'error'
+          });
+
+          /**
+           * Decorate preventDefault method. If called, it will prevent a
+           * notification to be shown.
+           */
+          _.set(err, 'preventDefault', () => {
+            this.notificationService.cancel(notificationId);
           });
         }
         return throwError(err);
