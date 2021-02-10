@@ -2,7 +2,7 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 from json.decoder import JSONDecodeError
-import rados  # type: ignore
+import rados
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -72,7 +72,9 @@ class Ceph(ABC):
         except Exception as e:
             raise CephError(e)
 
-    def _cmd(self, func: Callable, cmd: Dict[str, Any]) -> Any:
+    def _cmd(self, func: Callable[[str, bytes], Any],
+             cmd: Dict[str, Any]
+             ) -> Any:
         self.assert_is_ready()
         try:
             cmdstr: str = json.dumps(cmd)
