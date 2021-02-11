@@ -1,0 +1,18 @@
+@import 'styles.scss';
+
+.glass-not-found-page {
+  @extend .glass-theme-accent;
+
+  height: 100%;
+  width: 100%;
+  background-image: url('./../../../assets/images/isabel-galvez-i54owgDjXeY-unsplash.jpg');
+  background-blend-mode: multiply;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+
+  .big-alert-icon {
+    height: 100px;
+    width: 100px;
+  }
+}

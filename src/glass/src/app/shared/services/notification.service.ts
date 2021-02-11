@@ -25,12 +25,26 @@ export class NotificationService {
    * @param message The message to be displayed.
    * @param config The time the notification is displayed.
    *   Defaults to 2000 milliseconds.
+   * @returns The timeout ID that is set to be able to cancel the
+   *   notification.
    */
-  show(message: string, config: NotificationConfig) {
-    _.defaultsDeep(config, { type: NotificationType.info, duration: 2000 });
-    this.snackBar.open(message, undefined, {
-      duration: config.duration,
-      panelClass: config.type === NotificationType.error ? 'glass-color-theme-error' : undefined
-    });
+  show(message: string, config: NotificationConfig): number {
+    return window.setTimeout(() => {
+      _.defaultsDeep(config, { type: NotificationType.info, duration: 2000 });
+      this.snackBar.open(message, undefined, {
+        duration: config.duration,
+        panelClass: config.type === NotificationType.error ? 'glass-color-theme-error' : undefined
+      });
+    }, 5);
+  }
+
+  /**
+   * Cancel a notification.
+   *
+   * @param id A number representing the ID of the timeout to be
+   *   canceled.
+   */
+  cancel(id: number): void {
+    window.clearTimeout(id);
   }
 }
