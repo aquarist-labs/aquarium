@@ -12,6 +12,10 @@ from io import StringIO
 from typing import List, Tuple
 
 
+class CephadmError(Exception):
+    pass
+
+
 class Cephadm:
 
     def __init__(self):
@@ -53,3 +57,18 @@ class Cephadm:
             msg = line.decode("utf-8")
             collected.write(msg)
         return collected.getvalue()
+
+    #
+    # command wrappers
+    #
+
+    async def bootstrap(self, addr: str) -> Tuple[str, str, int]:
+
+        if not addr:
+            raise CephadmError("address not specified")
+
+        cmd = f"bootstrap --skip-prepare-host --mon-ip {addr}"
+        return await self.call(cmd)
+
+    async def gather_facts(self) -> Tuple[str, str, int]:
+        return await self.call("gather-facts")
