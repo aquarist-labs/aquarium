@@ -18,6 +18,9 @@ find_root() {
 }
 
 find_root || exit 1
+[[ -z "${rootdir}" ]] && \
+  echo "error: unable to find repository's root dir" && \
+  exit 1
 
 imgdir=${rootdir}/images
 srcdir=${rootdir}/src
@@ -111,14 +114,22 @@ bundle() {
   bundledir=${build}/bundle
   bundle_usr=${bundledir}/usr/share/aquarium
   bundle_etc=${bundledir}/etc/systemd/system
-  mkdir -p ${bundle_usr} ${bundle_etc} || true
+  bundle_sbin=${bundledir}/usr/sbin
+  mkdir -p ${bundle_usr} ${bundle_etc} ${bundle_sbin} || true
   build_glass || exit 1
+
+  pushd ${rootdir}
+  git submodule update --init || exit 1
+  popd
 
   pushd ${srcdir}
   find ./gravel -iname '*ceph.git*' -prune -false -o -iname '*.py' | \
     xargs cp --parents --target-directory=${bundle_usr} || exit 1
   cp --target-directory=${bundle_usr} ./aquarium.py || exit 1
   cp -R --parents --target-directory=${bundle_usr} glass/dist || exit 1
+
+  cp --target-directory=${bundle_sbin} \
+    ./gravel/ceph.git/src/cephadm/cephadm || exit 1
   popd
 
   cp ${rootdir}/systemd/aquarium.service ${bundle_etc} || exit 1
