@@ -2,11 +2,10 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 import asyncio
-import json
 from enum import Enum
 from logging import Logger
-from typing import Optional, List, Dict, Any
 from fastapi.logger import logger as fastapi_logger
+from typing import Optional, List
 
 from gravel.controllers.config import DeploymentStage
 from gravel.controllers.gstate import gstate
@@ -84,38 +83,22 @@ class Bootstrap:
     async def _find_candidate_addr(self) -> str:
         logger.debug("bootstrap > find candidate address")
 
-        stdout: str = ""
-        retcode: int = 0
-
         try:
             cephadm: Cephadm = Cephadm()
-            stdout, _, retcode = await cephadm.gather_facts()
+            facts = await cephadm.gather_facts()
         except Exception as e:
             raise NetworkAddressNotFoundError(e)
 
-        if retcode != 0:
-            logger.error("bootstrap > error obtaining host facts!")
-            raise NetworkAddressNotFoundError("error obtaining host facts")
-
-        hostinfo: Dict[str, Any] = {}
-        try:
-            hostinfo = json.loads(stdout)
-        except Exception as e:
-            raise NetworkAddressNotFoundError(e)
-
-        if not hostinfo:
-            logger.error("bootstrap > empty host facts!")
-            raise NetworkAddressNotFoundError("unavailable host facts")
-
-        if "interfaces" not in hostinfo:
+        if len(facts.interfaces) == 0:
             logger.error("bootstrap > unable to find interface facts!")
             raise NetworkAddressNotFoundError("interfaces not available")
 
         candidates: List[str] = []
-        for iface, info in hostinfo["interfaces"].items():
-            if info["iftype"] == "loopback":
+
+        for nic in facts.interfaces.values():
+            if nic.iftype == "loopback":
                 continue
-            candidates.append(info["ipv4_address"])
+            candidates.append(nic.ipv4_address)
 
         selected: Optional[str] = None
         if len(candidates) > 0:

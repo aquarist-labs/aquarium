@@ -11,6 +11,10 @@ import os
 from io import StringIO
 from typing import List, Tuple
 
+import pydantic
+
+from .models import HostFactsModel
+
 
 class CephadmError(Exception):
     pass
@@ -70,5 +74,11 @@ class Cephadm:
         cmd = f"bootstrap --skip-prepare-host --mon-ip {addr}"
         return await self.call(cmd)
 
-    async def gather_facts(self) -> Tuple[str, str, int]:
-        return await self.call("gather-facts")
+    async def gather_facts(self) -> HostFactsModel:
+        stdout, stderr, rc = await self.call("gather-facts")
+        if rc != 0:
+            raise CephadmError(stderr)
+        try:
+            return HostFactsModel.parse_raw(stdout)
+        except pydantic.error_wrappers.ValidationError:
+            raise CephadmError("format error while obtaining facts")
