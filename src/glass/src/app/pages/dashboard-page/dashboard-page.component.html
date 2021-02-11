@@ -1,1 +1,49 @@
-<p>dashboard-page works!</p>
+<div fxLayout="column">
+  <mat-toolbar fxLayout="row" fxLayoutAlign="end center">
+    <button mat-icon-button
+            matTooltip="Settings"
+            [matMenuTriggerFor]="widgetsMenu">
+      <mat-icon svgIcon="mdi:apps"></mat-icon>
+    </button>
+  </mat-toolbar>
+  <div fxLayout="row wrap"
+       fxLayout.lt-lg="column">
+    <div *ngFor="let widget of enabledWidgets"
+         fxFlex="50"
+         fxFlex.gt-lg="33"
+         fxFlex.lt-sm="100">
+      <ng-container [ngSwitch]="widget.id">
+        <mat-card>
+          <mat-card-title-group>
+            <mat-card-title>{{ widget.title }}</mat-card-title>
+          </mat-card-title-group>
+          <mat-card-content>
+            <ng-template [ngSwitchCase]="'capacity'">
+              <glass-capacity-dashboard-widget [config]="widget"></glass-capacity-dashboard-widget>
+            </ng-template>
+            <ng-template [ngSwitchCase]="'devices'">
+              <glass-devices-dashboard-widget [config]="widget"></glass-devices-dashboard-widget>
+            </ng-template>
+            <ng-template [ngSwitchCase]="'health'">
+              <glass-health-dashboard-widget [config]="widget"></glass-health-dashboard-widget>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<mat-menu #widgetsMenu="matMenu">
+  <button *ngFor="let widget of widgets"
+          mat-menu-item
+          (click)="onToggleWidget(widget.id)">
+    <mat-icon *ngIf="!enabled.includes(widget.id)"
+              svgIcon="mdi:checkbox-blank-outline">
+    </mat-icon>
+    <mat-icon *ngIf="enabled.includes(widget.id)"
+              svgIcon="mdi:check-box-outline">
+    </mat-icon>
+    <span>{{ widget.title }}</span>
+  </button>
+</mat-menu>

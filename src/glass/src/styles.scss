@@ -32,6 +32,10 @@ $glass-color-accent-complementary: white;
   color: $glass-color-white;
   background-color: $eos-bc-red-500;
 }
+.glass-color-theme-ok {
+  color: $glass-color-white;
+  background-color: $glass-color-primary;
+}
 
 .glass-background-color-primary {
   background-color: $glass-color-primary;
@@ -61,4 +65,12 @@ body {
 // BlockUI
 .block-ui-wrapper {
   background: transparent !important;
+}
+
+// Sidenav
+.mat-sidenav-container {
+  height: 100%;
+}
+.mat-sidenav {
+  background-color: $eos-bc-pine-500;
 }

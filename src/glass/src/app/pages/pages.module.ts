@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 
+import { CoreModule } from '~/app/core/core.module';
 import { MaterialModule } from '~/app/material.modules';
 import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
@@ -20,6 +21,6 @@ import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.comp
     WelcomePageComponent,
     NotFoundPageComponent
   ],
-  imports: [CommonModule, FlexLayoutModule, MaterialModule, RouterModule]
+  imports: [CommonModule, CoreModule, FlexLayoutModule, MaterialModule, RouterModule]
 })
 export class PagesModule {}
