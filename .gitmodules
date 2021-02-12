@@ -1,4 +1,4 @@
 [submodule "ceph.git"]
 	path = src/gravel/ceph.git
 	url = https://github.com/aquarist-labs/ceph.git
-	branch = aquarium-pacific-backports
+	branch = pacific
