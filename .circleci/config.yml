@@ -15,7 +15,7 @@ jobs:
         - image: opensuse/tumbleweed:latest
     steps:
       - checkout
-      - run: zypper ref && zypper in sudo
+      - run: zypper ref && zypper in -n sudo
       - run:
           name: Setup Dev
           command: ./tools/setup-dev.sh
