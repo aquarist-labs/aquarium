@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  "build":
+    docker:
+        - image: opensuse/leap:15.2
+    steps:
+      - checkout
+      - run:
+          name: Setup Dev
+          command: ./tools/setup-dev.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - "build"
