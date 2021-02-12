@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  "leap-15.2":
+  "leap-15-2":
     docker:
         - image: opensuse/leap:15.2
     steps:
