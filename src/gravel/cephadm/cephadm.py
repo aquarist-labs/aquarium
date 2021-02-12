@@ -8,12 +8,14 @@
 
 import asyncio
 import os
+import json
 from io import StringIO
 from typing import List, Tuple
 
 import pydantic
+from pydantic.tools import parse_obj_as
 
-from .models import HostFactsModel
+from .models import HostFactsModel, VolumeDeviceModel
 
 
 class CephadmError(Exception):
@@ -82,3 +84,22 @@ class Cephadm:
             return HostFactsModel.parse_raw(stdout)
         except pydantic.error_wrappers.ValidationError:
             raise CephadmError("format error while obtaining facts")
+
+    async def get_volume_inventory(self) -> List[VolumeDeviceModel]:
+        cmd = "ceph-volume inventory --format=json"
+        stdout, stderr, rc = await self.call(cmd)
+        if rc != 0:
+            raise CephadmError(stderr)
+        try:
+            devs = json.loads(stdout)
+            print(json.dumps(devs, indent=2))
+        except json.decoder.JSONDecodeError as e:
+            raise CephadmError("format error while obtaining inventory") from e
+        inventory = parse_obj_as(List[VolumeDeviceModel], devs)
+        for d in inventory:
+            if not d.human_readable_type:
+                if d.sys_api.rotational:
+                    d.human_readable_type = "hdd"
+                else:
+                    d.human_readable_type = "ssd"
+        return inventory
