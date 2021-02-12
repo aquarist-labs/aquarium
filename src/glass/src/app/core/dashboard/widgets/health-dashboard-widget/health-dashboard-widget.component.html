@@ -1,0 +1,10 @@
+<div class="glass-health-dashboard-widget"
+     [ngClass]="{'glass-color-theme-ok': data, 'glass-color-theme-error': !data}"
+     fxFlex
+     fxLayout="row"
+     fxLayoutAlign="center center">
+  <mat-icon *ngIf="data"
+            svgIcon="mdi:thumb-up"></mat-icon>
+  <mat-icon *ngIf="!data"
+            svgIcon="mdi:thumb-down"></mat-icon>
+</div>

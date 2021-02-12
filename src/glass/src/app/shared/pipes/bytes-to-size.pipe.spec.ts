@@ -1,4 +1,4 @@
-import { BytesToSizePipe } from './bytes-to-size.pipe';
+import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 
 describe('BytesToSizePipe', () => {
   const pipe = new BytesToSizePipe();

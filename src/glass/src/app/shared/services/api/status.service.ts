@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export type Status = {
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  deployment_state: 'none' | 'bootstrapping' | 'bootstrapped' | 'ready';
+  deployment_state: 'none' | 'bootstrapping' | 'bootstrapped' | 'ready' | 'unknown';
 };
 
 @Injectable({

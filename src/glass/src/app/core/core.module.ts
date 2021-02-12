@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { BlockUIModule } from 'ng-block-ui';
 
+import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layout.component';
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
@@ -18,6 +19,7 @@ import { MaterialModule } from '~/app/material.modules';
     InstallerLayoutComponent,
     BlankLayoutComponent
   ],
-  imports: [BlockUIModule.forRoot(), CommonModule, MaterialModule, RouterModule]
+  imports: [BlockUIModule.forRoot(), CommonModule, MaterialModule, RouterModule, DashboardModule],
+  exports: [DashboardModule]
 })
 export class CoreModule {}

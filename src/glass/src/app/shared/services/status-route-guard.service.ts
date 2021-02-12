@@ -30,7 +30,7 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
           err.preventDefault();
         }
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        const res: Status = { deployment_state: 'none' };
+        const res: Status = { deployment_state: 'unknown' };
         return of(res);
       }),
       map((res: Status) => {
@@ -57,7 +57,6 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
             result = this.router.parseUrl('/dashboard');
             break;
           case 'none':
-          default:
             if (
               [
                 '/installer/welcome',
@@ -70,6 +69,8 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
               result = this.router.parseUrl('/installer');
             }
             break;
+          default:
+            result = true;
         }
         return result;
       })
