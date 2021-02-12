@@ -10,7 +10,7 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel
 from typing import Dict, List
 from gravel.cephadm.cephadm import Cephadm
-from gravel.cephadm.models import HostFactsModel, VolumeDeviceModel
+from gravel.cephadm.models import HostFactsModel, NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
 from gravel.controllers.orch.orchestrator \
@@ -102,3 +102,9 @@ async def get_facts() -> HostFactsModel:
 async def get_volumes() -> List[VolumeDeviceModel]:
     cephadm = Cephadm()
     return await cephadm.get_volume_inventory()
+
+
+@router.get("/nodeinfo", response_model=NodeInfoModel)
+async def get_node_info() -> NodeInfoModel:
+    cephadm = Cephadm()
+    return await cephadm.get_node_info()
