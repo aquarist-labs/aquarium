@@ -1,9 +1,18 @@
 version: 2.1
 
 jobs:
-  "build":
+  "leap-15.2":
     docker:
         - image: opensuse/leap:15.2
+    steps:
+      - checkout
+      - run:
+          name: Setup Dev
+          command: ./tools/setup-dev.sh
+          
+  "tumbleweed":
+    docker:
+        - image: opensuse/tumbleweed:latest
     steps:
       - checkout
       - run:
@@ -14,4 +23,4 @@ workflows:
   version: 2
   build:
     jobs:
-      - "build"
+      - "tumbleweed"
