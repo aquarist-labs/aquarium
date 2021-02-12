@@ -6,7 +6,9 @@
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
 
+from logging import Logger
 from fastapi.routing import APIRouter
+from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from typing import Dict, List
 from gravel.cephadm.cephadm import Cephadm
@@ -16,6 +18,8 @@ from gravel.controllers.orch.models import OrchDevicesPerHostModel
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
 
+
+logger: Logger = fastapi_logger
 
 router: APIRouter = APIRouter(
     prefix="/orch",
@@ -108,3 +112,16 @@ async def get_volumes() -> List[VolumeDeviceModel]:
 async def get_node_info() -> NodeInfoModel:
     cephadm = Cephadm()
     return await cephadm.get_node_info()
+
+
+@router.post("/devices/assimilate", response_model=bool)
+async def assimilate_devices() -> bool:
+
+    try:
+        orch = Orchestrator()
+        orch.assimilate_all_devices()
+    except Exception as e:
+        logger.error(str(e))
+        return False
+
+    return True

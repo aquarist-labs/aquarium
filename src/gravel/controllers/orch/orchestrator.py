@@ -30,3 +30,11 @@ class Orchestrator:
         cmd = {"prefix": "orch device ls"}
         res = self.call(cmd)
         return parse_obj_as(List[OrchDevicesPerHostModel], res)
+
+    def assimilate_all_devices(self) -> None:
+        cmd = {
+            "prefix": "orch apply osd",
+            "all_available_devices": True
+        }
+        res = self.call(cmd)
+        assert "result" in res
