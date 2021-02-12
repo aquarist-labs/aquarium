@@ -3,6 +3,7 @@
 
 from typing import Any, Dict, List
 from pydantic import BaseModel
+from pydantic.fields import Field
 
 
 class DeviceModel(BaseModel):
@@ -59,3 +60,34 @@ class HostFactsModel(BaseModel):
     system_uptime: float
     timestamp: int
     vendor: str
+
+
+class DeviceSysInfoModel(BaseModel):
+    human_readable_size: str
+    locked: int
+    model: str
+    nr_requests: int
+    partitions: Dict[str, Any]
+    removable: bool
+    rev: str
+    ro: bool
+    rotational: bool
+    sas_address: str
+    sas_device_handle: str
+    scheduler_mode: str
+    sectors: int
+    sectorsize: int
+    size: int
+    support_discard: int
+    vendor: str
+
+
+class VolumeDeviceModel(BaseModel):
+    available: bool
+    device_id: str
+    human_readable_type: str = Field("")
+    lsm_data: Dict[str, Any]
+    lvs: List[Any]
+    path: str
+    rejected_reasons: List[str]
+    sys_api: DeviceSysInfoModel
