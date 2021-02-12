@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { Observable, of } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
@@ -9,9 +9,6 @@ import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-d
   styleUrls: ['./health-dashboard-widget.component.scss']
 })
 export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<boolean> {
-  @Input()
-  config: Record<string, any> = {};
-
   data = false;
 
   loadData(): Observable<boolean> {

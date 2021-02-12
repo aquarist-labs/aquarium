@@ -30,8 +30,8 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
   protected refreshData(): void {
     this.refreshDataSubscription = this.loadData().subscribe((data) => {
       this.refreshDataSubscription?.unsubscribe();
-      this.loadDataEvent.emit(data);
       this.data = data;
+      this.loadDataEvent.emit(data);
       if (this.isAutoReloadable()) {
         setTimeout(() => {
           this.refreshData();

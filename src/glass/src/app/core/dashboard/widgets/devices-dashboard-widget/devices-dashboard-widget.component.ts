@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { Observable, of } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
@@ -11,9 +11,6 @@ import { Device } from '~/app/shared/services/api/orch.service';
   styleUrls: ['./devices-dashboard-widget.component.scss']
 })
 export class DevicesDashboardWidgetComponent extends AbstractDashboardWidget<Device[]> {
-  @Input()
-  config: Record<string, any> = {};
-
   data: Device[] = [];
   displayedColumns: string[] = ['path', 'device_id', 'vendor', 'size'];
 

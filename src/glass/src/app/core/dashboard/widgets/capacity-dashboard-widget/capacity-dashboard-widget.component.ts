@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import * as _ from 'lodash';
 import { Observable, of, Subscription } from 'rxjs';
@@ -13,9 +13,6 @@ import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-d
 export class CapacityDashboardWidgetComponent
   extends AbstractDashboardWidget<number[]>
   implements OnInit, OnDestroy {
-  @Input()
-  config: Record<string, any> = {};
-
   chart?: Chart;
   data: number[] = [];
 
