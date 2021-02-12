@@ -14,7 +14,7 @@ from gravel.cephadm.models import HostFactsModel, NodeInfoModel, VolumeDeviceMod
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
 from gravel.controllers.orch.orchestrator \
-    import OrchestratorDevices, OrchestratorHosts
+    import Orchestrator
 
 
 router: APIRouter = APIRouter(
@@ -51,8 +51,8 @@ class HostsDevicesModel(BaseModel):
 
 @router.get("/hosts", response_model=HostsReplyModel)
 def get_hosts() -> HostsReplyModel:
-    orch = OrchestratorHosts()
-    orch_hosts = orch.ls()
+    orch = Orchestrator()
+    orch_hosts = orch.host_ls()
     hosts: HostsReplyModel = HostsReplyModel(hosts=[])
     for h in orch_hosts:
         hosts.hosts.append(HostModel(hostname=h.hostname, address=h.addr))
@@ -62,8 +62,8 @@ def get_hosts() -> HostsReplyModel:
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
 def get_devices() -> Dict[str, HostsDevicesModel]:
-    orch = OrchestratorDevices()
-    orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.ls()
+    orch = Orchestrator()
+    orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
     host_devs: Dict[str, HostsDevicesModel] = {}
     for orch_host in orch_devs_per_host:
 
