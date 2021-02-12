@@ -69,7 +69,7 @@ if ! ${skip_install_deps} ; then
   case $osid in
     *opensuse-tumbleweed*)
       echo "=> try installing dependencies"
-      sudo zypper install ${dependencies_opensuse_tumbleweed[*]} || exit 1
+      sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || exit 1
       ;;
     *)
       echo "error: unsupported distribution ($osid)"
