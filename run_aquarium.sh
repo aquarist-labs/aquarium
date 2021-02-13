@@ -6,5 +6,5 @@ if ! which uvicorn >&/dev/null ; then
 fi
 
 pushd src &>/dev/null
-uvicorn aquarium:app --host 0.0.0.0 --port 1337
+DEBUG=1 uvicorn aquarium:app --host 0.0.0.0 --port 1337
 popd &>/dev/null

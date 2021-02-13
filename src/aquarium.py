@@ -19,6 +19,7 @@
 
 import asyncio
 import logging
+import os
 from typing import cast
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -41,8 +42,10 @@ api = FastAPI()
 async def on_startup():
     uvilogger = cast(logging.Handler, logging.getLogger("uvicorn"))
     logger.addHandler(uvilogger)
-    logger.setLevel(logging.DEBUG)
-    logger.info("app startup")
+    if os.getenv("DEBUG"):
+        uvilogger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
+    logger.info("Aquarium startup!")
     
     # create a task simply so we don't hold up the startup
     asyncio.create_task(gstate.start())
