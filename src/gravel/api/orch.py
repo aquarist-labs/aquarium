@@ -9,6 +9,7 @@
 from logging import Logger
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
+from fastapi import HTTPException, status
 from pydantic import BaseModel
 from typing import Dict, List
 from gravel.cephadm.cephadm import Cephadm
@@ -17,6 +18,7 @@ from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
+from gravel.controllers.system import inventory
 
 
 logger: Logger = fastapi_logger
@@ -112,6 +114,15 @@ async def get_volumes() -> List[VolumeDeviceModel]:
 async def get_node_info() -> NodeInfoModel:
     cephadm = Cephadm()
     return await cephadm.get_node_info()
+
+
+@router.get("/inventory", response_model=NodeInfoModel)
+async def get_inventory() -> NodeInfoModel:
+    latest = await inventory.latest()
+    if not latest:
+        raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
+                            detail="Inventory not available")
+    return latest
 
 
 @router.post("/devices/assimilate", response_model=bool)
