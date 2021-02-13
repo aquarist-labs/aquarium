@@ -2,14 +2,17 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 import asyncio
-import json
 from enum import Enum
-from fastapi.logger import logger
-from typing import Optional, List, Dict, Any
+from logging import Logger
+from fastapi.logger import logger as fastapi_logger
+from typing import Optional, List
 
 from gravel.controllers.config import DeploymentStage
 from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
+
+
+logger: Logger = fastapi_logger  # required to provide type-hint to pylance
 
 
 class NetworkAddressNotFoundError(Exception):
@@ -80,39 +83,22 @@ class Bootstrap:
     async def _find_candidate_addr(self) -> str:
         logger.debug("bootstrap > find candidate address")
 
-        stdout: str = ""
-        stderr: str = ""
-        retcode: int = 0
-
         try:
             cephadm: Cephadm = Cephadm()
-            stdout, stderr, retcode = await cephadm.call("gather-facts")
+            facts = await cephadm.gather_facts()
         except Exception as e:
             raise NetworkAddressNotFoundError(e)
 
-        if retcode != 0:
-            logger.error("bootstrap > error obtaining host facts!")
-            raise NetworkAddressNotFoundError("error obtaining host facts")
-
-        hostinfo: Dict[str, Any] = {}
-        try:
-            hostinfo = json.loads(stdout)
-        except Exception as e:
-            raise NetworkAddressNotFoundError(e)
-
-        if not hostinfo:
-            logger.error("bootstrap > empty host facts!")
-            raise NetworkAddressNotFoundError("unavailable host facts")
-
-        if "interfaces" not in hostinfo:
+        if len(facts.interfaces) == 0:
             logger.error("bootstrap > unable to find interface facts!")
             raise NetworkAddressNotFoundError("interfaces not available")
 
         candidates: List[str] = []
-        for iface, info in hostinfo["interfaces"].items():
-            if info["iftype"] == "loopback":
+
+        for nic in facts.interfaces.values():
+            if nic.iftype == "loopback":
                 continue
-            candidates.append(info["ipv4_address"])
+            candidates.append(nic.ipv4_address)
 
         selected: Optional[str] = None
         if len(candidates) > 0:
@@ -133,15 +119,12 @@ class Bootstrap:
         self.stage = BootstrapStage.RUNNING
         gstate.config.set_deployment_stage(DeploymentStage.bootstrapping)
 
-        stdout: str = ""
-        stderr: str = ""
         retcode: int = 0
         try:
-            cmd = f"bootstrap --skip-prepare-host --mon-ip {selected_addr}"
             cephadm: Cephadm = Cephadm()
-            stdout, stderr, retcode = await cephadm.call(cmd)
+            _, _, retcode = await cephadm.bootstrap(selected_addr)
         except Exception as e:
-            raise BootstrapError(e)
+            raise BootstrapError(e) from e
 
         if retcode != 0:
             raise BootstrapError(f"error bootstrapping: rc = {retcode}")
