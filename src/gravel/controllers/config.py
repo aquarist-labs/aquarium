@@ -19,6 +19,8 @@ class DeploymentStateModel(BaseModel):
 class OptionsModel(BaseModel):
     inventory_probe_interval: int = Field(60, title="Inventory Probe Interval")
     storage_probe_interval: float = Field(30.0, title="Storage Probe Interval")
+    service_state_path: str = Field("/etc/aquarium/storage.json",
+                                    title="Path to Service State file")
 
 
 class ConfigModel(BaseModel):
