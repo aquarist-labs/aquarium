@@ -17,32 +17,41 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+import asyncio
 import logging
+from typing import cast
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.logger import logger
+from fastapi.logger import logger as fastapi_logger
+
+from gravel import gstate
 
 from gravel.api import bootstrap
 from gravel.api import orch
 from gravel.api import status
 
 
+logger: logging.Logger = fastapi_logger
+
 app = FastAPI()
 api = FastAPI()
 
 
-@app.on_event("startup")
+@app.on_event("startup")  # type: ignore
 async def on_startup():
-    uvilogger = logging.getLogger("uvicorn")
+    uvilogger = cast(logging.Handler, logging.getLogger("uvicorn"))
     logger.addHandler(uvilogger)
     logger.setLevel(logging.DEBUG)
     logger.info("app startup")
+    
+    # create a task simply so we don't hold up the startup
+    asyncio.create_task(gstate.start())
     pass
 
 
-@app.on_event("shutdown")
+@app.on_event("shutdown")  # type: ignore
 async def on_shutdown():
-    pass
+    await gstate.shutdown()
 
 
 api.include_router(bootstrap.router)
