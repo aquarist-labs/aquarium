@@ -6,12 +6,16 @@
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
 
+from logging import Logger
 from fastapi.routing import APIRouter
-from fastapi.logger import logger
+from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
 from gravel.controllers.bootstrap \
     import Bootstrap, BootstrapStage
+
+
+logger: Logger = fastapi_logger
 
 router: APIRouter = APIRouter(
     prefix="/bootstrap",
@@ -32,7 +36,7 @@ class StatusReplyModel(BaseModel):
 @router.post("/start", response_model=StartReplyModel)
 async def start_bootstrap() -> StartReplyModel:
     res: bool = await bootstrap.bootstrap()
-    logger.info(f"bootstrap > start (success: {res})")
+    logger.debug(f"bootstrap > start (success: {res})")
     return StartReplyModel(success=res)
 
 

@@ -54,11 +54,11 @@ class GlobalState:
 
     async def tick(self) -> None:
         while not self.is_shutting_down:
-            logger.info("=> tick")
+            logger.debug("=> tick")
             await asyncio.sleep(1)
 
             for desc, ticker in self.tickers.items():
-                logger.info(f"=> tick {desc}")
+                logger.debug(f"=> tick {desc}")
                 asyncio.create_task(ticker.tick())
 
         logger.info("=> tick shutting down")
