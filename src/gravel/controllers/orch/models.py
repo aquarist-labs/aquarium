@@ -78,3 +78,17 @@ class CephDFModel(BaseModel):
     stats: CephDFStatsModel
     stats_by_class: Dict[str, CephDFStatsBaseModel]
     pools: List[CephDFPoolModel]
+
+
+class CephOSDPoolEntryModel(BaseModel):
+    pool: int
+    pool_name: str
+    size: int
+    min_size: int
+
+
+class CephOSDMapModel(BaseModel):
+    epoch: int
+    fsid: str
+    flags_set: List[str]
+    pools: List[CephOSDPoolEntryModel]

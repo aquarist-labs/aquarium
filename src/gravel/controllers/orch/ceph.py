@@ -2,12 +2,13 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 from json.decoder import JSONDecodeError
-from gravel.controllers.orch.models import CephDFModel
+from gravel.controllers.orch.models \
+    import CephDFModel, CephOSDMapModel, CephOSDPoolEntryModel
 import rados
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, List
 
 
 class CephError(Exception):
@@ -138,6 +139,18 @@ class Mon(Ceph):
         }
         result: Dict[str, Any] = self.mon(cmd)
         return CephDFModel.parse_obj(result)
+
+    def get_osdmap(self) -> CephOSDMapModel:
+        cmd: Dict[str, str] = {
+            "prefix": "osd dump",
+            "format": "json"
+        }
+        result: Dict[str, Any] = self.mon(cmd)
+        return CephOSDMapModel.parse_obj(result)
+
+    def get_pools(self) -> List[CephOSDPoolEntryModel]:
+        osdmap = self.get_osdmap()
+        return osdmap.pools
 
 
 if __name__ == "__main__":
