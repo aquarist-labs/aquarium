@@ -2,6 +2,7 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 from json.decoder import JSONDecodeError
+from gravel.controllers.orch.models import CephDFModel
 import rados
 import json
 from abc import ABC, abstractmethod
@@ -130,13 +131,13 @@ class Mon(Ceph):
         result: Dict[str, Any] = self.mon(cmd)  # propagate exception
         return result
 
-    def df(self) -> Dict[str, Any]:
+    def df(self) -> CephDFModel:
         cmd: Dict[str, str] = {
             "prefix": "df",
             "format": "json"
         }
         result: Dict[str, Any] = self.mon(cmd)
-        return result
+        return CephDFModel.parse_obj(result)
 
 
 if __name__ == "__main__":
