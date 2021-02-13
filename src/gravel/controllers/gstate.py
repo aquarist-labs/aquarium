@@ -48,7 +48,7 @@ class GlobalState:
     async def run_in_background(self,
                                 func: Callable[[Any, Any], Any],
                                 *args: Any
-    ):
+                                ):
         loop = asyncio.get_event_loop()
         loop.run_in_executor(self.executor, func, *args)
 
