@@ -4,8 +4,8 @@
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
+from gravel import gstate
 from gravel.controllers.config import DeploymentStateModel
-from gravel.controllers.gstate import gstate
 
 
 router: APIRouter = APIRouter(
