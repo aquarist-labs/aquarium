@@ -23,4 +23,3 @@ class GlobalState:
         loop.run_in_executor(self.executor, func, *args)
 
 
-gstate: GlobalState = GlobalState()
