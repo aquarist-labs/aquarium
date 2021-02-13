@@ -130,6 +130,14 @@ class Mon(Ceph):
         result: Dict[str, Any] = self.mon(cmd)  # propagate exception
         return result
 
+    def df(self) -> Dict[str, Any]:
+        cmd: Dict[str, str] = {
+            "prefix": "df",
+            "format": "json"
+        }
+        result: Dict[str, Any] = self.mon(cmd)
+        return result
+
 
 if __name__ == "__main__":
     mgr = Mgr()

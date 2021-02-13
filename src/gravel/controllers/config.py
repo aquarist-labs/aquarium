@@ -18,6 +18,7 @@ class DeploymentStateModel(BaseModel):
 
 class OptionsModel(BaseModel):
     inventory_probe_interval: int = Field(60, title="Inventory Probe Interval")
+    storage_probe_interval: float = Field(30.0, title="Storage Probe Interval")
 
 
 class ConfigModel(BaseModel):
