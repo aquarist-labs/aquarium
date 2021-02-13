@@ -18,7 +18,7 @@ from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
-from gravel.controllers.system import inventory
+from gravel.controllers.resources import inventory
 
 
 logger: Logger = fastapi_logger
