@@ -1,8 +1,11 @@
+# project aquarium's backend
+# Copyright (C) 2021 SUSE, LLC.
 
 import asyncio
+from abc import ABC, abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from logging import Logger
-from typing import Callable, Any
+from typing import Callable, Any, Dict
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.config import Config
@@ -11,19 +14,26 @@ from gravel.controllers.config import Config
 logger: Logger = fastapi_logger
 
 
+class Ticker(ABC):
+    @abstractmethod
+    async def tick(self) -> None:
+        pass
+
+
 class GlobalState:
 
     executor: ThreadPoolExecutor
     counter: int
     config: Config
     is_shutting_down: bool
+    tickers: Dict[str, Ticker]
 
     def __init__(self):
         self.executor = ThreadPoolExecutor()
         self.counter = 0
         self.config = Config()
         self.is_shutting_down = False
-        pass
+        self.tickers = {}
 
     async def start(self) -> None:
         if self.is_shutting_down:
@@ -43,9 +53,20 @@ class GlobalState:
         loop.run_in_executor(self.executor, func, *args)
 
     async def tick(self) -> None:
-
         while not self.is_shutting_down:
             logger.info("=> tick")
             await asyncio.sleep(1)
 
+            for desc, ticker in self.tickers.items():
+                logger.info(f"=> tick {desc}")
+                asyncio.create_task(ticker.tick())
+
         logger.info("=> tick shutting down")
+
+    def add_ticker(self, desc: str, whom: Ticker) -> None:
+        if desc not in self.tickers:
+            self.tickers[desc] = whom
+
+    def rm_ticker(self, desc: str) -> None:
+        if desc in self.tickers:
+            del self.tickers[desc]
