@@ -45,6 +45,14 @@ class CephFSVolumeListModel(BaseModel):
     volumes: List[CephFSNameModel]
 
 
+class CephFSListEntryModel(BaseModel):
+    name: str
+    metadata_pool: str
+    metadata_pool_id: int
+    data_pool_ids: List[int]
+    data_pools: List[str]
+
+
 class CephDFStatsBaseModel(BaseModel):
     total_bytes: int
     total_avail_bytes: int

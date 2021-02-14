@@ -9,5 +9,6 @@ if __name__ == "__main__":
         cephfs.create("foobarbaz")
     except CephFSError as e:
         print(f"error: {str(e)}")
-    res = cephfs.ls()
+    res = cephfs.volume_ls()
     print(res.json())
+    print(cephfs.ls())
