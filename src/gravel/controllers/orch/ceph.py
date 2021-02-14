@@ -152,6 +152,15 @@ class Mon(Ceph):
         osdmap = self.get_osdmap()
         return osdmap.pools
 
+    def set_pool_size(self, name: str, size: int) -> None:
+        cmd: Dict[str, str] = {
+            "prefix": "osd pool set",
+            "pool": name,
+            "var": "size",
+            "val": str(size)
+        }
+        self.mon(cmd)
+
 
 if __name__ == "__main__":
     mgr = Mgr()
