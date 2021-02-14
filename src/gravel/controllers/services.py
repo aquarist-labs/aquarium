@@ -3,8 +3,9 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from pydantic import BaseModel
+from pydantic.fields import Field
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
 from gravel.controllers.orch.models import CephFSListEntryModel, CephOSDPoolEntryModel
@@ -48,6 +49,12 @@ class StateModel(BaseModel):
     state: Dict[str, ServiceModel]
 
 
+class ServiceRequirementsModel(BaseModel):
+    reserved: int = Field(0, title="Total existing reservations (bytes)")
+    available: int = Field(0, title="Available storage space (bytes)")
+    required: int = Field(0, title="Required additional storage space (bytes)")
+
+
 class Services:
 
     _services: Dict[str, ServiceModel]
@@ -66,14 +73,9 @@ class Services:
         if name in self._services:
             raise ServiceExistsError(f"service {name} already exists")
 
-        estimated_size: int = size * replicas
-        cur_reservations: int = self.total_reservation
-        if (cur_reservations + estimated_size) > storage.available:
-            raise NotEnoughSpaceError(
-                f"needed: {estimated_size}, "\
-                f"reserved: {cur_reservations}, "\
-                f"available: {storage.available}"
-        )
+        feasible, requirements = self.check_requirements(size, replicas)
+        if not feasible:
+            raise NotEnoughSpaceError(requirements.json())
 
         svc: ServiceModel = ServiceModel(
             name=name,
@@ -107,6 +109,20 @@ class Services:
         if name not in self._services:
             raise UnknownServiceError(name)
         return self._services[name]
+
+    def check_requirements(
+        self, size: int, replicas: int
+    ) -> Tuple[bool, ServiceRequirementsModel]:
+        required: int = size*replicas
+        reserved: int = self.total_reservation
+        available: int = storage.available
+        feasible: bool = ((required + reserved) <= available)
+        requirements = ServiceRequirementsModel(
+            reserved=reserved,
+            available=available,
+            required=required
+        )
+        return feasible, requirements
 
     def _create_service(self, svc: ServiceModel) -> None:
         if svc.type == ServiceTypeEnum.CEPHFS:
