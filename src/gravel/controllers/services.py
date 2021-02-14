@@ -5,6 +5,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List
 from pydantic import BaseModel
+from gravel.controllers.orch.ceph import Mon
+from gravel.controllers.orch.cephfs import CephFS, CephFSError
+from gravel.controllers.orch.models import CephFSListEntryModel, CephOSDPoolEntryModel
 from gravel.controllers.resources import storage
 from gravel import gstate
 
@@ -66,7 +69,11 @@ class Services:
         estimated_size: int = size * replicas
         cur_reservations: int = self.total_reservation
         if (cur_reservations + estimated_size) > storage.available:
-            raise NotEnoughSpaceError()
+            raise NotEnoughSpaceError(
+                f"needed: {estimated_size}, "\
+                f"reserved: {cur_reservations}, "\
+                f"available: {storage.available}"
+        )
 
         svc: ServiceModel = ServiceModel(
             name=name,
@@ -102,7 +109,43 @@ class Services:
         return self._services[name]
 
     def _create_service(self, svc: ServiceModel) -> None:
-        pass
+        if svc.type == ServiceTypeEnum.CEPHFS:
+            self._create_cephfs(svc)
+        else:
+            raise NotImplementedError("only cephfs is currently supported")
+
+    def _create_cephfs(self, svc: ServiceModel) -> None:
+        cephfs = CephFS()
+        try:
+            cephfs.create(svc.name)
+        except CephFSError as e:
+            raise ServiceError("unable to create cephfs service") from e
+
+        try:
+            fs: CephFSListEntryModel = cephfs.get_fs_info(svc.name)
+        except CephFSError as e:
+            raise ServiceError("unable to list cephfs filesystems") from e
+        assert fs.name == svc.name
+
+        mon = Mon()
+        pools: List[CephOSDPoolEntryModel] = mon.get_pools()
+
+        def get_pool(name: str) -> CephOSDPoolEntryModel:
+            for pool in pools:
+                if pool.pool_name == name:
+                    return pool
+            raise ServiceError(f"unknown pool {name}")
+
+        metadata_pool = get_pool(fs.metadata_pool)
+        if metadata_pool.size != svc.replicas:
+            mon.set_pool_size(metadata_pool.pool_name, svc.replicas)
+        svc.pools.append(metadata_pool.pool)
+
+        for name in fs.data_pools:
+            data_pool = get_pool(name)
+            if data_pool.size != svc.replicas:
+                mon.set_pool_size(data_pool.pool_name, svc.replicas)
+            svc.pools.append(data_pool.pool)
 
     def _save(self) -> None:
         assert gstate.config.options.service_state_path
