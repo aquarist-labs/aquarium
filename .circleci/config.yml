@@ -14,12 +14,10 @@ jobs:
     docker:
         - image: opensuse/tumbleweed:latest
     steps:
-      - checkout
+      - run: zypper packages --installed-only
       - run: zypper --non-interactive refresh
-      - run: zypper --non-interactive install sudo
-      - run:
-          name: Setup Dev
-          command: ./tools/setup-dev.sh
+      - run: zypper --non-interactive install sudo git openssh
+      - checkout
 
 workflows:
   version: 2
