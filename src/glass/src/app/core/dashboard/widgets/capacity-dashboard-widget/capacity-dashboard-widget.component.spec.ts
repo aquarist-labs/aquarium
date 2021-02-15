@@ -1,6 +1,8 @@
+/* eslint-disable max-len */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CapacityDashboardWidgetComponent } from './capacity-dashboard-widget.component';
+import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
+import { CapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/capacity-dashboard-widget/capacity-dashboard-widget.component';
 
 describe('CapacityDashboardWidgetComponent', () => {
   let component: CapacityDashboardWidgetComponent;
@@ -8,7 +10,7 @@ describe('CapacityDashboardWidgetComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CapacityDashboardWidgetComponent]
+      imports: [DashboardModule]
     }).compileComponents();
   });
 

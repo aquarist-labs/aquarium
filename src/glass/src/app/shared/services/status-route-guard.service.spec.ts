@@ -63,7 +63,9 @@ describe('StatusRouteGuardService', () => {
 
   it('should not redirect [bootstrapping]', (done) => {
     const url = '/installer/create/bootstrap';
-    spyOn(statusService, 'status').and.returnValue(of({ deployment_state: { stage: 'bootstrapping' } }));
+    spyOn(statusService, 'status').and.returnValue(
+      of({ deployment_state: { stage: 'bootstrapping' } })
+    );
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toBeTruthy();
       done();
@@ -72,7 +74,9 @@ describe('StatusRouteGuardService', () => {
 
   it('should redirect [bootstrapping]', (done) => {
     const url = '/installer/welcome';
-    spyOn(statusService, 'status').and.returnValue(of({ deployment_state: { stage: 'bootstrapping' } }));
+    spyOn(statusService, 'status').and.returnValue(
+      of({ deployment_state: { stage: 'bootstrapping' } })
+    );
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toEqual(urlTree('/installer/create/bootstrap'));
       done();
@@ -81,7 +85,9 @@ describe('StatusRouteGuardService', () => {
 
   it('should not redirect [bootstrapped]', (done) => {
     const url = '/installer/create/deployment';
-    spyOn(statusService, 'status').and.returnValue(of({ deployment_state: { stage: 'bootstrapped' } }));
+    spyOn(statusService, 'status').and.returnValue(
+      of({ deployment_state: { stage: 'bootstrapped' } })
+    );
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toBeTruthy();
       done();
@@ -90,7 +96,9 @@ describe('StatusRouteGuardService', () => {
 
   it('should redirect [bootstrapped]', (done) => {
     const url = '/installer/welcome';
-    spyOn(statusService, 'status').and.returnValue(of({ deployment_state: { stage: 'bootstrapped' } }));
+    spyOn(statusService, 'status').and.returnValue(
+      of({ deployment_state: { stage: 'bootstrapped' } })
+    );
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toEqual(urlTree('/installer/create/deployment'));
       done();
