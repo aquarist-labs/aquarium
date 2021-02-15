@@ -46,25 +46,41 @@ paragraph, and prefixed with the module you are changing. For example:
 
 The following paragraph(s) should explain the change in more detail; be as specific as possible.
 If the commit message title was too short to fully state what the commit is doing, use the body
-to explain not just the "what", but also the "why". For example:
+to explain not just the "what", but also the "why".
+
+Finally, it *must* include a `Signed-off-by:` line matching an email
+address of the commit's author to comply with our need for a [Developer
+Certificate of Origin (DCO)](https://developercertificate.org/). The DCO
+is a lightweight way for contributors to certify that they wrote or
+otherwise have the right to submit the code they are contributing to the
+project. You can append this automatically to your commit message via
+`git commit -s`. Our repository checks will refuse to accept the
+commit otherwise.
+
+For example:
 
 ```
    backend: add initial README doc
    
-   This commit introduces the first README doc for aquarist labs.
+   This commit introduces the first README doc for aquarist-labs.
+
+   Signed-off-by: Random Developer <random@developer.io>
 ```
 
-If your changes addresses a bug or feature request, be sure to mention them in the body of the
-commit message. For example:
+If your changes addresses a bug or feature request, be sure to mention
+them in the body of the commit message. [You can even close the issue
+automatically!](https://github.blog/2013-01-22-closing-issues-via-commit-messages/)
+For example:
 
 ```
 
    backend: add initial README doc
    
-   This commit introduces the first README doc for aquarist labs.
+   This commit introduces the first README doc for aquarist-labs.
    
    Closes #1
    
+   Signed-off-by: Random Developer <random@developer.io>
 ```
 
 ## Pull Request Best Practices
@@ -73,7 +89,7 @@ PRs should be opened on branches contained in your fork of `aquarist-labs/aquari
 target the `main` branch. 
 
 If your PR has only one commit, the PR title can be the same as the commit title (and GitHub will 
-uggest this). If the PR has multiple commits, do not accept the title GitHub suggests. Either use
+suggest this). If the PR has multiple commits, do not accept the title GitHub suggests. Either use
 the title of the most relevant commit, or write your own title.
 
 ## Document Your Changes
