@@ -3,8 +3,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export type Status = {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  deployment_state: 'none' | 'bootstrapping' | 'bootstrapped' | 'ready' | 'unknown';
+  /* eslint-disable @typescript-eslint/naming-convention */
+  deployment_state: {
+    last_modified: string;
+    stage: 'none' | 'bootstrapping' | 'bootstrapped' | 'ready' | 'unknown';
+  };
 };
 
 @Injectable({
