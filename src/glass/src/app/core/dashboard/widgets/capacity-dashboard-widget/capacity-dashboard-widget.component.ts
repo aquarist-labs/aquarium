@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Chart } from 'chart.js';
 import * as _ from 'lodash';
 import { Observable, of, Subscription } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 
@@ -15,12 +16,14 @@ export class CapacityDashboardWidgetComponent
   implements OnInit, OnDestroy {
   chart?: Chart;
   data: number[] = [];
+  error = false;
 
   protected subscription: Subscription = new Subscription();
 
   constructor() {
     super();
     this.subscription = this.loadDataEvent.subscribe(() => {
+      this.error = false;
       if (this.chart) {
         _.set(this.chart, 'data.datasets.0.data', this.data);
         this.chart.update();
@@ -59,6 +62,14 @@ export class CapacityDashboardWidgetComponent
   loadData(): Observable<number[]> {
     const used = _.random(0, 100);
     const available = 100 - used;
-    return of([available, used]);
+    return of([available, used]).pipe(
+      // @ts-ignore
+      catchError((err) => {
+        if (_.isFunction(err.preventDefault)) {
+          err.preventDefault();
+        }
+        this.error = true;
+      })
+    );
   }
 }

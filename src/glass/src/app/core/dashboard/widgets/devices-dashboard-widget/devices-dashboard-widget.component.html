@@ -1,5 +1,10 @@
-<div class="glass-devices-dashboard-widget">
-  <table mat-table
+<div class="glass-devices-dashboard-widget"
+     [ngClass]="{'glass-color-theme-error': error}"
+     fxFlex
+     fxLayout="row"
+     fxLayoutAlign="center center">
+  <table *ngIf="!error"
+         mat-table
          [dataSource]="data">
     <ng-container matColumnDef="path">
       <th mat-header-cell *matHeaderCellDef>Path</th>
@@ -24,4 +29,6 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
+  <mat-icon *ngIf="error"
+            svgIcon="mdi:lan-disconnect"></mat-icon>
 </div>
