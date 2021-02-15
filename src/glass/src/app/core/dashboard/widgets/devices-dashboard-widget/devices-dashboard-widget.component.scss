@@ -1,5 +1,11 @@
+@import 'styles.scss';
+
 .glass-devices-dashboard-widget {
   table {
     width: 100%;
   }
+}
+.glass-devices-dashboard-widget.error {
+  @extend .glass-color-theme-error;
+  height: 50px;
 }

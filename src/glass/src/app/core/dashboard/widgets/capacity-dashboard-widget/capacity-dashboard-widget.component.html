@@ -1,3 +1,10 @@
-<div class="glass-capacity-dashboard-widget">
-  <canvas id="chart">{{ chart }}</canvas>
+<div class="glass-capacity-dashboard-widget"
+     [ngClass]="{'error': error}"
+     fxFlex
+     fxLayout="row"
+     fxLayoutAlign="center center">
+  <canvas [ngClass]="{'error': error}"
+          id="chart">{{ chart }}</canvas>
+  <mat-icon *ngIf="error"
+            svgIcon="mdi:lan-disconnect"></mat-icon>
 </div>
