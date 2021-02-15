@@ -41,6 +41,9 @@
             background-color: $glass-color-primary;
           }
         }
+        .mat-step-header:hover {
+          @extend .glass-theme-white;
+        }
       }
     }
 
