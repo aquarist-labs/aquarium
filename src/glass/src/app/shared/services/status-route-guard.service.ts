@@ -30,13 +30,13 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
           err.preventDefault();
         }
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        const res: Status = { deployment_state: 'unknown' };
+        const res: Status = { deployment_state: { last_modified: 'now', stage: 'unknown' } };
         return of(res);
       }),
       map((res: Status) => {
         let url: string;
         let result: boolean | UrlTree;
-        switch (res.deployment_state) {
+        switch (res.deployment_state.stage) {
           case 'bootstrapping':
             url = '/installer/create/bootstrap';
             if (url === state.url) {
