@@ -1,9 +1,81 @@
-<p>deployment-page works!</p>
-<button mat-button
-        routerLink="/installer/create/bootstrap">
-  Back
-</button>
-<button mat-button
-        routerLink="/dashboard">
-  Next
-</button>
+<div class="glass-deployment-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Node deployment</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-vertical-stepper linear="true">
+        <mat-step>
+          <ng-template matStepLabel>Inventory</ng-template>
+          <ng-container [ngTemplateOutlet]="inventory"></ng-container>
+          <button mat-button routerLink="/installer/install-mode">Cancel</button>
+          <button mat-button matStepperNext>Next</button>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Services deployment</ng-template>
+          <ng-container [ngTemplateOutlet]="services"></ng-container>
+          <button mat-button matStepperNext>Next</button>
+          <button mat-button matStepperPrevious>Prev</button>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Summary</ng-template>
+          <ng-container [ngTemplateOutlet]="summary"></ng-container>
+          <button mat-button matStepperPrevious>Prev</button>
+        </mat-step>
+      </mat-vertical-stepper>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #inventory>
+  Inventory!!!
+</ng-template>
+
+<ng-template #services>
+  <mat-accordion class="service-panel-align">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>NFS</mat-panel-title>
+        <mat-panel-description>
+          Configure NFS service
+          <mat-icon class="glass-color-accent" *ngIf="!nfs">
+            add_circle_outline
+          </mat-icon>
+          <mat-icon class="glass-color-primary" *ngIf="nfs">
+            check_circle_outline
+          </mat-icon>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>iSCSI</mat-panel-title>
+        <mat-panel-description>
+          Configure iSCSI service
+          <mat-icon class="glass-color-accent">
+            add_circle_outline
+          </mat-icon>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>CephFS</mat-panel-title>
+        <mat-panel-description>
+          Configure CephFS service
+          <mat-icon class="glass-color-accent">
+            add_circle_outline
+          </mat-icon>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+    </mat-expansion-panel>
+  </mat-accordion>
+</ng-template>
+
+<ng-template #summary>
+  Summary!!!
+</ng-template>
