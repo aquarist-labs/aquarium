@@ -11,6 +11,42 @@
 
   .mat-card {
     width: 50%;
+    @extend .glass-theme-white;
+
+    ::ng-deep .mat-card-header > .mat-card-header-text {
+      margin-left: unset;
+    }
+
+    ::ng-deep .mat-card-content mat-vertical-stepper {
+      background-color: $glass-color-transparent;
+
+      .mat-step {
+        .mat-stepper-vertical-line::before {
+          border-left-color: $glass-color-white;
+        }
+
+        .mat-step-header {
+          .mat-step-label {
+            color: $glass-color-white;
+          }
+
+          .mat-step-icon {
+            color: $glass-color-white;
+            background-color: $glass-color-transparent;
+          }
+
+          .mat-step-icon-selected,
+          .mat-step-icon-state-done,
+          .mat-step-icon-state-edit {
+            background-color: $glass-color-primary;
+          }
+        }
+      }
+    }
+
+    .mat-button.mat-stepper-next {
+      @extend .glass-theme-primary;
+    }
   }
 }
 

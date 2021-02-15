@@ -10,19 +10,35 @@
         <mat-step>
           <ng-template matStepLabel>Inventory</ng-template>
           <ng-container [ngTemplateOutlet]="inventory"></ng-container>
-          <button mat-button routerLink="/installer/install-mode">Cancel</button>
-          <button mat-button matStepperNext>Next</button>
+          <button mat-icon-button
+                  matTooltip="Cancel"
+                  routerLink="/installer/install-mode">
+            <mat-icon svgIcon="mdi:cancel"></mat-icon>
+          </button>
+          <button mat-button
+                  matStepperNext>Next</button>
         </mat-step>
         <mat-step>
           <ng-template matStepLabel>Services deployment</ng-template>
           <ng-container [ngTemplateOutlet]="services"></ng-container>
-          <button mat-button matStepperNext>Next</button>
-          <button mat-button matStepperPrevious>Prev</button>
+          <button mat-icon-button
+                  matTooltip="Back"
+                  matStepperPrevious>
+            <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+          </button>
+          <button mat-button
+                  matStepperNext>Next</button>
         </mat-step>
         <mat-step>
           <ng-template matStepLabel>Summary</ng-template>
           <ng-container [ngTemplateOutlet]="summary"></ng-container>
-          <button mat-button matStepperPrevious>Prev</button>
+          <button mat-icon-button
+                  matTooltip="Back"
+                  matStepperPrevious>
+            <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+          </button>
+          <button mat-button
+                  matStepperNext>Deploy</button>
         </mat-step>
       </mat-vertical-stepper>
     </mat-card-content>
