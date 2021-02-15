@@ -1,10 +1,12 @@
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -20,7 +22,9 @@ import { DomSanitizer } from '@angular/platform-browser';
     MatCardModule,
     MatSnackBarModule,
     MatTableModule,
-    MatMenuModule
+    MatMenuModule,
+    MatStepperModule,
+    MatExpansionModule
   ]
 })
 export class MaterialModule {

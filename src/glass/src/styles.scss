@@ -44,6 +44,13 @@ $glass-color-accent-complementary: white;
   background-color: $glass-color-accent;
 }
 
+.glass-color-primary {
+  color: $glass-color-primary;
+}
+.glass-color-accent {
+  color: $glass-color-accent;
+}
+
 .glass-text-pre-wrap {
   white-space: pre-wrap;
 }
