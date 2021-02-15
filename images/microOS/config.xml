@@ -562,9 +562,6 @@
     <repository type="rpm-md" alias="Tumbleweed_OSS">
         <source path='https://download.opensuse.org/tumbleweed/repo/oss'/>
     </repository>
-    <repository type="rpm-md" alias="filesystems-Ceph">
-        <source path="https://download.opensuse.org/repositories/filesystems:/ceph/openSUSE_Tumbleweed/"/>
-    </repository>
     <packages type="image">
         <package name="live-add-yast-repos"/>
         <!-- Apparently zypper (?) doesn't like having multiple patterns with the same name,
