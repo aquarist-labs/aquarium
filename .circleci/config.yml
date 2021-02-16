@@ -16,7 +16,8 @@ jobs:
     steps:
       - run: zypper packages --installed-only
       - run: zypper --non-interactive refresh
-      - run: zypper --non-interactive install sudo git openssh
+      - run: zypper --non-interactive update
+      - run: zypper --non-interactive install --no-recommends sudo git openssh-common openssh-clients
       - checkout
 
 workflows:
