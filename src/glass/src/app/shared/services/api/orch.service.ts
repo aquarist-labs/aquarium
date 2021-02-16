@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -9,15 +10,12 @@ export type Host = {
 
 export type Device = {
   available: boolean;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   device_id: string;
   model: string;
   vendor: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   human_readable_type: string;
   size: number;
   path: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   rejected_reasons: string[];
 };
 
@@ -25,6 +23,35 @@ export type HostDevices = {
   address: string;
   hostname: string;
   devices: Device[];
+};
+
+export type Volume = {
+  available: boolean;
+  device_id: string;
+  human_readable_type: string;
+  lsm_data: Record<string, unknown>;
+  lvs: null[];
+  path: string;
+  rejected_reasons: string[];
+  sys_api: {
+    human_readable_size: string;
+    locked: number;
+    model: string;
+    nr_requests: number;
+    partitions: Record<string, unknown>;
+    removable: boolean;
+    rev: string;
+    ro: boolean;
+    rotational: boolean;
+    sas_address: string;
+    sas_device_handle: string;
+    scheduler_mode: string;
+    sectors: number;
+    sectorsize: number;
+    size: number;
+    support_discard: number;
+    vendor: string;
+  };
 };
 
 @Injectable({
@@ -47,5 +74,12 @@ export class OrchService {
    */
   devices(): Observable<{ [hostName: string]: HostDevices }> {
     return this.http.get<{ [hostName: string]: HostDevices }>(`${this.url}/devices`);
+  }
+
+  /**
+   * Get volumes
+   */
+  volumes(): Observable<Volume[]> {
+    return this.http.get<Volume[]>(`${this.url}/volumes`);
   }
 }
