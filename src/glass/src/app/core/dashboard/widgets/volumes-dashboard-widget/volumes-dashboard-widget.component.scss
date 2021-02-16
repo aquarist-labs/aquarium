@@ -1,5 +1,17 @@
+@import 'styles.scss';
+
 .glass-volumes-dashboard-widget {
-  table {
-    width: 100%;
+  .glass-volumes-dashboard-widget-table {
+    .glass-volumes-dashboard-widget-loader {
+      height: 4px;
+    }
+
+    table {
+      width: 100%;
+    }
   }
+}
+.glass-volumes-dashboard-widget.error {
+  @extend .glass-color-theme-error;
+  height: 50px;
 }

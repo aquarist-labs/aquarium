@@ -11,6 +11,7 @@ import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
+import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -21,6 +22,6 @@ import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.comp
     WelcomePageComponent,
     NotFoundPageComponent
   ],
-  imports: [CommonModule, CoreModule, FlexLayoutModule, MaterialModule, RouterModule]
+  imports: [CommonModule, CoreModule, FlexLayoutModule, MaterialModule, RouterModule, SharedModule]
 })
 export class PagesModule {}
