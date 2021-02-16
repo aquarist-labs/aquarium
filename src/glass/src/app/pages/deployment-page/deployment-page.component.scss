@@ -26,6 +26,8 @@
         }
 
         .mat-step-header {
+          pointer-events: none !important;
+
           .mat-step-label {
             color: $glass-color-white;
           }
