@@ -35,7 +35,7 @@
 </div>
 
 <mat-menu #widgetsMenu="matMenu">
-  <button *ngFor="let widget of widgets"
+  <button *ngFor="let widget of widgets | sortBy:['title']"
           mat-menu-item
           (click)="onToggleWidget(widget.id)">
     <mat-icon *ngIf="!enabled.includes(widget.id)"

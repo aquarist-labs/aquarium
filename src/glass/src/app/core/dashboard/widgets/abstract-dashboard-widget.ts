@@ -1,7 +1,7 @@
 import { Directive, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import * as _ from 'lodash';
 import { Observable, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
@@ -10,6 +10,7 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
   readonly loadDataEvent = new EventEmitter<T>();
 
   error = false;
+  loading = false;
   data?: T;
 
   protected refreshDataSubscription?: Subscription;
@@ -32,6 +33,7 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
 
   protected refreshData(): void {
     this.error = false;
+    this.loading = true;
     this.refreshDataSubscription = this.loadData()
       .pipe(
         // @ts-ignore
@@ -40,6 +42,9 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
             err.preventDefault();
           }
           this.error = true;
+        }),
+        finalize(() => {
+          this.loading = false;
         })
       )
       .subscribe((data) => {

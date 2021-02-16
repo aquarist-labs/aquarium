@@ -18,6 +18,10 @@ export class VolumesDashboardWidgetComponent extends AbstractDashboardWidget<Vol
     super();
   }
 
+  get reloadPeriod(): number {
+    return 30000;
+  }
+
   loadData(): Observable<Volume[]> {
     return this.service
       .volumes()
