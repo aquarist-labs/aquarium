@@ -7,6 +7,9 @@
     </mat-card-header>
     <mat-card-content>
       <mat-vertical-stepper linear="true" #deploymentStepper>
+        <ng-template matStepperIcon="edit">
+          <mat-icon>done</mat-icon>
+        </ng-template>
         <mat-step>
           <div *ngIf="displayInventory">
             <ng-template matStepLabel>Inventory</ng-template>
