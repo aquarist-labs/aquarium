@@ -10,13 +10,14 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
   readonly loadDataEvent = new EventEmitter<T>();
 
   error = false;
+  firstLoadComplete = false;
   loading = false;
   data?: T;
 
   protected refreshDataSubscription?: Subscription;
 
   get reloadPeriod(): number {
-    return 5000;
+    return 15000;
   }
 
   ngOnInit(): void {
@@ -44,6 +45,9 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
           this.error = true;
         }),
         finalize(() => {
+          if (!this.firstLoadComplete) {
+            this.firstLoadComplete = true;
+          }
           this.loading = false;
         })
       )
