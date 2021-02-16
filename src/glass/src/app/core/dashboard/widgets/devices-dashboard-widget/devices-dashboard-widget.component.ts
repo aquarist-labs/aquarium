@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Component } from '@angular/core';
-import * as _ from 'lodash';
-import { Observable, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 import { Device } from '~/app/shared/services/api/orch.service';
@@ -15,16 +13,6 @@ import { Device } from '~/app/shared/services/api/orch.service';
 export class DevicesDashboardWidgetComponent extends AbstractDashboardWidget<Device[]> {
   data: Device[] = [];
   displayedColumns: string[] = ['path', 'device_id', 'vendor', 'size'];
-  error = false;
-
-  protected subscription: Subscription = new Subscription();
-
-  constructor() {
-    super();
-    this.subscription = this.loadDataEvent.subscribe(() => {
-      this.error = false;
-    });
-  }
 
   loadData(): Observable<Device[]> {
     return of([
@@ -58,14 +46,6 @@ export class DevicesDashboardWidgetComponent extends AbstractDashboardWidget<Dev
         human_readable_type: '',
         rejected_reasons: []
       }
-    ]).pipe(
-      // @ts-ignore
-      catchError((err) => {
-        if (_.isFunction(err.preventDefault)) {
-          err.preventDefault();
-        }
-        this.error = true;
-      })
-    );
+    ]);
   }
 }
