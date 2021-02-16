@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { MaterialModule } from '~/app/material.modules';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { SortByPipe } from '~/app/shared/pipes/pipes/sort-by.pipe';
+import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
 
 @NgModule({
   declarations: [BytesToSizePipe, SortByPipe],
