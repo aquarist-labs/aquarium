@@ -46,11 +46,11 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
             }
             break;
           case 'bootstrapped':
-            url = '/installer/create/deployment';
-            if (url === state.url) {
+            const urls = ['/installer/create/deployment', '/dashboard'];
+            if (urls.includes(state.url)) {
               result = true;
             } else {
-              result = this.router.parseUrl(url);
+              result = this.router.parseUrl(urls[0]);
             }
             break;
           case 'ready':
