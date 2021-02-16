@@ -38,3 +38,11 @@ class Orchestrator:
         }
         res = self.call(cmd)
         assert "result" in res
+
+    def all_devices_assimilated(self) -> bool:
+        res = self.devices_ls()
+        for host in res:
+            for dev in host.devices:
+                if dev.available:
+                    return False
+        return True

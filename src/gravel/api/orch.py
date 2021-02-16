@@ -136,3 +136,13 @@ async def assimilate_devices() -> bool:
         return False
 
     return True
+
+
+@router.get("/devices/all_assimilated", response_model=bool)
+async def all_devices_assimilated() -> bool:
+    try:
+        orch = Orchestrator()
+        return orch.all_devices_assimilated()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
