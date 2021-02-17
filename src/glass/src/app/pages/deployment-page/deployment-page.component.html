@@ -151,12 +151,13 @@
         </p>
         <p>
           <button mat-button
+                  class="mat-stepper-next"
                   routerLink="/dashboard">
             Go to Dashboard</button>
         </p>
       </div>
       <div *ngIf="!deploymentSuccessful">
-        I'm sorry, but your deployment was not successful.
+        We are sorry, but your deployment was not successful.
       </div>
     </div>
   </div>
