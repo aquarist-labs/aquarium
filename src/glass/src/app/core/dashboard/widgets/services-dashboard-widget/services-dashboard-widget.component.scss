@@ -1,0 +1,20 @@
+@import 'styles.scss';
+
+.glass-services-dashboard-widget {
+  .glass-services-dashboard-widget-table {
+    .glass-services-dashboard-widget-loader {
+      height: 4px;
+    }
+
+    table {
+      width: 100%;
+    }
+  }
+  .mat-card {
+    padding: 24px;
+  }
+}
+.glass-services-dashboard-widget.error {
+  @extend .glass-color-theme-error;
+  height: 50px;
+}
