@@ -16,10 +16,18 @@ class DeploymentStateModel(BaseModel):
     stage: DeploymentStage = Field(title="Current Deployment Stage")
 
 
+class OptionsModel(BaseModel):
+    inventory_probe_interval: int = Field(60, title="Inventory Probe Interval")
+    storage_probe_interval: float = Field(30.0, title="Storage Probe Interval")
+    service_state_path: str = Field("/etc/aquarium/storage.json",
+                                    title="Path to Service State file")
+
+
 class ConfigModel(BaseModel):
     version: int = Field(title="Configuration Version")
     name: str = Field(title="Deployment Name")
     deployment_state: DeploymentStateModel = Field(title="Deployment State")
+    options: OptionsModel = Field(OptionsModel(), title="Options")
 
 
 class Config:
@@ -32,7 +40,7 @@ class Config:
 
         if not self.confpath.exists():
             initconf: ConfigModel = ConfigModel(
-                version=1,
+                version=2,
                 name="",
                 deployment_state=DeploymentStateModel(
                     last_modified=datetime.now(),
@@ -54,3 +62,7 @@ class Config:
         self.config.deployment_state.last_modified = datetime.now()
         self.config.deployment_state.stage = stage
         self._saveConfig(self.config)
+
+    @property
+    def options(self) -> OptionsModel:
+        return self.config.options

@@ -7,8 +7,8 @@ from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from typing import Optional, List
 
+from gravel import gstate
 from gravel.controllers.config import DeploymentStage
-from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
 
 

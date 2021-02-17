@@ -7,6 +7,7 @@
 # version 2.1 of the License, or (at your option) any later version.
 
 import asyncio
+from logging import Logger
 import os
 import json
 from io import StringIO
@@ -14,10 +15,14 @@ from typing import List, Tuple
 
 import pydantic
 from pydantic.tools import parse_obj_as
+from fastapi.logger import logger as fastapi_logger
 
 from .models import HostFactsModel, NodeCPUInfoModel, \
     NodeCPULoadModel, NodeInfoModel, NodeMemoryInfoModel, \
     VolumeDeviceModel
+
+
+logger: Logger = fastapi_logger
 
 
 class CephadmError(Exception):
@@ -94,7 +99,7 @@ class Cephadm:
             raise CephadmError(stderr)
         try:
             devs = json.loads(stdout)
-            print(json.dumps(devs, indent=2))
+            logger.debug(json.dumps(devs, indent=2))
         except json.decoder.JSONDecodeError as e:
             raise CephadmError("format error while obtaining inventory") from e
         inventory = parse_obj_as(List[VolumeDeviceModel], devs)

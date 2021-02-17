@@ -8,7 +8,7 @@ from pydantic.tools import parse_obj_as
 from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 
 from gravel.controllers.orch.models \
-    import CephFSNameModel, CephFSVolumeListModel
+    import CephFSListEntryModel, CephFSNameModel, CephFSVolumeListModel
 
 
 class CephFSError(Exception):
@@ -41,7 +41,7 @@ class CephFS:
         assert "result" in res
         assert len(res["result"]) > 0
 
-    def ls(self) -> CephFSVolumeListModel:
+    def volume_ls(self) -> CephFSVolumeListModel:
 
         cmd = {
             "prefix": "fs volume ls",
@@ -54,3 +54,21 @@ class CephFS:
         return CephFSVolumeListModel(
             volumes=parse_obj_as(List[CephFSNameModel], res)
         )
+
+    def ls(self) -> List[CephFSListEntryModel]:
+        cmd = {
+            "prefix": "fs ls",
+            "format": "json"
+        }
+        try:
+            res = self.mon.call(cmd)
+        except CephCommandError as e:
+            raise CephFSError(e) from e
+        return parse_obj_as(List[CephFSListEntryModel], res)
+
+    def get_fs_info(self, name: str) -> CephFSListEntryModel:
+        ls: List[CephFSListEntryModel] = self.ls()
+        for fs in ls:
+            if fs.name == name:
+                return fs
+        raise CephFSError(f"unknown filesystem {name}")

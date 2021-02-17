@@ -21,24 +21,28 @@ class Orchestrator:
             cmd["format"] = "json"
         return self.cluster.call(cmd)
 
-
-class OrchestratorHosts(Orchestrator):
-
-    def __init__(self):
-        super().__init__()
-
-    def ls(self) -> List[OrchHostListModel]:
+    def host_ls(self) -> List[OrchHostListModel]:
         cmd = {"prefix": "orch host ls"}
         res = self.call(cmd)
         return parse_obj_as(List[OrchHostListModel], res)
 
-
-class OrchestratorDevices(Orchestrator):
-
-    def __init__(self):
-        super().__init__()
-
-    def ls(self) -> List[OrchDevicesPerHostModel]:
+    def devices_ls(self) -> List[OrchDevicesPerHostModel]:
         cmd = {"prefix": "orch device ls"}
         res = self.call(cmd)
         return parse_obj_as(List[OrchDevicesPerHostModel], res)
+
+    def assimilate_all_devices(self) -> None:
+        cmd = {
+            "prefix": "orch apply osd",
+            "all_available_devices": True
+        }
+        res = self.call(cmd)
+        assert "result" in res
+
+    def all_devices_assimilated(self) -> bool:
+        res = self.devices_ls()
+        for host in res:
+            for dev in host.devices:
+                if dev.available:
+                    return False
+        return True

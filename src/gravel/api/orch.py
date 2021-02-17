@@ -6,7 +6,10 @@
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
 
+from logging import Logger
 from fastapi.routing import APIRouter
+from fastapi.logger import logger as fastapi_logger
+from fastapi import HTTPException, status
 from pydantic import BaseModel
 from typing import Dict, List
 from gravel.cephadm.cephadm import Cephadm
@@ -14,8 +17,11 @@ from gravel.cephadm.models import HostFactsModel, NodeInfoModel, VolumeDeviceMod
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
 from gravel.controllers.orch.orchestrator \
-    import OrchestratorDevices, OrchestratorHosts
+    import Orchestrator
+from gravel.controllers.resources import inventory
 
+
+logger: Logger = fastapi_logger
 
 router: APIRouter = APIRouter(
     prefix="/orch",
@@ -51,8 +57,8 @@ class HostsDevicesModel(BaseModel):
 
 @router.get("/hosts", response_model=HostsReplyModel)
 def get_hosts() -> HostsReplyModel:
-    orch = OrchestratorHosts()
-    orch_hosts = orch.ls()
+    orch = Orchestrator()
+    orch_hosts = orch.host_ls()
     hosts: HostsReplyModel = HostsReplyModel(hosts=[])
     for h in orch_hosts:
         hosts.hosts.append(HostModel(hostname=h.hostname, address=h.addr))
@@ -62,8 +68,8 @@ def get_hosts() -> HostsReplyModel:
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
 def get_devices() -> Dict[str, HostsDevicesModel]:
-    orch = OrchestratorDevices()
-    orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.ls()
+    orch = Orchestrator()
+    orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
     host_devs: Dict[str, HostsDevicesModel] = {}
     for orch_host in orch_devs_per_host:
 
@@ -108,3 +114,35 @@ async def get_volumes() -> List[VolumeDeviceModel]:
 async def get_node_info() -> NodeInfoModel:
     cephadm = Cephadm()
     return await cephadm.get_node_info()
+
+
+@router.get("/inventory", response_model=NodeInfoModel)
+async def get_inventory() -> NodeInfoModel:
+    latest = await inventory.latest()
+    if not latest:
+        raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
+                            detail="Inventory not available")
+    return latest
+
+
+@router.post("/devices/assimilate", response_model=bool)
+async def assimilate_devices() -> bool:
+
+    try:
+        orch = Orchestrator()
+        orch.assimilate_all_devices()
+    except Exception as e:
+        logger.error(str(e))
+        return False
+
+    return True
+
+
+@router.get("/devices/all_assimilated", response_model=bool)
+async def all_devices_assimilated() -> bool:
+    try:
+        orch = Orchestrator()
+        return orch.all_devices_assimilated()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
