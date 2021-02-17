@@ -7,12 +7,13 @@
        class="glass-volumes-dashboard-widget-table"
        fxFlex
        fxLayout="column">
-    <div class="glass-volumes-dashboard-widget-loader">
+    <div class="glass-volumes-dashboard-widget-loader" *ngIf="!firstLoadComplete">
       <mat-progress-bar *ngIf="loading"
                         mode="indeterminate">
       </mat-progress-bar>
     </div>
     <table mat-table
+           *ngIf="firstLoadComplete"
            [dataSource]="data">
       <ng-container matColumnDef="path">
         <th mat-header-cell *matHeaderCellDef>Path</th>
