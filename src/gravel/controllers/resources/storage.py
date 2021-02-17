@@ -8,8 +8,7 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic.fields import Field
 from pydantic.main import BaseModel
 from gravel.controllers.config import DeploymentStage
-from gravel.controllers.gstate import Ticker
-from gravel import gstate
+from gravel.controllers.gstate import gstate, Ticker
 from gravel.controllers.orch.ceph import Mon
 
 
