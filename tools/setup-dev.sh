@@ -45,12 +45,12 @@ while [[ $# -gt 0 ]]; do
   shift 1
 done
 
-osid=$(grep '^ID=' /etc/os-release)
+osid=$(grep '^ID=' /etc/os-release | sed -e 's/^ID="\(.\+\)"/\1/')
 
 if ${show_dependencies} ; then
 
   case $osid in
-    *opensuse-tumbleweed*)
+    opensuse-tumbleweed | opensuse-leap)
       echo "  > ${dependencies_opensuse_tumbleweed[*]}"
       ;;
     *)
@@ -67,7 +67,7 @@ fi
 if ! ${skip_install_deps} ; then
 
   case $osid in
-    *opensuse-tumbleweed*)
+    opensuse-tumbleweed | opensuse-leap)
       echo "=> try installing dependencies"
       sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || exit 1
       ;;
