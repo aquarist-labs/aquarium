@@ -46,6 +46,15 @@
         .mat-step-header:hover {
           @extend .glass-theme-white;
         }
+
+        .glass-deployment-page-step-content {
+          .mat-table {
+            width: 100%;
+          }
+          .mat-button {
+            margin-top: 8px;
+          }
+        }
       }
     }
 
@@ -53,10 +62,6 @@
       @extend .glass-theme-primary;
     }
   }
-}
-
-table {
-  width: 100%;
 }
 
 .service-panel-align .mat-expansion-panel-header-title,
