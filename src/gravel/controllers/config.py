@@ -1,7 +1,13 @@
 from enum import Enum
+from logging import Logger
 from pathlib import Path
 from datetime import datetime
 from pydantic import BaseModel, Field
+from fastapi.logger import logger as fastapi_logger
+
+
+logger: Logger = fastapi_logger
+
 
 
 class DeploymentStage(str, Enum):
@@ -35,6 +41,7 @@ class Config:
     def __init__(self, path: str = "/etc/aquarium"):
         confdir = Path(path)
         self.confpath = confdir.joinpath(Path("config.json"))
+        logger.debug(f'Aquarium config dir: {confdir}')
 
         confdir.mkdir(0o700, parents=True, exist_ok=True)
 
@@ -52,6 +59,7 @@ class Config:
         self.config: ConfigModel = ConfigModel.parse_file(self.confpath)
 
     def _saveConfig(self, conf: ConfigModel) -> None:
+        logger.debug(f'Writing Aquarium config: {self.confpath}')
         self.confpath.write_text(conf.json(indent=2))
 
     @property
