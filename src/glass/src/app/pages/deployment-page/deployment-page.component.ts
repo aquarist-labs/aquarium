@@ -29,7 +29,7 @@ export class DeploymentPageComponent implements OnInit {
   devices: Device[] = [];
   deploymentStepper!: MatStepper;
   displayInventory = true;
-  deploymentSuccessful = false;
+  deploymentSuccessful = true;
 
   public cephfsList: ServiceDesc[] = [];
 
@@ -50,11 +50,27 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   getDevices(): void {
-    this.orchService.devices().subscribe((hostDevices) => {
-      Object.values(hostDevices).forEach((v) => {
-        this.devices = this.devices.concat(v.devices);
-      });
-    });
+    this.startBlockUI('Fetching disk information ...');
+    of(true)
+      .pipe(
+        delay(5000),
+        mergeMap(() => this.orchService.devices())
+      )
+      .subscribe(
+        (hostDevices) => {
+          if (Object.keys(hostDevices).length > 0) {
+            this.stopBlockUI();
+            Object.values(hostDevices).forEach((v) => {
+              this.devices = this.devices.concat(v.devices);
+            });
+          } else {
+            this.getDevices();
+          }
+        },
+        (err) => {
+          this.handleError(err, 'Failed to fetch device information.');
+        }
+      );
   }
 
   chooseDevices(): void {
@@ -71,35 +87,22 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   startAssimilation(): void {
-    this.displayInventory = false;
-    this.blockUI.start('Please wait, disk deployment in progress ...');
+    this.startBlockUI('Please wait, disk deployment in progress ...');
     this.orchService.assimilateDevices().subscribe(
       (success) => {
         if (success) {
           this.pollAssimilationStatus();
         } else {
-          this.displayInventory = true;
-          this.blockUI.stop();
-          this.notificationService.show('Failed to start disk deployment.', {
-            type: 'error'
-          });
+          this.handleError(undefined, 'Failed to start disk deployment.');
         }
       },
       () => {
-        this.displayInventory = true;
-        this.blockUI.stop();
+        this.handleError();
       }
     );
   }
 
   pollAssimilationStatus(): void {
-    const handleError = (err?: any) => {
-      this.displayInventory = true;
-      this.blockUI.stop();
-      this.notificationService.show('Failed to deploy disks.', {
-        type: 'error'
-      });
-    };
     of(true)
       .pipe(
         delay(5000),
@@ -108,15 +111,14 @@ export class DeploymentPageComponent implements OnInit {
       .subscribe(
         (success) => {
           if (success) {
-            this.displayInventory = true;
             this.deploymentStepper.next();
-            this.blockUI.stop();
+            this.stopBlockUI();
           } else {
             this.pollAssimilationStatus();
           }
         },
         (err) => {
-          handleError(err);
+          this.handleError(err, 'Failed to deploy disks.');
         }
       );
   }
@@ -139,5 +141,28 @@ export class DeploymentPageComponent implements OnInit {
         this.cephfsList = result;
       }
     });
+  }
+
+  private startBlockUI(message?: string): void {
+    this.displayInventory = false;
+    if (message) {
+      this.blockUI.start(message);
+    }
+  }
+
+  private stopBlockUI(): void {
+    this.displayInventory = true;
+    this.blockUI.stop();
+  }
+
+  private handleError(err?: any, message?: string): void {
+    this.deploymentSuccessful = false;
+    this.stopBlockUI();
+
+    if (message) {
+      this.notificationService.show(message, {
+        type: 'error'
+      });
+    }
   }
 }
