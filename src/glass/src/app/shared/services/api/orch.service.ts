@@ -82,4 +82,18 @@ export class OrchService {
   volumes(): Observable<Volume[]> {
     return this.http.get<Volume[]>(`${this.url}/volumes`);
   }
+
+  /**
+   * Assimilate all devices
+   */
+  assimilateDevices(): Observable<boolean> {
+    return this.http.post<boolean>(`${this.url}/devices/assimilate`, null, {});
+  }
+
+  /**
+   * Get current assimilation status
+   */
+  assimilateStatus(): Observable<boolean> {
+    return this.http.get<boolean>(`${this.url}/devices/all_assimilated`);
+  }
 }
