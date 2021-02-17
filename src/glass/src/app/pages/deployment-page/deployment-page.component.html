@@ -32,13 +32,6 @@
           <div class="glass-deployment-page-step-content">
             <ng-template matStepLabel>Summary</ng-template>
             <ng-container [ngTemplateOutlet]="summary"></ng-container>
-            <button mat-icon-button
-                    matTooltip="Back"
-                    matStepperPrevious>
-              <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-            </button>
-            <button mat-button
-                    matStepperNext>Deploy</button>
           </div>
         </mat-step>
       </mat-vertical-stepper>
@@ -127,5 +120,38 @@
 </ng-template>
 
 <ng-template #summary>
-  Summary!!!
+  <div class="summary">
+    <div fxLayout="column"
+         fxLayoutAlign="center center"
+         fxLayoutGap="5px"
+         fxFlexFill>
+      <div>
+        <mat-icon svgIcon="mdi:check-circle-outline"
+                  class="icon-large"
+                  *ngIf="deploymentSuccessful">
+        </mat-icon>
+        <mat-icon svgIcon="mdi:close-circle-outline"
+                  class="icon-large" *ngIf="!deploymentSuccessful">
+        </mat-icon>
+      </div>
+      <div fxLayout="column"
+           fxLayoutAlign="center center"
+           *ngIf="deploymentSuccessful">
+        <p>
+          Your deployment was successful and is now ready to use.
+        </p>
+        <p>
+          You can now open your dashboard by clicking the button below.
+        </p>
+        <p>
+          <button mat-button
+                  routerLink="/dashboard">
+            Go to Dashboard</button>
+        </p>
+      </div>
+      <div *ngIf="!deploymentSuccessful">
+        I'm sorry, but your deployment was not successful.
+      </div>
+    </div>
+  </div>
 </ng-template>
