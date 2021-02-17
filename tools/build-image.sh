@@ -39,17 +39,23 @@ usage: $0 [options]
 
 options:
   -n NAME | --name NAME     Specify build name (default: aquarium).
+  -c | --clean              Cleanup an existing build directory before building.
   -h | --help               This message.
 EOF
 
 }
 
 build_name="aquarium"
+clean=0
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     -n|--name)
       build_name=$2
+      shift 1
+      ;;
+    -c|--clean)
+      clean=1
       shift 1
       ;;
     -h|--help)
@@ -77,9 +83,12 @@ fi
 
 build=${imgdir}/build/${build_name}
 
-if [[ -e "${build}" ]]; then
+if [[ -e "${build}" && "${clean}" -eq "0" ]]; then
   echo "error: build with name '${build_name}' already exists"
   exit 1
+else
+  echo "warning: removing existing build '${build_name}'"
+  rm -rf ${build}
 fi
 
 set -xe
