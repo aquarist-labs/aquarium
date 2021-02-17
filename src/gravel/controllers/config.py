@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from logging import Logger
 from pathlib import Path
@@ -8,6 +9,12 @@ from fastapi.logger import logger as fastapi_logger
 
 logger: Logger = fastapi_logger
 
+
+_env_prefix = "AQUARIUM_"
+_env_config_dir = "CONFIG_DIR"
+_config_dir_env = os.getenv(f"{_env_prefix}{_env_config_dir}")
+
+config_dir: str = _config_dir_env if _config_dir_env else '/etc/aquarium'
 
 
 class DeploymentStage(str, Enum):
@@ -25,7 +32,7 @@ class DeploymentStateModel(BaseModel):
 class OptionsModel(BaseModel):
     inventory_probe_interval: int = Field(60, title="Inventory Probe Interval")
     storage_probe_interval: float = Field(30.0, title="Storage Probe Interval")
-    service_state_path: str = Field("/etc/aquarium/storage.json",
+    service_state_path: str = Field(Path(config_dir).joinpath("storage.json"),
                                     title="Path to Service State file")
 
 
@@ -38,7 +45,7 @@ class ConfigModel(BaseModel):
 
 class Config:
 
-    def __init__(self, path: str = "/etc/aquarium"):
+    def __init__(self, path: str = config_dir):
         confdir = Path(path)
         self.confpath = confdir.joinpath(Path("config.json"))
         logger.debug(f'Aquarium config dir: {confdir}')
