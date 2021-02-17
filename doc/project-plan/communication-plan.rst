@@ -12,6 +12,7 @@ new storage appliance project in an collaborative fashion. See the
 Communication Goals
 ~~~~~~~~~~~~~~~~~~~
 
+- Share information about on-going development and project achievements globally
 - Keep stakeholders informed of project timeline and project needs
 - Provide clear insight into any decisions made or ongoing discussions
 - Engage community in feedback driven discussions and decision making
@@ -33,7 +34,7 @@ Communication Goals
          - Meeting minutes that are regularly sent to the mailing list.
          - Discuss what's in progress, deliverables, and questions
      - Weekly
-     - Microsoft Teams
+     - Jitsi (started via the Slack integration on `meet.opensuse.org`)
      - N/A
      - asettle@suse.com
    * - Daily communication
@@ -52,7 +53,7 @@ Communication Goals
          - Weekly email updates to relay information regarding milestone particulars,
            timeline, and achievements.
      - Weekly
-     - SUSE internal mailing list (for now, this will change after milestone 3)
+     - Public blog on https://aquarist-labs.github.io/ (from Milestone 3)
      - Email
      - asettle@suse.com
    * - Major milestone meetings
@@ -60,7 +61,7 @@ Communication Goals
          - Meeting setup for presentation and delivery of major milestone deliverables.
          - Live (recorded) demo of work completed so far
      - Monthly. Review the :ref:`aquarium-project-plan` for more information on milestones.
-     - Microsoft Teams
+     - Open via `meet.opensuse.org`
      - N/A
      -
          - asettle@suse.com
