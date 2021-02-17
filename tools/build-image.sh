@@ -83,12 +83,14 @@ fi
 
 build=${imgdir}/build/${build_name}
 
-if [[ -e "${build}" && "${clean}" -eq "0" ]]; then
-  echo "error: build with name '${build_name}' already exists"
-  exit 1
-else
-  echo "warning: removing existing build '${build_name}'"
-  rm -rf ${build}
+if [[ -e "${build}" ]]; then
+  if [[ "${clean}" -eq "1" ]]; then
+    echo "warning: removing existing build '${build_name}'"
+    rm -rf ${build}
+  else
+    echo "error: build with name '${build_name}' already exists"
+    exit 1
+  fi
 fi
 
 set -xe
