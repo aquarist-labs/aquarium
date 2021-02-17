@@ -1,3 +1,5 @@
+.. _aquarium-project-plan:
+
 ======================
 Aquarium Project Plan
 ======================
@@ -6,7 +8,7 @@ Project Scope
 ~~~~~~~~~~~~~
 
 Aquarist Labs is an organization of like-minded individuals working on
-the Aquarium project. 
+the Aquarium project.
 
 The scope of Aquarist Labs is to investigate the beginnings of an opinionated
 new storage appliance project in an collaborative fashion. This includes the planning,
@@ -107,53 +109,3 @@ Milestones
      -
          - Announce Aquarist Labs publicly
      - April 17, 2021
-
-Communication Management Plan
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :widths: 15 45 10 10 10 10
-   :header-rows: 1
-
-   * - Communicate Type
-     - Description
-     - Frequency
-     - Format
-     - Distribution
-     - Owner
-   * - Team meetings
-     -
-         - Weekly meeting (x3 per timezone) to discuss Aquarist Labs.
-         - This includes meeting minutes that are regularly sent to the mailing list.
-     - Weekly
-     - Teams
-     - TBD
-     - asettle@suse.com
-   * - Chat
-     -
-         - Public communication channels
-     - Daily
-     - TBD
-     - TBD
-     - TBD
-   * - Social media
-     -
-         - Blogs?
-         - Twitter?
-     - TBD
-     - TBD
-     - TBD
-     - TBD
-   * - Announcements
-     -
-         - Milestone 1 announcement
-         - Website changes
-         - Social media announcements
-     - Monthly
-     -
-         - Email?
-         - GitHub discussions
-     - TBD
-     -
-         - asettle@suse.com
-         - lmb@suse.com
