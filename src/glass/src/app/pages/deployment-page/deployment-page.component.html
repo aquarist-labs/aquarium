@@ -116,10 +116,29 @@
         <mat-panel-description>
           Configure CephFS service
           <mat-icon class="glass-color-accent"
-                    svgIcon="mdi:plus-circle-outline">
+                    svgIcon="mdi:plus-circle-outline"
+                    (click)="openCephfsDialog()">
           </mat-icon>
         </mat-panel-description>
       </mat-expansion-panel-header>
+
+      <div *ngIf="cephfsList.length === 0">
+        <span>No CephFS services configured</span>
+      </div>
+
+      <div *ngIf="cephfsList.length > 0"
+            fxLayout="column" fxLayoutAlign="start start"
+      >
+        <div *ngFor="let service of cephfsList"
+            fxLayout="row" fxLayoutAlign="start center"
+        >
+          <mat-icon svgIcon="mdi:nas"></mat-icon>
+          <span style="width: 10px"></span>
+          <span>{{service.name}} ({{service.reservation|bytesToSize}})</span>
+        </div>
+
+      </div>
+
     </mat-expansion-panel>
   </mat-accordion>
 </ng-template>

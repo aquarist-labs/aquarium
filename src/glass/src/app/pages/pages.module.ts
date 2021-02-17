@@ -7,6 +7,7 @@ import { CoreModule } from '~/app/core/core.module';
 import { MaterialModule } from '~/app/material.modules';
 import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
+import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { ChooseDevicesModalComponent } from '~/app/pages/deployment-page/choose-devices-modal/choose-devices-modal.component';
 import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
@@ -22,7 +23,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     ChooseDevicesModalComponent,
     InstallModePageComponent,
     WelcomePageComponent,
-    NotFoundPageComponent
+    NotFoundPageComponent,
+    CephfsModalComponent
   ],
   imports: [CommonModule, CoreModule, FlexLayoutModule, MaterialModule, RouterModule, SharedModule]
 })
