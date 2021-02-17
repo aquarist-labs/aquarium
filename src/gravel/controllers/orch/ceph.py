@@ -3,7 +3,7 @@
 
 from json.decoder import JSONDecodeError
 from gravel.controllers.orch.models \
-    import CephDFModel, CephOSDMapModel, CephOSDPoolEntryModel
+    import CephDFModel, CephOSDMapModel, CephOSDPoolEntryModel, CephStatusModel
 import rados
 import json
 from abc import ABC, abstractmethod
@@ -124,13 +124,13 @@ class Mon(Ceph):
         return self.mon(cmd)
 
     @property
-    def status(self) -> Dict[str, Any]:
+    def status(self) -> CephStatusModel:
         cmd: Dict[str, Any] = {
             "prefix": "status",
             "format": "json"
         }
         result: Dict[str, Any] = self.mon(cmd)  # propagate exception
-        return result
+        return CephStatusModel.parse_obj(result)
 
     def df(self) -> CephDFModel:
         cmd: Dict[str, str] = {

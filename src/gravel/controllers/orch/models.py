@@ -100,3 +100,27 @@ class CephOSDMapModel(BaseModel):
     fsid: str
     flags_set: List[str]
     pools: List[CephOSDPoolEntryModel]
+
+
+class CephHealthCheckSummaryModel(BaseModel):
+    message: str
+    count: int
+
+
+class CephHealthCheckModel(BaseModel):
+    severity: str
+    summary: CephHealthCheckSummaryModel
+
+
+class CephHealthStatusModel(BaseModel):
+    status: str
+    checks: Dict[str, CephHealthCheckModel]
+
+
+class CephStatusModel(BaseModel):
+    fsid: str
+    election_epoch: int
+    quorum: List[int]
+    quorum_names: List[str]
+    quorum_age: int
+    health: CephHealthStatusModel
