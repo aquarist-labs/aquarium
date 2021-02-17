@@ -4,9 +4,12 @@
      fxLayout="row"
      fxLayoutAlign="center center">
   <mat-icon *ngIf="data && !error"
-            svgIcon="mdi:thumb-up"></mat-icon>
+            svgIcon="mdi:thumb-up">
+  </mat-icon>
   <mat-icon *ngIf="!data && !error"
-            svgIcon="mdi:thumb-down"></mat-icon>
+            svgIcon="mdi:thumb-down">
+  </mat-icon>
   <mat-icon *ngIf="error"
-            svgIcon="mdi:lan-disconnect"></mat-icon>
+            svgIcon="mdi:lan-disconnect">
+  </mat-icon>
 </div>
