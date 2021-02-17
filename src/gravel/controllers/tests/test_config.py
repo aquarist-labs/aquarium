@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 from pyfakefs.fake_filesystem_unittest import TestCase
 
 from gravel.controllers.config \
@@ -18,3 +19,10 @@ class TestConfig(TestCase):
         ds = Config().deployment_state
         assert ds.stage == DeploymentStage.none
         assert ds.last_modified < datetime.now()
+
+    def test_config_path(self):
+        config = Config()
+        assert config.confpath == Path('/etc/aquarium/config.json')
+
+        config = Config(path='foo')
+        assert config.confpath == Path('foo/config.json')
