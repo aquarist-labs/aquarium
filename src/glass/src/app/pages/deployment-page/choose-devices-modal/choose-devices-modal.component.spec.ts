@@ -3,9 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
+import { ChooseDevicesModalComponent } from '~/app/pages/deployment-page/choose-devices-modal/choose-devices-modal.component';
 import { PagesModule } from '~/app/pages/pages.module';
-
-import { ChooseDevicesModalComponent } from './choose-devices-modal.component';
 
 describe('ChooseDevicesModalComponent', () => {
   let dialog: MatDialog;

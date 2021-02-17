@@ -1,3 +1,21 @@
-.over-budget {
-  color: red;
+::ng-deep .mat-form-field {
+  &.glass-form-field-no-underline {
+    .mat-form-field-underline {
+      visibility: hidden;
+    }
+  }
+
+  &.mat-form-field-invalid {
+    .mat-input-element {
+      color: #dc3545;
+    }
+    .mat-slider {
+      .mat-slider-track-fill,
+      .mat-slider-thumb-label,
+      .mat-slider-thumb,
+      .mat-slider-focus-ring {
+        background-color: #dc3545;
+      }
+    }
+  }
 }

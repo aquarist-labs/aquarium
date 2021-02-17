@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatSliderChange } from '@angular/material/slider';
+import * as _ from 'lodash';
 
 import {
   CheckRequirementsReply,
@@ -17,62 +18,60 @@ import { NotificationService } from '~/app/shared/services/notification.service'
   styleUrls: ['./cephfs-modal.component.scss']
 })
 export class CephfsModalComponent implements OnInit {
-  public availableSpace = 0;
-  public reservedSpace = 0;
-  public rawRequiredSpace = 0;
-  public replicaNumber = 2;
-  public requiredSpace = 0;
-  public nameFormCtrl: FormControl;
+  public formGroup: FormGroup;
 
   public constructor(
     private dialogRef: MatDialogRef<CephfsModalComponent>,
     private services: ServicesService,
-    private fb: FormBuilder,
+    private formBuilder: FormBuilder,
     private notification: NotificationService
   ) {
-    this.nameFormCtrl = this.fb.control('', Validators.required);
+    this.formGroup = this.formBuilder.group({
+      availableSpace: [0],
+      reservedSpace: [0],
+      rawRequiredSpace: [0],
+      name: ['', [Validators.required]],
+      replicas: [
+        2,
+        [Validators.required, Validators.min(1), Validators.max(3), this.budgetValidator(this)]
+      ],
+      requiredSpace: [0, [Validators.required, Validators.min(0), this.budgetValidator(this)]]
+    });
   }
 
   public ngOnInit(): void {
     this.services.reservations().subscribe({
       next: (reservations: Reservations) => {
-        this.availableSpace = reservations.available;
-        this.reservedSpace = reservations.reserved;
+        this.formGroup.patchValue({
+          availableSpace: _.defaultTo(reservations.available, 0),
+          reservedSpace: _.defaultTo(reservations.reserved, 0)
+        });
+        this.updateValues();
       }
     });
   }
 
-  public onRedundancyChange(event: MatSliderChange): void {
-    this.replicaNumber = !!event.value ? event.value : 0;
-    this.updateRawRequiredSpace();
+  public onReplicasChange(event: MatSliderChange): void {
+    const replicas = !!event.value ? event.value : 0;
+    this.formGroup.patchValue({ replicas });
+    this.updateValues();
   }
 
-  public onSpaceChange(event: MatSliderChange): void {
-    this.requiredSpace = !!event.value ? event.value : 0;
-    this.updateRawRequiredSpace();
-  }
-
-  public sliderDisplayValue(input: number): string {
-    return `${input} replicas`;
-  }
-
-  public onCancel(): void {
-    this.dialogRef.close(false);
+  public onRequiredSpaceChange(event: MatSliderChange): void {
+    const requiredSpace = !!event.value ? event.value : 0;
+    this.formGroup.patchValue({ requiredSpace });
+    this.updateValues();
   }
 
   public onSubmit(): void {
-    if (
-      !this.nameFormCtrl.valid ||
-      this.requiredSpace === 0 ||
-      this.rawRequiredSpace > this.availableSpace
-    ) {
+    if (this.formGroup.invalid) {
       return;
     }
-
-    this.services.checkRequirements(this.requiredSpace, this.replicaNumber).subscribe({
+    const values = this.formGroup.value;
+    this.services.checkRequirements(values.requiredSpace, values.replicas).subscribe({
       next: (result: CheckRequirementsReply) => {
         if (!result.feasible) {
-          this.notification.show('Service Creation requirements not met', { type: 'error' });
+          this.notification.show('Service creation requirements not met', { type: 'error' });
           return;
         }
         this.createService();
@@ -80,31 +79,36 @@ export class CephfsModalComponent implements OnInit {
     });
   }
 
-  public isValid(): boolean {
-    return this.nameFormCtrl.valid && this.requiredSpace > 0 && !this.isOverBudget();
-  }
-
-  public isOverBudget(): boolean {
-    return this.rawRequiredSpace > this.availableSpace;
-  }
-
-  private updateRawRequiredSpace(): void {
-    this.rawRequiredSpace = this.requiredSpace * this.replicaNumber;
+  private updateValues(): void {
+    const values = this.formGroup.value;
+    const rawRequiredSpace = values.requiredSpace * values.replicas;
+    this.formGroup.patchValue({ rawRequiredSpace });
   }
 
   private createService(): void {
-    const name: string = this.nameFormCtrl.value as string;
-    this.services.create(name, 'cephfs', this.requiredSpace, this.replicaNumber).subscribe({
+    const values = this.formGroup.value;
+    this.services.create(values.name, 'cephfs', values.requiredSpace, values.replicas).subscribe({
       next: (result: CreateServiceReply) => {
         let success = false;
         if (!result.success) {
-          this.notification.show('Error creating Service', { type: 'error' });
+          this.notification.show('Failed to create service', { type: 'error' });
         } else {
-          this.notification.show('Service created', { type: 'info' });
+          this.notification.show('Service successfully created');
           success = true;
         }
         this.dialogRef.close(success);
       }
     });
+  }
+
+  private budgetValidator(parent: any): ValidatorFn {
+    return (): ValidationErrors | null => {
+      if (!parent?.formGroup?.value) {
+        return null;
+      }
+      const values = parent.formGroup.value;
+      const overBudget = values.rawRequiredSpace > values.availableSpace;
+      return overBudget ? { overBudget: true } : null;
+    };
   }
 }

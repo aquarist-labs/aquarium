@@ -1,74 +1,112 @@
-<div style="width: 70vw">
-  <div matDialogTitle>
-    <span>CephFS</span>
-  </div>
-
-  <div matDialogContent fxLayout="column" fxLayoutAlign="start center">
-    
-    <div fxLayout="row" fxLayoutAlign="start center">
-      <div fxLayout="row" fxLayoutAlign="start center">
-        <span><strong>Available Space:</strong></span>
-        <span style="width: 5px"></span>
-        <span>{{availableSpace|bytesToSize}}</span>
-      </div>
-      <div style="width: 40px"></div>
-      <div fxLayout="row" fxLayoutAlign="start center">
-        <span><strong>Reserved Space:</strong></span>
-        <span style="width: 5px"></span>
-        <span>{{reservedSpace|bytesToSize}}</span>
-      </div>
+<h1 mat-dialog-title>CephFS</h1>
+<mat-dialog-content fxLayout="column"
+                    fxLayoutAlign="none">
+  <form [formGroup]="formGroup"
+        class="mat-typography"
+        novalidate
+        fxLayout="column"
+        fxLayoutAlign="none">
+    <div fxLayout="row"
+         fxLayoutAlign="space-between none"
+         fxLayoutGap="16px">
+      <mat-form-field [formGroup]="formGroup"
+                      fxFlex>
+        <mat-label>Available Capacity</mat-label>
+        <input matInput
+               type="text"
+               [value]="formGroup.value.availableSpace | bytesToSize"
+               readonly>
+      </mat-form-field>
+      <mat-form-field [formGroup]="formGroup"
+                      fxFlex>
+        <mat-label>Reserved Capacity</mat-label>
+        <input matInput
+               type="text"
+               [value]="formGroup.value.reservedSpace | bytesToSize"
+               readonly>
+      </mat-form-field>
+      <mat-form-field [formGroup]="formGroup"
+                      [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
+                      fxFlex>
+        <mat-label>Raw Required Capacity</mat-label>
+        <input matInput
+               type="text"
+               [value]="formGroup.value.rawRequiredSpace | bytesToSize"
+               readonly>
+      </mat-form-field>
     </div>
-    <div fxLayout="row" fxLayoutAlign="start center">
-      <span [class.over-budget]="isOverBudget()">
-        <strong>Raw Required Space:</strong>
-      </span>
-      <span style="width: 5px;"></span>
-      <span [class.over-budget]="isOverBudget()">
-        {{rawRequiredSpace|bytesToSize}}
-      </span>
+    <mat-form-field [formGroup]="formGroup"
+                    fxFlex>
+      <mat-label>Service Name</mat-label>
+      <input matInput
+             type="text"
+             formControlName="name">
+    </mat-form-field>
+    <mat-form-field [formGroup]="formGroup"
+                    class="glass-form-field-no-underline"
+                    fxFlex>
+      <mat-label>Number Of Replicas</mat-label>
+      <input #replicasInput
+             matInput
+             type="number"
+             formControlName="replicas"
+             hidden>
+      <mat-icon matTooltip="Capacity (less replicas)"
+                svgIcon="mdi:checkbox-blank">
+      </mat-icon>
+      <mat-slider [value]="replicasInput.value"
+                  (input)="onReplicasChange($event)"
+                  min="1"
+                  max="3"
+                  step="1"
+                  thumbLabel="true"
+                  fxFlex>
+      </mat-slider>
+      <mat-icon matTooltip="Redundancy (more replicas)"
+                svgIcon="mdi:apps">
+      </mat-icon>
+    </mat-form-field>
+    <div fxLayout="row"
+         fxLayoutAlign="space-between none"
+         fxLayoutGap="16px">
+      <mat-form-field [formGroup]="formGroup"
+                      class="glass-form-field-no-underline"
+                      [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
+                      fxFlex="80">
+        <mat-label>Estimated Required Capacity</mat-label>
+        <input #requiredSpaceInput
+               matInput
+               type="number"
+               formControlName="requiredSpace"
+               hidden>
+        <mat-slider [value]="requiredSpaceInput.value"
+                    (input)="onRequiredSpaceChange($event)"
+                    min="0"
+                    [max]="formGroup.value.availableSpace"
+                    step="1"
+                    fxFlex>
+        </mat-slider>
+      </mat-form-field>
+      <mat-form-field [formGroup]="formGroup"
+                      fxFlex="20">
+        <input matInput
+               type="text"
+               [value]="formGroup.value.requiredSpace | bytesToSize"
+               readonly>
+      </mat-form-field>
     </div>
-    <div style="height: 40px"></div> <!-- spacer -->
-    <div fxLayout="row" fxLayoutAlign="space-between center" style="width: 80%;">
-      <div>
-        <mat-form-field>
-          <mat-label>Service Name</mat-label>
-          <input matInput [formControl]="nameFormCtrl"/>
-        </mat-form-field>
-      </div>
-      <div fxLayout="row" fxLayoutAlign="start center">
-        <span>(less replicas) <strong>Capacity</strong></span>
-        <mat-slider style="width: 250px"
-            min="1" max="3" step="1"
-            (input)="onRedundancyChange($event)"
-            [thumbLabel]="true"
-            [value]="replicaNumber"
-        ></mat-slider>
-        <span><strong>Redundancy</strong> (more replicas)</span>
-      </div>
-      <div></div>
-    </div>
-    <div style="height: 20px"></div> <!-- spacer -->
-    <div fxLayout="row" fxLayoutAlign="start center" style="width: 80%">
-      <span><strong>Estimated Required Space:</strong></span>
-      <mat-slider style="width: 70%"
-          min="0" [max]="availableSpace" step="1"
-          (input)="onSpaceChange($event)"
-          value="0"
-      ></mat-slider>
-      <span [class.over-budget]="isOverBudget()">
-        {{requiredSpace|bytesToSize}}
-      </span>
-    </div>
-    <div style="height: 20px"></div> <!-- spacer -->
-    <div fxLayout="row" fxLayoutAlign="center center" style="width: 80%">
-      <button mat-stroked-button (click)="onCancel()">Cancel</button>
-      <span style="width: 20px"></span>
-      <button mat-raised-button color="primary" type="submit"
-          cdkFocusInitial (click)="onSubmit()"
-          [disabled]="!isValid()"
-      >Create</button>
-    </div>
-
-  </div>
-
-</div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button
+          [mat-dialog-close]="false">
+    Cancel
+  </button>
+  <button mat-button
+          type="submit"
+          cdkFocusInitial
+          (click)="onSubmit()"
+          [disabled]="formGroup.pristine || formGroup.invalid">
+    Create
+  </button>
+</mat-dialog-actions>

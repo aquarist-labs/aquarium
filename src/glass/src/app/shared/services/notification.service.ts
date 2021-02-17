@@ -34,7 +34,7 @@ export class NotificationService {
     return window.setTimeout(() => {
       this.snackBar.open(message, undefined, {
         duration: config!.duration,
-        panelClass: config!.type === NotificationType.error ? 'glass-color-theme-error' : undefined
+        panelClass: config!.type === NotificationType.error ? 'glass-color-theme-error' : 'glass-theme-accent'
       });
     }, 5);
   }
