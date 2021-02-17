@@ -27,6 +27,7 @@ export class DeploymentPageComponent implements OnInit {
   devices: Device[] = [];
   deploymentStepper!: MatStepper;
   displayInventory = true;
+  deploymentSuccessful = false;
 
   constructor(
     private dialog: MatDialog,
