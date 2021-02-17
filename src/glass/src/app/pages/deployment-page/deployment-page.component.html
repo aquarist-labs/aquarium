@@ -65,11 +65,11 @@
       <th mat-header-cell *matHeaderCellDef> Available </th>
       <td mat-cell *matCellDef="let row">
         <mat-icon *ngIf="row.available"
-                  style="color: green"
+                  class="glass-color-success"
                   svgIcon="mdi:check">
         </mat-icon>
         <mat-icon *ngIf="!row.available"
-                  style="color: red"
+                  class="glass-color-error"
                   svgIcon="mdi:close">
         </mat-icon>
       </td>
@@ -128,20 +128,21 @@
   <div class="summary">
     <div fxLayout="column"
          fxLayoutAlign="center center"
-         fxLayoutGap="5px"
+         fxLayoutGap="16px"
          fxFlexFill>
       <div>
-        <mat-icon svgIcon="mdi:check-circle-outline"
-                  class="icon-large"
-                  *ngIf="deploymentSuccessful">
+        <mat-icon *ngIf="deploymentSuccessful"
+                  class="glass-icon-large"
+                  svgIcon="mdi:check-circle-outline">
         </mat-icon>
-        <mat-icon svgIcon="mdi:close-circle-outline"
-                  class="icon-large" *ngIf="!deploymentSuccessful">
+        <mat-icon *ngIf="!deploymentSuccessful"
+                  class="glass-icon-large"
+                  svgIcon="mdi:close-circle-outline">
         </mat-icon>
       </div>
-      <div fxLayout="column"
-           fxLayoutAlign="center center"
-           *ngIf="deploymentSuccessful">
+      <div *ngIf="deploymentSuccessful"
+           fxLayout="column"
+           fxLayoutAlign="center center">
         <p>
           Your deployment was successful and is now ready to use.
         </p>
