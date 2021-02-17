@@ -12,6 +12,7 @@ from pydantic.fields import Field
 from gravel.controllers.services import \
     NotEnoughSpaceError, ServiceError, ServiceModel, \
     ServiceRequirementsModel, ServiceTypeEnum, Services
+from gravel.controllers.resources import storage
 
 
 logger: Logger = fastapi_logger
@@ -23,6 +24,7 @@ router: APIRouter = APIRouter(
 
 class ReservationsReply(BaseModel):
     reserved: int = Field(0, title="Total reserved storage space (bytes)")
+    available: int = Field(0, title="Available storage space (bytes)")
 
 
 class RequirementsRequest(BaseModel):
@@ -50,7 +52,8 @@ class CreateReply(BaseModel):
 async def get_reservations() -> ReservationsReply:
     services = Services()
     return ReservationsReply(
-        reserved=services.total_reservation
+        reserved=services.total_reservation,
+        available=storage.available
     )
 
 

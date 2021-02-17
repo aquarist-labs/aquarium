@@ -5,8 +5,10 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { of } from 'rxjs';
 import { delay, mergeMap } from 'rxjs/operators';
 
+import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { ChooseDevicesModalComponent } from '~/app/pages/deployment-page/choose-devices-modal/choose-devices-modal.component';
 import { Device, OrchService } from '~/app/shared/services/api/orch.service';
+import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
 @Component({
@@ -29,14 +31,18 @@ export class DeploymentPageComponent implements OnInit {
   displayInventory = true;
   deploymentSuccessful = false;
 
+  public cephfsList: ServiceDesc[] = [];
+
   constructor(
     private dialog: MatDialog,
     private notificationService: NotificationService,
-    private orchService: OrchService
+    private orchService: OrchService,
+    private services: ServicesService
   ) {}
 
   ngOnInit(): void {
     this.getDevices();
+    this.updateCephfsList();
   }
 
   addNfs(): void {
@@ -113,5 +119,25 @@ export class DeploymentPageComponent implements OnInit {
           handleError(err);
         }
       );
+  }
+
+  public openCephfsDialog(): void {
+    const ref = this.dialog.open(CephfsModalComponent);
+
+    ref.afterClosed().subscribe({
+      next: (result: boolean) => {
+        if (result) {
+          this.updateCephfsList();
+        }
+      }
+    });
+  }
+
+  private updateCephfsList(): void {
+    this.services.list().subscribe({
+      next: (result: ServiceDesc[]) => {
+        this.cephfsList = result;
+      }
+    });
   }
 }
