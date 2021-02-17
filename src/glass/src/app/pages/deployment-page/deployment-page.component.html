@@ -11,7 +11,8 @@
           <mat-icon>done</mat-icon>
         </ng-template>
         <mat-step>
-          <div *ngIf="displayInventory">
+          <div *ngIf="displayInventory"
+               class="glass-deployment-page-step-content">
             <ng-template matStepLabel>Inventory</ng-template>
             <ng-container [ngTemplateOutlet]="inventory"></ng-container>
             <button mat-button
@@ -20,21 +21,25 @@
           </div>
         </mat-step>
         <mat-step>
-          <ng-template matStepLabel>Services deployment</ng-template>
-          <ng-container [ngTemplateOutlet]="services"></ng-container>
-          <button mat-button
-                  matStepperNext>Next</button>
+          <div class="glass-deployment-page-step-content">
+            <ng-template matStepLabel>Services deployment</ng-template>
+            <ng-container [ngTemplateOutlet]="services"></ng-container>
+            <button mat-button
+                    matStepperNext>Next</button>
+          </div>
         </mat-step>
         <mat-step>
-          <ng-template matStepLabel>Summary</ng-template>
-          <ng-container [ngTemplateOutlet]="summary"></ng-container>
-          <button mat-icon-button
-                  matTooltip="Back"
-                  matStepperPrevious>
-            <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-          </button>
-          <button mat-button
-                  matStepperNext>Deploy</button>
+          <div class="glass-deployment-page-step-content">
+            <ng-template matStepLabel>Summary</ng-template>
+            <ng-container [ngTemplateOutlet]="summary"></ng-container>
+            <button mat-icon-button
+                    matTooltip="Back"
+                    matStepperPrevious>
+              <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+            </button>
+            <button mat-button
+                    matStepperNext>Deploy</button>
+          </div>
         </mat-step>
       </mat-vertical-stepper>
     </mat-card-content>
@@ -42,7 +47,8 @@
 </div>
 
 <ng-template #inventory>
-  <table mat-table [dataSource]="devices" class="mat-elevation-z3">
+  <table mat-table [dataSource]="devices"
+         class="mat-elevation-z3">
     <ng-container matColumnDef="icon">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">

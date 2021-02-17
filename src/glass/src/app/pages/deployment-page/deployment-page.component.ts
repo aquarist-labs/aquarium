@@ -19,6 +19,7 @@ export class DeploymentPageComponent implements OnInit {
   set stepper(s: MatStepper) {
     this.deploymentStepper = s;
   }
+
   @BlockUI()
   blockUI!: NgBlockUI;
 
@@ -51,7 +52,7 @@ export class DeploymentPageComponent implements OnInit {
 
   chooseDevices(): void {
     const dialogRef = this.dialog.open(ChooseDevicesModalComponent, {
-      width: '250px'
+      width: '50%'
     });
     dialogRef.afterClosed().subscribe((decision: boolean) => {
       dialogRef.close();
