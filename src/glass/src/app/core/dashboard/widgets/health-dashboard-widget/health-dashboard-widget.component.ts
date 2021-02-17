@@ -9,9 +9,9 @@ import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-d
   styleUrls: ['./health-dashboard-widget.component.scss']
 })
 export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<boolean> {
-  data = false;
+  data = true;
 
   loadData(): Observable<boolean> {
-    return of(!this.data);
+    return of(this.data);
   }
 }
