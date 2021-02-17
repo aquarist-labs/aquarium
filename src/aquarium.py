@@ -25,7 +25,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger as fastapi_logger
 
-from gravel.controllers.gstate import GlobalState
+from gravel.controllers.gstate import gstate
 
 from gravel.api import bootstrap
 from gravel.api import orch
@@ -37,8 +37,6 @@ logger: logging.Logger = fastapi_logger
 
 app = FastAPI()
 api = FastAPI()
-
-gstate: GlobalState = GlobalState()
 
 
 @app.on_event("startup")  # type: ignore
