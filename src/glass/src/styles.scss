@@ -50,6 +50,14 @@ $glass-color-accent-complementary: white;
 .glass-color-accent {
   color: $glass-color-accent;
 }
+.glass-color-green,
+.glass-color-success {
+  color: $eos-bc-green-500;
+}
+.glass-color-red,
+.glass-color-error {
+  color: $eos-bc-red-500;
+}
 
 .glass-text-pre-wrap {
   white-space: pre-wrap;
@@ -59,6 +67,11 @@ $glass-color-accent-complementary: white;
 }
 .glass-text-center {
   text-align: center;
+}
+
+.glass-icon-large {
+  height: 100px;
+  width: 100px;
 }
 
 html,
