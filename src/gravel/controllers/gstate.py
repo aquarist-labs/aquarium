@@ -70,3 +70,6 @@ class GlobalState:
     def rm_ticker(self, desc: str) -> None:
         if desc in self.tickers:
             del self.tickers[desc]
+
+
+gstate: GlobalState = GlobalState()

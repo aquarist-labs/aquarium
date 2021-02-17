@@ -5,9 +5,8 @@ from logging import Logger
 import time
 from typing import Optional
 from fastapi.logger import logger as fastapi_logger
-from gravel import gstate
 from gravel.cephadm.models import NodeInfoModel
-from gravel.controllers.gstate import Ticker
+from gravel.controllers.gstate import gstate, Ticker
 from gravel.cephadm.cephadm import Cephadm
 
 
