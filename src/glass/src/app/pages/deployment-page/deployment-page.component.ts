@@ -27,7 +27,7 @@ export class DeploymentPageComponent implements OnInit {
   devices: Device[] = [];
   deploymentStepper!: MatStepper;
   displayInventory = true;
-  deploymentSuccessful = false;
+  deploymentSuccessful = true;
 
   constructor(
     private dialog: MatDialog,
@@ -80,6 +80,7 @@ export class DeploymentPageComponent implements OnInit {
         }
       },
       () => {
+        this.deploymentSuccessful = false;
         this.displayInventory = true;
         this.blockUI.stop();
       }
@@ -88,6 +89,7 @@ export class DeploymentPageComponent implements OnInit {
 
   pollAssimilationStatus(): void {
     const handleError = (err?: any) => {
+      this.deploymentSuccessful = false;
       this.displayInventory = true;
       this.blockUI.stop();
       this.notificationService.show('Failed to deploy disks.', {
