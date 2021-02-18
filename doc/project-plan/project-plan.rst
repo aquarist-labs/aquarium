@@ -1,3 +1,5 @@
+.. _aquarium-project-plan:
+
 ======================
 Aquarium Project Plan
 ======================
@@ -6,7 +8,7 @@ Project Scope
 ~~~~~~~~~~~~~
 
 Aquarist Labs is an organization of like-minded individuals working on
-the Aquarium project. 
+the Aquarium project.
 
 The scope of Aquarist Labs is to investigate the beginnings of an opinionated
 new storage appliance project in an collaborative fashion. This includes the planning,
@@ -48,7 +50,7 @@ This project should also explore if other user interface abstractions are
 practical and ultimately an improvement. The goal should be simplification
 where a user is not required to configure individual daemons or disk layouts,
 but can provide a high level specification of what they want (in terms of
-availability, usable capacity, ...?)  and a piece of code translates that
+availability, usable capacity, ...?)  and a piece of code translates that
 to a deployment layout. Whether this deployment layout can be set up on the
 current hardware can be determined by software and the user can be provided
 with the feedback (be it positive or negative).
@@ -60,7 +62,7 @@ The Aquarium project is designed to deliver a Ceph-based appliance for
 enterprise, built on on industry standard scripts, tools, and frameworks
 (lightweight, modern CI, lightweight build system, etc.).
 
-Aquariums has the following:
+Aquariums has the following:
 
 - Built on Ceph
 - Installation capabilities on any Linux distribution
@@ -75,7 +77,7 @@ Quality Management
 
 Project quality is ensured by light-weight, modern CI/CD tools that automatically validate builds. The project team will also prioritize user feedback on quality over features. This will be refined in future milestones.
 
-Risk Management 
+Risk Management
 ~~~~~~~~~~~~~~~
 
 Identify risks and ensure team members monitor the risks associated with them.
@@ -107,53 +109,3 @@ Milestones
      -
          - Announce Aquarist Labs publicly
      - April 17, 2021
-
-Communication Management Plan
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :widths: 15 45 10 10 10 10
-   :header-rows: 1
-
-   * - Communicate Type
-     - Description
-     - Frequency
-     - Format
-     - Distribution
-     - Owner
-   * - Team meetings
-     -
-         - Weekly meeting (x3 per timezone) to discuss Aquarist Labs.
-         - This includes meeting minutes that are regularly sent to the mailing list.
-     - Weekly
-     - Teams
-     - TBD
-     - asettle@suse.com
-   * - Chat
-     -
-         - Public communication channels
-     - Daily
-     - TBD
-     - TBD
-     - TBD
-   * - Social media
-     -
-         - Blogs?
-         - Twitter?
-     - TBD
-     - TBD
-     - TBD
-     - TBD
-   * - Announcements
-     -
-         - Milestone 1 announcement
-         - Website changes
-         - Social media announcements
-     - Monthly
-     -
-         - Email?
-         - GitHub discussions
-     - TBD
-     -
-         - asettle@suse.com
-         - lmb@suse.com
