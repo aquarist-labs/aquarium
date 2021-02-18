@@ -9,6 +9,7 @@ from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 
 from gravel.controllers.orch.models \
     import CephFSListEntryModel, CephFSNameModel, CephFSVolumeListModel
+from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 class CephFSError(Exception):
@@ -40,6 +41,9 @@ class CephFS:
         # sure we've got something out of it.
         assert "result" in res
         assert len(res["result"]) > 0
+        # schedule orchestrator to update the number of mds instances
+        orch = Orchestrator()
+        orch.apply_mds(name)
 
     def volume_ls(self) -> CephFSVolumeListModel:
 

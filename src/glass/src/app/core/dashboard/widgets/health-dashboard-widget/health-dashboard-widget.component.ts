@@ -1,17 +1,52 @@
 import { Component } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
+import { Status, StatusService } from '~/app/shared/services/api/status.service';
 
 @Component({
   selector: 'glass-health-dashboard-widget',
   templateUrl: './health-dashboard-widget.component.html',
   styleUrls: ['./health-dashboard-widget.component.scss']
 })
-export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<boolean> {
-  data = false;
+export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<Status> {
 
-  loadData(): Observable<boolean> {
-    return of(!this.data);
+  public isError: boolean = false;
+  public isWarn: boolean = false;
+  public isOkay: boolean = false;
+  public hasStatus: boolean = false;
+
+  public constructor(
+    private statusService: StatusService
+  ) {
+    super();
+    this.loadDataEvent.subscribe((status: Status) => {
+      this.isError = this.isWarn = this.isOkay = false;
+      this.hasStatus = false;
+
+      if (!status.cluster) {
+        return;
+      }
+
+      this.hasStatus = true;
+      switch (status.cluster.health.status.toLowerCase()) {
+        case "health_ok":
+          this.isOkay = true;
+          break;
+        case "health_warn":
+          this.isWarn = true;
+          break;
+        case "health_err":
+          this.isError = true;
+          break;
+        default:
+          this.hasStatus = false;
+          break;
+      }
+    });
+  }
+
+  loadData(): Observable<Status> {
+    return this.statusService.status();
   }
 }

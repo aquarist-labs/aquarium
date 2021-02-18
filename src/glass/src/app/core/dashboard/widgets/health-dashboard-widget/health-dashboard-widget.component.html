@@ -1,15 +1,20 @@
 <div class="glass-health-dashboard-widget"
-     [ngClass]="{'glass-color-theme-ok': data && !error, 'glass-color-theme-error': !data && !error || error}"
+     [class.glass-color-theme-ok]="isOkay && !error"
+     [class.glass-color-theme-error]="isError || !hasStatus || error"
+     [class.glass-health-color-warn]="isWarn && !error"
      fxFlex
      fxLayout="row"
      fxLayoutAlign="center center">
-  <mat-icon *ngIf="data && !error"
+  <mat-icon *ngIf="isOkay && !error"
             svgIcon="mdi:thumb-up">
   </mat-icon>
-  <mat-icon *ngIf="!data && !error"
+  <mat-icon *ngIf="isError && !error"
             svgIcon="mdi:thumb-down">
   </mat-icon>
-  <mat-icon *ngIf="error"
+  <mat-icon *ngIf="isWarn && !error"
+            svgIcon="mdi:alert-circle-outline">
+  </mat-icon>
+  <mat-icon *ngIf="error || !hasStatus"
             svgIcon="mdi:lan-disconnect">
   </mat-icon>
 </div>
