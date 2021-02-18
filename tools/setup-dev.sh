@@ -21,6 +21,17 @@ options:
 EOF
 }
 
+yes_no() {
+    while true; do
+        read -p "$1? " yn
+        case $yn in
+            [Yy]* ) return 0; break;;
+            [Nn]* ) return 1; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+}
+
 skip_install_deps=false
 show_dependencies=false
 
@@ -103,20 +114,27 @@ git submodule update --init || exit 1
 [[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
   ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
-if [[ ! -e "venv" ]]; then
-
-  # we need system site packages because librados python bindings appear to only
-  # be available as a package. It might be a good idea to compile it from the
-  # ceph repo we keep as a submodule, but it might be overkill at the moment?
-  python3 -m venv --system-site-packages venv || exit 1
+if [ -d venv ] ; then
+    echo
+    echo "Detected an existing virtual environment:"
+    echo "  > $(realpath venv)"
+    if yes_no "Blow it away"; then
+        rm -rf venv || exit $?
+    fi
+    echo
 fi
+
+# we need system site packages because librados python bindings appear to only
+# be available as a package. It might be a good idea to compile it from the
+# ceph repo we keep as a submodule, but it might be overkill at the moment?
+python3 -m venv --system-site-packages venv || exit 1
 
 source venv/bin/activate
 pip install -r src/requirements.txt || exit 1
 deactivate
 
-pushd src/glass
+pushd src/glass &>/dev/null
 npm install || exit 1
 npx ng build || exit 1
-popd
+popd &>/dev/null
 
