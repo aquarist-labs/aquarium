@@ -6,6 +6,10 @@
   height: 100%;
   overflow: hidden;
 
+  a {
+    color: $glass-color-white;
+  }
+
   .glass-welcome-page-background {
     position: absolute;
     height: 100%;
