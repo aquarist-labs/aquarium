@@ -11,7 +11,7 @@
 
   .mat-card {
     width: 50%;
-    @extend .glass-theme-white;
+    @extend .glass-color-theme-white;
 
     ::ng-deep .mat-card-header > .mat-card-header-text {
       margin-left: unset;
@@ -44,7 +44,7 @@
           }
         }
         .mat-step-header:hover {
-          @extend .glass-theme-white;
+          @extend .glass-color-theme-white;
         }
 
         .glass-deployment-page-step-content {
@@ -59,7 +59,7 @@
     }
 
     .mat-button.mat-stepper-next {
-      @extend .glass-theme-primary;
+      @extend .glass-color-theme-primary;
     }
   }
 }
