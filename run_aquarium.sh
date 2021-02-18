@@ -2,6 +2,7 @@
 
 SCRIPT_NAME=$(basename ${BASH_SOURCE[0]})
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VENV_DIR=${SCRIPT_DIR}/venv
 
 usage() {
   cat <<EOF
@@ -50,7 +51,10 @@ $has_config && $is_new && [[ -e "${config_path}" ]] && \
   ( rm -fr ${config_path} || exit 1 )
 
 
-pushd src &>/dev/null
+source ${VENV_DIR}/bin/activate || exit $?
+pip install -r ${SCRIPT_DIR}/src/requirements.txt || exit $?
+
+pushd ${SCRIPT_DIR}/src &>/dev/null
 
 $is_debug && export AQUARIUM_DEBUG=1
 $has_config && export AQUARIUM_CONFIG_DIR=${config_path}
@@ -58,3 +62,5 @@ $has_config && export AQUARIUM_CONFIG_DIR=${config_path}
 uvicorn aquarium:app --host 0.0.0.0 --port 1337
 
 popd &>/dev/null
+
+deactivate
