@@ -1,6 +1,6 @@
 # Project Aquarium
 
-![GitHub Repo stars](https://img.shields.io/github/stars/aquarist-labs/aquarium?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/aquarist-labs/aquarium) ![GitHub contributors](https://img.shields.io/github/contributors/aquarist-labs/aquarium) ![GitHub issues](https://img.shields.io/github/issues/aquarist-labs/aquarium)![GitHub milestones](https://img.shields.io/github/milestones/all/aquarist-labs/aquarium)
+![GitHub Repo stars](https://img.shields.io/github/stars/aquarist-labs/aquarium?style=social) ![Lines of code](https://img.shields.io/tokei/lines/github/aquarist-labs/aquarium) ![GitHub contributors](https://img.shields.io/github/contributors/aquarist-labs/aquarium) ![GitHub issues](https://img.shields.io/github/issues/aquarist-labs/aquarium) ![GitHub milestones](https://img.shields.io/github/milestones/all/aquarist-labs/aquarium)
 
 Aquarist Labs are an organization of like-minded individuals working on the Aquariums project. 
 
