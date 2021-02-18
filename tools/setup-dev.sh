@@ -21,6 +21,17 @@ options:
 EOF
 }
 
+yes_no() {
+    while true; do
+        read -p "$1? " yn
+        case $yn in
+            [Yy]* ) return 0; break;;
+            [Nn]* ) return 1; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+}
+
 skip_install_deps=false
 show_dependencies=false
 
@@ -104,8 +115,13 @@ git submodule update --init || exit 1
   ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
 if [ -d venv ] ; then
-    >&2 echo "Detected an existing virtual environment - blowing it away!"
-    rm -rf venv
+    echo
+    echo "Detected an existing virtual environment:"
+    echo "  > $(realpath venv)"
+    if yes_no "Blow it away"; then
+        rm -rf venv || exit $?
+    fi
+    echo
 fi
 
 # we need system site packages because librados python bindings appear to only
