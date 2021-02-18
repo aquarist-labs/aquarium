@@ -123,7 +123,7 @@ export class DeploymentPageComponent implements OnInit {
 
   public openCephfsDialog(): void {
     const ref = this.dialog.open(CephfsModalComponent, {
-      width: '50%'
+      width: '60%'
     });
     ref.afterClosed().subscribe({
       next: (result: boolean) => {
