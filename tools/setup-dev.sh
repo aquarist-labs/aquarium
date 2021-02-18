@@ -115,8 +115,8 @@ source venv/bin/activate
 pip install -r src/requirements.txt || exit 1
 deactivate
 
-pushd src/glass
+pushd src/glass &>/dev/null
 npm install || exit 1
 npx ng build || exit 1
-popd
+popd &>/dev/null
 
