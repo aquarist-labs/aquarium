@@ -103,13 +103,15 @@ git submodule update --init || exit 1
 [[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
   ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
-if [[ ! -e "venv" ]]; then
-
-  # we need system site packages because librados python bindings appear to only
-  # be available as a package. It might be a good idea to compile it from the
-  # ceph repo we keep as a submodule, but it might be overkill at the moment?
-  python3 -m venv --system-site-packages venv || exit 1
+if [ -d venv ] ; then
+    >&2 echo "Detected an existing virtual environment - blowing it away!"
+    rm -rf venv
 fi
+
+# we need system site packages because librados python bindings appear to only
+# be available as a package. It might be a good idea to compile it from the
+# ceph repo we keep as a submodule, but it might be overkill at the moment?
+python3 -m venv --system-site-packages venv || exit 1
 
 source venv/bin/activate
 pip install -r src/requirements.txt || exit 1
