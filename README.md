@@ -10,23 +10,7 @@ Project Aquarium is a SUSE-sponsored open source project aiming at becoming an e
 
 We are investigating the beginnings of a new storage appliance project in an opinionated fashion. The Aquariums project is split into two clearly defined work streams: Gravel (backend) and Glass (frontend). 
 
-## Checking out the source
-
-You can clone from github with
-
-	git clone git@github.com:aquarist-labs/aquarium
-
-or, if you are not a github user,
-
-	git clone git://github.com/aquarist-labs/aquarium
-
-## What does this project do?
-
-We're not actually sure yet, but the end goal is to make a storage appliance installer.
-
-## Why is this project useful?
-
-Stop asking hard questions.
+Aquarist Labs are licensed under the LGPL version 2.1. We do not require assignment of copyright to contribute code; code is contributed under the terms of the applicable license.
 
 ## How do I get started?
 
@@ -41,12 +25,28 @@ environment as soon as possible so you can start hacking.
 You will be able to find the backend bits in `src/gravel`, while the frontend
 bits are located in `src/glass`.
 
+Check out our [From Zero to Hacking](https://github.com/aquarist-labs/aquarium/blob/main/doc/from-zero-to-hacking.md)
+quickstart to help you get off your feet.
+
 ## Where can I get more help, if I need it?
 
-Oh, oh we're not there yet.
+Let’s move this to Slack! We’ve got 22 folks from the team there already. You can sign up [here](https://join.slack.com/t/aquaristlabs/shared_invite/zt-lsjrkw8m-Jj_zYAs84PfMsUGwvMDOFA).
 
-## Contributing Code
+We have the following channels:
 
-Aquarist Labs are licensed under the LGPL version 2.1. 
+- #announcements: For all announcements related to Aquarist Labs and the Aquarium project
+- #aquarium: For all conversation and questions surrounding the Aquarium project
+- #general: General conversation surrounding Aquarist Labs
+- #random: Show us your best gif!
 
-We do not require assignment of copyright to contribute code; code is contributed under the terms of the applicable license.
+If you have a new idea, or want to discuss any implementation details, we recommend using our [Discussion page](https://github.com/aquarist-labs/forum/discussions) on GitHub.
+
+## Checking out the source
+
+You can clone from github with
+
+	git clone git@github.com:aquarist-labs/aquarium
+
+or, if you are not a github user,
+
+	git clone git://github.com/aquarist-labs/aquarium
