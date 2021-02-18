@@ -63,7 +63,7 @@ class Storage(Ticker):
         stage = gstate.config.deployment_state.stage
         if stage != DeploymentStage.bootstrapped and \
            stage != DeploymentStage.ready:
-            logger.debug("=> storage not ticking, not bootstrapped")
+            logger.debug(f"=> storage not ticking, not bootstrapped (current={stage})")
             return
 
         self._is_ticking = True

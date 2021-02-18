@@ -5,6 +5,10 @@
     }
   }
 
+  &.glass-form-field-hint {
+    margin-bottom: 10px;
+  }
+
   &.mat-form-field-invalid {
     .mat-input-element {
       color: #dc3545;

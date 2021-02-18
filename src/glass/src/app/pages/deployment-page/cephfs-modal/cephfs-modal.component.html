@@ -43,7 +43,7 @@
              formControlName="name">
     </mat-form-field>
     <mat-form-field [formGroup]="formGroup"
-                    class="glass-form-field-no-underline"
+                    class="glass-form-field-no-underline glass-form-field-hint"
                     fxFlex>
       <mat-label>Number Of Replicas</mat-label>
       <input #replicasInput
@@ -65,6 +65,11 @@
       <mat-icon matTooltip="Redundancy (more replicas)"
                 svgIcon="mdi:apps">
       </mat-icon>
+      <mat-hint>
+        <span *ngIf="formGroup.value.replicas === 1">Only one replica of the data is created, which is reflected in the maximum available storage capacity.</span>
+        <span *ngIf="formGroup.value.replicas === 2">Two replicas of the data are created. This doubles the required storage capacity. At the same time, the data failure security increases.</span>
+        <span *ngIf="formGroup.value.replicas === 3">Three replicas of the data are created. The required storage capacity triples as a result. The data failure security is even higher.</span>
+      </mat-hint>
     </mat-form-field>
     <div fxLayout="row"
          fxLayoutAlign="space-between none"
@@ -88,6 +93,7 @@
         </mat-slider>
       </mat-form-field>
       <mat-form-field [formGroup]="formGroup"
+                      [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
                       fxFlex="20">
         <input matInput
                type="text"

@@ -35,7 +35,7 @@ describe('NotificationService', () => {
     tick(5);
     expect(snackBar.open).toHaveBeenCalledWith('foo', undefined, {
       duration: 5000,
-      panelClass: undefined
+      panelClass: 'glass-theme-accent'
     });
   }));
 
@@ -45,7 +45,7 @@ describe('NotificationService', () => {
     tick(5);
     expect(snackBar.open).toHaveBeenCalledWith('bar', undefined, {
       duration: 2000,
-      panelClass: undefined
+      panelClass: 'glass-theme-accent'
     });
   }));
 
