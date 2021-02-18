@@ -33,7 +33,7 @@ transition to the public space.
        some text examples.
      - Announcement of Aquarium
      - All
-  * - LinkedIn post
+   * - LinkedIn post
      - LinkedIn
      -
          - 17/03/2021
@@ -42,6 +42,7 @@ transition to the public space.
        repo, issue list, and other useful resources.
      - Introduction to Aquarium
      - All
+
    * - Vlog
      - YouTube
      - TBD
