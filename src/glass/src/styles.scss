@@ -28,13 +28,18 @@ $glass-color-accent-complementary: white;
   color: $glass-color-white;
   background-color: rgba(255, 255, 255, 0.1);
 }
-.glass-color-theme-error {
+.glass-color-theme-error,
+.glass-color-theme-danger {
   color: $glass-color-white;
   background-color: $eos-bc-red-500;
 }
 .glass-color-theme-ok {
   color: $glass-color-white;
   background-color: $glass-color-primary;
+}
+.glass-color-theme-warn {
+  color: whitesmoke;
+  background-color: orange;
 }
 
 .glass-background-color-primary {

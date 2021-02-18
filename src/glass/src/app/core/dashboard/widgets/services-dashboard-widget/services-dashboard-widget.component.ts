@@ -15,7 +15,6 @@ export class ServicesDashboardWidgetComponent extends AbstractDashboardWidget<Se
 
   constructor(private service: ServicesService) {
     super();
-    console.log(this.service);
   }
 
   loadData(): Observable<ServiceDesc[]> {
