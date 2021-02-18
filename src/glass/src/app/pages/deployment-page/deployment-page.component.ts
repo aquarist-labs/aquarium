@@ -41,7 +41,7 @@ export class DeploymentPageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getDevices();
+    this.getDevices(0);
     this.updateCephfsList();
   }
 
@@ -49,7 +49,8 @@ export class DeploymentPageComponent implements OnInit {
     this.nfs = true;
   }
 
-  getDevices(): void {
+  getDevices(attempt: number): void {
+    const maxAttempts = 5;
     this.startBlockUI('Please wait, fetching device information ...');
     of(true)
       .pipe(
@@ -58,13 +59,17 @@ export class DeploymentPageComponent implements OnInit {
       )
       .subscribe(
         (hostDevices) => {
-          if (Object.keys(hostDevices).length > 0) {
+          Object.values(hostDevices).forEach((v) => {
+            this.devices = this.devices.concat(v.devices);
+          });
+          if (this.devices.length > 0) {
             this.stopBlockUI();
-            Object.values(hostDevices).forEach((v) => {
-              this.devices = this.devices.concat(v.devices);
-            });
           } else {
-            this.getDevices();
+            if (attempt < maxAttempts) {
+              this.getDevices(++attempt);
+            } else {
+              this.handleError(undefined, 'No devices found.');
+            }
           }
         },
         (err) => {
@@ -85,13 +90,13 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   startAssimilation(): void {
-    this.startBlockUI('Please wait, disk deployment in progress ...');
+    this.startBlockUI('Please wait, device deployment in progress ...');
     this.orchService.assimilateDevices().subscribe(
       (success) => {
         if (success) {
           this.pollAssimilationStatus();
         } else {
-          this.handleError(undefined, 'Failed to start disk deployment.');
+          this.handleError(undefined, 'Failed to start device deployment.');
         }
       },
       () => {
@@ -116,7 +121,7 @@ export class DeploymentPageComponent implements OnInit {
           }
         },
         (err) => {
-          this.handleError(err, 'Failed to deploy disks.');
+          this.handleError(err, 'Failed to deploy devices.');
         }
       );
   }
