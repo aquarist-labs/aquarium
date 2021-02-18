@@ -16,15 +16,25 @@ from logging import Logger
 import os
 import json
 from io import StringIO
-from typing import List, Tuple
+from typing import (
+    Callable,
+    List,
+    Optional,
+    Tuple
+)
 
 import pydantic
 from pydantic.tools import parse_obj_as
 from fastapi.logger import logger as fastapi_logger
 
-from .models import HostFactsModel, NodeCPUInfoModel, \
-    NodeCPULoadModel, NodeInfoModel, NodeMemoryInfoModel, \
+from .models import (
+    HostFactsModel,
+    NodeCPUInfoModel,
+    NodeCPULoadModel,
+    NodeInfoModel,
+    NodeMemoryInfoModel,
     VolumeDeviceModel
+)
 
 
 logger: Logger = fastapi_logger
@@ -47,7 +57,9 @@ class Cephadm:
 
         pass
 
-    async def call(self, cmd: str) -> Tuple[str, str, int]:
+    async def call(self, cmd: str,
+                   outcb: Optional[Callable[[str], None]] = None
+                   ) -> Tuple[str, str, int]:
 
         cmdlst: List[str] = f"{self.cephadm} {cmd}".split()
 
@@ -60,7 +72,7 @@ class Cephadm:
         assert process.stderr
 
         stdout, stderr = await asyncio.gather(
-            self._tee(process.stdout), self._tee(process.stderr)
+            self._tee(process.stdout, outcb), self._tee(process.stderr, outcb)
         )
         retcode = await asyncio.wait_for(process.wait(), None)
 
@@ -69,24 +81,52 @@ class Cephadm:
     async def run_in_background(self, cmd: List[str]) -> None:
         pass
 
-    async def _tee(self, reader: asyncio.StreamReader) -> str:
+    async def _tee(self, reader: asyncio.StreamReader,
+                   cb: Optional[Callable[[str], None]] = None) -> str:
         collected = StringIO()
         async for line in reader:
             msg = line.decode("utf-8")
             collected.write(msg)
+            if cb:
+                cb(msg)
         return collected.getvalue()
 
     #
     # command wrappers
     #
 
-    async def bootstrap(self, addr: str) -> Tuple[str, str, int]:
+    async def bootstrap(self, addr: str,
+                        percentcb: Optional[Callable[[int], None]] = None
+                        ) -> Tuple[str, str, int]:
 
         if not addr:
             raise CephadmError("address not specified")
 
+        msg_to_percent: List[Tuple[str, int]] = [
+            ("cluster fsid", 5),
+            ("pulling container image", 7),
+            ("extracting ceph user uid/gid from container image", 15),
+            ("creating mon", 20),
+            ("waiting for mon to start", 25),
+            ("wrote config", 40),
+            ("creating mgr", 45),
+            ("waiting for mgr to start", 50),
+            ("enabling cephadm module", 60),
+            ("setting orchestrator backend to cephadm", 70),
+            ("adding host", 80),
+            ("bootstrap complete", 100)
+        ]
+
+        def outcb_handler(msg: str) -> None:
+            if not percentcb:
+                return
+            t = msg.lower()
+            for m, p in msg_to_percent:
+                if m in t:
+                    percentcb(p)
+
         cmd = f"bootstrap --skip-prepare-host --mon-ip {addr}"
-        return await self.call(cmd)
+        return await self.call(cmd, outcb_handler)
 
     async def gather_facts(self) -> HostFactsModel:
         stdout, stderr, rc = await self.call("gather-facts")

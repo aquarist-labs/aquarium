@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import json
 import os
 import pytest
@@ -14,7 +14,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 @pytest.mark.asyncio
 async def test_bootstrap(mocker):
 
-    async def mock_call(cmd: str) -> Tuple[str, str, int]:
+    async def mock_call(cmd: str, cb: Optional[Any]) -> Tuple[str, str, int]:
         return "foo", "bar", 0
 
     cephadm = Cephadm()
