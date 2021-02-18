@@ -23,17 +23,18 @@ export class NotificationService {
    * Show a notification.
    *
    * @param message The message to be displayed.
-   * @param config The time the notification is displayed.
-   *   Defaults to 2000 milliseconds.
+   * @param config The notification configuration, including:
+   *   type - 'info' or 'error'. Defaults to 'info'.
+   *   duration - Defaults to 2000 milliseconds.
    * @returns The timeout ID that is set to be able to cancel the
    *   notification.
    */
-  show(message: string, config: NotificationConfig): number {
+  show(message: string, config?: NotificationConfig): number {
+    config = _.defaultsDeep(config || {}, { type: NotificationType.info, duration: 2000 });
     return window.setTimeout(() => {
-      _.defaultsDeep(config, { type: NotificationType.info, duration: 2000 });
       this.snackBar.open(message, undefined, {
-        duration: config.duration,
-        panelClass: config.type === NotificationType.error ? 'glass-color-theme-error' : undefined
+        duration: config!.duration,
+        panelClass: config!.type === NotificationType.error ? 'glass-color-theme-error' : undefined
       });
     }, 5);
   }

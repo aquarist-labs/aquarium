@@ -17,3 +17,5 @@ images/build/
 tests/vagrant/setups/
 .vagrant/
 .idea/
+conf/
+
