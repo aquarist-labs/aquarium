@@ -76,7 +76,7 @@ done
   usage && \
   exit 1
 
-if ! which kiwi-ng &>/dev/null ; then
+if ! kiwi-ng --version &>/dev/null ; then
   echo "error: missing kiwi-ng"
   exit 1
 fi
