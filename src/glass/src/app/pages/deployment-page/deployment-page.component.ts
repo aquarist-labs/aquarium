@@ -50,7 +50,7 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   getDevices(): void {
-    this.startBlockUI('Fetching disk information ...');
+    this.startBlockUI('Please wait, fetching device information ...');
     of(true)
       .pipe(
         delay(5000),

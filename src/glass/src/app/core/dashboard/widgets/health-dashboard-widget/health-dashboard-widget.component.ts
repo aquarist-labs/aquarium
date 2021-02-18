@@ -10,15 +10,12 @@ import { Status, StatusService } from '~/app/shared/services/api/status.service'
   styleUrls: ['./health-dashboard-widget.component.scss']
 })
 export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<Status> {
+  public isError = false;
+  public isWarn = false;
+  public isOkay = false;
+  public hasStatus = false;
 
-  public isError: boolean = false;
-  public isWarn: boolean = false;
-  public isOkay: boolean = false;
-  public hasStatus: boolean = false;
-
-  public constructor(
-    private statusService: StatusService
-  ) {
+  public constructor(private statusService: StatusService) {
     super();
     this.loadDataEvent.subscribe((status: Status) => {
       this.isError = this.isWarn = this.isOkay = false;
@@ -30,13 +27,13 @@ export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<Stat
 
       this.hasStatus = true;
       switch (status.cluster.health.status.toLowerCase()) {
-        case "health_ok":
+        case 'health_ok':
           this.isOkay = true;
           break;
-        case "health_warn":
+        case 'health_warn':
           this.isWarn = true;
           break;
-        case "health_err":
+        case 'health_err':
           this.isError = true;
           break;
         default:

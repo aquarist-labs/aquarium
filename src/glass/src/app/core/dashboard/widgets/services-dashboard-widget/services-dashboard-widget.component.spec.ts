@@ -1,10 +1,11 @@
+/* eslint-disable max-len */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { ServicesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-dashboard-widget/services-dashboard-widget.component';
 
-describe('cephfsDashboardWidgetComponent', () => {
+describe('ServicesDashboardWidgetComponent', () => {
   let component: ServicesDashboardWidgetComponent;
   let fixture: ComponentFixture<ServicesDashboardWidgetComponent>;
 

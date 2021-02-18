@@ -174,18 +174,16 @@
       <div *ngIf="deploymentSuccessful"
            fxLayout="column"
            fxLayoutAlign="center center">
-        <p>
-          Your deployment was successful and is now ready to use.
+        <p class="glass-text-center">
+          <span>Your deployment was successful and is now ready to use.</span>
+          <br>
+          <span>You can now open your dashboard by clicking the button below.</span>
         </p>
-        <p>
-          You can now open your dashboard by clicking the button below.
-        </p>
-        <p>
-          <button mat-button
-                  class="mat-stepper-next"
-                  routerLink="/dashboard">
-            Go to Dashboard</button>
-        </p>
+        <button mat-button
+                class="mat-stepper-next"
+                routerLink="/dashboard">
+          Go to Dashboard
+        </button>
       </div>
       <div *ngIf="!deploymentSuccessful">
         We are sorry, but your deployment was not successful.

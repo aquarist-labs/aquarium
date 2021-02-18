@@ -13,11 +13,11 @@ export class VolumesDashboardWidgetComponent extends AbstractDashboardWidget<Vol
   data: Volume[] = [];
   displayedColumns: string[] = ['path', 'device_id', 'vendor', 'type', 'size'];
 
-  constructor(private service: OrchService) {
+  constructor(private orchService: OrchService) {
     super();
   }
 
   loadData(): Observable<Volume[]> {
-    return this.service.volumes();
+    return this.orchService.volumes();
   }
 }

@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ServicesService } from './services.service';
+import { ServicesService } from '~/app/shared/services/api/services.service';
 
 describe('ServicesService', () => {
   let service: ServicesService;
