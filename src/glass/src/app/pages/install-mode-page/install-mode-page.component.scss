@@ -11,7 +11,7 @@
 
   .mat-card {
     width: 50%;
-    @extend .glass-theme-white;
+    @extend .glass-color-theme-white;
 
     ::ng-deep .mat-card-header > .mat-card-header-text {
       margin-left: unset;
