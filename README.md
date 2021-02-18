@@ -1,6 +1,12 @@
 # Project Aquarium
 
-Aquarist Labs are an organization of like-minded individuals working on the Aquariums project. 
+![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Faquarist-labs.github.io%2F)
+
+![GitHub Repo stars](https://img.shields.io/github/stars/aquarist-labs/aquarium?style=social)
+
+![GitHub last commit](https://img.shields.io/github/last-commit/aquarist-labs/aquarium) ![Lines of code](https://img.shields.io/tokei/lines/github/aquarist-labs/aquarium) ![GitHub contributors](https://img.shields.io/github/contributors/aquarist-labs/aquarium) ![GitHub issues](https://img.shields.io/github/issues/aquarist-labs/aquarium) ![GitHub milestones](https://img.shields.io/github/milestones/all/aquarist-labs/aquarium)
+
+Project Aquarium is a SUSE-sponsored open source project aiming at becoming an easy to use, rock solid storage appliance based on Ceph.
 
 We are investigating the beginnings of a new storage appliance project in an opinionated fashion. The Aquariums project is split into two clearly defined work streams: Gravel (backend) and Glass (frontend). 
 
