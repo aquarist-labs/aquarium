@@ -41,6 +41,7 @@ export class DeploymentPageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.startBlockUI('Please wait, fetching device information ...');
     this.getDevices(0);
     this.updateCephfsList();
   }
@@ -51,7 +52,6 @@ export class DeploymentPageComponent implements OnInit {
 
   getDevices(attempt: number): void {
     const maxAttempts = 5;
-    this.startBlockUI('Please wait, fetching device information ...');
     of(true)
       .pipe(
         delay(5000),
