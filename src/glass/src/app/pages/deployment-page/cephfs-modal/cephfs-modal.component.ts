@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } fro
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatSliderChange } from '@angular/material/slider';
 import * as _ from 'lodash';
+import { BlockUI, NgBlockUI } from 'ng-block-ui';
+import { finalize } from 'rxjs/operators';
 
 import {
   CheckRequirementsReply,
@@ -18,6 +20,9 @@ import { NotificationService } from '~/app/shared/services/notification.service'
   styleUrls: ['./cephfs-modal.component.scss']
 })
 export class CephfsModalComponent implements OnInit {
+  @BlockUI()
+  blockUI!: NgBlockUI;
+
   public formGroup: FormGroup;
 
   public constructor(
@@ -64,19 +69,24 @@ export class CephfsModalComponent implements OnInit {
   }
 
   public onSubmit(): void {
-    if (this.formGroup.invalid) {
+    if (this.formGroup.pristine || this.formGroup.invalid) {
       return;
     }
     const values = this.formGroup.value;
-    this.services.checkRequirements(values.requiredSpace, values.replicas).subscribe({
-      next: (result: CheckRequirementsReply) => {
-        if (!result.feasible) {
-          this.notification.show('Service creation requirements not met', { type: 'error' });
-          return;
-        }
-        this.createService();
-      }
-    });
+    this.blockUI.start('Please wait, assessing service specifications ...');
+    this.services
+      .checkRequirements(values.requiredSpace, values.replicas)
+      .pipe(finalize(() => this.blockUI.stop()))
+      .subscribe({
+        next: (result: CheckRequirementsReply) => {
+          if (!result.feasible) {
+            this.notification.show('Service creation requirements not met', { type: 'error' });
+            return;
+          }
+          this.createService();
+        },
+        error: () => this.blockUI.stop()
+      });
   }
 
   private updateValues(): void {
@@ -87,18 +97,22 @@ export class CephfsModalComponent implements OnInit {
 
   private createService(): void {
     const values = this.formGroup.value;
-    this.services.create(values.name, 'cephfs', values.requiredSpace, values.replicas).subscribe({
-      next: (result: CreateServiceReply) => {
-        let success = false;
-        if (!result.success) {
-          this.notification.show('Failed to create service', { type: 'error' });
-        } else {
-          this.notification.show('Service successfully created');
-          success = true;
+    this.blockUI.start('Please wait, deploying CephFS service ...');
+    this.services
+      .create(values.name, 'cephfs', values.requiredSpace, values.replicas)
+      .pipe(finalize(() => this.blockUI.stop()))
+      .subscribe({
+        next: (result: CreateServiceReply) => {
+          let success = false;
+          if (!result.success) {
+            this.notification.show('Failed to create service', { type: 'error' });
+          } else {
+            this.notification.show('Service successfully created');
+            success = true;
+          }
+          this.dialogRef.close(success);
         }
-        this.dialogRef.close(success);
-      }
-    });
+      });
   }
 
   private budgetValidator(parent: any): ValidatorFn {
