@@ -18,10 +18,8 @@
         "simple-import-sort/imports": "error",
         "comma-dangle": ["error", "never"],
         "eol-last": ["error", "always"],
-        "no-trailing-spaces": [
-          "error",
-          { "skipBlankLines": false, "ignoreComments": false }
-        ],
+        "no-trailing-spaces": ["error", { "skipBlankLines": false, "ignoreComments": false }],
+        "@typescript-eslint/no-non-null-assertion": "off",
         "@angular-eslint/component-selector": [
           "error",
           {
