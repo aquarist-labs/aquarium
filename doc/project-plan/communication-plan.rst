@@ -1,6 +1,6 @@
-=============================
-Communication Management Plan
-=============================
+=====================================
+General Communication Management Plan
+=====================================
 
 Summary
 ~~~~~~~
