@@ -46,3 +46,10 @@ class Orchestrator:
                 if dev.available:
                     return False
         return True
+
+    def apply_mds(self, fsname: str) -> None:
+        cmd = {
+            "prefix": "orch apply mds",
+            "fs_name": fsname
+        }
+        self.call(cmd)
