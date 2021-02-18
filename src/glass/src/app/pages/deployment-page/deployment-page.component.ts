@@ -75,11 +75,9 @@ export class DeploymentPageComponent implements OnInit {
 
   chooseDevices(): void {
     const dialogRef = this.dialog.open(ChooseDevicesModalComponent, {
-      width: '50%'
+      width: '35%'
     });
     dialogRef.afterClosed().subscribe((decision: boolean) => {
-      dialogRef.close();
-
       if (decision) {
         this.startAssimilation();
       }
@@ -124,8 +122,9 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   public openCephfsDialog(): void {
-    const ref = this.dialog.open(CephfsModalComponent);
-
+    const ref = this.dialog.open(CephfsModalComponent, {
+      width: '50%'
+    });
     ref.afterClosed().subscribe({
       next: (result: boolean) => {
         if (result) {

@@ -140,16 +140,15 @@
       </div>
 
       <div *ngIf="cephfsList.length > 0"
-            fxLayout="column" fxLayoutAlign="start start"
-      >
+           fxLayout="column"
+           fxLayoutAlign="start start">
         <div *ngFor="let service of cephfsList"
-            fxLayout="row" fxLayoutAlign="start center"
-        >
+             fxLayout="row"
+             fxLayoutAlign="start center">
           <mat-icon svgIcon="mdi:nas"></mat-icon>
-          <span style="width: 10px"></span>
-          <span>{{service.name}} ({{service.reservation|bytesToSize}})</span>
+          <span>&nbsp;</span>
+          <span>{{ service.name }} ({{ service.reservation | bytesToSize }})</span>
         </div>
-
       </div>
 
     </mat-expansion-panel>
