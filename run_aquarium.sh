@@ -52,7 +52,7 @@ $has_config && $is_new && [[ -e "${config_path}" ]] && \
 
 pushd src &>/dev/null
 
-$is_debug && export DEBUG=1
+$is_debug && export AQUARIUM_DEBUG=1
 $has_config && export AQUARIUM_CONFIG_DIR=${config_path}
 
 uvicorn aquarium:app --host 0.0.0.0 --port 1337

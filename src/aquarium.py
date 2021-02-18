@@ -43,7 +43,7 @@ api = FastAPI()
 async def on_startup():
     uvilogger = cast(logging.Handler, logging.getLogger("uvicorn"))
     logger.addHandler(uvilogger)
-    if os.getenv("DEBUG"):
+    if os.getenv("AQUARIUM_DEBUG"):
         uvilogger.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     logger.info("Aquarium startup!")
