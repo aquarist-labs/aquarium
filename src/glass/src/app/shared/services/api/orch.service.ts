@@ -2,6 +2,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export type Host = {
   hostname: string;
@@ -54,6 +55,47 @@ export type Volume = {
   };
 };
 
+export type Nic = {
+  driver: string;
+  iftype: string;
+  ipv4_address: string;
+  ipv6_address: string;
+  lower_devs_list: [null];
+  mtu: number;
+  nic_type: string;
+  operstate: string;
+  speed: number;
+  upper_devs_list: [null];
+};
+
+export type Inventory = {
+  hostname: string;
+  model: string;
+  vendor: string;
+  kernel: string;
+  operating_system: string;
+  system_uptime: number;
+  current_time: number;
+  cpu: {
+    model: string;
+    cores: number;
+    count: number;
+    threads: number;
+    load: {
+      one_min: number;
+      five_min: number;
+      fifteen_min: number;
+    };
+  };
+  nics: { [hostName: string]: Nic };
+  memory: {
+    available_kb: number;
+    free_kb: number;
+    total_kb: number;
+  };
+  disks: Volume[];
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -80,7 +122,15 @@ export class OrchService {
    * Get volumes
    */
   volumes(): Observable<Volume[]> {
-    return this.http.get<Volume[]>(`${this.url}/volumes`);
+    // Inventory is much faster than the volumes endpoint
+    return this.inventory().pipe(map((i) => i.disks));
+  }
+
+  /**
+   * Get inventory
+   */
+  inventory(): Observable<Inventory> {
+    return this.http.get<Inventory>(`${this.url}/inventory`);
   }
 
   /**
