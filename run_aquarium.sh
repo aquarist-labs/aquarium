@@ -45,7 +45,9 @@ $has_config && [[ -z "${config_path}" ]] && \
   echo "error: must specify a PATH with '--config'" && \
   exit 1
 
-config_path=$(realpath ${config_path})
+if [ -n "${config_path}" ]; then
+  config_path=$(realpath ${config_path})
+fi
 
 $has_config && $is_new && [[ -e "${config_path}" ]] && \
   ( rm -fr ${config_path} || exit 1 )
