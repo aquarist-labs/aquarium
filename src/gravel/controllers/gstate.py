@@ -49,14 +49,12 @@ class Ticker(ABC):
 class GlobalState:
 
     executor: ThreadPoolExecutor
-    counter: int
     config: Config
     is_shutting_down: bool
     tickers: Dict[str, Ticker]
 
     def __init__(self):
         self.executor = ThreadPoolExecutor()
-        self.counter = 0
         self.config = Config()
         self.is_shutting_down = False
         self.tickers = {}
@@ -83,12 +81,14 @@ class GlobalState:
             state = self.config.deployment_state.stage
             logger.debug(f"=> tick ({state})")
             await asyncio.sleep(1)
-
-            for desc, ticker in self.tickers.items():
-                logger.debug(f"=> tick {desc}")
-                asyncio.create_task(ticker.tick())
+            await self._do_ticks()
 
         logger.info("=> tick shutting down")
+
+    async def _do_ticks(self) -> None:
+        for desc, ticker in self.tickers.items():
+            logger.debug(f"=> tick {desc}")
+            asyncio.create_task(ticker.tick())
 
     def add_ticker(self, desc: str, whom: Ticker) -> None:
         if desc not in self.tickers:
