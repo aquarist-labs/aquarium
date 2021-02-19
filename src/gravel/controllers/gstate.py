@@ -49,14 +49,12 @@ class Ticker(ABC):
 class GlobalState:
 
     executor: ThreadPoolExecutor
-    counter: int
     config: Config
     is_shutting_down: bool
     tickers: Dict[str, Ticker]
 
     def __init__(self):
         self.executor = ThreadPoolExecutor()
-        self.counter = 0
         self.config = Config()
         self.is_shutting_down = False
         self.tickers = {}
