@@ -59,7 +59,7 @@ describe('BootstrapPageComponent', () => {
 
   it('should error bootstrapping', () => {
     component.startBootstrap();
-    httpTestingController.expectOne('./assets/mdi.svg');
+    httpTestingController.expectOne('api/bootstrap/status');
     httpTestingController
       .expectOne('api/bootstrap/start')
       .error(new ErrorEvent('Unknown Error'), { status: 404 });
@@ -92,7 +92,7 @@ describe('BootstrapPageComponent', () => {
   }));
 
   it('should poll bootstrap [stage=running,none,done]', fakeAsync(() => {
-    httpTestingController.expectOne('./assets/mdi.svg');
+    httpTestingController.expectOne('api/bootstrap/status');
     spyOn(router, 'navigate').and.stub();
     component.pollBootstrapStatus();
     tick(5000);
