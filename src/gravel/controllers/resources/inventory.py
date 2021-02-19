@@ -18,28 +18,17 @@ class Inventory(Ticker):
     _latest: Optional[NodeInfoModel]
 
     def __init__(self):
-        self.is_ticking = False
+        super().__init__(
+            "inventory",
+            gstate.config.options.inventory.probe_interval
+        )
         self._latest = None
-        self.probe_interval = gstate.config.options.inventory_probe_interval
-        self.last_probe: int = 0
-        gstate.add_ticker("inventory", self)
 
-    async def tick(self) -> None:
-        if self.is_ticking:
-            return
-
-        now: int = int(time.monotonic())
-        if self.last_probe > 0 and \
-           (now - self.last_probe) < self.probe_interval:
-            return
-
-        self.is_ticking = True
-
+    async def _do_tick(self) -> None:
         await self.probe()
-        self.last_probe = int(time.monotonic())
 
-        self.is_ticking = False
-        pass
+    async def _should_tick(self) -> bool:
+        return True
 
     async def probe(self) -> None:
         cephadm: Cephadm = Cephadm()
