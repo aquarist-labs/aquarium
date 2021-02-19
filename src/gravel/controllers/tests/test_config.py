@@ -13,7 +13,7 @@ class TestConfig(TestCase):
 
     def test_config_version(self):
         config = Config()
-        assert config.config.version == 2
+        assert config.config.version == 3
 
     def test_deployment_state(self):
         ds = Config().deployment_state

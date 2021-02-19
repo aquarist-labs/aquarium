@@ -20,7 +20,7 @@ class Inventory(Ticker):
     def __init__(self):
         super().__init__(
             "inventory",
-            gstate.config.options.inventory_probe_interval
+            gstate.config.options.inventory.probe_interval
         )
         self._latest = None
 

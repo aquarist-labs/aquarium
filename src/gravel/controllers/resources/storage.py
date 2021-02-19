@@ -49,7 +49,7 @@ class Storage(Ticker):
     def __init__(self):
         super().__init__(
             "storage",
-            gstate.config.options.storage_probe_interval
+            gstate.config.options.storage.probe_interval
         )
         self._state: StorageModel = StorageModel()
 

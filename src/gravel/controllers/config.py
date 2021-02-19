@@ -29,11 +29,19 @@ class DeploymentStateModel(BaseModel):
     stage: DeploymentStage = Field(title="Current Deployment Stage")
 
 
+class InventoryOptionsModel(BaseModel):
+    probe_interval: int = Field(60, title="Inventory Probe Interval")
+
+
+class StorageOptionsModel(BaseModel):
+    probe_interval: float = Field(30.0, title="Storage Probe Interval")
+
+
 class OptionsModel(BaseModel):
-    inventory_probe_interval: int = Field(60, title="Inventory Probe Interval")
-    storage_probe_interval: float = Field(30.0, title="Storage Probe Interval")
     service_state_path: str = Field(Path(config_dir).joinpath("storage.json"),
                                     title="Path to Service State file")
+    inventory: InventoryOptionsModel = Field(InventoryOptionsModel())
+    storage: StorageOptionsModel = Field(StorageOptionsModel())
 
 
 class ConfigModel(BaseModel):
@@ -54,7 +62,7 @@ class Config:
 
         if not self.confpath.exists():
             initconf: ConfigModel = ConfigModel(
-                version=2,
+                version=3,
                 name="",
                 deployment_state=DeploymentStateModel(
                     last_modified=datetime.now(),
