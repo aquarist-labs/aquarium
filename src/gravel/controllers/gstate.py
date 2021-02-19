@@ -81,12 +81,14 @@ class GlobalState:
             state = self.config.deployment_state.stage
             logger.debug(f"=> tick ({state})")
             await asyncio.sleep(1)
-
-            for desc, ticker in self.tickers.items():
-                logger.debug(f"=> tick {desc}")
-                asyncio.create_task(ticker.tick())
+            await self._do_ticks()
 
         logger.info("=> tick shutting down")
+
+    async def _do_ticks(self) -> None:
+        for desc, ticker in self.tickers.items():
+            logger.debug(f"=> tick {desc}")
+            asyncio.create_task(ticker.tick())
 
     def add_ticker(self, desc: str, whom: Ticker) -> None:
         if desc not in self.tickers:
