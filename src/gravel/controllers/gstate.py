@@ -2,6 +2,7 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 import asyncio
+import time
 from abc import ABC, abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from logging import Logger
@@ -15,9 +16,34 @@ logger: Logger = fastapi_logger
 
 
 class Ticker(ABC):
+
+    def __init__(self, name: str, tick_interval: float):
+        self._last_tick: float = 0
+        self._tick_interval: float = tick_interval
+        self._is_ticking: bool = False
+        gstate.add_ticker(name, self)
+
     @abstractmethod
-    async def tick(self) -> None:
+    async def _do_tick(self) -> None:
         pass
+
+    @abstractmethod
+    async def _should_tick(self) -> bool:
+        pass
+
+    async def tick(self) -> None:
+        now: float = time.monotonic()
+        diff: float = (now - self._last_tick)
+        if diff < self._tick_interval or self._is_ticking:
+            return
+
+        if not await self._should_tick():
+            return
+
+        self._is_ticking = True
+        await self._do_tick()
+        self._is_ticking = False
+        self._last_tick = time.monotonic()
 
 
 class GlobalState:
@@ -54,7 +80,8 @@ class GlobalState:
 
     async def tick(self) -> None:
         while not self.is_shutting_down:
-            logger.debug("=> tick")
+            state = self.config.deployment_state.stage
+            logger.debug(f"=> tick ({state})")
             await asyncio.sleep(1)
 
             for desc, ticker in self.tickers.items():

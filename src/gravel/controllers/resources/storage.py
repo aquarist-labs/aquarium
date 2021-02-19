@@ -2,7 +2,6 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 from logging import Logger
-import time
 from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 from pydantic.fields import Field
@@ -48,28 +47,22 @@ class StorageModel(BaseModel):
 class Storage(Ticker):
 
     def __init__(self):
-        self._is_ticking: bool = False
-        self._last_tick: float = 0
+        super().__init__(
+            "storage",
+            gstate.config.options.storage_probe_interval
+        )
         self._state: StorageModel = StorageModel()
-        gstate.add_ticker("storage", self)
 
-    async def tick(self) -> None:
-        now: float = time.monotonic()
-        diff: float = now - self._last_tick
-        if diff < gstate.config.options.storage_probe_interval or \
-           self._is_ticking:
-            return
+    async def _do_tick(self) -> None:
+        await self._update()
 
+    async def _should_tick(self) -> bool:
         stage = gstate.config.deployment_state.stage
         if stage != DeploymentStage.bootstrapped and \
            stage != DeploymentStage.ready:
             logger.debug(f"=> storage not ticking, not bootstrapped (current={stage})")
-            return
-
-        self._is_ticking = True
-        await self._update()
-        self._is_ticking = False
-        self._last_tick = time.monotonic()
+            return False
+        return True
 
     @property
     def available(self) -> int:
