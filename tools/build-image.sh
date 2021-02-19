@@ -122,10 +122,11 @@ build_glass() {
 }
 
 bundle() {
-  bundledir=${build}/bundle
-  bundle_usr=${bundledir}/usr/share/aquarium
-  bundle_unit=${bundledir}/usr/lib/systemd/system
-  bundle_sbin=${bundledir}/usr/sbin
+  local bundledir=${build}/bundle
+  local bundle_usr=${bundledir}/usr/share/aquarium
+  local bundle_unit=${bundledir}/usr/lib/systemd/system
+  local bundle_sbin=${bundledir}/usr/sbin
+
   mkdir -p ${bundle_usr} ${bundle_unit} ${bundle_sbin} || true
   build_glass || exit 1
 
