@@ -147,7 +147,7 @@ bundle() {
   cp ${rootdir}/systemd/aquarium.service ${bundle_unit} || exit 1
 
   pushd ${build}
-  tar -C ${bundledir} usr etc -cf aquarium.tar || exit 1
+  tar -C ${bundledir} usr -cf aquarium.tar || exit 1
   popd
 }
 
