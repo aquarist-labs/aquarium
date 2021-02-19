@@ -17,21 +17,6 @@ find_root() {
   done
 }
 
-find_root || exit 1
-[[ -z "${rootdir}" ]] && \
-  echo "error: unable to find repository's root dir" && \
-  exit 1
-
-imgdir=${rootdir}/images
-srcdir=${rootdir}/src
-
-[[ ! -d "${imgdir}" ]] && \
-  echo "error: unable to find 'images' directory at ${rootdir}" && \
-  exit 1
-
-[[ ! -d "${srcdir}" ]] && \
-  echo "error: unable to find 'src' directory at ${rootdir}" && \
-  exit 1
 
 usage() {
   cat << EOF
@@ -44,6 +29,30 @@ options:
 EOF
 
 }
+
+usage_error_exit() {
+    echo "error: $1" > /dev/stderr
+    usage > /dev/stderr
+    exit 1
+}
+
+error_exit() {
+    echo "error: $1" > /dev/stderr
+    exit 1
+}
+
+find_root || exit 1
+[[ -z "${rootdir}" ]] && \
+  error_exit "unable to find repository's root dir"
+
+imgdir=${rootdir}/images
+srcdir=${rootdir}/src
+
+[[ ! -d "${imgdir}" ]] && \
+  error_exit "unable to find 'images' directory at ${rootdir}"
+
+[[ ! -d "${srcdir}" ]] && \
+  error_exit "unable to find 'src' directory at ${rootdir}" 
 
 build_name="aquarium"
 clean=0
@@ -63,22 +72,17 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "error: unrecognized option: '$1'"
-      usage
-      exit 1
+      usage_error_exit "unrecognized option: '$1'"
       ;;
   esac
   shift 1
 done
 
 [[ -z "${build_name}" ]] && \
-  echo "error: missing build name" && \
-  usage && \
-  exit 1
+  usage_error_exit "missing build name"
 
 if ! kiwi-ng --version &>/dev/null ; then
-  echo "error: missing kiwi-ng"
-  exit 1
+  error_exit "missing kiwi-ng"
 fi
 
 build=${imgdir}/build/${build_name}
@@ -88,8 +92,7 @@ if [[ -e "${build}" ]]; then
     echo "warning: removing existing build '${build_name}'"
     rm -rf ${build}
   else
-    echo "error: build with name '${build_name}' already exists"
-    exit 1
+    error_exit "build with name '${build_name}' already exists"
   fi
 fi
 
@@ -99,16 +102,13 @@ glassdir=${srcdir}/glass
 graveldir=${srcdir}/gravel
 
 [[ ! -d "${glassdir}" ]] && \
-  echo "error: missing frontend directory at '${glassdir}" && \
-  exit 1
+  error_exit "missing frontend directory at '${glassdir}"
 
 [[ ! -e "${glassdir}/angular.json" ]] && \
-  echo "error: directory at '${glassdir}' is not an angular application" && \
-  exit 1
+  error_exit "directory at '${glassdir}' is not an angular application"
 
 [[ ! -d "${graveldir}" ]] && \
-  echo "error: missing backend directory at '${graveldir}" && \
-  exit 1
+  error_exit "missing backend directory at '${graveldir}"
 
 
 build_glass() {
@@ -116,8 +116,7 @@ build_glass() {
   npm install || exit 1
   npx ng build --prod --output-hashing=all || exit 1
   [[ ! -d "${glassdir}/dist" ]] && \
-    echo "error: missing 'dist' directory for frontend" && \
-    exit 1
+    error_exit "missing 'dist' directory for frontend"
   popd
 }
 
