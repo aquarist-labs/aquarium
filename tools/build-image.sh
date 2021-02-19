@@ -122,11 +122,12 @@ build_glass() {
 }
 
 bundle() {
-  bundledir=${build}/bundle
-  bundle_usr=${bundledir}/usr/share/aquarium
-  bundle_etc=${bundledir}/etc/systemd/system
-  bundle_sbin=${bundledir}/usr/sbin
-  mkdir -p ${bundle_usr} ${bundle_etc} ${bundle_sbin} || true
+  local bundledir=${build}/bundle
+  local bundle_usr=${bundledir}/usr/share/aquarium
+  local bundle_unit=${bundledir}/usr/lib/systemd/system
+  local bundle_sbin=${bundledir}/usr/sbin
+
+  mkdir -p ${bundle_usr} ${bundle_unit} ${bundle_sbin} || true
   build_glass || exit 1
 
   pushd ${rootdir}
@@ -143,7 +144,7 @@ bundle() {
     ./gravel/ceph.git/src/cephadm/cephadm || exit 1
   popd
 
-  cp ${rootdir}/systemd/aquarium.service ${bundle_etc} || exit 1
+  cp ${rootdir}/systemd/aquarium.service ${bundle_unit} || exit 1
 
   pushd ${build}
   tar -C ${bundledir} usr etc -cf aquarium.tar || exit 1
