@@ -38,8 +38,8 @@ class StorageOptionsModel(BaseModel):
 
 
 class OptionsModel(BaseModel):
-    service_state_path: str = Field(Path(config_dir).joinpath("storage.json"),
-                                    title="Path to Service State file")
+    service_state_path: Path = Field(Path(config_dir).joinpath("storage.json"),
+                                     title="Path to Service State file")
     inventory: InventoryOptionsModel = Field(InventoryOptionsModel())
     storage: StorageOptionsModel = Field(StorageOptionsModel())
 
@@ -69,6 +69,7 @@ class Config:
                     stage=DeploymentStage.none
                 )
             )
+            initconf.options.service_state_path = Path(path).joinpath("storage.json")
             self._saveConfig(initconf)
 
         self.config: ConfigModel = ConfigModel.parse_file(self.confpath)
