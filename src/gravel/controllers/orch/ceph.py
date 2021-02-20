@@ -132,7 +132,7 @@ class Mon(Ceph):
             "prefix": "status",
             "format": "json"
         }
-        result: Dict[str, Any] = self.mon(cmd)  # propagate exception
+        result: Dict[str, Any] = self.call(cmd)  # propagate exception
         return CephStatusModel.parse_obj(result)
 
     def df(self) -> CephDFModel:
@@ -140,7 +140,7 @@ class Mon(Ceph):
             "prefix": "df",
             "format": "json"
         }
-        result: Dict[str, Any] = self.mon(cmd)
+        result: Dict[str, Any] = self.call(cmd)
         return CephDFModel.parse_obj(result)
 
     def get_osdmap(self) -> CephOSDMapModel:
@@ -148,7 +148,7 @@ class Mon(Ceph):
             "prefix": "osd dump",
             "format": "json"
         }
-        result: Dict[str, Any] = self.mon(cmd)
+        result: Dict[str, Any] = self.call(cmd)
         return CephOSDMapModel.parse_obj(result)
 
     def get_pools(self) -> List[CephOSDPoolEntryModel]:
@@ -162,7 +162,7 @@ class Mon(Ceph):
             "var": "size",
             "val": str(size)
         }
-        self.mon(cmd)
+        self.call(cmd)
 
 
 if __name__ == "__main__":
