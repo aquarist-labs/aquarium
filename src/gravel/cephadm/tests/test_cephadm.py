@@ -6,7 +6,8 @@ import json
 import pytest
 
 from gravel.cephadm.cephadm import Cephadm, CephadmError
-from gravel.cephadm.models import HostFactsModel, NodeInfoModel, VolumeDeviceModel
+from gravel.cephadm.models \
+    import HostFactsModel, NodeInfoModel, VolumeDeviceModel
 from gravel.cephadm.tests.outputs import gather_facts_real, inventory_real
 
 

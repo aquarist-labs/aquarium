@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from pydantic.fields import Field
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
-from gravel.controllers.orch.models import CephFSListEntryModel, CephOSDPoolEntryModel
+from gravel.controllers.orch.models \
+    import CephFSListEntryModel, CephOSDPoolEntryModel
 from gravel.controllers.gstate import gstate
 from gravel.controllers.resources import storage
 

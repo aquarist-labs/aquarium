@@ -41,7 +41,8 @@ class StoragePoolModel(BaseModel):
 class StorageModel(BaseModel):
     stats: StorageStatsModel = Field(StorageStatsModel(), title="statistics")
     pools_by_id: Dict[int, StoragePoolModel] = Field({}, title="Pool by ID")
-    pools_by_name: Dict[str, StoragePoolModel] = Field({}, title="Pool by name")
+    pools_by_name: Dict[str, StoragePoolModel] = \
+        Field({}, title="Pool by name")
 
 
 class Storage(Ticker):
@@ -60,7 +61,9 @@ class Storage(Ticker):
         stage = gstate.config.deployment_state.stage
         if stage != DeploymentStage.bootstrapped and \
            stage != DeploymentStage.ready:
-            logger.debug(f"=> storage not ticking, not bootstrapped (current={stage})")
+            logger.debug(
+                f"=> storage not ticking, not bootstrapped (current={stage})"
+            )
             return False
         return True
 

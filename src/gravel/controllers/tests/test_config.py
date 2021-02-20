@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
-from pyfakefs.fake_filesystem_unittest import TestCase
+from pyfakefs.fake_filesystem_unittest \
+    import TestCase  # pyright: reportMissingTypeStubs=false
 
 from gravel.controllers.config \
     import Config, DeploymentStage
@@ -9,7 +10,7 @@ from gravel.controllers.config \
 class TestConfig(TestCase):
 
     def setUp(self):
-        self.setUpPyfakefs()
+        self.setUpPyfakefs()  # type: ignore
 
     def test_config_version(self):
         config = Config()
