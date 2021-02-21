@@ -163,11 +163,3 @@ class Mon(Ceph):
             "val": str(size)
         }
         self.call(cmd)
-
-
-if __name__ == "__main__":
-    mgr = Mgr()
-    print(f"fsid: {mgr.fsid}")
-    mon = Mon()
-    print(f"fsid: {mon.fsid}")
-    print(f"status: {mon.status}")
