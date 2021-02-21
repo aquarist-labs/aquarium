@@ -103,6 +103,13 @@ class Services:
             total += service.reservation
         return total
 
+    @property
+    def total_raw_reservation(self) -> int:
+        total: int = 0
+        for service in self._services.values():
+            total += (service.reservation * service.replicas)
+        return total
+
     def __contains__(self, name: str) -> bool:
         return name in self._services
 
@@ -115,7 +122,7 @@ class Services:
         self, size: int, replicas: int
     ) -> Tuple[bool, ServiceRequirementsModel]:
         required: int = size*replicas
-        reserved: int = self.total_reservation
+        reserved: int = self.total_raw_reservation
         available: int = storage.available
         feasible: bool = ((required + reserved) <= available)
         requirements = ServiceRequirementsModel(
