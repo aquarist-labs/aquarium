@@ -1,0 +1,24 @@
+<div *ngIf="config.title"
+     mat-dialog-title>
+  <mat-icon *ngIf="icon"
+            svgIcon="{{ icon }}">
+  </mat-icon>
+  {{ config.title }}
+</div>
+<mat-dialog-content class="mat-typography">
+  <span [innerHTML]="config.message"></span>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button *ngIf="button2Visible"
+          mat-flat-button
+          cdkFocusInitial
+          [mat-dialog-close]="button2Result">
+    {{ button2Text }}
+  </button>
+  <button *ngIf="button1Visible"
+          mat-flat-button
+          [class]="button1Class"
+          [mat-dialog-close]="button1Result">
+    {{ button1Text }}
+  </button>
+</mat-dialog-actions>

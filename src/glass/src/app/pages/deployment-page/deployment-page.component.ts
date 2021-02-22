@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { delay, mergeMap } from 'rxjs/operators';
 
 import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
-import { ChooseDevicesModalComponent } from '~/app/pages/deployment-page/choose-devices-modal/choose-devices-modal.component';
+import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { Device, OrchService } from '~/app/shared/services/api/orch.service';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -79,8 +79,15 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   chooseDevices(): void {
-    const dialogRef = this.dialog.open(ChooseDevicesModalComponent, {
-      width: '35%'
+    const dialogRef = this.dialog.open(DialogComponent, {
+      width: '35%',
+      data: {
+        type: 'yesNo',
+        icon: 'warn',
+        title: 'Choose selected devices',
+        message:
+          'The step will erase all data on the listed devices. Are you sure you want to continue?'
+      }
     });
     dialogRef.afterClosed().subscribe((decision: boolean) => {
       if (decision) {
