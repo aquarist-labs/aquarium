@@ -48,6 +48,7 @@ class HostFactsModel(BaseModel):
     hdd_list: List[DeviceModel]
     hostname: str
     interfaces: Dict[str, NICModel]
+    nic_count: int
     kernel: str
     kernel_parameters: Dict[str, Any]
     kernel_security: Dict[str, Any]
@@ -58,7 +59,7 @@ class HostFactsModel(BaseModel):
     operating_system: str
     subscribed: str
     system_uptime: float
-    timestamp: int
+    timestamp: float
     vendor: str
 
 
