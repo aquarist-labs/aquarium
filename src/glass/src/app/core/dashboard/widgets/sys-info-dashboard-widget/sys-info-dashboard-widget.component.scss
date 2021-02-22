@@ -1,0 +1,16 @@
+@import 'styles.scss';
+
+.glass-sys-info-dashboard-widget {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 24px;
+
+  .glass-sys-info-dashboard-widget-cell {
+    margin-bottom: 8px;
+  }
+}
+.glass-sys-info-dashboard-widget.error {
+  @extend .glass-color-theme-error;
+  padding: unset;
+  height: 50px;
+}

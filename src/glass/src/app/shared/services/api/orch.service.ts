@@ -96,6 +96,71 @@ export type Inventory = {
   disks: Volume[];
 };
 
+export type Facts = {
+  arch: string;
+  bios_date: string;
+  bios_version: string;
+  cpu_cores: number;
+  cpu_count: number;
+  cpu_load: {
+    '15min': number;
+    '1min': number;
+    '5min': number;
+  };
+  cpu_model: string;
+  cpu_threads: number;
+  flash_capacity: string;
+  flash_capacity_bytes: number;
+  flash_count: number;
+  flash_list: Array<any>;
+  hdd_capacity: string;
+  hdd_capacity_bytes: number;
+  hdd_count: number;
+  hdd_list: Array<{
+    description: string;
+    dev_name: string;
+    disk_size_bytes: number;
+    model: string;
+    rev: string;
+    vendor: string;
+    wwid: string;
+  }>;
+  hostname: string;
+  interfaces: Record<
+    string,
+    {
+      driver: string;
+      iftype: string;
+      ipv4_address: string;
+      ipv6_address: string;
+      lower_devs_list: Array<any>;
+      mtu: number;
+      nic_type: string;
+      operstate: string;
+      speed: number;
+      upper_devs_list: Array<any>;
+    }
+  >;
+  kernel: string;
+  kernel_parameters: {
+    'net.ipv4.ip_nonlocal_bind': string;
+  };
+  kernel_security: {
+    description: string;
+    enforce: number;
+    type: string;
+  };
+  memory_available_kb: number;
+  memory_free_kb: number;
+  memory_total_kb: number;
+  model: string;
+  operating_system: string;
+  subscribed: string;
+  system_uptime: number;
+  timestamp: number;
+  vendor: string;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -145,5 +210,13 @@ export class OrchService {
    */
   assimilateStatus(): Observable<boolean> {
     return this.http.get<boolean>(`${this.url}/devices/all_assimilated`);
+  }
+
+  /**
+   * Get facts
+   */
+  facts(): Observable<Facts> {
+    // Inventory is much faster than the volumes endpoint
+    return this.http.get<Facts>(`${this.url}/facts`);
   }
 }

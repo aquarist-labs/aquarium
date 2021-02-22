@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
@@ -12,14 +12,13 @@ import { Reservations, ServicesService } from '~/app/shared/services/api/service
 })
 export class CapacityDashboardWidgetComponent
   extends AbstractDashboardWidget<Reservations>
-  implements OnInit, OnDestroy {
+  implements OnDestroy {
   data: Reservations = { reserved: 0, available: 0 };
 
   // Options for chart
-  // @ts-ignore
-  chartData: any[];
+  chartData: any[] = [];
   colorScheme = {
-    // See default.scss -> [$eos-bc-green-500, $eos-bc-red-500]
+    // EOS colors: [$eos-bc-green-500, $eos-bc-red-500]
     domain: ['#30ba78', '#dc3545']
   };
 
@@ -34,10 +33,6 @@ export class CapacityDashboardWidgetComponent
         { name: 'Unassigned', value: this.data.reserved }
       ];
     });
-  }
-
-  ngOnInit(): void {
-    super.ngOnInit();
   }
 
   valueFormatting(c: any) {

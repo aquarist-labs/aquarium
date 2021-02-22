@@ -1,14 +1,16 @@
 <div class="glass-capacity-dashboard-widget"
      [ngClass]="{'error': error}"
-     fxFlex
      fxLayout="row"
      fxLayoutAlign="center center">
-  <ngx-charts-advanced-pie-chart
-  [scheme]="colorScheme"
-  [results]="chartData"
-  [animations]="false"
-  [tooltipDisabled]="true"
-  [valueFormatting]="valueFormatting.bind(this)"
-  >
-  </ngx-charts-advanced-pie-chart>
+  <ng-container *ngIf="!error">
+    <ngx-charts-advanced-pie-chart [scheme]="colorScheme"
+                                   [results]="chartData"
+                                   [animations]="false"
+                                   [tooltipDisabled]="true"
+                                   [valueFormatting]="valueFormatting.bind(this)">
+    </ngx-charts-advanced-pie-chart>
+  </ng-container>
+  <mat-icon *ngIf="error"
+            svgIcon="mdi:lan-disconnect">
+  </mat-icon>
 </div>

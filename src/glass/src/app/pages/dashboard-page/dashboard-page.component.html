@@ -7,14 +7,12 @@
       <mat-icon svgIcon="mdi:apps"></mat-icon>
     </button>
   </mat-toolbar>
-  <div fxLayout="row wrap"
-       fxLayout.lt-lg="column">
-    <div *ngFor="let widget of enabledWidgets"
-         fxFlex="50"
-         fxFlex.gt-lg="33"
-         fxFlex.lt-sm="100">
+  <div class="glass-dashboard-page-content"
+       gdGap="24px"
+       gdColumns="repeat(auto-fit, minmax(400px, 1fr))">
+    <div *ngFor="let widget of enabledWidgets" class="widget">
       <ng-container [ngSwitch]="widget.id">
-        <mat-card>
+        <mat-card class="glass-dashboard-widget">
           <mat-card-title-group>
             <mat-card-title>{{ widget.title }}</mat-card-title>
           </mat-card-title-group>
@@ -30,6 +28,9 @@
             </ng-template>
             <ng-template [ngSwitchCase]="'services'">
               <glass-services-dashboard-widget></glass-services-dashboard-widget>
+            </ng-template>
+            <ng-template [ngSwitchCase]="'sysInfo'">
+              <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
             </ng-template>
           </mat-card-content>
         </mat-card>
