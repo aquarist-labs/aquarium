@@ -20,7 +20,7 @@ export class BootstrapPageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  visible = true;
+  visible = false;
 
   constructor(
     private bootstrapService: BootstrapService,
@@ -30,14 +30,30 @@ export class BootstrapPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.blockUI.resetGlobal();
+    // Immediately block the UI if bootstrapping is in progress.
+    this.bootstrapService.status().subscribe({
+      next: (statusReply: BootstrapStatusReply) => {
+        if (statusReply.stage === 'running') {
+          this.visible = false;
+          this.blockUI.start('Please wait, bootstrapping in progress ...');
+          this.pollBootstrapStatus();
+        }
+        if (statusReply.stage === 'none') {
+          this.visible = true;
+        }
+      },
+      error: () => (this.visible = true)
+    });
   }
 
   startBootstrap(): void {
     this.visible = false;
-    this.blockUI.start('Please wait, bootstrapping in progress ...');
+    this.blockUI.start('Please wait, bootstrapping will be started ...');
+
     this.bootstrapService.start().subscribe({
       next: (basicReplay: BootstrapBasicReply) => {
         if (basicReplay.success) {
+          this.blockUI.update('Please wait, bootstrapping in progress ...');
           this.pollBootstrapStatus();
         } else {
           this.visible = true;
@@ -55,7 +71,7 @@ export class BootstrapPageComponent implements OnInit {
   }
 
   pollBootstrapStatus(): void {
-    const handleError = (err?: any) => {
+    const handleError = () => {
       this.visible = true;
       this.blockUI.stop();
       this.notificationService.show('Failed to bootstrap the system.', {
@@ -83,9 +99,7 @@ export class BootstrapPageComponent implements OnInit {
               break;
           }
         },
-        (err) => {
-          handleError(err);
-        }
+        () => handleError()
       );
   }
 }
