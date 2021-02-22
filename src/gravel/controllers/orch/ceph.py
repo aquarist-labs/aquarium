@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Callable, Dict, Any, List
 
 
+CEPH_CONF_FILE = '/etc/ceph/ceph.conf'
+
+
 class CephError(Exception):
     pass
 
@@ -27,13 +30,13 @@ class Ceph(ABC):
 
     cluster: rados.Rados
 
-    def __init__(self, confpath: str = "/etc/ceph/ceph.conf"):
+    def __init__(self, conf_file: str = CEPH_CONF_FILE):
 
-        path = Path(confpath)
+        path = Path(conf_file)
         if not path.exists():
-            raise FileNotFoundError(confpath)
+            raise FileNotFoundError(conf_file)
 
-        self.cluster = rados.Rados(conffile=confpath)
+        self.cluster = rados.Rados(conffile=conf_file)
         if not self.cluster:
             raise CephError("error creating cluster handle")
 
@@ -108,8 +111,8 @@ class Ceph(ABC):
 
 class Mgr(Ceph):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, conf_file: str = CEPH_CONF_FILE):
+        super().__init__(conf_file=conf_file)
 
     def call(self, cmd: Dict[str, Any]) -> Any:
         return self.mgr(cmd)
@@ -117,8 +120,8 @@ class Mgr(Ceph):
 
 class Mon(Ceph):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, conf_file: str = CEPH_CONF_FILE):
+        super().__init__(conf_file=conf_file)
 
     def call(self, cmd: Dict[str, Any]) -> Any:
         return self.mon(cmd)

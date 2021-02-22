@@ -10,6 +10,7 @@ class TestCeph(TestCase):
         self.setUpPyfakefs()
 
     def test_ceph_conf(self):
-        with pytest.raises(FileNotFoundError, match="ceph.conf"):
-            Mgr()
-            Mon()
+        conf_file = "ceph.conf"
+        with pytest.raises(FileNotFoundError, match=conf_file):
+            Mgr(conf_file=conf_file)
+            Mon(conf_file=conf_file)
