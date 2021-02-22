@@ -55,7 +55,7 @@ class Ceph(ABC):
         self._is_connected = True
 
     def __del__(self):
-        if self.cluster:
+        if hasattr(self, 'cluster') and self.cluster:
             self.cluster.shutdown()
             self._is_connected = False
 
