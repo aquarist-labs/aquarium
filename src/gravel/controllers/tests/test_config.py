@@ -33,3 +33,10 @@ class TestConfig(TestCase):
         config = Config(path='foo')
         assert config.confpath == Path('foo/config.json')
         assert config.options.service_state_path == Path('foo/storage.json')
+
+        # dirname(config.json) != dirname(storage.json)
+        config = Config(path='bar')
+        config.options.service_state_path = Path('baz')
+        config._saveConfig(config.config)
+        config = Config(path='bar')
+        assert config.options.service_state_path == Path('baz')
