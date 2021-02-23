@@ -7,6 +7,7 @@ dependencies_opensuse_tumbleweed=(
   "python3-rados"
   "python3-kiwi"
   "nodejs-common"
+  "npm"
   "vagrant"
   "vagrant-libvirt"
 )
