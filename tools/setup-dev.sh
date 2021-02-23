@@ -1,6 +1,7 @@
 #!/bin/bash
 
 dependencies_opensuse_tumbleweed=(
+  "btrfsprogs"
   "git"
   "python3"
   "python3-rados"
