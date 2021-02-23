@@ -3,9 +3,12 @@
      fxFlex
      fxLayout="row"
      fxLayoutAlign="center center">
-  <canvas [ngClass]="{'error': error}"
-          id="chart">{{ chart }}</canvas>
-  <mat-icon *ngIf="error"
-            svgIcon="mdi:lan-disconnect">
-  </mat-icon>
+  <ngx-charts-advanced-pie-chart
+  [scheme]="colorScheme"
+  [results]="chartData"
+  [animations]="false"
+  [tooltipDisabled]="true"
+  [valueFormatting]="valueFormatting.bind(this)"
+  >
+  </ngx-charts-advanced-pie-chart>
 </div>

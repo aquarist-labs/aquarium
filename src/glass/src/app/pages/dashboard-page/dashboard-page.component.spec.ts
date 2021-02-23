@@ -1,5 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
@@ -10,7 +11,7 @@ describe('DashboardPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, PagesModule]
+      imports: [HttpClientTestingModule, PagesModule, BrowserAnimationsModule]
     }).compileComponents();
   });
 
