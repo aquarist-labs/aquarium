@@ -81,6 +81,11 @@ if ! kiwi-ng --version &>/dev/null ; then
   exit 1
 fi
 
+if ! sudo mkfs.btrfs --version &>/dev/null ; then
+  echo "error: missing btrfstools"
+  exit 1
+fi
+
 build=${imgdir}/build/${build_name}
 
 if [[ -e "${build}" ]]; then
@@ -158,8 +163,11 @@ cp ${imgdir}/microOS/config.{sh,xml} ${build}/
 bundle || exit 1
 
 mkdir ${build}/{_out,_logs}
+(set -o pipefail
 sudo kiwi-ng --debug --profile=Ceph-Vagrant --type oem \
   system build --description ${build} \
   --target-dir ${build}/_out |\
-  tee ${build}/_logs/${build_name}-build.log
+  tee ${build}/_logs/${build_name}-build.log)
+
+exit $?
 
