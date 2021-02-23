@@ -9,10 +9,11 @@ usage() {
 usage: ${SCRIPT_NAME} [options]
 
 options:
-  -d|--debug        Enable debug logging to stdout
-  -c|--config PATH  Set config directory to PATH
-  -n|--new          Run as new deployment; blows config path if it exists
-  -h|--help         This message
+  -d|--debug          Enable debug logging to stdout
+  -c|--config PATH    Set config directory to PATH
+  -n|--new            Run as new deployment; blows config path if it exists
+  --with-system-deps  Run with system dependencies, not a virtualenv
+  -h|--help           This message
 
 EOF
 }
@@ -21,12 +22,14 @@ is_debug=false
 has_config=false
 config_path=""
 is_new=false
+with_systemdeps=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     -d|--debug) is_debug=true ;;
     -c|--config) has_config=true ; config_path=$2 ; shift 1 ;;
     -n|--new) is_new=true ;;
+    --with-system-deps) with_systemdeps=true ;;
     -h|--help) usage ; exit 0 ;;
     *)
       echo "error: unknown option '${1}'"
@@ -53,8 +56,10 @@ $has_config && $is_new && [[ -e "${config_path}" ]] && \
   ( rm -fr ${config_path} || exit 1 )
 
 
-source ${VENV_DIR}/bin/activate || exit $?
-pip install -r ${SCRIPT_DIR}/src/requirements.txt || exit $?
+if ! $with_systemdeps ; then
+  source ${VENV_DIR}/bin/activate || exit $?
+  pip install -r ${SCRIPT_DIR}/src/requirements.txt || exit $?
+fi
 
 pushd ${SCRIPT_DIR}/src &>/dev/null
 
@@ -65,4 +70,6 @@ uvicorn aquarium:app --host 0.0.0.0 --port 1337
 
 popd &>/dev/null
 
-deactivate
+if ! $with_systemdeps ; then
+  deactivate
+fi
