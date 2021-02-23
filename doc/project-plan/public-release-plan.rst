@@ -141,8 +141,8 @@ Example 2:
 Recently, in my position as a storage engineer at SUSE I was given an opportunity
 to work on a new opinionated storage appliance called Aquarium [LINK].
 
-Aquarium is...
+Aquarium [is...](https://media.giphy.com/media/YWyfqZhietIP10PID3/giphy.gif)
 
-What we are trying to achieve is...
+What we are trying to achieve [is...](https://media.giphy.com/media/VcniLyEIqJXs3EDypp/giphy.gif)
 
-Alex is my best friend because...
+Alex is my best friend [because...](https://www.youtube.com/watch?v=PWuKnd3Y2-s)
