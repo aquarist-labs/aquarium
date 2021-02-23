@@ -19,7 +19,7 @@ The Aquarium project aims to develop a standalone Ceph-based storage appliance.
 The scope of this project also includes measuring successful external user adoption
 based on feedback, issues, downloads, GitHub stars, project telemetry, testing, and documentation.
 The Aquarium project is split into two development work streams: Gravel
-(backend) and Glass (frontend). Other work items include documentation and social media communications.
+(backend) and Glass (frontend). Other work items include documentation and social media communication.
 
 Project Success Metrics
 -----------------------
@@ -62,7 +62,7 @@ The Aquarium project is designed to deliver a Ceph-based appliance for
 enterprise, built on on industry standard scripts, tools, and frameworks
 (lightweight, modern CI, lightweight build system, etc.).
 
-Aquariums has the following:
+Aquarium is the following:
 
 - Built on Ceph
 - Installation capabilities on any Linux distribution
