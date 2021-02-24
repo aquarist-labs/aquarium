@@ -1,11 +1,13 @@
 #!/bin/bash
 
 dependencies_opensuse_tumbleweed=(
+  "btrfsprogs"
   "git"
   "python3"
   "python3-rados"
   "python3-kiwi"
   "nodejs-common"
+  "npm"
   "vagrant"
   "vagrant-libvirt"
 )
