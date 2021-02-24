@@ -8,9 +8,9 @@
 
 Project Aquarium is a SUSE-sponsored open source project aiming at becoming an easy to use, rock solid storage appliance based on Ceph.
 
-We are investigating the beginnings of a new storage appliance project in an opinionated fashion. The Aquariums project is split into two clearly defined work streams: Gravel (backend) and Glass (frontend).
+We are investigating the beginnings of a new storage appliance project in an opinionated fashion. The Aquarium project is split into two clearly defined work streams: Gravel (backend) and Glass (frontend).
 
-Aquarist Labs are licensed under the LGPL version 2.1. We do not require assignment of copyright to contribute code; code is contributed under the terms of the applicable license.
+Aquarist Labs is licensed under LGPL version 2.1. We do not require assignment of a copyright to contribute code; code is contributed under the terms of the applicable license.
 
 ## How do I get started?
 
@@ -29,13 +29,14 @@ quickstart to help you get off your feet.
 
 ## Where can I get more help, if I need it?
 
-Let’s move this to Slack! We’ve got 22 folks from the team there already. You can sign up [here](https://join.slack.com/t/aquaristlabs/shared_invite/zt-lsjrkw8m-Jj_zYAs84PfMsUGwvMDOFA).
+Join us on Slack! You can sign up [here](https://join.slack.com/t/aquaristlabs/shared_invite/zt-lsjrkw8m-Jj_zYAs84PfMsUGwvMDOFA).
 
 We have the following channels:
 
 - #announcements: For all announcements related to Aquarist Labs and the Aquarium project
 - #aquarium: For all conversation and questions surrounding the Aquarium project
 - #general: General conversation surrounding Aquarist Labs
+- #github-notifications: Notifications from the [github app](https://slack.github.com/).
 - #random: Show us your best gif!
 
 If you have a new idea, or want to discuss any implementation details, we recommend using our [Discussion page](https://github.com/aquarist-labs/forum/discussions) on GitHub.
