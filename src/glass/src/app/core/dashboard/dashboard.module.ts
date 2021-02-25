@@ -2,6 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 import { CapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/capacity-dashboard-widget/capacity-dashboard-widget.component';
 import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/health-dashboard-widget/health-dashboard-widget.component';
@@ -23,6 +24,6 @@ import { SharedModule } from '~/app/shared/shared.module';
     HealthDashboardWidgetComponent,
     ServicesDashboardWidgetComponent
   ],
-  imports: [CommonModule, FlexLayoutModule, MaterialModule, SharedModule]
+  imports: [CommonModule, FlexLayoutModule, MaterialModule, NgxChartsModule, SharedModule]
 })
 export class DashboardModule {}

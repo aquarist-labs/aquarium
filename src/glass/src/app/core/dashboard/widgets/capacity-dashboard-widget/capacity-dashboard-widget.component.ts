@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Chart } from 'chart.js';
-import * as _ from 'lodash';
-import { Observable, of, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
+import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
+import { Reservations, ServicesService } from '~/app/shared/services/api/services.service';
 
 @Component({
   selector: 'glass-capacity-dashboard-widget',
@@ -11,44 +11,37 @@ import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-d
   styleUrls: ['./capacity-dashboard-widget.component.scss']
 })
 export class CapacityDashboardWidgetComponent
-  extends AbstractDashboardWidget<number[]>
+  extends AbstractDashboardWidget<Reservations>
   implements OnInit, OnDestroy {
-  chart?: Chart;
-  data: number[] = [];
+  data: Reservations = { reserved: 0, available: 0 };
+
+  // Options for chart
+  // @ts-ignore
+  chartData: any[];
+  colorScheme = {
+    // See default.scss -> [$eos-bc-green-500, $eos-bc-red-500]
+    domain: ['#30ba78', '#dc3545']
+  };
 
   protected subscription: Subscription = new Subscription();
 
-  constructor() {
+  constructor(private service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {
     super();
+    // @ts-ignore
     this.subscription = this.loadDataEvent.subscribe(() => {
-      if (this.chart) {
-        _.set(this.chart, 'data.datasets.0.data', this.data);
-        this.chart.update();
-      }
+      this.chartData = [
+        { name: 'Assigned', value: this.data.available - this.data.reserved },
+        { name: 'Unassigned', value: this.data.reserved }
+      ];
     });
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.chart = new Chart('chart', {
-      type: 'doughnut',
-      data: {
-        labels: ['Available', 'Used'],
-        datasets: [
-          {
-            data: this.data,
-            backgroundColor: ['#ffcd56', '#ff9f40']
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          position: 'bottom'
-        }
-      }
-    });
+  }
+
+  valueFormatting(c: any) {
+    return this.bytesToSizePipe.transform(c);
   }
 
   ngOnDestroy(): void {
@@ -56,9 +49,7 @@ export class CapacityDashboardWidgetComponent
     this.subscription.unsubscribe();
   }
 
-  loadData(): Observable<number[]> {
-    const used = _.random(0, 100);
-    const available = 100 - used;
-    return of([available, used]);
+  loadData(): Observable<Reservations> {
+    return this.service.reservations();
   }
 }

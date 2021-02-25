@@ -53,7 +53,7 @@ export class ServicesService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Obtain existing service reservations.
+   * Obtain existing service reservations in byte.
    */
   public reservations(): Observable<Reservations> {
     return this.http.get<Reservations>(`${this.url}/reservations`);

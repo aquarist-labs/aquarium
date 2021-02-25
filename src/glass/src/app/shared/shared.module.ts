@@ -8,6 +8,7 @@ import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
 
 @NgModule({
   declarations: [BytesToSizePipe, SortByPipe],
+  providers: [BytesToSizePipe, SortByPipe],
   exports: [BytesToSizePipe, ComponentsModule, SortByPipe],
   imports: [CommonModule, ComponentsModule, MaterialModule]
 })
