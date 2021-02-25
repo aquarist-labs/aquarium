@@ -1,3 +1,5 @@
+.. _aquarium-communication-plan:
+
 =====================================
 General Communication Management Plan
 =====================================
@@ -68,7 +70,7 @@ Communication Goals
          - lmb@suse.com
    * - About Aquarium
      - Personal blogs
-     - Anytime after 17 March, 2021
+     - Anytime after 31 March, 2021
      - Members of Aquarist Labs to use their own personal blogs (if they have one
        and choose to do so) to discuss the work being done on the Aquarium
        project.

@@ -1,3 +1,5 @@
+.. _aquarium-public-release-plan:
+
 =================================
 Public Release Communication plan
 =================================
