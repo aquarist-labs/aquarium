@@ -45,6 +45,7 @@
     "@angular/router": "11.2.0",
     "@mdi/angular-material": "5.9.55",
     "@swimlane/ngx-charts": "^17.0.0",
+    "dayjs": "^1.10.4",
     "lodash": "4.17.20",
     "ng-block-ui": "3.0.2",
     "rxjs": "6.6.0",

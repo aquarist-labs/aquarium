@@ -1,8 +1,11 @@
-.mat-card {
+.glass-dashboard-page-content {
   margin: 24px;
-  padding: unset;
 
-  .mat-card-title-group {
-    padding: 16px 16px 8px 16px;
+  .glass-dashboard-widget {
+    padding: unset;
+
+    .mat-card-title-group {
+      padding: 16px 16px 8px 16px;
+    }
   }
 }

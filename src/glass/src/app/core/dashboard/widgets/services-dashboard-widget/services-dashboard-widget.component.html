@@ -1,6 +1,5 @@
 <div class="glass-services-dashboard-widget"
      [ngClass]="{'error': error}"
-     fxFlex
      fxLayout="row"
      fxLayoutAlign="center center">
   <div *ngIf="!error && firstLoadComplete && data.length === 0">
@@ -21,6 +20,7 @@
       </mat-progress-bar>
     </div>
     <table mat-table
+           fxFlexFill
            *ngIf="firstLoadComplete && data.length > 0"
            [dataSource]="data">
       <ng-container matColumnDef="name">

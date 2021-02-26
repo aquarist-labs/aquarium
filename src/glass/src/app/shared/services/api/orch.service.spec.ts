@@ -42,4 +42,10 @@ describe('OrchService', () => {
     const req = httpTesting.expectOne('api/orch/devices/all_assimilated');
     expect(req.request.method).toBe('GET');
   });
+
+  it('should call facts', () => {
+    service.facts().subscribe();
+    const req = httpTesting.expectOne('api/orch/facts');
+    expect(req.request.method).toBe('GET');
+  });
 });

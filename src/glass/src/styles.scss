@@ -39,7 +39,7 @@ $glass-color-accent-complementary: white;
 }
 .glass-color-theme-warn {
   color: whitesmoke;
-  background-color: orange;
+  background-color: $eos-bc-yellow-500;
 }
 
 .glass-background-color-primary {
@@ -72,6 +72,9 @@ $glass-color-accent-complementary: white;
 }
 .glass-text-center {
   text-align: center;
+}
+.glass-text-bold {
+  font-weight: bold;
 }
 
 .glass-icon-large {
