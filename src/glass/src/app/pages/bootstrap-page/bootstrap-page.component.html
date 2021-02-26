@@ -7,12 +7,14 @@
        fxLayoutAlign="center center">
     <mat-card *ngIf="visible">
       <mat-card-header>
-        <mat-card-title>Bootstrap system</mat-card-title>
+        <mat-card-title translate>Bootstrap system</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <div fxLayout="column"
              fxLayoutAlign="center center">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin porttitor quam convallis hendrerit lacinia. Integer consectetur metus eu nibh fringilla, ac lobortis nisl porttitor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec at purus odio.</p>
+          <p>
+            <span translate>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin porttitor quam convallis hendrerit lacinia. Integer consectetur metus eu nibh fringilla, ac lobortis nisl porttitor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec at purus odio.</span>
+          </p>
         </div>
       </mat-card-content>
       <mat-card-actions>
@@ -23,7 +25,7 @@
         </button>
         <button mat-button
                 (click)="startBootstrap()">
-          Start
+          <span translate>Start</span>
         </button>
       </mat-card-actions>
     </mat-card>

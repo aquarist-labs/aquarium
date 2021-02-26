@@ -1,8 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
+import { translate } from '~/app/i18n.helper';
 import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { BootstrapService } from '~/app/shared/services/api/bootstrap.service';
@@ -52,14 +54,14 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   getDevices(): void {
-    this.startBlockUI('Please wait, fetching device information ...');
+    this.startBlockUI(TEXT('Please wait, fetching device information ...'));
     this.orchService
       .devices()
       .pipe(
         this.pollService.poll(
           (hostDevices): boolean => !Object.values(hostDevices).some((v) => v.devices.length),
           10,
-          'Failed to fetch device information'
+          TEXT('Failed to fetch device information')
         )
       )
       .subscribe(
@@ -81,9 +83,10 @@ export class DeploymentPageComponent implements OnInit {
       data: {
         type: 'yesNo',
         icon: 'warn',
-        title: 'Choose selected devices',
-        message:
+        title: TEXT('Choose selected devices'),
+        message: TEXT(
           'The step will erase all data on the listed devices. Are you sure you want to continue?'
+        )
       }
     });
     dialogRef.afterClosed().subscribe((decision: boolean) => {
@@ -94,13 +97,13 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   startAssimilation(): void {
-    this.startBlockUI('Please wait, device deployment in progress ...');
+    this.startBlockUI(translate(TEXT('Please wait, device deployment in progress ...')));
     this.orchService.assimilateDevices().subscribe(
       (success) => {
         if (success) {
           this.pollAssimilationStatus();
         } else {
-          this.handleError('Failed to start device deployment.');
+          this.handleError(TEXT('Failed to start device deployment.'));
         }
       },
       (err) => {
@@ -142,10 +145,7 @@ export class DeploymentPageComponent implements OnInit {
       next: (res: boolean) => {
         this.deploymentSuccessful = res;
         if (!res) {
-          this.notificationService.show(
-            "Unable to finish deployment.",
-            { type: "error"}
-          );
+          this.notificationService.show('Unable to finish deployment.', { type: 'error' });
         }
         this.deploymentStepper.next();
       }

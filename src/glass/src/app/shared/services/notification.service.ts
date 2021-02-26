@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import * as _ from 'lodash';
 
+import { translate } from '~/app/i18n.helper';
+
 // eslint-disable-next-line no-shadow
 export enum NotificationType {
   info = 'info',
@@ -32,7 +34,7 @@ export class NotificationService {
   show(message: string, config?: NotificationConfig): number {
     config = _.defaultsDeep(config || {}, { type: NotificationType.info, duration: 2000 });
     return window.setTimeout(() => {
-      this.snackBar.open(message, undefined, {
+      this.snackBar.open(translate(message), undefined, {
         duration: config!.duration,
         panelClass:
           config!.type === NotificationType.error
