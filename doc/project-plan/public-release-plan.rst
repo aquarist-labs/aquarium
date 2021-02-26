@@ -1,3 +1,5 @@
+.. _aquarium-public-release-plan:
+
 =================================
 Public Release Communication plan
 =================================
@@ -19,7 +21,7 @@ transition to the public space.
      - Owner
    * - Tweets
      - Twitter
-     - 17/03/2021
+     - 31/03/2021
      - Official tweets from the following channels:
          - Ceph
          - SUSE
@@ -27,7 +29,7 @@ transition to the public space.
      - All
    * - Tweets
      - Twitter
-     - 17/03/2021
+     - 31/03/2021
      - Members of Aquarist Labs to use (if they choose) their personal Twitter
        account to announce what they have been working on. See below for
        some text examples.
@@ -36,7 +38,7 @@ transition to the public space.
    * - LinkedIn post
      - LinkedIn
      -
-         - 17/03/2021
+         -31/03/2021
          - Continuous
      - Post introducing LinkedIn to what you've been working on, links to the
        repo, issue list, and other useful resources.

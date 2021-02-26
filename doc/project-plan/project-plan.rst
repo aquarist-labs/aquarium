@@ -104,8 +104,9 @@ Milestones
          - Demonstration to internal stakeholders
          - Multi-node deploy
          - Introduce CI/CD, testing, and documentation to support multi-node deploy
-     - March 17, 2021
+     - March 31, 2021
    * - Milestone 3
      -
          - Announce Aquarist Labs publicly
+         - See :ref:`aquarium-public-release-plan` for more details
      - April 17, 2021
