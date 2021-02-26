@@ -91,16 +91,16 @@ describe('BootstrapPageComponent', () => {
     });
   }));
 
-  it('should poll bootstrap [stage=running,none,done]', fakeAsync(() => {
+  it('should poll bootstrap [stage=running,done]', fakeAsync(() => {
     httpTestingController.expectOne('api/bootstrap/status');
     spyOn(router, 'navigate').and.stub();
     component.pollBootstrapStatus();
-    tick(5000);
+    tick(1);
     httpTestingController.expectOne('api/bootstrap/status').flush({ stage: 'running' });
     tick(5000);
-    httpTestingController.expectOne('api/bootstrap/status').flush({ stage: 'none' });
-    tick(5000);
     httpTestingController.expectOne('api/bootstrap/status').flush({ stage: 'done' });
+    tick(5000);
+    httpTestingController.expectNone('api/bootstrap/status');
     expect(component.blockUI.isActive).toBeFalsy();
     expect(router.navigate).toHaveBeenCalled();
     httpTestingController.verify();

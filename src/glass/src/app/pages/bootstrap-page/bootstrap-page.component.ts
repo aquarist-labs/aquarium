@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { of } from 'rxjs';
-import { delay, mergeMap } from 'rxjs/operators';
 
 import {
   BootstrapBasicReply,
@@ -10,6 +8,7 @@ import {
   BootstrapStatusReply
 } from '~/app/shared/services/api/bootstrap.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
+import { PollService } from '~/app/shared/services/poll.service';
 
 @Component({
   selector: 'glass-bootstrap-page',
@@ -25,7 +24,8 @@ export class BootstrapPageComponent implements OnInit {
   constructor(
     private bootstrapService: BootstrapService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private pollService: PollService
   ) {}
 
   ngOnInit(): void {
@@ -78,10 +78,14 @@ export class BootstrapPageComponent implements OnInit {
         type: 'error'
       });
     };
-    of(true)
+    this.bootstrapService
+      .status()
       .pipe(
-        delay(5000),
-        mergeMap(() => this.bootstrapService.status())
+        this.pollService.poll(
+          (statusReply) => statusReply.stage === 'running',
+          undefined,
+          'Failed to bootstrap the system.'
+        )
       )
       .subscribe(
         (statusReply: BootstrapStatusReply) => {
@@ -90,9 +94,6 @@ export class BootstrapPageComponent implements OnInit {
               handleError();
               break;
             case 'none':
-            case 'running':
-              this.pollBootstrapStatus();
-              break;
             case 'done':
               this.blockUI.stop();
               this.router.navigate(['/installer/create/deployment']);
