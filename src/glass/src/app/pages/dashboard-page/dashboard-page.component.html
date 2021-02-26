@@ -10,7 +10,8 @@
   <div class="glass-dashboard-page-content"
        gdGap="24px"
        gdColumns="repeat(auto-fit, minmax(400px, 1fr))">
-    <div *ngFor="let widget of enabledWidgets" class="widget">
+    <div *ngFor="let widget of enabledWidgets"
+         class="widget">
       <ng-container [ngSwitch]="widget.id">
         <mat-card class="glass-dashboard-widget">
           <mat-card-title-group>
@@ -31,6 +32,9 @@
             </ng-template>
             <ng-template [ngSwitchCase]="'sysInfo'">
               <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
+            </ng-template>
+            <ng-template [ngSwitchCase]="'hosts'">
+              <glass-hosts-dashboard-widget></glass-hosts-dashboard-widget>
             </ng-template>
           </mat-card-content>
         </mat-card>

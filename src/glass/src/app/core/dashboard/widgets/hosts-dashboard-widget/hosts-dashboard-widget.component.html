@@ -1,0 +1,42 @@
+<div class="glass-hosts-dashboard-widget"
+     [ngClass]="{'error': error}"
+     fxLayout="row"
+     fxLayoutAlign="center center">
+  <div *ngIf="!error"
+       class="glass-hosts-dashboard-widget-table"
+       fxFlex
+       fxLayout="column">
+    <div *ngIf="!firstLoadComplete"
+         class="glass-hosts-dashboard-widget-loader">
+      <mat-progress-bar *ngIf="loading"
+                        mode="indeterminate">
+      </mat-progress-bar>
+    </div>
+    <table mat-table
+           fxFlexFill
+           *ngIf="firstLoadComplete"
+           [dataSource]="data">
+      <ng-container matColumnDef="hostname">
+        <th mat-header-cell
+            *matHeaderCellDef>Hostname</th>
+        <td mat-cell
+            *matCellDef="let element">{{element.hostname}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="address">
+        <th mat-header-cell
+            *matHeaderCellDef>Address</th>
+        <td mat-cell
+            *matCellDef="let element">{{element.address}}</td>
+      </ng-container>
+
+      <tr mat-header-row
+          *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row
+          *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+  <mat-icon *ngIf="error"
+            svgIcon="mdi:lan-disconnect">
+  </mat-icon>
+</div>

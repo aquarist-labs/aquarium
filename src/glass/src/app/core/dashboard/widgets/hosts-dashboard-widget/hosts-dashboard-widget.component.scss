@@ -1,0 +1,13 @@
+@import 'styles.scss';
+
+.glass-hosts-dashboard-widget {
+  .glass-hosts-dashboard-widget-table {
+    .glass-hosts-dashboard-widget-loader {
+      height: 4px;
+    }
+  }
+}
+.glass-hosts-dashboard-widget.error {
+  @extend .glass-color-theme-error;
+  height: 50px;
+}
