@@ -135,7 +135,7 @@ class ConnMgr:
         return conn
 
 
-class Mgr:
+class NodeMgr:
 
     _connmgr: ConnMgr
     _incoming_task: asyncio.Task
@@ -241,11 +241,11 @@ class Mgr:
         pass
 
 
-_mgr = Mgr()
+_nodemgr = NodeMgr()
 
 
-def get_node_mgr() -> Mgr:
-    return _mgr
+def get_node_mgr() -> NodeMgr:
+    return _nodemgr
 
 
 def get_conn_mgr() -> ConnMgr:
