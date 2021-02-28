@@ -14,12 +14,15 @@ from typing import (
     cast
 )
 from uuid import UUID, uuid4
+from pathlib import Path
 import websockets
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from starlette.endpoints import WebSocketEndpoint
 from starlette.websockets import WebSocket
+
+from gravel.controllers.gstate import gstate
 
 
 logger: Logger = fastapi_logger
@@ -52,6 +55,17 @@ class Peer:
     def __init__(self, endpoint: str, conn: Union[IncomingConnection, OutgoingConnection]):
         self.endpoint = endpoint
         self.conn = conn
+
+
+class NodeRoleEnum(int, Enum):
+    NONE = 0
+    LEADER = 1
+    FOLLOWER = 2
+
+
+class NodeStateModel(BaseModel):
+    uuid: UUID
+    role: NodeRoleEnum
 
 
 class ConnMgr:
@@ -117,11 +131,13 @@ class Mgr:
     _connmgr: ConnMgr
     _incoming_task: asyncio.Task
     _shutting_down: bool
+    _state: Optional[NodeStateModel]
 
     def __init__(self):
         self._connmgr = ConnMgr()
         self._shutting_down = False
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
+        self._state = self._load_state()
 
     async def join(self, address: str, token: str) -> bool:
         logger.debug(f"=> mgr -- join > with addr {address}, token: {token}")
@@ -137,9 +153,31 @@ class Mgr:
         logger.debug(f"=> mgr -- join > recv: {reply}")
         return True
 
+    async def finish_bootstrap(self):
+        assert not self._state
+        confdir: Path = gstate.config.confdir
+        assert confdir.exists()
+        assert confdir.is_dir()
+        statefile: Path = confdir.joinpath("node.json")
+        assert not statefile.exists()
+        nodestate: NodeStateModel = NodeStateModel(
+            uuid=uuid4(),
+            role=NodeRoleEnum.LEADER
+        )
+        statefile.write_text(nodestate.json())
+
     @property
     def connmgr(self) -> ConnMgr:
         return self._connmgr
+
+    def _load_state(self) -> Optional[NodeStateModel]:
+        confdir: Path = gstate.config.confdir
+        assert confdir.exists()
+        assert confdir.is_dir()
+        statefile: Path = confdir.joinpath("node.json")
+        if not statefile.exists():
+            return None
+        return NodeStateModel.parse_file(statefile)
 
     async def _incoming_msg_task(self) -> None:
         while not self._shutting_down:

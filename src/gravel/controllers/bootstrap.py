@@ -10,6 +10,7 @@ from typing import Optional, List
 from gravel.controllers.config import DeploymentStage
 from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.nodes import get_node_mgr
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
@@ -131,3 +132,4 @@ class Bootstrap:
 
         self.stage = BootstrapStage.DONE
         gstate.config.set_deployment_stage(DeploymentStage.bootstrapped)
+        await get_node_mgr().finish_bootstrap()
