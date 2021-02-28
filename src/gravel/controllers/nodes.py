@@ -15,6 +15,7 @@ from typing import (
 )
 from uuid import UUID, uuid4
 from pathlib import Path
+from datetime import datetime as dt
 import websockets
 
 from fastapi.logger import logger as fastapi_logger
@@ -66,6 +67,13 @@ class NodeRoleEnum(int, Enum):
 class NodeStateModel(BaseModel):
     uuid: UUID
     role: NodeRoleEnum
+
+
+class ManifestModel(BaseModel):
+    aquarium_uuid: UUID
+    version: int
+    modified: dt
+    nodes: List[NodeStateModel]
 
 
 class ConnMgr:
@@ -132,12 +140,18 @@ class Mgr:
     _incoming_task: asyncio.Task
     _shutting_down: bool
     _state: Optional[NodeStateModel]
+    _manifest: Optional[ManifestModel]
 
     def __init__(self):
         self._connmgr = ConnMgr()
         self._shutting_down = False
-        self._incoming_task = asyncio.create_task(self._incoming_msg_task())
         self._state = self._load_state()
+        self._manifest = self._load_manifest()
+
+        assert (self._state and self._manifest) or \
+               (not self._state and not self._manifest)
+
+        self._incoming_task = asyncio.create_task(self._incoming_msg_task())
 
     async def join(self, address: str, token: str) -> bool:
         logger.debug(f"=> mgr -- join > with addr {address}, token: {token}")
@@ -160,11 +174,22 @@ class Mgr:
         assert confdir.is_dir()
         statefile: Path = confdir.joinpath("node.json")
         assert not statefile.exists()
+        manifestfile: Path = confdir.joinpath("manifest.json")
+        assert not manifestfile.exists()
+
         nodestate: NodeStateModel = NodeStateModel(
             uuid=uuid4(),
             role=NodeRoleEnum.LEADER
         )
         statefile.write_text(nodestate.json())
+
+        manifest: ManifestModel = ManifestModel(
+            aquarium_uuid=uuid4(),
+            version=1,
+            modified=dt.now(),
+            nodes=[nodestate]
+        )
+        manifestfile.write_text(manifest.json())
 
     @property
     def connmgr(self) -> ConnMgr:
@@ -178,6 +203,15 @@ class Mgr:
         if not statefile.exists():
             return None
         return NodeStateModel.parse_file(statefile)
+
+    def _load_manifest(self) -> Optional[ManifestModel]:
+        confdir: Path = gstate.config.confdir
+        assert confdir.exists()
+        assert confdir.is_dir()
+        manifestfile: Path = confdir.joinpath("manifest.json")
+        if not manifestfile.exists():
+            return None
+        return ManifestModel.parse_file(manifestfile)
 
     async def _incoming_msg_task(self) -> None:
         while not self._shutting_down:
