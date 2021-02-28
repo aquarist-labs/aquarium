@@ -54,11 +54,11 @@ class ConfigModel(BaseModel):
 class Config:
 
     def __init__(self, path: str = config_dir):
-        confdir = Path(path)
-        self.confpath = confdir.joinpath(Path("config.json"))
-        logger.debug(f'Aquarium config dir: {confdir}')
+        self._confdir = Path(path)
+        self.confpath = self._confdir.joinpath(Path("config.json"))
+        logger.debug(f'Aquarium config dir: {self._confdir}')
 
-        confdir.mkdir(0o700, parents=True, exist_ok=True)
+        self._confdir.mkdir(0o700, parents=True, exist_ok=True)
 
         if not self.confpath.exists():
             initconf: ConfigModel = ConfigModel(
@@ -90,3 +90,7 @@ class Config:
     @property
     def options(self) -> OptionsModel:
         return self.config.options
+
+    @property
+    def confdir(self) -> Path:
+        return self._confdir
