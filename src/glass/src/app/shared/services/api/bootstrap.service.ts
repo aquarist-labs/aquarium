@@ -6,8 +6,16 @@ export type BootstrapBasicReply = {
   success: boolean;
 };
 
+// eslint-disable-next-line no-shadow
+export enum BootstrapStageEnum {
+  none = 0,
+  running = 1,
+  done = 2,
+  error = 3
+}
+  
 export type BootstrapStatusReply = {
-  stage: 'none' | 'running' | 'done' | 'error';
+  stage: BootstrapStageEnum;
 };
 
 @Injectable({

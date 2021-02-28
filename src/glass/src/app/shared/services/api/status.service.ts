@@ -22,11 +22,20 @@ export interface ClusterStatus {
   health: HealthStatus;
 }
 
+// eslint-disable-next-line no-shadow
+export enum StatusStageEnum {
+  unknown = -1,
+  none = 0,
+  bootstrapping = 1,
+  bootstrapped = 2,
+  ready = 3,
+}
+
 export type Status = {
   /* eslint-disable @typescript-eslint/naming-convention */
   deployment_state: {
     last_modified: string;
-    stage: 'none' | 'bootstrapping' | 'bootstrapped' | 'ready' | 'unknown';
+    stage: StatusStageEnum;
   };
   cluster?: ClusterStatus;
 };
