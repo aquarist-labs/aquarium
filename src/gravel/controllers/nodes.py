@@ -22,6 +22,7 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from starlette.endpoints import WebSocketEndpoint
 from starlette.websockets import WebSocket
+from gravel.controllers.config import DeploymentStage
 
 from gravel.controllers.gstate import gstate
 
@@ -201,6 +202,8 @@ class Mgr:
         assert confdir.is_dir()
         statefile: Path = confdir.joinpath("node.json")
         if not statefile.exists():
+            stage = gstate.config.deployment_state.stage
+            assert stage < DeploymentStage.bootstrapped
             return None
         return NodeStateModel.parse_file(statefile)
 
@@ -210,6 +213,8 @@ class Mgr:
         assert confdir.is_dir()
         manifestfile: Path = confdir.joinpath("manifest.json")
         if not manifestfile.exists():
+            stage = gstate.config.deployment_state.stage
+            assert stage < DeploymentStage.bootstrapped
             return None
         return ManifestModel.parse_file(manifestfile)
 
