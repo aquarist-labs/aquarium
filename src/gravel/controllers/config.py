@@ -17,11 +17,11 @@ _config_dir_env = os.getenv(f"{_env_prefix}{_env_config_dir}")
 config_dir: str = _config_dir_env if _config_dir_env else '/etc/aquarium'
 
 
-class DeploymentStage(str, Enum):
-    none = "none"
-    bootstrapping = "bootstrapping"
-    bootstrapped = "bootstrapped"
-    ready = "ready"
+class DeploymentStage(int, Enum):
+    none = 0
+    bootstrapping = 1
+    bootstrapped = 2
+    ready = 3
 
 
 class DeploymentStateModel(BaseModel):

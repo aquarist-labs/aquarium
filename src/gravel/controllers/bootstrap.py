@@ -24,11 +24,11 @@ class BootstrapError(Exception):
     pass
 
 
-class BootstrapStage(str, Enum):
-    NONE = "none"
-    RUNNING = "running"
-    DONE = "done"
-    ERROR = "error"
+class BootstrapStage(int, Enum):
+    NONE = 0
+    RUNNING = 1
+    DONE = 2
+    ERROR = 3
 
 
 class Bootstrap:
@@ -41,10 +41,7 @@ class Bootstrap:
 
     async def _should_bootstrap(self) -> bool:
         state: DeploymentStage = gstate.config.deployment_state.stage
-        if state == DeploymentStage.none or \
-           state == DeploymentStage.bootstrapping:
-            return True
-        return False
+        return state <= DeploymentStage.bootstrapping
 
     async def _is_bootstrapping(self) -> bool:
         state: DeploymentStage = gstate.config.deployment_state.stage
