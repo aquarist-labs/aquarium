@@ -34,10 +34,6 @@ class HostModel(BaseModel):
     address: str
 
 
-class HostsReplyModel(BaseModel):
-    hosts: List[HostModel]
-
-
 class DeviceModel(BaseModel):
     available: bool
     device_id: str
@@ -55,14 +51,13 @@ class HostsDevicesModel(BaseModel):
     devices: List[DeviceModel]
 
 
-@router.get("/hosts", response_model=HostsReplyModel)
-def get_hosts() -> HostsReplyModel:
+@router.get("/hosts", response_model=List[HostModel])
+def get_hosts() -> List[HostModel]:
     orch = Orchestrator()
     orch_hosts = orch.host_ls()
-    hosts: HostsReplyModel = HostsReplyModel(hosts=[])
+    hosts: List[HostModel] = []
     for h in orch_hosts:
-        hosts.hosts.append(HostModel(hostname=h.hostname, address=h.addr))
-
+        hosts.append(HostModel(hostname=h.hostname, address=h.addr))
     return hosts
 
 

@@ -1,6 +1,6 @@
 import { Directive, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import * as _ from 'lodash';
-import { Observable, Subscription } from 'rxjs';
+import { EMPTY, Observable, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 
 @Directive()
@@ -43,23 +43,24 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
             err.preventDefault();
           }
           this.error = true;
+          return EMPTY;
         }),
         finalize(() => {
-          if (!this.firstLoadComplete) {
+          if (!this.error && !this.firstLoadComplete) {
             this.firstLoadComplete = true;
           }
           this.loading = false;
+          this.refreshDataSubscription?.unsubscribe();
+          if (this.isAutoReloadable()) {
+            setTimeout(() => {
+              this.refreshData();
+            }, this.reloadPeriod);
+          }
         })
       )
       .subscribe((data) => {
-        this.refreshDataSubscription?.unsubscribe();
         this.data = data;
         this.loadDataEvent.emit(data);
-        if (this.isAutoReloadable()) {
-          setTimeout(() => {
-            this.refreshData();
-          }, this.reloadPeriod);
-        }
       });
   }
 

@@ -172,8 +172,8 @@ export class OrchService {
   /**
    * Get host information
    */
-  hosts(): Observable<{ hosts: Host[] }> {
-    return this.http.get<{ hosts: Host[] }>(`${this.url}/hosts`);
+  hosts(): Observable<Host[]> {
+    return this.http.get<Host[]>(`${this.url}/hosts`);
   }
 
   /**
