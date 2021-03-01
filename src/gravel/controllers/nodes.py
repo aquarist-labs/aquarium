@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from enum import Enum
 from logging import Logger
+import random
 from typing import (
     Any,
     Dict,
@@ -77,6 +78,10 @@ class ManifestModel(BaseModel):
     nodes: List[NodeStateModel]
 
 
+class TokenModel(BaseModel):
+    token: str
+
+
 class ConnMgr:
 
     _conns: List[Peer]
@@ -142,16 +147,12 @@ class NodeMgr:
     _shutting_down: bool
     _state: Optional[NodeStateModel]
     _manifest: Optional[ManifestModel]
+    _token: Optional[str]
 
     def __init__(self):
         self._connmgr = ConnMgr()
         self._shutting_down = False
-        self._state = self._load_state()
-        self._manifest = self._load_manifest()
-
-        assert (self._state and self._manifest) or \
-               (not self._state and not self._manifest)
-
+        self._load()
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
 
     async def join(self, address: str, token: str) -> bool:
@@ -177,6 +178,8 @@ class NodeMgr:
         assert not statefile.exists()
         manifestfile: Path = confdir.joinpath("manifest.json")
         assert not manifestfile.exists()
+        tokenfile: Path = confdir.joinpath("token.json")
+        assert not tokenfile.exists()
 
         nodestate: NodeStateModel = NodeStateModel(
             uuid=uuid4(),
@@ -192,9 +195,26 @@ class NodeMgr:
         )
         manifestfile.write_text(manifest.json())
 
+        def gen() -> str:
+            return ''.join(random.choice("0123456789abcdef") for _ in range(4))
+
+        tokenstr = '-'.join(gen() for _ in range(4))
+        token: TokenModel = TokenModel(token=tokenstr)
+        tokenfile.write_text(token.json())
+
+        self._load()
+
     @property
     def connmgr(self) -> ConnMgr:
         return self._connmgr
+
+    def _load(self) -> None:
+        self._state = self._load_state()
+        self._manifest = self._load_manifest()
+        self._token = self._load_token()
+
+        assert (self._state and self._manifest) or \
+               (not self._state and not self._manifest)
 
     def _load_state(self) -> Optional[NodeStateModel]:
         confdir: Path = gstate.config.confdir
@@ -217,6 +237,18 @@ class NodeMgr:
             assert stage < DeploymentStage.bootstrapped
             return None
         return ManifestModel.parse_file(manifestfile)
+
+    def _load_token(self) -> Optional[str]:
+        confdir: Path = gstate.config.confdir
+        assert confdir.exists()
+        assert confdir.is_dir()
+        tokenfile: Path = confdir.joinpath("token.json")
+        if not tokenfile.exists():
+            stage = gstate.config.deployment_state.stage
+            assert stage < DeploymentStage.bootstrapped
+            return None
+        token = TokenModel.parse_file(tokenfile)
+        return token.token
 
     async def _incoming_msg_task(self) -> None:
         while not self._shutting_down:
