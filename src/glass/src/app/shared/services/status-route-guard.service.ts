@@ -54,7 +54,12 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
             }
             break;
           case 'ready':
-            result = this.router.parseUrl('/dashboard');
+            url = '/dashboard';
+            if (url === state.url) {
+              result = true;
+            } else {
+              result = this.router.parseUrl(url);
+            }
             break;
           case 'none':
             if (
