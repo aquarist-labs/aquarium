@@ -38,10 +38,13 @@ export class SysInfoDashboardWidgetComponent extends AbstractDashboardWidget<Fac
           { name: 'Used', value: facts.memory_total_kb * 1024 - facts.memory_free_kb * 1024 },
           { name: 'Free', value: facts.memory_free_kb * 1024 }
         ];
+        const load_1min = Math.floor(facts.cpu_load['1min'] * 100);
+        const load_5min = Math.floor(facts.cpu_load['5min'] * 100);
+        const load_15min = Math.floor(facts.cpu_load['15min'] * 100);
         this.cpuLoadChartData = [
-          { name: '1min', value: facts.cpu_load['1min'] },
-          { name: '5min', value: facts.cpu_load['5min'] },
-          { name: '15min', value: facts.cpu_load['15min'] }
+          { name: '1min', value: `${load_1min}%` },
+          { name: '5min', value: `${load_5min}%` },
+          { name: '15min', value: `${load_15min}%` }
         ];
         // Modify the uptime value to allow the `relativeDate` pipe
         // to calculate the correct time to display.
