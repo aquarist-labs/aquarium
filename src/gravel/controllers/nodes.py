@@ -208,6 +208,10 @@ class NodeMgr:
     def connmgr(self) -> ConnMgr:
         return self._connmgr
 
+    @property
+    def token(self) -> Optional[str]:
+        return self._token
+
     def _load(self) -> None:
         self._state = self._load_state()
         self._manifest = self._load_manifest()
