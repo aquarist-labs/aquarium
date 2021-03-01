@@ -44,3 +44,8 @@ async def start_bootstrap() -> StartReplyModel:
 async def get_status() -> StatusReplyModel:
     stage: BootstrapStage = await bootstrap.get_stage()
     return StatusReplyModel(stage=stage)
+
+
+@router.post("/finished", response_model=bool)
+async def finish_bootstrap() -> bool:
+    return await bootstrap.mark_finished()
