@@ -5,6 +5,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
+import { BootstrapService } from '~/app/shared/services/api/bootstrap.service';
 import { Device, OrchService } from '~/app/shared/services/api/orch.service';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -37,7 +38,8 @@ export class DeploymentPageComponent implements OnInit {
     private notificationService: NotificationService,
     private orchService: OrchService,
     private services: ServicesService,
-    private pollService: PollService
+    private pollService: PollService,
+    private bootstrapService: BootstrapService
   ) {}
 
   ngOnInit(): void {
@@ -131,6 +133,21 @@ export class DeploymentPageComponent implements OnInit {
         if (result) {
           this.updateCephfsList();
         }
+      }
+    });
+  }
+
+  public markDeploymentFinished(): void {
+    this.bootstrapService.markFinished().subscribe({
+      next: (res: boolean) => {
+        this.deploymentSuccessful = res;
+        if (!res) {
+          this.notificationService.show(
+            "Unable to finish deployment.",
+            { type: "error"}
+          );
+        }
+        this.deploymentStepper.next();
       }
     });
   }
