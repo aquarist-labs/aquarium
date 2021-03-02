@@ -6,6 +6,7 @@ from typing import List
 from unittest import mock, TestCase
 
 
+# TODO: this should be a PropertyMock??
 class MockStorage(mock.MagicMock):
     available = 2000
 
@@ -74,6 +75,7 @@ class TestServices(TestCase):
             self.fail("expected reservation error")
 
     def test_remove(self):
+        # TODO: add missing tests
         pass
 
     def test_ls(self):
