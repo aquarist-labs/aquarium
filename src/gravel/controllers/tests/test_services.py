@@ -2,8 +2,7 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 from typing import Any, List
-import unittest
-import unittest.mock
+from unittest import mock, TestCase
 
 
 def mock_save(cls: Any) -> None:
@@ -22,18 +21,18 @@ def mock_exists_conf(cls: Any) -> bool:
     return True
 
 
-class MockConfig(unittest.mock.MagicMock):
+class MockConfig(mock.MagicMock):
     pass
 
 
-class MockStorage(unittest.mock.MagicMock):
+class MockStorage(mock.MagicMock):
     available = 2000
 
 
-with unittest.mock.patch(
+with mock.patch(
         "gravel.controllers.config.Config",
         MockConfig):
-    with unittest.mock.patch(
+    with mock.patch(
             "gravel.controllers.resources.storage", MockStorage
     ):
         from gravel.controllers.services import \
@@ -42,10 +41,10 @@ with unittest.mock.patch(
             UnknownServiceError
 
 
-@unittest.mock.patch.object(Services, "_save", new=mock_save)
-@unittest.mock.patch.object(Services, "_load", new=mock_load)
-@unittest.mock.patch.object(Services, "_create_service", new=mock_create)
-class TestServices(unittest.TestCase):
+@mock.patch.object(Services, "_save", new=mock_save)
+@mock.patch.object(Services, "_load", new=mock_load)
+@mock.patch.object(Services, "_create_service", new=mock_create)
+class TestServices(TestCase):
 
     def test_create(self):
 
