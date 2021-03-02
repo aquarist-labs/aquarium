@@ -1,66 +1,109 @@
 # From Zero to Hacking
 
-## Note Before
+The goal of this document is to guide you through the process of setting
+up a local, VM-based test instance via `Vagrant` on a Linux system of
+your choice.
+
+This includes checking out all the required repositories, setting up
+a local build environment, running your first image build, and
+starting the resulting cluster.
+
+After only about half an hour, you will be able to login to a Ceph
+cluster managed via `Aquarium` for the first time!
+
+## Requirements
+
+The requirements on your environment to follow this guide are as
+follows:
+
+- A physical machine, *not* a VM
+  - Currently, this guide is tested on `x86_64`, but `aarch64` is
+    coming!
+- At least 16 GB of disk space
+  - Approximately 4 GB for the directory you're building Aquarium in,
+    and another 4 GB for `/var/lib/libvirt/` (or equivalent on your
+    system). Note that this will grow if you actually store data in the
+    cluster.
+- Preferably [openSUSE Leap](https://www.opensuse.org/#Leap) or
+  [openSUSE Tumbleweed](https://get.opensuse.org/tumbleweed) as the
+  host, though we're working on extending this guide and our tooling to
+  support other distributions - patches more than welcome!
+- You will need access to the `root` account on the system for the image
+  build and possibly need to install packages on the host to do so
+
+## Note On Host/Network References
 
 Throughout this document, where we mention a `localhost` address, we are
 assuming these steps are being run on the machine local to the user/developer.
 
-Often that may not be the case (e.g., developers running their stuff on remote
-development boxes). In those cases, please remember that `aquarium` will be
-running on `0.0.0.0` (i.e., all interfaces), thus one should be able to access
-the service through the remote machine's address; however, that may require
-opening firewall ports.
+Often that may not be the case (e.g., developers running their stuff on
+remote development boxes). In those cases, please remember that
+`aquarium` will be running on `0.0.0.0` (i.e., all interfaces), thus one
+should be able to access the service through the remote machine's
+network name/address. If this fails, please check whether the firewall
+settings allow remote incoming connections.
 
 The provided `Vagrant` image will be forwarding ports to the local host. In the
-localhost, ports `1337` and `1338` will be used; the former for `node01`, the
-latter for `node02`. At the moment of writing, although we spin-up both
-machines, we do not support a multi-node deployment. Regardless, one can always
-run Aquarium on either machine, or both machines.
+`localhost`, ports `1337` and `1338` will be used; the former for `node01`, the
+latter for `node02`.
+
+At this moment, although we spin-up both virtual machines, we do not
+support a multi-node deployment yet.
 
 
-## Running things for fun and pleasure
+## Why you currently need a physical setup
 
-Given the nature of Aquarium, it's probably a good idea not to run it on the
-same machine where you are developing. While that is not impossible, nor should
-it cause any particular damage, the fact is that its requirements are often not
-what one would expect to provide while developing:
+At this point, our development guide and code base only supports running
+Aquarium in a small VM environment hosted on the machine you're
+following this guide on.
 
-1. to be usable, one needs to bootstrap a cluster: this means running several
-   containers, running Ceph;
+This allows the lab environment to simulate a cluster of multiple
+independent nodes fully under its control on a single physical node
+instance.
 
-2. to further be of use, one needs to deploy services: this means having spare
-   disks to deploy OSDs on, and then provision the services;
+Within these (virtual) nodes, the appliance installer takes care of all
+further provisioning and deployment, from time synchronization to device
+partitioning.
 
-3. It means relinquishing control of some aspects of your machine to Aquarium,
-   namely NTP servers configuration, some firewall ports will need to be opened,
-   SSH keys will need to passed around; and,
-
-4. Ultimately, it needs root access. We are going to be provisioning disks after
-   all, and a lot more shenanigans that might touch parts of your system that _do_
-   require root privileges.
-
-That said, if _you_ want to deploy Aquarium on your machine, or any machine, for
-whatever reason, don't feel discouraged: we will be happy to lend a hand if/when
-things go haywire. But, generally speaking, that's really not what most people
-will want if they are playing with, or developing for Aquarium.
-
-This guide is focused on getting one's environment up to speed, so they can
-start playing or developing. The path of least resistance is relying on VMs or
-containers. This is what this guide focuses on.
-
+As the project evolves, we plan to support deploying these VMs directly
+to the public or private cloud of your choice (again, patches welcome!),
+as well as bare-metal hardware environments.
 
 ### Initial Steps
 
-
-1. clone the repository:
+1. clone the repository locally:
 
     `git clone https://github.com/aquarist-labs/aquarium.git`
 
-2. run `./tools/setup-dev.sh`, which will install required dependencies, and set
-   up the environment such that one can start hacking.
+   This will reproduce the `main` branch from upstream, which is fine
+   for testing but to which you cannot commit directly.
 
-3. run `source venv/bin/activate`.
+   If you want to check out your own fork with the branch on which your
+   development is happening, use a command similar to:
 
+    `git clone -b wip-getting-started https://github.com/aquarist-labs/aquarium.git`
+
+2. change into the directory containing the checked out project:
+
+    `cd aquarium`
+
+3. run 
+
+    `./tools/setup-dev.sh`
+
+   which will install required package dependencies, check out further
+   repositories from GitHub (which can take quite a while for our larger
+   submodules, sorry about that - never fear, it will complete!), start
+   the compile, and set up the environment such that one can start
+   hacking.
+
+   There will be a few warning from `npm` which you can safely ignore.
+
+4. run `source venv/bin/activate`.
+
+   You are now in the virtual environment with all the python packages
+   in the required versions. If you want to exit and return to your
+   normal shell environment at any time, run `deactivate`.
 
 ### Building a MicroOS image
 
@@ -73,10 +116,12 @@ environment upon booting the image.
 
 1. run `./tools/build-image.sh [-n <BUILDNAME>]` (by default, `BUILDNAME` will be `aquarium`)
 
-2. input your root password once `kiwi` asks for it. We're not the ones at fault
-   here. That is a `kiwi` thing.
+2. `kiwi`, the VM image building tool, will ask for the `root` password
+   once during this build, since it needs to complete a few privileged
+   operations while laying out the virtual file system. This will not
+   make modifications to your host system.
 
-3. Go grab yourself a beverage, a snack, or both.
+3. [Go grab yourself a beverage, a snack, or both.](https://xkcd.com/303/)
 
 
 ### Running a MicroOS image on Vagrant
@@ -94,47 +139,80 @@ and running should not be much of a hurdle.
 
 3. `cd setups/foobar/`
 
-4. run `vagrant up`, which will bring up your machines. This, however, may bring
-   up a couple of things one should be aware of:
+4. the first time, run:
 
-    - root password may be asked to address NFS shares, given we are exporting
-      the repository's root to the VMs for development purposes; and
+    `vagrant up --no-destroy-on-error --no-parallel`
 
-    - on some systems one might have to open NFS ports prior to running
-      `vagrant up`, or it just might get stuck trying to reach a server that is
-      unreachable.
+   which will bring up your machines one by one. (Once you are happy
+   this works, you can drop the last two options and bring all your
+   machines up in parallel!)
 
-5. Go grab some water, better for your health.
+   Important notes:
+
+   - Vagrant may ask for the root password to setup NFS shares exports on the host,
+     to share files between the host and the VMs (see [the Vagrant
+     docs](https://www.vagrantup.com/docs/synced-folders/nfs#root-privilege-requirement)
+     if you wish to avoid this); and
+
+   - on some systems one might have to open NFS ports prior to running
+     `vagrant up`, or it just might get stuck trying to reach a server
+     that is unreachable.
+
+   - if you see an error such as
+
+     `Call to virConnectOpen failed: authentication unavailable: no polkit agent available to authenticate action 'org.libvirt.unix.manage'`
+
+     make sure that your user is allowed to connect to libvirt. One
+     solution is to add the user to the `libvirt` group as follow:
+
+     `sudo usermod --append --groups libvirt $(whoami)`
+
+     For this change to take effect (you should see the group when
+     running `id`), you may have to login again.
+
+   - The host must support NFSv3. Otherwise, you may have to tweak the
+     `Vagrantfile` [to use
+     NFSv4](https://www.vagrantup.com/docs/synced-folders/nfs#other-notes)
+
+5. This break has the perfect length for an espresso.
 
 6. `vagrant ssh [NODE]`
 
     If `NODE` is not specified, the shell will be dropped by default on
     `node01`. You can always choose to drop into `node02` by specifying that
     much.
-    
-At this point we have shell access to the node, and it is expected that Aquarium
-will be running. Accessing `http://localhost:1337` (or `1338` depending which
-node you are trying to access) should be possible, and you should be presented
-with a nice frontend. If your connection is refused or reset, it might just be
-that you need to open firewall ports for localhost access.
+
+    Note this will drop you into a regular user session and you will
+    need to use `sudo` to perform admin tasks.
+
+At this point you will have shell access to the node, and it is expected
+that Aquarium will be running. Accessing `http://localhost:1337` (or
+`1338` depending which node you are trying to access) should be
+possible, and you should be presented with a nice frontend. If your
+connection is refused or reset, it might just be that you need to open
+firewall ports.
 
 
-### Setting up for development
+### Restarting the daemon
 
-Given the version of Aquarium currently running on a MicroOS image is
-essentially burnt into the image, one is unable to actively develop on it. But
-never fear!
+Changes to the code repository will not immediately reflect in the
+running instance, since that will already have loaded all source files.
 
-1. run `systemctl stop aquarium`, which will stop the Aquarium daemon. One will
-   no longer be able to access Aquarium on the host's port `1337` (or `1338`,
-   depending on which node the command was run).
+However, since files are shared via NFS between the host and the VMs,
+a simple restart of the daemon from the shared directory will activate
+those changes.
 
-2. `cd /srv/aquarium`
+1. run `sudo systemctl stop aquarium`, which will stop the Aquarium daemon.
 
-3. run `sudo ./run_aquarium.sh`
+   You can confirm that this properly stopped the services by checking
+   that you can no longer access Aquarium on the host's port `1337` (or
+   `1338`, depending on which node the command was run).
 
-4. access your running environment at `http://localhost:1337`
+2. `cd /srv/aquarium` within the VM
 
+3. `sudo ./run_aquarium.sh`
+
+4. access your newly running environment at `http://localhost:1337`
 
 And this should cover the initial steps to allow one to start hacking on
 Aquarium. The next section will cover development in finer detail.
@@ -142,5 +220,10 @@ Aquarium. The next section will cover development in finer detail.
 
 ## Developing
 
-TBD
+Let's add our first trivial patch!
+
+## Updating
+
+This section will walk you through incrementally updating your local
+environment and images build.
 

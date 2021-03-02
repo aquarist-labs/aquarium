@@ -58,6 +58,11 @@ while [[ $# -gt 0 ]]; do
   shift 1
 done
 
+if [ "$(id -u)" -eq 0 ]; then
+	echo error: please do not run this script as root
+	exit 1
+fi
+
 osid=$(grep '^ID=' /etc/os-release | sed -e 's/^ID="\(.\+\)"/\1/')
 
 if ${show_dependencies} ; then
@@ -132,7 +137,7 @@ fi
 python3 -m venv --system-site-packages venv || exit 1
 
 source venv/bin/activate
-pip install -r src/requirements.txt || exit 1
+pip install -r src/requirements.txt -U || exit 1
 deactivate
 
 pushd src/glass &>/dev/null
