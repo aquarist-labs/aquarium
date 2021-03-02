@@ -77,6 +77,15 @@ class Bootstrap:
 
         return True
 
+    async def mark_finished(self) -> bool:
+        stage: DeploymentStage = gstate.config.deployment_state.stage
+        if stage == DeploymentStage.ready:
+            return True
+        elif stage != DeploymentStage.bootstrapped:
+            return False
+        gstate.config.set_deployment_stage(DeploymentStage.ready)
+        return True
+
     async def get_stage(self) -> BootstrapStage:
         return self.stage
 

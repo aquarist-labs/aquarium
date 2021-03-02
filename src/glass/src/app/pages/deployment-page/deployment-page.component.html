@@ -26,7 +26,7 @@
             <ng-template matStepLabel>Services deployment</ng-template>
             <ng-container [ngTemplateOutlet]="services"></ng-container>
             <button mat-button
-                    matStepperNext>Next</button>
+                    (click)="markDeploymentFinished()">Next</button>
           </div>
         </mat-step>
         <mat-step>

@@ -31,4 +31,8 @@ export class BootstrapService {
   status(): Observable<BootstrapStatusReply> {
     return this.http.get<BootstrapStatusReply>(`${this.url}/status`);
   }
+
+  public markFinished(): Observable<boolean> {
+    return this.http.post<boolean>(`${this.url}/finished`, null, {});
+  }
 }
