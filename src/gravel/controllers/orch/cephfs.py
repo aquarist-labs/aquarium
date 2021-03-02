@@ -33,14 +33,11 @@ class CephFS:
             "name": name
         }
         try:
-            res = self.mgr.call(cmd)
+            # this is expected to be a silent command
+            self.mgr.call(cmd)
         except CephCommandError as e:
             raise CephFSError(e) from e
-        # this command does not support json at this time, and will output
-        # free-form text instead. We are not going to parse it, but we'll make
-        # sure we've got something out of it.
-        assert "result" in res
-        assert len(res["result"]) > 0
+
         # schedule orchestrator to update the number of mds instances
         orch = Orchestrator()
         orch.apply_mds(name)
