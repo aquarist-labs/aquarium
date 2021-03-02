@@ -2,20 +2,8 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 from contextlib import contextmanager
-from typing import Any, List
+from typing import List
 from unittest import mock, TestCase
-
-
-def mock_save(cls: Any) -> None:
-    pass
-
-
-def mock_load(cls: Any) -> None:
-    pass
-
-
-def mock_create(cls: Any, svc: Any) -> None:
-    pass
 
 
 class MockStorage(mock.MagicMock):
@@ -24,9 +12,9 @@ class MockStorage(mock.MagicMock):
 
 @contextmanager
 def with_services_module():
-    with mock.patch('gravel.controllers.services.Services._save', new=mock_save), \
-            mock.patch('gravel.controllers.services.Services._load', new=mock_load), \
-            mock.patch('gravel.controllers.services.Services._create_service', new=mock_create):
+    with mock.patch('gravel.controllers.services.Services._save'), \
+            mock.patch('gravel.controllers.services.Services._load'), \
+            mock.patch('gravel.controllers.services.Services._create_service'):
 
         from gravel.controllers.services import Services
         services = Services()
