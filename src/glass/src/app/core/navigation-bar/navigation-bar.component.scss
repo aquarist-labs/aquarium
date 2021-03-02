@@ -1,3 +1,16 @@
+@import 'styles.scss';
+
 .glass-navigation-bar {
   min-width: 15rem;
+
+  mat-icon {
+    margin-right: 12px;
+  }
+
+  .mat-list-item {
+    border-left: 5px solid transparent;
+  }
+  .mat-list-item:hover {
+    border-left: 5px solid $eos-bc-cerulean-900;
+  }
 }
