@@ -17,21 +17,11 @@ def mock_create(cls: Any, svc: Any) -> None:
     pass
 
 
-def mock_exists_conf(cls: Any) -> bool:
-    return True
-
-
-class MockConfig(mock.MagicMock):
-    pass
-
-
 class MockStorage(mock.MagicMock):
     available = 2000
 
 
-with mock.patch(
-        "gravel.controllers.config.Config",
-        MockConfig):
+with mock.patch('gravel.controllers.config.Config'):
     with mock.patch(
             "gravel.controllers.resources.storage", MockStorage
     ):
