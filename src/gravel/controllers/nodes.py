@@ -26,6 +26,7 @@ from starlette.websockets import WebSocket
 from gravel.controllers.config import DeploymentStage
 
 from gravel.controllers.gstate import gstate
+from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
@@ -49,6 +50,11 @@ class MessageModel(BaseModel):
 class JoinMessageModel(BaseModel):
     uuid: UUID
     token: str
+
+
+class WelcomeMessageModel(BaseModel):
+    cluster_uuid: UUID
+    pubkey: str
 
 
 class Peer:
@@ -270,11 +276,34 @@ class NodeMgr:
         logger.debug(f"=> mgr -- handle msg > type: {msg.type}")
         if msg.type == MessageTypeEnum.JOIN:
             logger.debug("=> mgr -- handle msg > join")
-            await conn.send_msg(
-                MessageModel(type=MessageTypeEnum.WELCOME, data={})
-            )
-            logger.debug("=> mgr -- handle msg > sent welcome")
+            await self._handle_join(conn, JoinMessageModel.parse_obj(msg.data))
         pass
+
+    async def _handle_join(
+        self,
+        conn: IncomingConnection,
+        msg: JoinMessageModel
+    ) -> None:
+        logger.debug(f"=> mgr -- handle join {msg}")
+        assert self._state is not None
+
+        orch = Orchestrator()
+        pubkey: str = orch.get_public_key()
+
+        welcome = WelcomeMessageModel(
+            cluster_uuid=self._state.uuid,
+            pubkey=pubkey
+        )
+        try:
+            await conn.send_msg(
+                MessageModel(
+                    type=MessageTypeEnum.WELCOME,
+                    data=welcome.dict()
+                )
+            )
+        except Exception as e:
+            logger.error(f"=> mgr -- handle join > error: {str(e)}")
+        logger.debug(f"=> mgr -- handle join > welcome sent: {welcome}")
 
 
 _nodemgr = NodeMgr()
