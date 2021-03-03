@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 
 import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
-import { BootstrapService } from '~/app/shared/services/api/bootstrap.service';
+import { BootstrapService, BootstrapStageEnum } from '~/app/shared/services/api/bootstrap.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
 describe('BootstrapPageComponent', () => {
@@ -70,7 +70,7 @@ describe('BootstrapPageComponent', () => {
 
   it('should poll bootstrap [stage=done]', fakeAsync(() => {
     spyOn(router, 'navigate').and.stub();
-    spyOn(bootstrapService, 'status').and.returnValue(of({ stage: 'done' }));
+    spyOn(bootstrapService, 'status').and.returnValue(of({ stage: BootstrapStageEnum.done }));
     component.pollBootstrapStatus();
     tick(5000);
     expect(bootstrapService.status).toHaveBeenCalledTimes(1);
@@ -79,7 +79,7 @@ describe('BootstrapPageComponent', () => {
   }));
 
   it('should poll bootstrap [stage=error]', fakeAsync(() => {
-    spyOn(bootstrapService, 'status').and.returnValue(of({ stage: 'error' }));
+    spyOn(bootstrapService, 'status').and.returnValue(of({ stage: BootstrapStageEnum.error }));
     spyOn(notificationService, 'show').and.stub();
     component.pollBootstrapStatus();
     tick(5000);
@@ -96,9 +96,13 @@ describe('BootstrapPageComponent', () => {
     spyOn(router, 'navigate').and.stub();
     component.pollBootstrapStatus();
     tick(1);
-    httpTestingController.expectOne('api/bootstrap/status').flush({ stage: 'running' });
+    httpTestingController
+      .expectOne('api/bootstrap/status')
+      .flush({ stage: BootstrapStageEnum.running });
     tick(5000);
-    httpTestingController.expectOne('api/bootstrap/status').flush({ stage: 'done' });
+    httpTestingController
+      .expectOne('api/bootstrap/status')
+      .flush({ stage: BootstrapStageEnum.done });
     tick(5000);
     httpTestingController.expectNone('api/bootstrap/status');
     expect(component.blockUI.isActive).toBeFalsy();
