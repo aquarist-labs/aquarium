@@ -53,3 +53,11 @@ class Orchestrator:
             "fs_name": fsname
         }
         self.call(cmd)
+
+    def get_public_key(self) -> str:
+        cmd = {
+            "prefix": "cephadm get-pub-key"
+        }
+        res = self.call(cmd)
+        assert "result" in res
+        return res["result"]

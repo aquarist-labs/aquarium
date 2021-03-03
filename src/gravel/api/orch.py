@@ -141,3 +141,13 @@ async def all_devices_assimilated() -> bool:
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
+
+
+@router.get("/pubkey")
+async def get_pubkey() -> str:
+    try:
+        orch = Orchestrator()
+        return orch.get_public_key()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
