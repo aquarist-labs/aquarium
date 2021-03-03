@@ -16,6 +16,8 @@ Aquarist Labs is licensed under LGPL version 2.1. We do not require assignment o
 
 Look at the [issue](https://github.com/aquarist-labs/aquarium/issues) list or
 check out our Slack channel (see below) and ask one of the friendly contributors.
+You can also view our [project board](https://github.com/orgs/aquarist-labs/projects/3)
+and check our [Review Guidelines](CONTRIBUTING.md).
 
 If you want to get your hands dirty as soon as possible, you can also run the
 script at `tools/setup-dev.sh`. This will ensure you have a basic development

@@ -1,10 +1,10 @@
 # Contributing
 
 This document outlines some basic guidelines for contributing to the `aquarium` repository
-within *Aquarist Labs*. 
+within *Aquarist Labs*.
 
 We are very welcoming of new feature implementation, patches that fix bugs or code
-cleanup. 
+cleanup.
 
 We are still orientating ourselves with the project, please be patient while this file
 and others continuously update.
@@ -29,6 +29,26 @@ We use GitHub templates to manage the requests. You will either select:
 - Question
 
 Ensure the appropriate label is selected before submitting your issue.
+
+## Reviewing Pull Requests
+
+Each pull request requires at least *one* review and approval from an active
+contributor. The primary function of reviews is to ensure code contributors
+are not blocked.
+
+We ask that reviewers perform a basic sanity check on all code and documentation
+contributions. 
+
+All pull requests should be reviewed, even if the request is
+tagged with the label `needs-rebase`. At this time, it is imperative that
+code contributions move swiftly, and without minor blockers.
+
+Note: If the pull request requires a rebase, it is suitable to approve the
+pull request, the pull request will not merge automatically.
+
+The only pull requests that do not require a review is anything in draft status,
+or tagged with the `WIP` label.
+
 
 ## Contributor Guidelines
 
@@ -61,7 +81,7 @@ For example:
 
 ```
    backend: add initial README doc
-   
+
    This commit introduces the first README doc for aquarist-labs.
 
    Signed-off-by: Random Developer <random@developer.io>
@@ -75,20 +95,20 @@ For example:
 ```
 
    backend: add initial README doc
-   
+
    This commit introduces the first README doc for aquarist-labs.
-   
+
    Closes #1
-   
+
    Signed-off-by: Random Developer <random@developer.io>
 ```
 
 ## Pull Request Best Practices
 
 PRs should be opened on branches contained in your fork of `aquarist-labs/aquarium.git`. PRs should
-target the `main` branch. 
+target the `main` branch.
 
-If your PR has only one commit, the PR title can be the same as the commit title (and GitHub will 
+If your PR has only one commit, the PR title can be the same as the commit title (and GitHub will
 suggest this). If the PR has multiple commits, do not accept the title GitHub suggests. Either use
 the title of the most relevant commit, or write your own title.
 
