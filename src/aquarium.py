@@ -31,6 +31,7 @@ from gravel.api import bootstrap
 from gravel.api import orch
 from gravel.api import status
 from gravel.api import services
+from gravel.api import nodes
 
 
 logger: logging.Logger = fastapi_logger
@@ -62,6 +63,7 @@ api.include_router(bootstrap.router)
 api.include_router(orch.router)
 api.include_router(status.router)
 api.include_router(services.router)
+api.include_router(nodes.router)
 
 
 #

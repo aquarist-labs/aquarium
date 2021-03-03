@@ -10,6 +10,7 @@ from typing import Optional, List
 from gravel.controllers.config import DeploymentStage
 from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.nodes import get_node_mgr
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
@@ -23,11 +24,11 @@ class BootstrapError(Exception):
     pass
 
 
-class BootstrapStage(str, Enum):
-    NONE = "none"
-    RUNNING = "running"
-    DONE = "done"
-    ERROR = "error"
+class BootstrapStage(int, Enum):
+    NONE = 0
+    RUNNING = 1
+    DONE = 2
+    ERROR = 3
 
 
 class Bootstrap:
@@ -40,10 +41,7 @@ class Bootstrap:
 
     async def _should_bootstrap(self) -> bool:
         state: DeploymentStage = gstate.config.deployment_state.stage
-        if state == DeploymentStage.none or \
-           state == DeploymentStage.bootstrapping:
-            return True
-        return False
+        return state <= DeploymentStage.bootstrapping
 
     async def _is_bootstrapping(self) -> bool:
         state: DeploymentStage = gstate.config.deployment_state.stage
@@ -140,3 +138,4 @@ class Bootstrap:
 
         self.stage = BootstrapStage.DONE
         gstate.config.set_deployment_stage(DeploymentStage.bootstrapped)
+        await get_node_mgr().finish_bootstrap()

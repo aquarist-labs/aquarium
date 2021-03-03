@@ -79,7 +79,7 @@ class GlobalState:
     async def tick(self) -> None:
         while not self.is_shutting_down:
             state = self.config.deployment_state.stage
-            logger.debug(f"=> tick ({state})")
+            logger.debug(f"=> tick ({state.name})")
             await asyncio.sleep(1)
             await self._do_ticks()
 

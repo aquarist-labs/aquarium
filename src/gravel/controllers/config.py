@@ -17,11 +17,11 @@ _config_dir_env = os.getenv(f"{_env_prefix}{_env_config_dir}")
 config_dir: str = _config_dir_env if _config_dir_env else '/etc/aquarium'
 
 
-class DeploymentStage(str, Enum):
-    none = "none"
-    bootstrapping = "bootstrapping"
-    bootstrapped = "bootstrapped"
-    ready = "ready"
+class DeploymentStage(int, Enum):
+    none = 0
+    bootstrapping = 1
+    bootstrapped = 2
+    ready = 3
 
 
 class DeploymentStateModel(BaseModel):
@@ -54,11 +54,11 @@ class ConfigModel(BaseModel):
 class Config:
 
     def __init__(self, path: str = config_dir):
-        confdir = Path(path)
-        self.confpath = confdir.joinpath(Path("config.json"))
-        logger.debug(f'Aquarium config dir: {confdir}')
+        self._confdir = Path(path)
+        self.confpath = self._confdir.joinpath(Path("config.json"))
+        logger.debug(f'Aquarium config dir: {self._confdir}')
 
-        confdir.mkdir(0o700, parents=True, exist_ok=True)
+        self._confdir.mkdir(0o700, parents=True, exist_ok=True)
 
         if not self.confpath.exists():
             initconf: ConfigModel = ConfigModel(
@@ -90,3 +90,7 @@ class Config:
     @property
     def options(self) -> OptionsModel:
         return self.config.options
+
+    @property
+    def confdir(self) -> Path:
+        return self._confdir

@@ -5,6 +5,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import {
   BootstrapBasicReply,
   BootstrapService,
+  BootstrapStageEnum,
   BootstrapStatusReply
 } from '~/app/shared/services/api/bootstrap.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -33,12 +34,12 @@ export class BootstrapPageComponent implements OnInit {
     // Immediately block the UI if bootstrapping is in progress.
     this.bootstrapService.status().subscribe({
       next: (statusReply: BootstrapStatusReply) => {
-        if (statusReply.stage === 'running') {
+        if (statusReply.stage === BootstrapStageEnum.running) {
           this.visible = false;
           this.blockUI.start('Please wait, bootstrapping in progress ...');
           this.pollBootstrapStatus();
         }
-        if (statusReply.stage === 'none') {
+        if (statusReply.stage === BootstrapStageEnum.none) {
           this.visible = true;
         }
       },
@@ -82,7 +83,7 @@ export class BootstrapPageComponent implements OnInit {
       .status()
       .pipe(
         this.pollService.poll(
-          (statusReply) => statusReply.stage === 'running',
+          (statusReply) => statusReply.stage === BootstrapStageEnum.running,
           undefined,
           'Failed to bootstrap the system.'
         )
@@ -90,11 +91,11 @@ export class BootstrapPageComponent implements OnInit {
       .subscribe(
         (statusReply: BootstrapStatusReply) => {
           switch (statusReply.stage) {
-            case 'error':
+            case BootstrapStageEnum.error:
               handleError();
               break;
-            case 'none':
-            case 'done':
+            case BootstrapStageEnum.none:
+            case BootstrapStageEnum.done:
               this.blockUI.stop();
               this.router.navigate(['/installer/create/deployment']);
               break;
