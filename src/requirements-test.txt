@@ -1,4 +1,5 @@
 pyfakefs
 pytest
+pytest-asyncio
 pytest-datadir
 pytest-mock
