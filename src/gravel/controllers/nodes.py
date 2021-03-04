@@ -32,6 +32,14 @@ from gravel.controllers.orch.orchestrator import Orchestrator
 logger: Logger = fastapi_logger
 
 
+class NodeHasBeenDeployedError(Exception):
+    pass
+
+
+class NodeHasJoinedError(Exception):
+    pass
+
+
 class MessageTypeEnum(int, Enum):
     JOIN = 1
     WELCOME = 2
@@ -163,7 +171,17 @@ class NodeMgr:
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
 
     async def join(self, address: str, token: str) -> bool:
-        logger.debug(f"=> mgr -- join > with addr {address}, token: {token}")
+        logger.debug(f"=> mgr -- join > with leader {address}, token: {token}")
+
+        if self._state:
+            assert self._state.role == NodeRoleEnum.LEADER or \
+                   self._state.role == NodeRoleEnum.FOLLOWER
+            raise NodeHasJoinedError()
+
+        deployment_stage = gstate.config.deployment_state.stage
+        if deployment_stage != DeploymentStage.none:
+            raise NodeHasBeenDeployedError()
+
         uri: str = f"ws://{address}/api/nodes/ws"
         conn = await self._connmgr.connect(uri)
         logger.debug(f"=> mgr -- join > conn: {conn}")
