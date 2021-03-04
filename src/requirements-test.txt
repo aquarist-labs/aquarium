@@ -1,2 +1,4 @@
-pytest
 pyfakefs
+pytest
+pytest-datadir
+pytest-mock
