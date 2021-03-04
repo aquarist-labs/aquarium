@@ -92,13 +92,15 @@ fi
 
 build=${imgdir}/build/${build_name}
 
+if [[ -e "${build}" && "${clean}" -eq "1" ]]; then
+  echo "warning: removing existing build '${build_name}'"
+  # TODO: Figure out if there's a way of having the build directory not
+  # owned by root in the first place.
+  sudo rm -rf ${build}
+fi
+
 if [[ -e "${build}" ]]; then
-  if [[ "${clean}" -eq "1" ]]; then
-    echo "warning: removing existing build '${build_name}'"
-    rm -rf ${build}
-  else
-    error_exit "build with name '${build_name}' already exists"
-  fi
+  error_exit "build with name '${build_name}' already exists (use --clean if you want to remove it)"
 fi
 
 set -xe
