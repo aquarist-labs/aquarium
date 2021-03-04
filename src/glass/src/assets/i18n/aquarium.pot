@@ -1,0 +1,238 @@
+msgid ""
+msgstr ""
+"mime-version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "15min"
+msgstr ""
+
+msgid "1min"
+msgstr ""
+
+msgid "5min"
+msgstr ""
+
+msgid "Aquarium"
+msgstr ""
+
+msgid "Architecture"
+msgstr ""
+
+msgid "Assigned"
+msgstr ""
+
+msgid "Available"
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Bootstrap system"
+msgstr ""
+
+msgid "CPU Load"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Capacity"
+msgstr ""
+
+msgid "CephFS"
+msgstr ""
+
+msgid "Choose installation mode"
+msgstr ""
+
+msgid "Choose selected devices"
+msgstr ""
+
+msgid "Configure CephFS service"
+msgstr ""
+
+msgid "Configure NFS service"
+msgstr ""
+
+msgid "Configure iSCSI service"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Create new cluster"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "Deploy a service"
+msgstr ""
+
+msgid "Failed to bootstrap the system."
+msgstr ""
+
+msgid "Failed to fetch data"
+msgstr ""
+
+msgid "Failed to fetch device information"
+msgstr ""
+
+msgid "Failed to start bootstrapping the system."
+msgstr ""
+
+msgid "Failed to start device deployment."
+msgstr ""
+
+msgid "Free"
+msgstr ""
+
+msgid "Go to Dashboard"
+msgstr ""
+
+msgid "Health"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Hosts"
+msgstr ""
+
+msgid "Join existing cluster"
+msgstr ""
+
+msgid "Kernel"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid ""
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin porttitor "
+"quam convallis hendrerit lacinia. Integer consectetur metus eu nibh "
+"fringilla, ac lobortis nisl porttitor. Pellentesque habitant morbi "
+"tristique senectus et netus et malesuada fames ac turpis egestas. Donec at "
+"purus odio."
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "No CephFS services configured"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Operating System"
+msgstr ""
+
+msgid "Path"
+msgstr ""
+
+msgid "Please wait, bootstrapping in progress ..."
+msgstr ""
+
+msgid "Please wait, bootstrapping will be started ..."
+msgstr ""
+
+msgid "Please wait, device deployment in progress ..."
+msgstr ""
+
+msgid "Please wait, fetching device information ..."
+msgstr ""
+
+msgid "Redundancy Level"
+msgstr ""
+
+msgid "Serial"
+msgstr ""
+
+msgid "Services"
+msgstr ""
+
+msgid ""
+"Setup will create a new deployment from scratch, configuring this node as a "
+"standalone storage solution."
+msgstr ""
+
+msgid ""
+"Setup will search for existing deployments in the network and be "
+"assimilated."
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "Sorry, we could not find what you are looking for."
+msgstr ""
+
+msgid "Space"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "System Information"
+msgstr ""
+
+msgid ""
+"The step will erase all data on the listed devices. Are you sure you want "
+"to continue?"
+msgstr ""
+
+msgid "Toggle navigation"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Unassigned"
+msgstr ""
+
+msgid "Uptime"
+msgstr ""
+
+msgid "Used"
+msgstr ""
+
+msgid "Vendor"
+msgstr ""
+
+msgid "Volumes"
+msgstr ""
+
+msgid "We are sorry, but your deployment was not successful."
+msgstr ""
+
+msgid ""
+"Welcome to Aquarium - Our take on an opinionated storage appliance. To get "
+"started on your first deployment, click below. We are in the initial phases "
+"of development and welcome feature and bug reports. See our"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "You can now open your dashboard by clicking the button below."
+msgstr ""
+
+msgid "Your deployment was successful and is now ready to use."
+msgstr ""
+
+msgid "for more details."
+msgstr ""
+
+msgid "iSCSI"
+msgstr ""

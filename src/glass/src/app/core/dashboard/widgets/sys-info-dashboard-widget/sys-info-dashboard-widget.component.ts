@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
+import { translate } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { Facts, OrchService } from '~/app/shared/services/api/orch.service';
 
@@ -35,16 +37,20 @@ export class SysInfoDashboardWidgetComponent extends AbstractDashboardWidget<Fac
     return this.orchService.facts().pipe(
       map((facts: Facts) => {
         this.memoryChartData = [
-          { name: 'Used', value: facts.memory_total_kb * 1024 - facts.memory_free_kb * 1024 },
-          { name: 'Free', value: facts.memory_free_kb * 1024 }
+          {
+            name: translate(TEXT('Used')),
+            value: facts.memory_total_kb * 1024 - facts.memory_free_kb * 1024
+          },
+          { name: translate(TEXT('Free')), value: facts.memory_free_kb * 1024 }
         ];
+        /* eslint-disable @typescript-eslint/naming-convention */
         const load_1min = Math.floor(facts.cpu_load['1min'] * 100);
         const load_5min = Math.floor(facts.cpu_load['5min'] * 100);
         const load_15min = Math.floor(facts.cpu_load['15min'] * 100);
         this.cpuLoadChartData = [
-          { name: '1min', value: `${load_1min}%` },
-          { name: '5min', value: `${load_5min}%` },
-          { name: '15min', value: `${load_15min}%` }
+          { name: translate(TEXT('1min')), value: `${load_1min}%` },
+          { name: translate(TEXT('5min')), value: `${load_5min}%` },
+          { name: translate(TEXT('15min')), value: `${load_15min}%` }
         ];
         // Modify the uptime value to allow the `relativeDate` pipe
         // to calculate the correct time to display.

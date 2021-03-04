@@ -1,7 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable, Subscription } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
+import { translate } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { Reservations, ServicesService } from '~/app/shared/services/api/services.service';
 
@@ -29,8 +31,8 @@ export class CapacityDashboardWidgetComponent
     // @ts-ignore
     this.subscription = this.loadDataEvent.subscribe(() => {
       this.chartData = [
-        { name: 'Assigned', value: this.data.available - this.data.reserved },
-        { name: 'Unassigned', value: this.data.reserved }
+        { name: translate(TEXT('Assigned')), value: this.data.available - this.data.reserved },
+        { name: translate(TEXT('Unassigned')), value: this.data.reserved }
       ];
     });
   }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
 
 import { DashboardWidgetConfig } from '~/app/shared/models/dashboard-widget.model';
@@ -17,27 +18,27 @@ export class DashboardPageComponent implements OnInit {
   readonly widgets: DashboardWidgetConfig[] = [
     {
       id: 'health',
-      title: 'Health'
+      title: TEXT('Health')
     },
     {
       id: 'capacity',
-      title: 'Capacity'
+      title: TEXT('Capacity')
     },
     {
       id: 'services',
-      title: 'Services'
+      title: TEXT('Services')
     },
     {
       id: 'volumes',
-      title: 'Volumes'
+      title: TEXT('Volumes')
     },
     {
       id: 'sysInfo',
-      title: 'System Information'
+      title: TEXT('System Information')
     },
     {
       id: 'hosts',
-      title: 'Hosts'
+      title: TEXT('Hosts')
     }
   ];
 

@@ -1,0 +1,240 @@
+# 
+# Translators:
+# Volker <votdev@gmx.de>, 2021
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Volker <votdev@gmx.de>, 2021\n"
+"Language-Team: German (Germany) (https://www.transifex.com/aquarist-labs/teams/117625/de_DE/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de_DE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"mime-version: 1.0\n"
+
+msgid "15min"
+msgstr "15min"
+
+msgid "1min"
+msgstr "1min"
+
+msgid "5min"
+msgstr "5min"
+
+msgid "Aquarium"
+msgstr "Aquarium"
+
+msgid "Architecture"
+msgstr "Architektur"
+
+msgid "Assigned"
+msgstr "Zugewiesen"
+
+msgid "Available"
+msgstr "Verfügbar"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Bootstrap system"
+msgstr ""
+
+msgid "CPU Load"
+msgstr "CPU-Auslastung "
+
+msgid "Cancel"
+msgstr "Beenden"
+
+msgid "Capacity"
+msgstr "Kapazität"
+
+msgid "CephFS"
+msgstr "CephFS"
+
+msgid "Choose installation mode"
+msgstr "Wählen Sie den Installationsmodus "
+
+msgid "Choose selected devices"
+msgstr "Wählen Sie ausgewählte Geräte aus "
+
+msgid "Configure CephFS service"
+msgstr "Konfigurieren Sie den CephFS-Dienstes"
+
+msgid "Configure NFS service"
+msgstr "Konfigurieren Sie den NFS-Dienst"
+
+msgid "Configure iSCSI service"
+msgstr "Konfigurieren Sie den iSCSI-Dienst"
+
+msgid "Continue"
+msgstr "Fortsetzen"
+
+msgid "Create"
+msgstr "Erstellen"
+
+msgid "Create new cluster"
+msgstr "Neuen Cluster erstellen"
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "Deploy a service"
+msgstr "Einen Dienst bereitstellen"
+
+msgid "Failed to bootstrap the system."
+msgstr ""
+
+msgid "Failed to fetch data"
+msgstr "Daten konnten nicht abgerufen werden"
+
+msgid "Failed to fetch device information"
+msgstr "Geräteinformationen konnten nicht abgerufen werden"
+
+msgid "Failed to start bootstrapping the system."
+msgstr ""
+
+msgid "Failed to start device deployment."
+msgstr ""
+
+msgid "Go to Dashboard"
+msgstr "Zum Dashboard gehen"
+
+msgid "Health"
+msgstr "Gesundheit"
+
+msgid "Hostname"
+msgstr "Hostname"
+
+msgid "Hosts"
+msgstr ""
+
+msgid "Join existing cluster"
+msgstr "Trete einem vorhandenen Cluster bei"
+
+msgid "Kernel"
+msgstr "Kernel"
+
+msgid ""
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin porttitor "
+"quam convallis hendrerit lacinia. Integer consectetur metus eu nibh "
+"fringilla, ac lobortis nisl porttitor. Pellentesque habitant morbi tristique"
+" senectus et netus et malesuada fames ac turpis egestas. Donec at purus "
+"odio."
+msgstr ""
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Next"
+msgstr ""
+
+msgid "No"
+msgstr "Nein"
+
+msgid "No CephFS services configured"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Operating System"
+msgstr ""
+
+msgid "Path"
+msgstr "Pfad"
+
+msgid "Please wait, bootstrapping in progress ..."
+msgstr "Bitte warten, Bootstrapping läuft ..."
+
+msgid "Please wait, bootstrapping will be started ..."
+msgstr "Bitte warten Sie, das Bootstrapping wird gestartet ..."
+
+msgid "Please wait, device deployment in progress ..."
+msgstr "Bitte warten Sie, die Gerätebereitstellung läuft ..."
+
+msgid "Please wait, fetching device information ..."
+msgstr "Bitte warten Sie, die Geräteinformationen werden abgerufen ..."
+
+msgid "Redundancy Level"
+msgstr "Redundanzstufe"
+
+msgid "Serial"
+msgstr ""
+
+msgid "Services"
+msgstr "Dienste"
+
+msgid ""
+"Setup will create a new deployment from scratch, configuring this node as a "
+"standalone storage solution."
+msgstr ""
+
+msgid ""
+"Setup will search for existing deployments in the network and be "
+"assimilated."
+msgstr ""
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "Sorry, we could not find what you are looking for."
+msgstr ""
+
+msgid "Space"
+msgstr ""
+
+msgid "Start"
+msgstr "Start"
+
+msgid "System Information"
+msgstr ""
+
+msgid ""
+"The step will erase all data on the listed devices. Are you sure you want to"
+" continue?"
+msgstr ""
+
+msgid "Toggle navigation"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Unassigned"
+msgstr "Nicht zugewiesen"
+
+msgid "Uptime"
+msgstr "Betriebszeit"
+
+msgid "Used"
+msgstr "Benutzt"
+
+msgid "Vendor"
+msgstr ""
+
+msgid "Volumes"
+msgstr ""
+
+msgid "We are sorry, but your deployment was not successful."
+msgstr ""
+
+msgid ""
+"Welcome to Aquarium - Our take on an opinionated storage appliance. To get "
+"started on your first deployment, click below. We are in the initial phases "
+"of development and welcome feature and bug reports. See our"
+msgstr ""
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "You can now open your dashboard by clicking the button below."
+msgstr ""
+
+msgid "Your deployment was successful and is now ready to use."
+msgstr ""
+
+msgid "for more details."
+msgstr ""
+
+msgid "iSCSI"
+msgstr "iSCSI"

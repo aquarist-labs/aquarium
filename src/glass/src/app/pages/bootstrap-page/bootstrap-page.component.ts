@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
+import { translate } from '~/app/i18n.helper';
 import {
   BootstrapBasicReply,
   BootstrapService,
@@ -36,7 +38,7 @@ export class BootstrapPageComponent implements OnInit {
       next: (statusReply: BootstrapStatusReply) => {
         if (statusReply.stage === BootstrapStageEnum.running) {
           this.visible = false;
-          this.blockUI.start('Please wait, bootstrapping in progress ...');
+          this.blockUI.start(translate(TEXT('Please wait, bootstrapping in progress ...')));
           this.pollBootstrapStatus();
         }
         if (statusReply.stage === BootstrapStageEnum.none) {
@@ -49,17 +51,17 @@ export class BootstrapPageComponent implements OnInit {
 
   startBootstrap(): void {
     this.visible = false;
-    this.blockUI.start('Please wait, bootstrapping will be started ...');
+    this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
 
     this.bootstrapService.start().subscribe({
       next: (basicReplay: BootstrapBasicReply) => {
         if (basicReplay.success) {
-          this.blockUI.update('Please wait, bootstrapping in progress ...');
+          this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
           this.pollBootstrapStatus();
         } else {
           this.visible = true;
           this.blockUI.stop();
-          this.notificationService.show('Failed to start bootstrapping the system.', {
+          this.notificationService.show(TEXT('Failed to start bootstrapping the system.'), {
             type: 'error'
           });
         }
@@ -75,7 +77,7 @@ export class BootstrapPageComponent implements OnInit {
     const handleError = () => {
       this.visible = true;
       this.blockUI.stop();
-      this.notificationService.show('Failed to bootstrap the system.', {
+      this.notificationService.show(TEXT('Failed to bootstrap the system.'), {
         type: 'error'
       });
     };
@@ -85,7 +87,7 @@ export class BootstrapPageComponent implements OnInit {
         this.pollService.poll(
           (statusReply) => statusReply.stage === BootstrapStageEnum.running,
           undefined,
-          'Failed to bootstrap the system.'
+          TEXT('Failed to bootstrap the system.')
         )
       )
       .subscribe(

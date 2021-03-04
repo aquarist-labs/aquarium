@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { BlockUIModule } from 'ng-block-ui';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
@@ -19,7 +21,15 @@ import { MaterialModule } from '~/app/material.modules';
     InstallerLayoutComponent,
     BlankLayoutComponent
   ],
-  imports: [BlockUIModule.forRoot(), CommonModule, MaterialModule, RouterModule, DashboardModule],
+  imports: [
+    BlockUIModule.forRoot(),
+    CommonModule,
+    FlexLayoutModule,
+    MaterialModule,
+    RouterModule,
+    DashboardModule,
+    TranslateModule.forChild()
+  ],
   exports: [DashboardModule]
 })
 export class CoreModule {}

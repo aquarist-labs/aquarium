@@ -13,7 +13,7 @@ export enum BootstrapStageEnum {
   done = 2,
   error = 3
 }
-  
+
 export type BootstrapStatusReply = {
   stage: BootstrapStageEnum;
 };

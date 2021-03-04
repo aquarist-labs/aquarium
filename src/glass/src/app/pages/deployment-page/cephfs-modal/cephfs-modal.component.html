@@ -107,11 +107,11 @@
 <mat-dialog-actions>
   <button mat-button
           [mat-dialog-close]="false">
-    Cancel
+    <span translate>Cancel</span>
   </button>
   <glass-submit-button [form]="formGroup"
                        (buttonClick)="onSubmit()"
                        cdkFocusInitial>
-    Create
+    <span translate>Create</span>
   </glass-submit-button>
 </mat-dialog-actions>

@@ -15,7 +15,7 @@
       <ng-container [ngSwitch]="widget.id">
         <mat-card class="glass-dashboard-widget">
           <mat-card-title-group>
-            <mat-card-title>{{ widget.title }}</mat-card-title>
+            <mat-card-title>{{ widget.title | translate }}</mat-card-title>
           </mat-card-title-group>
           <mat-card-content>
             <ng-template [ngSwitchCase]="'capacity'">
@@ -53,6 +53,6 @@
     <mat-icon *ngIf="enabled.includes(widget.id)"
               svgIcon="mdi:check-box-outline">
     </mat-icon>
-    <span>{{ widget.title }}</span>
+    <span>{{ widget.title | translate }}</span>
   </button>
 </mat-menu>

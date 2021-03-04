@@ -6,7 +6,7 @@
     <p>No services deployed yet.</p>
     <button mat-raised-button
             routerLink="/installer/create/deployment">
-      Deploy a service
+      <span translate>Deploy a service</span>
     </button>
   </div>
   <div *ngIf="!error"
@@ -25,6 +25,7 @@
            [dataSource]="data">
       <ng-container matColumnDef="name">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Name</th>
         <td mat-cell
             *matCellDef="let element">{{element.name}}</td>
@@ -32,6 +33,7 @@
 
       <ng-container matColumnDef="type">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Type</th>
         <td mat-cell
             *matCellDef="let element">{{element.type}}</td>
@@ -40,6 +42,7 @@
       <!-- Not available ATM therefore hidden -->
       <ng-container matColumnDef="space">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Space</th>
         <td mat-cell
             *matCellDef="let element">na</td>
@@ -48,6 +51,7 @@
       <!-- Not available ATM therefore hidden -->
       <ng-container matColumnDef="redundancy">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Redundancy Level</th>
         <td mat-cell
             *matCellDef="let element">na</td>
