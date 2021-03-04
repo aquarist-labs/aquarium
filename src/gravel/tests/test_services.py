@@ -1,157 +1,117 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
 
-from contextlib import contextmanager
+import pytest
 from typing import List
-from unittest import mock, TestCase
 
 
-# TODO: this should be a PropertyMock??
-class MockStorage(mock.MagicMock):
-    available = 2000
+def test_create(services):
+    from gravel.controllers.services import ServiceTypeEnum
+
+    svc = services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
+    assert svc.name == "foobar"
+    assert svc.type == ServiceTypeEnum.CEPHFS
+    assert svc.reservation == 1000
+    assert svc.replicas == 2
+    assert "foobar" in services._services  # pyright: reportPrivateUsage=false
 
 
-@contextmanager
-def with_services_module():
-    with mock.patch('gravel.controllers.services.Services._save'), \
-            mock.patch('gravel.controllers.services.Services._load'), \
-            mock.patch('gravel.controllers.services.Services._create_service'):
-
-        from gravel.controllers.services import Services
-        services = Services()
-        yield services
+def test_create_fail_reservation(services):
+    from gravel.controllers.services import \
+        ServiceTypeEnum, NotEnoughSpaceError
+    with pytest.raises(NotEnoughSpaceError):
+        services.create("foobar", ServiceTypeEnum.CEPHFS, 3000, 2)
 
 
-class TestServices(TestCase):
+def test_create_exists(services):
+    from gravel.controllers.services import \
+        ServiceTypeEnum, ServiceExistsError
 
-    def test_create(self):
-        from gravel.controllers.services import ServiceTypeEnum
+    services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
+    with pytest.raises(ServiceExistsError):
+        services.create("foobar", ServiceTypeEnum.CEPHFS, 1, 1)
 
-        with with_services_module() as services:
-            svc = services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
-            self.assertEqual(svc.name, "foobar")
-            self.assertEqual(svc.type, ServiceTypeEnum.CEPHFS)
-            self.assertEqual(svc.reservation, 1000)
-            self.assertEqual(svc.replicas, 2)
-            self.assertIn(
-                "foobar",
-                services._services  # pyright: reportPrivateUsage=false
-            )
-            pass
 
-    def test_create_fail_reservation(self):
-        from gravel.controllers.services import \
-            ServiceTypeEnum, NotEnoughSpaceError
+def test_create_over_reserved(services):
+    from gravel.controllers.services import \
+        ServiceTypeEnum, NotEnoughSpaceError
 
-        with with_services_module() as services:
-            try:
-                services.create("foobar", ServiceTypeEnum.CEPHFS, 3000, 2)
-            except NotEnoughSpaceError:
-                return True
-            self.fail("expected reservation error")
+    services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
+    with pytest.raises(NotEnoughSpaceError):
+        # TODO(jhesketh): Add in matches for checking the expected numbers
+        services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
 
-    def test_create_exists(self):
-        from gravel.controllers.services import \
-            ServiceTypeEnum, ServiceExistsError
 
-        with with_services_module() as services:
-            services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
-            try:
-                services.create("foobar", ServiceTypeEnum.CEPHFS, 1, 1)
-            except ServiceExistsError:
-                return True
-            self.fail("expected service to exist")
+def test_remove():
+    # TODO: add missing tests
+    pass
 
-    def test_create_over_reserved(self):
-        from gravel.controllers.services import \
-            ServiceTypeEnum, NotEnoughSpaceError
 
-        with with_services_module() as services:
-            services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
-            try:
-                services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
-            except NotEnoughSpaceError:
-                return True
-            self.fail("expected reservation error")
+def test_ls(services):
+    from gravel.controllers.services import \
+        ServiceModel, ServiceTypeEnum
 
-    def test_remove(self):
-        # TODO: add missing tests
-        pass
+    services.create("foobar", ServiceTypeEnum.CEPHFS, 1, 1)
+    services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
 
-    def test_ls(self):
-        from gravel.controllers.services import \
-            ServiceModel, ServiceTypeEnum
+    lst: List[ServiceModel] = services.ls()
+    names = [x.name for x in lst]
+    assert "foobar" in names
+    assert "barbaz" in names
 
-        with with_services_module() as services:
-            services.create("foobar", ServiceTypeEnum.CEPHFS, 1, 1)
-            services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
 
-            lst: List[ServiceModel] = services.ls()
-            names = [x.name for x in lst]
-            self.assertIn("foobar", names)
-            self.assertIn("barbaz", names)
+def test_reservations(services):
+    from gravel.controllers.services import ServiceTypeEnum
 
-    def test_reservations(self):
-        from gravel.controllers.services import ServiceTypeEnum
+    services.create("foobar", ServiceTypeEnum.CEPHFS, 20, 1)
+    services.create("barbaz", ServiceTypeEnum.CEPHFS, 100, 2)
 
-        with with_services_module() as services:
-            services.create("foobar", ServiceTypeEnum.CEPHFS, 20, 1)
-            services.create("barbaz", ServiceTypeEnum.CEPHFS, 100, 2)
+    assert services.total_reservation == 120
+    assert services.total_raw_reservation == 220
 
-            self.assertEqual(services.total_reservation, 120)
-            self.assertEqual(services.total_raw_reservation, 220)
 
-    def test_get(self):
-        from gravel.controllers.services import \
-            ServiceTypeEnum, UnknownServiceError
+def test_get(services):
+    from gravel.controllers.services import \
+        ServiceTypeEnum, UnknownServiceError
 
-        with with_services_module() as services:
-            try:
-                services.get("foobar")
-            except UnknownServiceError:
-                pass
-            else:
-                self.fail("expected unknown service")
+    with pytest.raises(UnknownServiceError):
+        services.get("foobar")
 
-            services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
-            try:
-                services.get("barbaz")
-            except UnknownServiceError:
-                self.fail("expected service to exist")
+    services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
+    services.get("barbaz")
 
-    @mock.patch('gravel.controllers.resources.storage', MockStorage)
-    def test_check_requirements(self):
-        from gravel.controllers.services import ServiceTypeEnum
 
-        with with_services_module() as services:
-            feasible, req = services.check_requirements(1000, 1)
-            self.assertTrue(feasible)
-            self.assertEqual(req.required, 1000)
-            self.assertEqual(req.available, 2000)
-            self.assertEqual(req.reserved, 0)
+def test_check_requirements(services):
+    from gravel.controllers.services import ServiceTypeEnum
 
-            feasible, req = services.check_requirements(1000, 3)
-            self.assertFalse(feasible)
-            self.assertEqual(req.required, 3000)
-            self.assertEqual(req.available, 2000)
-            self.assertEqual(req.reserved, 0)
+    feasible, req = services.check_requirements(1000, 1)
+    assert feasible is True
+    assert req.required == 1000
+    assert req.available == 2000
+    assert req.reserved == 0
 
-            services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
-            feasible, req = services.check_requirements(1000, 1)
-            self.assertTrue(feasible)
-            self.assertEqual(req.required, 1000)
-            self.assertEqual(req.available, 2000)
-            self.assertEqual(req.reserved, 1000)
+    feasible, req = services.check_requirements(1000, 3)
+    assert feasible is False
+    assert req.required == 3000
+    assert req.available == 2000
+    assert req.reserved == 0
 
-            feasible, req = services.check_requirements(1000, 2)
-            self.assertFalse(feasible)
-            self.assertEqual(req.required, 2000)
-            self.assertEqual(req.available, 2000)
-            self.assertEqual(req.reserved, 1000)
+    services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
+    feasible, req = services.check_requirements(1000, 1)
+    assert feasible is True
+    assert req.required == 1000
+    assert req.available == 2000
+    assert req.reserved == 1000
 
-            services.create("barbaz", ServiceTypeEnum.CEPHFS, 1000, 1)
-            feasible, req = services.check_requirements(1000, 1)
-            self.assertFalse(feasible)
-            self.assertEqual(req.required, 1000)
-            self.assertEqual(req.available, 2000)
-            self.assertEqual(req.reserved, 2000)
+    feasible, req = services.check_requirements(1000, 2)
+    assert feasible is False
+    assert req.required == 2000
+    assert req.available == 2000
+    assert req.reserved == 1000
+
+    services.create("barbaz", ServiceTypeEnum.CEPHFS, 1000, 1)
+    feasible, req = services.check_requirements(1000, 1)
+    assert feasible is False
+    assert req.required == 1000
+    assert req.available == 2000
+    assert req.reserved == 2000
