@@ -85,8 +85,8 @@ if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
 fi
 
-if ! sudo mkfs.btrfs --version &>/dev/null ; then
-  echo "error: missing btrfstools"
+if ! /sbin/mkfs.btrfs --version &>/dev/null ; then
+  echo "error: missing btrfsprogs"
   exit 1
 fi
 

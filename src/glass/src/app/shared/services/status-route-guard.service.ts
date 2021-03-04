@@ -11,11 +11,7 @@ import * as _ from 'lodash';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-import {
-  StatusStageEnum,
-  Status,
-  StatusService
-} from '~/app/shared/services/api/status.service';
+import { Status, StatusService, StatusStageEnum } from '~/app/shared/services/api/status.service';
 
 @Injectable({
   providedIn: 'root'
@@ -33,8 +29,8 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
         if (_.isFunction(err.preventDefault)) {
           err.preventDefault();
         }
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         const res: Status = {
+          /* eslint-disable @typescript-eslint/naming-convention */
           deployment_state: {
             last_modified: 'now',
             stage: StatusStageEnum.unknown
@@ -45,7 +41,8 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
       map((res: Status) => {
         let url: string;
         let result: boolean | UrlTree;
-        console.info("=> deployment stage: ", res.deployment_state.stage);
+        // eslint-disable-next-line no-console
+        console.info('=> deployment stage: ', res.deployment_state.stage);
         switch (res.deployment_state.stage) {
           case StatusStageEnum.bootstrapping:
             url = '/installer/create/bootstrap';

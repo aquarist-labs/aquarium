@@ -115,12 +115,7 @@ automatically!](https://github.blog/2013-01-22-closing-issues-via-commit-message
 For example:
 
 ```
-
-   backend: add initial README doc
-
-   This commit introduces the first README doc for aquarist-labs.
-
-   Closes #1
+   Fixes: #1
 
    Signed-off-by: Random Developer <random@developer.io>
 ```

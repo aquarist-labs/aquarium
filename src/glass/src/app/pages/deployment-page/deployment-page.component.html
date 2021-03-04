@@ -3,7 +3,9 @@
      fxLayoutAlign="center center">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Node deployment</mat-card-title>
+      <mat-card-title>
+        <span translate>Node deployment</span>
+      </mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <mat-vertical-stepper linear="true"
@@ -14,24 +16,34 @@
         <mat-step>
           <div *ngIf="displayInventory"
                class="glass-deployment-page-step-content">
-            <ng-template matStepLabel>Inventory</ng-template>
+            <ng-template matStepLabel>
+              <span translate>Inventory</span>
+            </ng-template>
             <ng-container [ngTemplateOutlet]="inventory"></ng-container>
             <button mat-button
                     class="mat-stepper-next"
-                    (click)="chooseDevices()">Choose selected devices</button>
+                    (click)="chooseDevices()">
+              <span translate>Choose selected devices</span>
+            </button>
           </div>
         </mat-step>
         <mat-step>
           <div class="glass-deployment-page-step-content">
-            <ng-template matStepLabel>Services deployment</ng-template>
+            <ng-template matStepLabel>
+              <span translate>Services deployment</span>
+            </ng-template>
             <ng-container [ngTemplateOutlet]="services"></ng-container>
             <button mat-button
-                    (click)="markDeploymentFinished()">Next</button>
+                    (click)="markDeploymentFinished()">
+              <span translate>Next</span>
+            </button>
           </div>
         </mat-step>
         <mat-step>
           <div class="glass-deployment-page-step-content">
-            <ng-template matStepLabel>Summary</ng-template>
+            <ng-template matStepLabel>
+              <span translate>Summary</span>
+            </ng-template>
             <ng-container [ngTemplateOutlet]="summary"></ng-container>
           </div>
         </mat-step>
@@ -54,25 +66,29 @@
     </ng-container>
     <ng-container matColumnDef="path">
       <th mat-header-cell
-          *matHeaderCellDef> Path </th>
+          translate
+          *matHeaderCellDef>Path</th>
       <td mat-cell
           *matCellDef="let row"> {{ row.path }} </td>
     </ng-container>
     <ng-container matColumnDef="type">
       <th mat-header-cell
-          *matHeaderCellDef> Type </th>
+          translate
+          *matHeaderCellDef>Type</th>
       <td mat-cell
           *matCellDef="let row"> {{ row.human_readable_type }} </td>
     </ng-container>
     <ng-container matColumnDef="size">
       <th mat-header-cell
-          *matHeaderCellDef> Size </th>
+          translate
+          *matHeaderCellDef>Size</th>
       <td mat-cell
           *matCellDef="let row"> {{ row.size | bytesToSize }} </td>
     </ng-container>
     <ng-container matColumnDef="available">
       <th mat-header-cell
-          *matHeaderCellDef> Available </th>
+          translate
+          *matHeaderCellDef>Available</th>
       <td mat-cell
           *matCellDef="let row">
         <mat-icon *ngIf="row.available"
@@ -98,7 +114,7 @@
       <mat-expansion-panel-header>
         <mat-panel-title>NFS</mat-panel-title>
         <mat-panel-description>
-          Configure NFS service
+          {{ 'Configure NFS service' | translate }}
           <mat-icon *ngIf="!nfs"
                     class="glass-color-accent"
                     svgIcon="mdi:plus-circle-outline">
@@ -113,9 +129,9 @@
 
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title>iSCSI</mat-panel-title>
+        <mat-panel-title translate>iSCSI</mat-panel-title>
         <mat-panel-description>
-          Configure iSCSI service
+          {{ 'Configure iSCSI service' | translate }}
           <mat-icon class="glass-color-accent"
                     svgIcon="mdi:plus-circle-outline">
           </mat-icon>
@@ -125,9 +141,9 @@
 
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title>CephFS</mat-panel-title>
+        <mat-panel-title translate>CephFS</mat-panel-title>
         <mat-panel-description>
-          Configure CephFS service
+          {{ 'Configure CephFS service' | translate }}
           <mat-icon class="glass-color-accent"
                     svgIcon="mdi:plus-circle-outline"
                     (click)="openCephfsDialog()">
@@ -136,7 +152,7 @@
       </mat-expansion-panel-header>
 
       <div *ngIf="cephfsList.length === 0">
-        <span>No CephFS services configured</span>
+        <span translate>No CephFS services configured</span>
       </div>
 
       <div *ngIf="cephfsList.length > 0"
@@ -175,18 +191,18 @@
            fxLayout="column"
            fxLayoutAlign="center center">
         <p class="glass-text-center">
-          <span>Your deployment was successful and is now ready to use.</span>
+          <span translate>Your deployment was successful and is now ready to use.</span>
           <br>
-          <span>You can now open your dashboard by clicking the button below.</span>
+          <span translate>You can now open your dashboard by clicking the button below.</span>
         </p>
         <button mat-button
                 class="mat-stepper-next"
                 routerLink="/dashboard">
-          Go to Dashboard
+          <span translate>Go to Dashboard</span>
         </button>
       </div>
       <div *ngIf="!deploymentSuccessful">
-        We are sorry, but your deployment was not successful.
+        <span translate>We are sorry, but your deployment was not successful.</span>
       </div>
     </div>
   </div>

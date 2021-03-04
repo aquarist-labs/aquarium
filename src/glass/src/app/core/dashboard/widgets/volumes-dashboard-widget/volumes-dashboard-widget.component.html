@@ -18,6 +18,7 @@
            [dataSource]="data">
       <ng-container matColumnDef="path">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Path</th>
         <td mat-cell
             *matCellDef="let element">{{element.path}}</td>
@@ -25,6 +26,7 @@
 
       <ng-container matColumnDef="device_id">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Serial</th>
         <td mat-cell
             *matCellDef="let element">{{element.device_id}}</td>
@@ -32,6 +34,7 @@
 
       <ng-container matColumnDef="vendor">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Vendor</th>
         <td mat-cell
             *matCellDef="let element">{{element.sys_api.vendor}}</td>
@@ -39,6 +42,7 @@
 
       <ng-container matColumnDef="type">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Type</th>
         <td mat-cell
             *matCellDef="let element">{{element.human_readable_type}}</td>
@@ -46,6 +50,7 @@
 
       <ng-container matColumnDef="size">
         <th mat-header-cell
+            translate
             *matHeaderCellDef>Size</th>
         <td mat-cell
             *matCellDef="let element">{{element.sys_api.human_readable_size}}</td>

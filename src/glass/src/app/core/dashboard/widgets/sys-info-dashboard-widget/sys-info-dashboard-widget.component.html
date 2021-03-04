@@ -7,27 +7,32 @@
        fxLayout="row wrap">
     <div class="glass-sys-info-dashboard-widget-cell"
          fxFlex="50">
-      <div class="glass-text-bold">Hostname</div>
+      <div class="glass-text-bold"
+           translate>Hostname</div>
       <div>{{ data?.hostname }}</div>
     </div>
     <div class="glass-sys-info-dashboard-widget-cell"
          fxFlex="50">
-      <div class="glass-text-bold">Operating System</div>
+      <div class="glass-text-bold"
+           translate>Operating System</div>
       <div>{{ data?.operating_system }}</div>
     </div>
     <div class="glass-sys-info-dashboard-widget-cell"
          fxFlex="50">
-      <div class="glass-text-bold">Kernel</div>
+      <div class="glass-text-bold"
+           translate>Kernel</div>
       <div>{{ data?.kernel }}</div>
     </div>
     <div class="glass-sys-info-dashboard-widget-cell"
          fxFlex="50">
-      <div class="glass-text-bold">Architecture</div>
+      <div class="glass-text-bold"
+           translate>Architecture</div>
       <div>{{ data?.arch }}</div>
     </div>
     <div class="glass-sys-info-dashboard-widget-cell"
          fxFlex="50">
-      <div class="glass-text-bold">Uptime</div>
+      <div class="glass-text-bold"
+           translate>Uptime</div>
       <div>{{ data?.system_uptime | relativeDate:true }}</div>
     </div>
     <div class="glass-sys-info-dashboard-widget-cell"
@@ -46,7 +51,8 @@
     <div class="glass-sys-info-dashboard-widget-cell"
          fxFlex="100"
          fxLayout="column">
-      <div class="glass-text-bold">CPU Load</div>
+      <div class="glass-text-bold"
+           translate>CPU Load</div>
       <div fxFlex>
         <ngx-charts-number-card [scheme]="cpuLoadColorScheme"
                                 [results]="cpuLoadChartData"

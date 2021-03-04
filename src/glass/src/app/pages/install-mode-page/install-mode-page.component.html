@@ -3,7 +3,7 @@
      fxLayoutAlign="center center">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Choose installation mode</mat-card-title>
+      <mat-card-title translate>Choose installation mode</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div fxLayout="row"
@@ -13,9 +13,11 @@
           <button mat-button
                   routerLink="/installer/create/bootstrap">
             <mat-icon svgIcon="mdi:plus"></mat-icon>
-            Create new cluster
+            <span translate>Create new cluster</span>
           </button>
-          <p class="glass-install-mode-description">Setup will create a new deployment from scratch, configuring this node as a standalone storage solution.</p>
+          <p class="glass-install-mode-description">
+            <span translate>Setup will create a new deployment from scratch, configuring this node as a standalone storage solution.</span>
+          </p>
         </div>
         <div fxFlex="50"
              fxLayout="column">
@@ -23,15 +25,17 @@
                   routerLink="/installer/join/unknown"
                   disabled>
             <mat-icon svgIcon="mdi:vector-combine"></mat-icon>
-            Join existing cluster
+            <span translate>Join existing cluster</span>
           </button>
-          <p class="glass-install-mode-description">Setup will search for existing deployments in the network and be assimilated.</p>
+          <p class="glass-install-mode-description">
+            <span translate>Setup will search for existing deployments in the network and be assimilated.</span>
+          </p>
         </div>
       </div>
     </mat-card-content>
     <mat-card-actions>
       <button mat-icon-button
-              matTooltip="Back"
+              matTooltip="{{ 'Back' | translate }}"
               routerLink="/installer/welcome">
         <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
       </button>

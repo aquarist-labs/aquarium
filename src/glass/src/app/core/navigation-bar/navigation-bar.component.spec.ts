@@ -1,6 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '~/app/core/core.module';
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
@@ -11,7 +12,7 @@ describe('NavigationBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, HttpClientTestingModule, RouterTestingModule]
+      imports: [CoreModule, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 
