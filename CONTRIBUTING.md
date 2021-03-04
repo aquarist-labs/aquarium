@@ -78,8 +78,7 @@ For example:
    
    This commit introduces the first README doc for aquarist-labs.
    
-   Closes #1
-   
+   Fixes: #1
    Signed-off-by: Random Developer <random@developer.io>
 ```
 
