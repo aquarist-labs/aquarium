@@ -33,7 +33,6 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
   }
 
   protected refreshData(): void {
-    this.error = false;
     this.loading = true;
     this.refreshDataSubscription = this.loadData()
       .pipe(
@@ -59,6 +58,7 @@ export abstract class AbstractDashboardWidget<T> implements OnInit, OnDestroy {
         })
       )
       .subscribe((data) => {
+        this.error = false;
         this.data = data;
         this.loadDataEvent.emit(data);
       });

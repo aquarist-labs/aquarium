@@ -19,49 +19,12 @@
                         mode="indeterminate">
       </mat-progress-bar>
     </div>
-    <table mat-table
-           fxFlexFill
-           *ngIf="firstLoadComplete && data.length > 0"
-           [dataSource]="data">
-      <ng-container matColumnDef="name">
-        <th mat-header-cell
-            translate
-            *matHeaderCellDef>Name</th>
-        <td mat-cell
-            *matCellDef="let element">{{element.name}}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="type">
-        <th mat-header-cell
-            translate
-            *matHeaderCellDef>Type</th>
-        <td mat-cell
-            *matCellDef="let element">{{element.type}}</td>
-      </ng-container>
-
-      <!-- Not available ATM therefore hidden -->
-      <ng-container matColumnDef="space">
-        <th mat-header-cell
-            translate
-            *matHeaderCellDef>Space</th>
-        <td mat-cell
-            *matCellDef="let element">na</td>
-      </ng-container>
-
-      <!-- Not available ATM therefore hidden -->
-      <ng-container matColumnDef="redundancy">
-        <th mat-header-cell
-            translate
-            *matHeaderCellDef>Redundancy Level</th>
-        <td mat-cell
-            *matCellDef="let element">na</td>
-      </ng-container>
-
-      <tr mat-header-row
-          *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row
-          *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+    <glass-datatable *ngIf="firstLoadComplete && data.length > 0"
+                     [data]="data"
+                     [columns]="columns"
+                     [pageSize]="5"
+                     [hidePageSize]="true">
+    </glass-datatable>
   </div>
   <mat-icon *ngIf="error"
             svgIcon="mdi:lan-disconnect">
