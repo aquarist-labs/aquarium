@@ -35,6 +35,7 @@ logger: Logger = fastapi_logger
 class MessageTypeEnum(int, Enum):
     JOIN = 1
     WELCOME = 2
+    READY_TO_ADD = 3
 
 
 class NodeOpType(int, Enum):
@@ -171,8 +172,21 @@ class NodeMgr:
         joinmsg = JoinMessageModel(uuid=uuid, token=token)
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
+
         reply: MessageModel = await conn.receive()
         logger.debug(f"=> mgr -- join > recv: {reply}")
+        assert reply.type == MessageTypeEnum.WELCOME
+        welcome = WelcomeMessageModel.parse_obj(reply.data)
+        assert welcome.cluster_uuid
+        assert welcome.pubkey
+
+        authorized_keys: Path = Path("/root/.ssh/authorized_keys")
+        if not authorized_keys.parent.exists():
+            authorized_keys.parent.mkdir(0o700)
+        with authorized_keys.open("a") as fd:
+            fd.writelines([welcome.pubkey])
+            logger.debug(f"=> mgr -- join > wrote pubkey to {authorized_keys}")
+
         return True
 
     async def finish_bootstrap(self):
