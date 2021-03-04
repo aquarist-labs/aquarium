@@ -30,14 +30,23 @@ We use GitHub templates to manage the requests. You will either select:
 
 Ensure the appropriate label is selected before submitting your issue.
 
-## Reviewing Pull Requests
+## Pull Requests
+
+### Reviewing Pull Requests
 
 Each pull request requires at least *one* review and approval from an active
-contributor. The primary function of reviews is to ensure code contributors
-are not blocked.
+contributor. The primary function of reviews is to ensure ensure quality. However,
+we want pull requests to be viewed quickly to avoid code contributors being blocked.
 
 We ask that reviewers perform a basic sanity check on all code and documentation
-contributions. 
+contributions. Consider the following aspects when performing a review:
+
+- Does this make sense?
+- Does this code perform what the code contributor has described in the commit message?
+- Have the CI tests run and passed?
+- Does this code require documentation? If so, does it have documentation
+  in the commit?
+- Are the comments (if there are any) are clear and useful?
 
 All pull requests should be reviewed, even if the request is
 tagged with the label `needs-rebase`. At this time, it is imperative that
@@ -46,9 +55,22 @@ code contributions move swiftly, and without minor blockers.
 Note: If the pull request requires a rebase, it is suitable to approve the
 pull request, the pull request will not merge automatically.
 
-The only pull requests that do not require a review is anything in draft status,
-or tagged with the `WIP` label.
+If your pull request is not yet in the state where it can be meaningfully
+reviewed and merged, please leave it in draft status or tag with the `WIP`
+label. You can of course still ask for feedback by manually assigning a
+reviewer or pinging them directly at this stage.
 
+### Merging Pull Requests
+
+Before merging, check the following:
+
+- Ensure all CI has run and is passing
+- The pull request has been open for 24 hours for an appropriate feedback loop time
+- At least one reviewer has approved
+- There is no outstanding change requests
+
+If all of these are complete, you can self-merge (or merge on someone's behalf,
+if you have communicated your intention to do so).
 
 ## Contributor Guidelines
 
