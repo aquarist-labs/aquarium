@@ -64,33 +64,32 @@ done
   echo "error: setup with name '${setup_name} already exists" && \
   exit 1
 
-echo "=> Searching for Vagrant box '${box}' ..."
-if ! vagrant box list | grep -q "^${box}[ ]\+" ; then
-  echo "=> Vagrant box '${box}' not found, searching for existing build"
-
-  imgdir=$(realpath ${basedir}/../../images)
-
-  [[ ! -e "${imgdir}" ]] && \
-    echo "error: unable to find images directory" && \
-    exit 1
-
-  [[ ! -e "${imgdir}/build" ]] && \
-    echo "error: unable to find images build directory" && \
-    exit 1
-
-  [[ ! -e "${imgdir}/build/${box}" ]] && \
-    echo "error: unable to find build directory for '${box}'" && \
-    exit 1
-
-  img=$(ls ${imgdir}/build/${box}/_out/*.vagrant.libvirt.box 2>/dev/null)
-  [[ -z "${img}" ]] && \
-    echo "error: unable to find vagrant libvirt image for '${box}'" && \
-    exit 1
-
-  vagrant box add ${box} ${img} || exit 1
-else
-  echo "=> Vagrant box '${box}' already exists"
+if vagrant box list | grep -q "^${box}[ ]\+" ; then
+  echo "=> Removing existing Vagrant box '${box}'"
+  vagrant box remove ${box}
 fi
+
+imgdir=$(realpath ${basedir}/../../images)
+
+[[ ! -e "${imgdir}" ]] && \
+  echo "error: unable to find images directory" && \
+  exit 1
+
+[[ ! -e "${imgdir}/build" ]] && \
+  echo "error: unable to find images build directory" && \
+  exit 1
+
+[[ ! -e "${imgdir}/build/${box}" ]] && \
+  echo "error: unable to find build directory for '${box}'" && \
+  exit 1
+
+img=$(ls ${imgdir}/build/${box}/_out/*.vagrant.libvirt.box 2>/dev/null)
+[[ -z "${img}" ]] && \
+  echo "error: unable to find vagrant libvirt image for '${box}'" && \
+  exit 1
+
+echo "=> Adding new Vagrant box '${box}'"
+vagrant box add ${box} ${img} || exit 1
 
 sdir=${setupdir}/${setup_name}
 mkdir -p ${sdir} || exit 1
