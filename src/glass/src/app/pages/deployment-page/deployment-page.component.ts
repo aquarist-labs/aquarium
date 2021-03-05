@@ -7,6 +7,8 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { translate } from '~/app/i18n.helper';
 import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
+import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { BootstrapService } from '~/app/shared/services/api/bootstrap.service';
 import { Device, OrchService } from '~/app/shared/services/api/orch.service';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
@@ -29,6 +31,36 @@ export class DeploymentPageComponent implements OnInit {
 
   nfs = false;
   devices: Device[] = [];
+  devicesColumns: DatatableColumn[] = [
+    {
+      name: '',
+      prop: '_',
+      cellTemplateName: 'icon',
+      cellTemplateConfig: { name: 'mdi:server' }
+    },
+    {
+      name: TEXT('Path'),
+      prop: 'path',
+      sortable: true
+    },
+    {
+      name: TEXT('Type'),
+      prop: 'human_readable_type',
+      sortable: true
+    },
+    {
+      name: TEXT('Size'),
+      prop: 'size',
+      sortable: true,
+      pipe: new BytesToSizePipe()
+    },
+    {
+      name: TEXT('Available'),
+      prop: 'available',
+      sortable: true,
+      cellTemplateName: 'yesNoIcon'
+    }
+  ];
   deploymentStepper!: MatStepper;
   displayInventory = true;
   deploymentSuccessful = true;

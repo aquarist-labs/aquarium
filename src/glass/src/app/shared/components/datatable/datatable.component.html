@@ -1,0 +1,61 @@
+<div>
+  <table mat-table
+         matSort
+         fxFlexFill
+         [dataSource]="dataSource"
+         (matSortChange)="sortData($event)">
+    <ng-container *ngFor="let column of columns"
+                  [matColumnDef]="column.prop">
+      <th mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          [disabled]="!column?.sortable">
+        <span *ngIf="column.name">{{ column.name | translate }}</span>
+      </th>
+      <td mat-cell
+          *matCellDef="let row"
+          [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}">
+        <div *ngIf="!column.cellTemplateName">{{ renderCellValue(row, column) }}</div>
+        <ng-template *ngIf="column.cellTemplate"
+                     [ngTemplateOutlet]="column.cellTemplate"
+                     [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined }">
+        </ng-template>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row
+        *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row
+        *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <mat-paginator *ngIf="pageSize > 0"
+                 [pageSize]="pageSize"
+                 [hidePageSize]="hidePageSize"
+                 [pageSizeOptions]="[5, 10, 20]"
+                 showFirstLastButtons>
+  </mat-paginator>
+</div>
+
+<ng-template #yesNoIconTpl
+             let-value="value">
+  <mat-icon *ngIf="value"
+            svgIcon="mdi:check">
+  </mat-icon>
+  <mat-icon *ngIf="!value"
+            svgIcon="mdi:minus">
+  </mat-icon>
+</ng-template>
+
+<ng-template #checkIconTpl
+             let-value="value">
+  <mat-icon *ngIf="!value"
+            svgIcon="mdi:check">
+  </mat-icon>
+</ng-template>
+
+<ng-template #iconTpl
+             let-column="column">
+  <mat-icon [ngClass]="column.cellTemplateConfig?.class"
+            [svgIcon]="column.cellTemplateConfig.name">
+  </mat-icon>
+</ng-template>
