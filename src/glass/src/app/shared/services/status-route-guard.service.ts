@@ -41,8 +41,6 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
       map((res: Status) => {
         let url: string;
         let result: boolean | UrlTree;
-        // eslint-disable-next-line no-console
-        console.info('=> deployment stage: ', res.deployment_state.stage);
         switch (res.deployment_state.stage) {
           case StatusStageEnum.bootstrapping:
             url = '/installer/create/bootstrap';
