@@ -1,10 +1,10 @@
 # Contributing
 
 This document outlines some basic guidelines for contributing to the `aquarium` repository
-within *Aquarist Labs*. 
+within *Aquarist Labs*.
 
 We are very welcoming of new feature implementation, patches that fix bugs or code
-cleanup. 
+cleanup.
 
 We are still orientating ourselves with the project, please be patient while this file
 and others continuously update.
@@ -29,6 +29,49 @@ We use GitHub templates to manage the requests. You will either select:
 - Question
 
 Ensure the appropriate label is selected before submitting your issue.
+
+## Pull Requests
+
+### Reviewing Pull Requests
+
+Each pull request requires at least *one* review and approval from an active
+contributor. The primary function of reviews is to ensure ensure quality. However,
+we want pull requests to be viewed quickly to avoid code contributors being blocked.
+
+We ask that reviewers perform a basic sanity check on all code and documentation
+contributions. Consider the following aspects when performing a review:
+
+- Does this make sense?
+- Does this code perform what the code contributor has described in the commit message?
+- Have the CI tests run and passed?
+- Does this code require documentation? If so, does it have documentation
+  in the commit?
+- Are the comments (if there are any) are clear and useful?
+
+All pull requests should be reviewed, even if the request is
+tagged with the label `needs-rebase`. At this time, it is imperative that
+code contributions move swiftly, and without minor blockers.
+
+Note: If the pull request requires a rebase, it is suitable to approve the
+pull request, the pull request will not merge automatically.
+
+If your pull request is not yet in the state where it can be meaningfully
+reviewed and merged, please leave it in draft status or tag with the `WIP`
+label. You can of course still ask for feedback by manually assigning a
+reviewer or pinging them directly at this stage.
+
+### Merging Pull Requests
+
+Before merging, check the following:
+
+- Ensure all CI has run and is passing
+- The pull request has been open for 24 hours for an appropriate feedback loop time
+- At least one reviewer has approved
+- There is no outstanding change requests
+
+If all of these are complete, you can merge your own pull request. Please do
+not merge a pull request that is not your own unless this action has been
+previously discussed with the pull request author. 
 
 ## Contributor Guidelines
 
@@ -61,7 +104,7 @@ For example:
 
 ```
    backend: add initial README doc
-   
+
    This commit introduces the first README doc for aquarist-labs.
 
    Signed-off-by: Random Developer <random@developer.io>
@@ -73,21 +116,17 @@ automatically!](https://github.blog/2013-01-22-closing-issues-via-commit-message
 For example:
 
 ```
-
-   backend: add initial README doc
-   
-   This commit introduces the first README doc for aquarist-labs.
-   
    Fixes: #1
+
    Signed-off-by: Random Developer <random@developer.io>
 ```
 
 ## Pull Request Best Practices
 
 PRs should be opened on branches contained in your fork of `aquarist-labs/aquarium.git`. PRs should
-target the `main` branch. 
+target the `main` branch.
 
-If your PR has only one commit, the PR title can be the same as the commit title (and GitHub will 
+If your PR has only one commit, the PR title can be the same as the commit title (and GitHub will
 suggest this). If the PR has multiple commits, do not accept the title GitHub suggests. Either use
 the title of the most relevant commit, or write your own title.
 
