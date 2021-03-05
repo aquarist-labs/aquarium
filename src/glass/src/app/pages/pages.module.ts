@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '~/app/core/core.module';
 import { MaterialModule } from '~/app/material.modules';
@@ -24,6 +25,14 @@ import { SharedModule } from '~/app/shared/shared.module';
     NotFoundPageComponent,
     CephfsModalComponent
   ],
-  imports: [CommonModule, CoreModule, FlexLayoutModule, MaterialModule, RouterModule, SharedModule]
+  imports: [
+    CommonModule,
+    CoreModule,
+    FlexLayoutModule,
+    MaterialModule,
+    RouterModule,
+    SharedModule,
+    TranslateModule.forChild()
+  ]
 })
 export class PagesModule {}

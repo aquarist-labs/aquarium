@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { PagesModule } from '~/app/pages/pages.module';
@@ -12,7 +13,12 @@ describe('CephfsModalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, NoopAnimationsModule, PagesModule],
+      imports: [
+        HttpClientTestingModule,
+        NoopAnimationsModule,
+        PagesModule,
+        TranslateModule.forRoot()
+      ],
       providers: [
         {
           provide: MatDialogRef,

@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { MonoTypeOperatorFunction, timer } from 'rxjs';
 import { last, scan, switchMapTo, takeWhile, tap } from 'rxjs/operators';
+
+import { translate } from '~/app/i18n.helper';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +14,7 @@ export class PollService {
   poll<T>(
     isActive: (res: T) => boolean,
     maxAttempts: number = Infinity,
-    errorMessage: string = 'Failed to fetch data',
+    errorMessage: string = TEXT('Failed to fetch data'),
     interval: number = 5000,
     retLastResult: boolean = true
   ): MonoTypeOperatorFunction<T> {
@@ -30,7 +33,7 @@ export class PollService {
   private checkAttempts(maxAttempts: number, errorMessage: string) {
     return (attemptsCount: number) => {
       if (attemptsCount > maxAttempts) {
-        throw new Error(errorMessage);
+        throw new Error(translate(errorMessage));
       }
     };
   }

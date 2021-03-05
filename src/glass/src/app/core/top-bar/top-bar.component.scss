@@ -5,3 +5,9 @@
     color: $glass-color-primary-complementary;
   }
 }
+.mat-menu-item {
+  border-left: 5px solid transparent;
+}
+.mat-menu-item.active {
+  border-left: 5px solid $eos-bc-cerulean-900;
+}

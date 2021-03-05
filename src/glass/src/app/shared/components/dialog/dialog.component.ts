@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
 export type DialogConfig = {
   type: 'ok' | 'okCancel' | 'yesNo';
@@ -16,11 +17,11 @@ export type DialogConfig = {
 export class DialogComponent implements OnInit {
   config!: DialogConfig;
 
-  button1Text?: string;
+  button1Text!: string;
   button1Result?: any;
   button1Class?: string;
   button1Visible = false;
-  button2Text?: string;
+  button2Text!: string;
   button2Result?: any;
   button2Visible = false;
   icon?: string;
@@ -32,23 +33,23 @@ export class DialogComponent implements OnInit {
   ngOnInit(): void {
     switch (this.config.type) {
       case 'ok':
-        this.button1Text = 'OK';
+        this.button1Text = TEXT('OK');
         this.button1Result = true;
         this.button1Visible = true;
         break;
       case 'okCancel':
-        this.button1Text = 'OK';
+        this.button1Text = TEXT('OK');
         this.button1Result = true;
         this.button1Visible = true;
-        this.button2Text = 'Cancel';
+        this.button2Text = TEXT('Cancel');
         this.button2Result = false;
         this.button2Visible = true;
         break;
       case 'yesNo':
-        this.button1Text = 'Yes';
+        this.button1Text = TEXT('Yes');
         this.button1Result = true;
         this.button1Visible = true;
-        this.button2Text = 'No';
+        this.button2Text = TEXT('No');
         this.button2Result = false;
         this.button2Visible = true;
         break;

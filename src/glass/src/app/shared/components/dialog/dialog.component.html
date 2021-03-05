@@ -3,22 +3,22 @@
   <mat-icon *ngIf="icon"
             svgIcon="{{ icon }}">
   </mat-icon>
-  {{ config.title }}
+  {{ config.title | translate }}
 </div>
 <mat-dialog-content class="mat-typography">
-  <span [innerHTML]="config.message"></span>
+  <span [innerHTML]="config.message | translate"></span>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button *ngIf="button2Visible"
           mat-flat-button
           cdkFocusInitial
           [mat-dialog-close]="button2Result">
-    {{ button2Text }}
+    {{ button2Text | translate }}
   </button>
   <button *ngIf="button1Visible"
           mat-flat-button
           [class]="button1Class"
           [mat-dialog-close]="button1Result">
-    {{ button1Text }}
+    {{ button1Text | translate }}
   </button>
 </mat-dialog-actions>

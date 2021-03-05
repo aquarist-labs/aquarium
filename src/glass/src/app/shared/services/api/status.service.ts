@@ -28,7 +28,7 @@ export enum StatusStageEnum {
   none = 0,
   bootstrapping = 1,
   bootstrapped = 2,
-  ready = 3,
+  ready = 3
 }
 
 export type Status = {
