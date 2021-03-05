@@ -69,8 +69,9 @@ Before merging, check the following:
 - At least one reviewer has approved
 - There is no outstanding change requests
 
-If all of these are complete, you can self-merge (or merge on someone's behalf,
-if you have communicated your intention to do so).
+If all of these are complete, you can merge your own pull request. Please do
+not merge a pull request that is not your own unless this action has been
+previously discussed with the pull request author. 
 
 ## Contributor Guidelines
 
