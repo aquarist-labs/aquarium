@@ -83,7 +83,7 @@ export class DeploymentPageComponent implements OnInit {
       data: {
         type: 'yesNo',
         icon: 'warn',
-        title: TEXT('Choose selected devices'),
+        title: TEXT('Deploy devices'),
         message: TEXT(
           'The step will erase all data on the listed devices. Are you sure you want to continue?'
         )
