@@ -12,6 +12,18 @@ dependencies_opensuse_tumbleweed=(
   "vagrant-libvirt"
 )
 
+dependencies_debian=(
+  "btrfs-progs"
+  "git"
+  "python3"
+  "python3-pip"
+  "python3-rados"
+  "python3-kiwi"
+  "python3-venv"
+  "nodejs"
+  "vagrant"
+)
+
 usage() {
   cat << EOF
 usage: $(basename $0) [options]
@@ -71,6 +83,9 @@ if ${show_dependencies} ; then
     opensuse-tumbleweed | opensuse-leap)
       echo "  > ${dependencies_opensuse_tumbleweed[*]}"
       ;;
+    debian)
+      echo "  > ${dependencies_debian[*]}"
+      ;;
     *)
       echo "error: unsupported distribution"
       echo "These are the packages you might need:"
@@ -88,6 +103,16 @@ if ! ${skip_install_deps} ; then
     opensuse-tumbleweed | opensuse-leap)
       echo "=> try installing dependencies"
       sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || exit 1
+      ;;
+    ID=debian)
+      echo "=> installing nodejs15.x repo to apt source"
+      wget -qO - https://deb.nodesource.com/setup_15.x | sudo bash -
+      echo "=> installing kiwi repo to apt source"
+      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10 ./'
+      echo "=> installing kiwi repo public key"
+      sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10/Release.key | sudo apt-key add -
+      echo "=> try installing dependencies"
+      sudo apt-get install -q -y ${dependencies_debian[*]} || exit 1
       ;;
     *)
       echo "error: unsupported distribution ($osid)"
