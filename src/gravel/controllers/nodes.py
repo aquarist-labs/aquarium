@@ -81,9 +81,18 @@ class NodeRoleEnum(int, Enum):
     FOLLOWER = 2
 
 
+class NodeStageEnum(int, Enum):
+    NONE = 0
+    BOOTSTRAPPING = 1
+    BOOTSTRAPPED = 2
+    JOINING = 3
+    READY = 4
+
+
 class NodeStateModel(BaseModel):
     uuid: UUID
     role: NodeRoleEnum
+    stage: NodeStageEnum
 
 
 class ManifestModel(BaseModel):
@@ -160,13 +169,22 @@ class NodeMgr:
     _connmgr: ConnMgr
     _incoming_task: asyncio.Task
     _shutting_down: bool
-    _state: Optional[NodeStateModel]
+    _state: NodeStateModel
     _manifest: Optional[ManifestModel]
     _token: Optional[str]
 
     def __init__(self):
-        self._connmgr = ConnMgr()
         self._shutting_down = False
+        self._connmgr = ConnMgr()
+        self._manifest = None
+        self._token = None
+
+        self._init_node()
+        assert self._state
+        if self._state.stage == NodeStageEnum.READY:
+            self.start()
+
+    def start(self):
         self._load()
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
 
@@ -243,6 +261,12 @@ class NodeMgr:
         self._load()
 
     @property
+    def ready(self) -> bool:
+        if not self._state:
+            return False
+        return self._state.stage == NodeStageEnum.READY
+
+    @property
     def connmgr(self) -> ConnMgr:
         return self._connmgr
 
@@ -250,24 +274,40 @@ class NodeMgr:
     def token(self) -> Optional[str]:
         return self._token
 
+    def _get_node_file(self, what: str) -> Path:
+        confdir: Path = gstate.config.confdir
+        assert confdir.exists()
+        assert confdir.is_dir()
+        return confdir.joinpath(f"{what}.json")
+
+    def _init_node(self) -> None:
+        statefile: Path = self._get_node_file("node")
+        if not statefile.exists():
+            # other control files must not exist either
+            manifestfile: Path = self._get_node_file("manifest")
+            tokenfile: Path = self._get_node_file("token")
+            assert not manifestfile.exists()
+            assert not tokenfile.exists()
+
+            state = NodeStateModel(
+                uuid=uuid4(),
+                role=NodeRoleEnum.NONE,
+                stage=NodeStageEnum.NONE
+            )
+            try:
+                statefile.write_text(state.json())
+            except Exception as e:
+                raise NodeError(str(e))
+            assert statefile.exists()
+
+        self._state = NodeStateModel.parse_file(statefile)
+
     def _load(self) -> None:
-        self._state = self._load_state()
         self._manifest = self._load_manifest()
         self._token = self._load_token()
 
         assert (self._state and self._manifest) or \
                (not self._state and not self._manifest)
-
-    def _load_state(self) -> Optional[NodeStateModel]:
-        confdir: Path = gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        statefile: Path = confdir.joinpath("node.json")
-        if not statefile.exists():
-            stage = gstate.config.deployment_state.stage
-            assert stage < DeploymentStage.bootstrapped
-            return None
-        return NodeStateModel.parse_file(statefile)
 
     def _load_manifest(self) -> Optional[ManifestModel]:
         confdir: Path = gstate.config.confdir
