@@ -32,11 +32,21 @@ from gravel.controllers.orch.orchestrator import Orchestrator
 logger: Logger = fastapi_logger
 
 
-class NodeHasBeenDeployedError(Exception):
+class NodeError(Exception):
+    def __init__(self, msg: Optional[str] = ""):
+        super().__init__()
+        self._msg = msg
+
+
+class NodeHasBeenDeployedError(NodeError):
     pass
 
 
-class NodeHasJoinedError(Exception):
+class NodeHasJoinedError(NodeError):
+    pass
+
+
+class NodeCantBootstrapError(NodeError):
     pass
 
 
@@ -93,6 +103,8 @@ class NodeStateModel(BaseModel):
     uuid: UUID
     role: NodeRoleEnum
     stage: NodeStageEnum
+    address: Optional[str]
+    hostname: Optional[str]
 
 
 class ManifestModel(BaseModel):
@@ -225,29 +237,40 @@ class NodeMgr:
 
         return True
 
-    async def finish_bootstrap(self):
-        assert not self._state
-        confdir: Path = gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        statefile: Path = confdir.joinpath("node.json")
-        assert not statefile.exists()
-        manifestfile: Path = confdir.joinpath("manifest.json")
-        assert not manifestfile.exists()
-        tokenfile: Path = confdir.joinpath("token.json")
-        assert not tokenfile.exists()
+    async def prepare_bootstrap(self) -> None:
+        assert self._state
+        if self._state.stage > NodeStageEnum.NONE:
+            raise NodeCantBootstrapError()
 
-        nodestate: NodeStateModel = NodeStateModel(
-            uuid=uuid4(),
-            role=NodeRoleEnum.LEADER
-        )
-        statefile.write_text(nodestate.json())
+    async def start_bootstrap(self, address: str, hostname: str) -> None:
+        assert self._state
+        assert self._state.stage == NodeStageEnum.NONE
+        self._state.stage = NodeStageEnum.BOOTSTRAPPING
+        self._state.address = address
+        self._state.hostname = hostname
+
+        statefile: Path = self._get_node_file("node")
+        statefile.write_text(self._state.json())
+
+    async def finish_bootstrap(self):
+        assert self._state
+        assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
+        manifestfile: Path = self._get_node_file("manifest")
+        tokenfile: Path = self._get_node_file("token")
+        statefile: Path = self._get_node_file("node")
+
+        assert not manifestfile.exists()
+        assert not tokenfile.exists()
+        assert statefile.exists()
+        
+        self._state.stage = NodeStageEnum.BOOTSTRAPPED
+        statefile.write_text(self._state.json())
 
         manifest: ManifestModel = ManifestModel(
             aquarium_uuid=uuid4(),
             version=1,
             modified=dt.now(),
-            nodes=[nodestate]
+            nodes=[self._state]
         )
         manifestfile.write_text(manifest.json())
 
@@ -259,6 +282,23 @@ class NodeMgr:
         tokenfile.write_text(token.json())
 
         self._load()
+
+    @property
+    def stage(self) -> NodeStageEnum:
+        assert self._state
+        return self._state.stage
+
+    @property
+    def bootstrapping(self) -> bool:
+        if not self._state:
+            return False
+        return self._state.stage == NodeStageEnum.BOOTSTRAPPING
+
+    @property
+    def bootstrapped(self) -> bool:
+        if not self._state:
+            return False
+        return self._state.stage == NodeStageEnum.BOOTSTRAPPED
 
     @property
     def ready(self) -> bool:
@@ -292,7 +332,9 @@ class NodeMgr:
             state = NodeStateModel(
                 uuid=uuid4(),
                 role=NodeRoleEnum.NONE,
-                stage=NodeStageEnum.NONE
+                stage=NodeStageEnum.NONE,
+                address=None,
+                hostname=None
             )
             try:
                 statefile.write_text(state.json())

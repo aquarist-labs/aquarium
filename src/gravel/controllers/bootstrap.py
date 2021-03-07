@@ -10,7 +10,12 @@ from typing import Optional, List
 from gravel.controllers.config import DeploymentStage
 from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
-from gravel.controllers.nodes import get_node_mgr
+from gravel.controllers.nodes import (
+    NodeCantBootstrapError,
+    NodeMgr,
+    NodeStageEnum,
+    get_node_mgr
+)
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
@@ -50,11 +55,16 @@ class Bootstrap:
     async def bootstrap(self) -> bool:
         logger.debug("bootstrap > do bootstrap")
 
-        if not await self._should_bootstrap():
+        mgr: NodeMgr = get_node_mgr()
+        stage: NodeStageEnum = mgr.stage
+        if stage > NodeStageEnum.NONE:  # no longer vanilla, can't bootstrap
             return False
 
-        if await self._is_bootstrapping():
-            return True
+        try:
+            await mgr.prepare_bootstrap()
+        except NodeCantBootstrapError:
+            logger.error("Can't bootstrap node")
+            return False
 
         selected_addr: Optional[str] = None
 
@@ -123,6 +133,11 @@ class Bootstrap:
     async def _do_bootstrap(self, selected_addr: str) -> None:
         logger.debug("bootstrap > run in background")
         assert selected_addr is not None and len(selected_addr) > 0
+
+        mgr: NodeMgr = get_node_mgr()
+        assert mgr.stage == NodeStageEnum.NONE
+        await mgr.start_bootstrap(selected_addr, "")  # XXX: needs hostname
+
         self.stage = BootstrapStage.RUNNING
         gstate.config.set_deployment_stage(DeploymentStage.bootstrapping)
 
