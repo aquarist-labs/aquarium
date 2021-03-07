@@ -30,6 +30,7 @@ from gravel.controllers.gstate import gstate
 from gravel.controllers.config import DeploymentStage
 
 from gravel.controllers.nodes.errors import (
+    NodeNotBootstrappedError,
     NodeNotStartedError,
     NodeShuttingDownError,
     NodeBootstrappingError,
@@ -216,6 +217,21 @@ class NodeMgr:
         tokenfile.write_text(token.json())
 
         self._load()
+
+    async def finish_deployment(self) -> None:
+        assert self._state
+
+        if self._state.stage < NodeStageEnum.BOOTSTRAPPED:
+            raise NodeNotBootstrappedError()
+        elif self._state.stage == NodeStageEnum.JOINING:
+            raise NodeAlreadyJoiningError()
+        elif self._state.stage == NodeStageEnum.READY:
+            return
+
+        self._state.stage = NodeStageEnum.READY
+        statefile: Path = self._get_node_file("node")
+        assert statefile.exists()
+        statefile.write_text(self._state.json())
 
     @property
     def stage(self) -> NodeStageEnum:

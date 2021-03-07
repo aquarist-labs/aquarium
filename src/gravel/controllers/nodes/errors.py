@@ -36,6 +36,10 @@ class NodeHasBeenDeployedError(NodeError):
     pass
 
 
+class NodeNotBootstrappedError(NodeError):
+    pass
+
+
 class NodeAlreadyJoiningError(NodeError):
     pass
 
