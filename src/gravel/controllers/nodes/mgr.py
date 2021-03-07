@@ -1,110 +1,59 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-from __future__ import annotations
 import asyncio
 from enum import Enum
 from logging import Logger
+from datetime import datetime as dt
+from uuid import UUID, uuid4
 import random
 from typing import (
-    Any,
-    Dict,
-    List,
-    Optional, Tuple,
-    Union,
-    cast
+    Optional,
+    List
 )
-from uuid import UUID, uuid4
 from pathlib import Path
-from datetime import datetime as dt
-import websockets
 
-from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
-from starlette.endpoints import WebSocketEndpoint
-from starlette.websockets import WebSocket
-from gravel.controllers.config import DeploymentStage
+from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.gstate import gstate
+from gravel.controllers.config import DeploymentStage
+
+from gravel.controllers.nodes.errors import (
+    NodeNotStartedError,
+    NodeShuttingDownError,
+    NodeBootstrappingError,
+    NodeHasBeenDeployedError,
+    NodeAlreadyJoiningError,
+    NodeCantBootstrapError,
+    NodeHasJoinedError,
+    NodeError
+)
+from gravel.controllers.nodes.conn import (
+    ConnMgr,
+    get_conn_mgr,
+    IncomingConnection
+)
+from gravel.controllers.nodes.messages import (
+    MessageModel,
+    JoinMessageModel,
+    WelcomeMessageModel,
+    MessageTypeEnum,
+)
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
-
-
-class NodeError(Exception):
-    def __init__(self, msg: Optional[str] = ""):
-        super().__init__()
-        self._msg = msg
-
-
-class NodeNotStartedError(NodeError):
-    pass
-
-
-class NodeShuttingDownError(NodeError):
-    pass
-
-
-class NodeBootstrappingError(NodeError):
-    pass
-
-
-class NodeHasBeenDeployedError(NodeError):
-    pass
-
-
-class NodeAlreadyJoiningError(NodeError):
-    pass
-
-
-class NodeHasJoinedError(NodeError):
-    pass
-
-
-class NodeCantBootstrapError(NodeError):
-    pass
-
-
-class MessageTypeEnum(int, Enum):
-    JOIN = 1
-    WELCOME = 2
-    READY_TO_ADD = 3
-
-
-class NodeOpType(int, Enum):
-    NONE = 0
-    JOIN = 1
-
-
-class MessageModel(BaseModel):
-    type: MessageTypeEnum
-    data: Any
-
-
-class JoinMessageModel(BaseModel):
-    uuid: UUID
-    hostname: str
-    address: str
-    token: str
-
-
-class WelcomeMessageModel(BaseModel):
-    aquarium_uuid: UUID
-    pubkey: str
-
-
-class OkayToAddModel(BaseModel):
-    pass
-
-
-class Peer:
-    endpoint: str
-    conn: Union[IncomingConnection, OutgoingConnection]
-
-    def __init__(self, endpoint: str, conn: Union[IncomingConnection, OutgoingConnection]):
-        self.endpoint = endpoint
-        self.conn = conn
 
 
 class NodeRoleEnum(int, Enum):
@@ -144,68 +93,10 @@ class AquariumUUIDModel(BaseModel):
     aqarium_uuid: UUID
 
 
-class ConnMgr:
-
-    _conns: List[Peer]
-    _conn_by_endpoint: Dict[str, Peer]
-
-    _passive_conns: List[Peer]
-    _active_conns: List[Peer]
-
-    _incoming_queue: asyncio.Queue[Tuple[IncomingConnection, MessageModel]]
-
-    def __init__(self):
-        self._conns = []
-        self._passive_conns = []
-        self._active_conns = []
-        self._conn_by_endpoint = {}
-        self._incoming_queue = asyncio.Queue()
-
-    def register_connect(
-        self,
-        endpoint: str,
-        conn: Union[OutgoingConnection, IncomingConnection],
-        is_passive: bool
-    ) -> None:
-        peer = Peer(endpoint=endpoint, conn=conn)
-        self._conns.append(peer)
-        self._conn_by_endpoint[endpoint] = peer
-
-        if is_passive:
-            self._passive_conns.append(peer)
-        else:
-            self._active_conns.append(peer)
-
-    async def on_incoming_receive(
-        self,
-        conn: IncomingConnection,
-        msg: MessageModel
-    ) -> None:
-        logger.debug(f"=> connmgr -- incoming recv: {conn}, {msg}")
-        await self._incoming_queue.put((conn, msg))
-        logger.debug(f"=> connmgr -- queue len: {self._incoming_queue.qsize()}")
-
-    async def wait_incoming_msg(
-        self
-    ) -> Tuple[IncomingConnection, MessageModel]:
-        return await self._incoming_queue.get()
-
-    async def connect(self, endpoint: str) -> OutgoingConnection:
-
-        if endpoint in self._conn_by_endpoint:
-            conn = self._conn_by_endpoint[endpoint].conn
-            return cast(OutgoingConnection, conn)
-
-        wsclient = await websockets.connect(endpoint)
-        conn = OutgoingConnection(wsclient)
-        self.register_connect(endpoint, conn, is_passive=False)
-        return conn
-
-
 class NodeMgr:
 
     _connmgr: ConnMgr
-    _incoming_task: asyncio.Task
+    _incoming_task: asyncio.Task  # pyright: reportUnknownMemberType=false
     _shutting_down: bool
     _state: NodeStateModel
     _manifest: Optional[ManifestModel]
@@ -214,7 +105,7 @@ class NodeMgr:
 
     def __init__(self):
         self._shutting_down = False
-        self._connmgr = ConnMgr()
+        self._connmgr = get_conn_mgr()
         self._manifest = None
         self._token = None
         self._aquarium_uuid = None
@@ -494,57 +385,3 @@ _nodemgr = NodeMgr()
 
 def get_node_mgr() -> NodeMgr:
     return _nodemgr
-
-
-def get_conn_mgr() -> ConnMgr:
-    return get_node_mgr().connmgr
-
-
-class IncomingConnection(WebSocketEndpoint):
-
-    _ws: Optional[WebSocket] = None
-
-    async def on_connect(self, websocket: WebSocket) -> None:
-        logger.debug(f"=> connection -- from {websocket.client}")
-        self._ws = websocket
-        host: str = \
-            f"{websocket.client.host}"  # pyright: reportUnknownMemberType=false
-        port: str = \
-            f"{websocket.client.port}"  # pyright: reportUnknownMemberType=false
-        endpoint: str = f"{host}:{port}"
-        await websocket.accept()
-        get_conn_mgr().register_connect(endpoint, self, is_passive=True)
-
-    async def on_disconnect(
-        self,
-        websocket: WebSocket,
-        close_code: int
-    ) -> None:
-        logger.debug(f"=> connection -- disconnect from {websocket.client}")
-        self._ws = None
-
-    async def on_receive(self, websocket: WebSocket, data: Any) -> None:
-        logger.debug(f"=> connection -- recv from {websocket.client}: {data}")
-        msg: MessageModel = MessageModel.parse_raw(data)
-        await get_conn_mgr().on_incoming_receive(self, msg)
-
-    async def send_msg(self, data: MessageModel) -> None:
-        logger.debug(f"=> connection -- send to {self._ws} data {data}")
-        assert self._ws
-        await self._ws.send_text(data.json())
-
-
-class OutgoingConnection:
-    _ws: websockets.WebSocketClientProtocol
-
-    def __init__(self, ws: websockets.WebSocketClientProtocol) -> None:
-        self._ws = ws
-
-    async def send(self, msg: MessageModel) -> None:
-        assert self._ws
-        await self._ws.send(msg.json())
-
-    async def receive(self) -> MessageModel:
-        assert self._ws
-        raw = await self._ws.recv()
-        return MessageModel.parse_raw(raw)
