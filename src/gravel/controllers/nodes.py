@@ -38,7 +38,23 @@ class NodeError(Exception):
         self._msg = msg
 
 
+class NodeNotStartedError(NodeError):
+    pass
+
+
+class NodeShuttingDownError(NodeError):
+    pass
+
+
+class NodeBootstrappingError(NodeError):
+    pass
+
+
 class NodeHasBeenDeployedError(NodeError):
+    pass
+
+
+class NodeAlreadyJoiningError(NodeError):
     pass
 
 
@@ -68,12 +84,18 @@ class MessageModel(BaseModel):
 
 class JoinMessageModel(BaseModel):
     uuid: UUID
+    hostname: str
+    address: str
     token: str
 
 
 class WelcomeMessageModel(BaseModel):
-    cluster_uuid: UUID
+    aquarium_uuid: UUID
     pubkey: str
+
+
+class OkayToAddModel(BaseModel):
+    pass
 
 
 class Peer:
@@ -116,6 +138,10 @@ class ManifestModel(BaseModel):
 
 class TokenModel(BaseModel):
     token: str
+
+
+class AquariumUUIDModel(BaseModel):
+    aqarium_uuid: UUID
 
 
 class ConnMgr:
@@ -184,12 +210,14 @@ class NodeMgr:
     _state: NodeStateModel
     _manifest: Optional[ManifestModel]
     _token: Optional[str]
+    _aquarium_uuid: Optional[UUID]
 
     def __init__(self):
         self._shutting_down = False
         self._connmgr = ConnMgr()
         self._manifest = None
         self._token = None
+        self._aquarium_uuid = None
 
         self._init_node()
         assert self._state
@@ -200,24 +228,37 @@ class NodeMgr:
         self._load()
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
 
-    async def join(self, address: str, token: str) -> bool:
-        logger.debug(f"=> mgr -- join > with leader {address}, token: {token}")
+    async def join(self, leader_address: str, token: str) -> bool:
+        logger.debug(
+            f"=> mgr -- join > with leader {leader_address}, token: {token}"
+        )
 
-        if self._state:
-            assert self._state.role == NodeRoleEnum.LEADER or \
-                   self._state.role == NodeRoleEnum.FOLLOWER
-            raise NodeHasJoinedError()
-
-        deployment_stage = gstate.config.deployment_state.stage
-        if deployment_stage != DeploymentStage.none:
+        assert self._state
+        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
+            raise NodeBootstrappingError()
+        elif self._state.stage == NodeStageEnum.BOOTSTRAPPED:
             raise NodeHasBeenDeployedError()
+        elif self._state.stage == NodeStageEnum.JOINING:
+            raise NodeAlreadyJoiningError()
+        elif self._state.stage == NodeStageEnum.READY:
+            raise NodeHasJoinedError()
+        assert self._state.stage == NodeStageEnum.NONE
+        assert self._state.role == NodeRoleEnum.NONE
 
-        uri: str = f"ws://{address}/api/nodes/ws"
+        uri: str = f"ws://{leader_address}/api/nodes/ws"
         conn = await self._connmgr.connect(uri)
         logger.debug(f"=> mgr -- join > conn: {conn}")
 
-        uuid: UUID = uuid4()
-        joinmsg = JoinMessageModel(uuid=uuid, token=token)
+        uuid: UUID = self._state.uuid
+        hostname: str = self._get_hostname()
+        address: str = self._get_address()
+
+        joinmsg = JoinMessageModel(
+            uuid=uuid,
+            hostname=hostname,
+            address=address,
+            token=token
+        )
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
 
@@ -225,7 +266,7 @@ class NodeMgr:
         logger.debug(f"=> mgr -- join > recv: {reply}")
         assert reply.type == MessageTypeEnum.WELCOME
         welcome = WelcomeMessageModel.parse_obj(reply.data)
-        assert welcome.cluster_uuid
+        assert welcome.aquarium_uuid
         assert welcome.pubkey
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
@@ -234,6 +275,8 @@ class NodeMgr:
         with authorized_keys.open("a") as fd:
             fd.writelines([welcome.pubkey])
             logger.debug(f"=> mgr -- join > wrote pubkey to {authorized_keys}")
+
+        self._write_aquarium_uuid(welcome.aquarium_uuid)
 
         return True
 
@@ -262,7 +305,7 @@ class NodeMgr:
         assert not manifestfile.exists()
         assert not tokenfile.exists()
         assert statefile.exists()
-        
+
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
         statefile.write_text(self._state.json())
 
@@ -308,6 +351,10 @@ class NodeMgr:
 
     @property
     def connmgr(self) -> ConnMgr:
+        if not self._connmgr:
+            raise NodeNotStartedError()
+        elif self._shutting_down:
+            raise NodeShuttingDownError()
         return self._connmgr
 
     @property
@@ -347,6 +394,7 @@ class NodeMgr:
     def _load(self) -> None:
         self._manifest = self._load_manifest()
         self._token = self._load_token()
+        self._aquarium_uuid = self._load_aquarium_uuid()
 
         assert (self._state and self._manifest) or \
                (not self._state and not self._manifest)
@@ -373,6 +421,27 @@ class NodeMgr:
             return None
         token = TokenModel.parse_file(tokenfile)
         return token.token
+
+    def _load_aquarium_uuid(self) -> Optional[UUID]:
+        confdir: Path = gstate.config.confdir
+        assert confdir.exists()
+        assert confdir.is_dir()
+        uuidfile: Path = confdir.joinpath("aquarium_uuid.json")
+        if not uuidfile.exists():
+            stage = gstate.config.deployment_state.stage
+            assert stage < DeploymentStage.ready
+            return None
+        uuid = AquariumUUIDModel.parse_file(uuidfile)
+        return uuid.aqarium_uuid
+
+    def _write_aquarium_uuid(self, uuid: UUID) -> None:
+        pass
+
+    def _get_hostname(self) -> str:
+        return ""
+
+    def _get_address(self) -> str:
+        return ""
 
     async def _incoming_msg_task(self) -> None:
         while not self._shutting_down:
