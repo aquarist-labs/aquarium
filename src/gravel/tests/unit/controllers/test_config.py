@@ -1,19 +1,11 @@
-from datetime import datetime
 from pathlib import Path
 
-from gravel.controllers.config \
-    import Config, DeploymentStage
+from gravel.controllers.config import Config
 
 
 def test_config_version(fs):
     config = Config()
-    assert config.config.version == 3
-
-
-def test_deployment_state(fs):
-    ds = Config().deployment_state
-    assert ds.stage == DeploymentStage.none
-    assert ds.last_modified < datetime.now()
+    assert config.config.version == 1
 
 
 def test_config_options(fs):

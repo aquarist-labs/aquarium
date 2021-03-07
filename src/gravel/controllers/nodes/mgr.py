@@ -27,7 +27,6 @@ from pydantic import BaseModel
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.gstate import gstate
-from gravel.controllers.config import DeploymentStage
 
 from gravel.controllers.nodes.errors import (
     NodeNotBootstrappedError,
@@ -307,36 +306,36 @@ class NodeMgr:
                (not self._state and not self._manifest)
 
     def _load_manifest(self) -> Optional[ManifestModel]:
+        assert self._state
         confdir: Path = gstate.config.confdir
         assert confdir.exists()
         assert confdir.is_dir()
         manifestfile: Path = confdir.joinpath("manifest.json")
         if not manifestfile.exists():
-            stage = gstate.config.deployment_state.stage
-            assert stage < DeploymentStage.bootstrapped
+            assert self._state.stage < NodeStageEnum.BOOTSTRAPPED
             return None
         return ManifestModel.parse_file(manifestfile)
 
     def _load_token(self) -> Optional[str]:
+        assert self._state
         confdir: Path = gstate.config.confdir
         assert confdir.exists()
         assert confdir.is_dir()
         tokenfile: Path = confdir.joinpath("token.json")
         if not tokenfile.exists():
-            stage = gstate.config.deployment_state.stage
-            assert stage < DeploymentStage.bootstrapped
+            assert self._state.stage < NodeStageEnum.BOOTSTRAPPED
             return None
         token = TokenModel.parse_file(tokenfile)
         return token.token
 
     def _load_aquarium_uuid(self) -> Optional[UUID]:
+        assert self._state
         confdir: Path = gstate.config.confdir
         assert confdir.exists()
         assert confdir.is_dir()
         uuidfile: Path = confdir.joinpath("aquarium_uuid.json")
         if not uuidfile.exists():
-            stage = gstate.config.deployment_state.stage
-            assert stage < DeploymentStage.ready
+            assert self._state.stage < NodeStageEnum.READY
             return None
         uuid = AquariumUUIDModel.parse_file(uuidfile)
         return uuid.aqarium_uuid

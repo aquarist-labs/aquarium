@@ -17,8 +17,6 @@ from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from typing import Optional, List
 
-from gravel.controllers.config import DeploymentStage
-from gravel.controllers.gstate import gstate
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.nodes.errors import NodeCantBootstrapError
 from gravel.controllers.nodes.mgr import (
@@ -55,12 +53,13 @@ class Bootstrap:
         pass
 
     async def _should_bootstrap(self) -> bool:
-        state: DeploymentStage = gstate.config.deployment_state.stage
-        return state <= DeploymentStage.bootstrapping
+        nodemgr = get_node_mgr()
+        stage: NodeStageEnum = nodemgr.stage
+        return stage == NodeStageEnum.NONE
 
     async def _is_bootstrapping(self) -> bool:
-        state: DeploymentStage = gstate.config.deployment_state.stage
-        return state == DeploymentStage.bootstrapping
+        nodemgr = get_node_mgr()
+        return nodemgr.bootstrapping
 
     async def bootstrap(self) -> bool:
         logger.debug("bootstrap > do bootstrap")
@@ -93,15 +92,6 @@ class Bootstrap:
             logger.error(f"bootstrap > error starting bootstrap task: {str(e)}")
             return False
 
-        return True
-
-    async def mark_finished(self) -> bool:
-        stage: DeploymentStage = gstate.config.deployment_state.stage
-        if stage == DeploymentStage.ready:
-            return True
-        elif stage != DeploymentStage.bootstrapped:
-            return False
-        gstate.config.set_deployment_stage(DeploymentStage.ready)
         return True
 
     async def get_stage(self) -> BootstrapStage:
@@ -149,7 +139,6 @@ class Bootstrap:
         await mgr.start_bootstrap(selected_addr, "")  # XXX: needs hostname
 
         self.stage = BootstrapStage.RUNNING
-        gstate.config.set_deployment_stage(DeploymentStage.bootstrapping)
 
         retcode: int = 0
         try:
@@ -162,5 +151,4 @@ class Bootstrap:
             raise BootstrapError(f"error bootstrapping: rc = {retcode}")
 
         self.stage = BootstrapStage.DONE
-        gstate.config.set_deployment_stage(DeploymentStage.bootstrapped)
         await get_node_mgr().finish_bootstrap()

@@ -1,5 +1,15 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 from logging import Logger
 from typing import Optional
@@ -7,8 +17,11 @@ from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.controllers.config import DeploymentStage, DeploymentStateModel
-from gravel.controllers.gstate import gstate
+from gravel.controllers.nodes.mgr import (
+    NodeMgr,
+    NodeStageEnum,
+    get_node_mgr
+)
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import CephStatusModel
 
@@ -22,7 +35,7 @@ router: APIRouter = APIRouter(
 
 
 class StatusModel(BaseModel):
-    deployment_state: DeploymentStateModel = Field(title="Deployment State")
+    node_stage: NodeStageEnum = Field(title="Node Deployment Stage")
     cluster: Optional[CephStatusModel] = Field(title="cluster status")
     pass
 
@@ -30,11 +43,12 @@ class StatusModel(BaseModel):
 @router.get("/", response_model=StatusModel)
 async def get_status() -> StatusModel:
 
-    deployment: DeploymentStateModel = gstate.config.deployment_state
+    nodemgr: NodeMgr = get_node_mgr()
+    stage: NodeStageEnum = nodemgr.stage
     cluster: Optional[CephStatusModel] = None
 
-    if deployment.stage == DeploymentStage.bootstrapped or \
-       deployment.stage == DeploymentStage.ready:
+    if stage >= NodeStageEnum.BOOTSTRAPPED and \
+       stage != NodeStageEnum.JOINING:
         mon = Mon()
         try:
             cluster = mon.status
@@ -43,7 +57,7 @@ async def get_status() -> StatusModel:
             pass
 
     status: StatusModel = StatusModel(
-        deployment_state=gstate.config.deployment_state,
+        node_stage=stage,
         cluster=cluster
     )
     return status
