@@ -48,14 +48,18 @@ class Peer:
     endpoint: str
     conn: Union[IncomingConnection, OutgoingConnection]
 
-    def __init__(self, endpoint: str, conn: Union[IncomingConnection, OutgoingConnection]):
+    def __init__(
+        self,
+        endpoint: str,
+        conn: Union[IncomingConnection, OutgoingConnection]
+    ):
         self.endpoint = endpoint
         self.conn = conn
 
 
 class ConnMgr:
 
-    _is_started: bool
+    _is_incoming_started: bool
     _conns: List[Peer]
     _conn_by_endpoint: Dict[str, Peer]
 
@@ -65,18 +69,18 @@ class ConnMgr:
     _incoming_queue: asyncio.Queue[Tuple[IncomingConnection, MessageModel]]
 
     def __init__(self):
-        self._is_started = False
+        self._is_incoming_started = False
         self._conns = []
         self._passive_conns = []
         self._active_conns = []
         self._conn_by_endpoint = {}
         self._incoming_queue = asyncio.Queue()
 
-    def start(self) -> None:
-        self._is_started = True
+    def start_receiving(self) -> None:
+        self._is_incoming_started = True
 
     def is_started(self) -> bool:
-        return self._is_started
+        return self._is_incoming_started
 
     def register_connect(
         self,
@@ -84,9 +88,6 @@ class ConnMgr:
         conn: Union[OutgoingConnection, IncomingConnection],
         is_passive: bool
     ) -> None:
-
-        if not self.is_started():
-            raise ConnectionManagerNotStarted()
 
         peer = Peer(endpoint=endpoint, conn=conn)
         self._conns.append(peer)
@@ -116,9 +117,6 @@ class ConnMgr:
         return await self._incoming_queue.get()
 
     async def connect(self, endpoint: str) -> OutgoingConnection:
-
-        if not self.is_started():
-            raise ConnectionManagerNotStarted()
 
         if endpoint in self._conn_by_endpoint:
             conn = self._conn_by_endpoint[endpoint].conn

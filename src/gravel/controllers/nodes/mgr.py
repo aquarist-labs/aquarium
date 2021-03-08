@@ -178,7 +178,7 @@ class NodeMgr:
             return
 
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
-        self._connmgr.start()
+        self._connmgr.start_receiving()
 
     def _node_shutdown(self) -> None:
         """ shutting down, stop node """
