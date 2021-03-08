@@ -18,6 +18,7 @@ from datetime import datetime as dt
 from uuid import UUID, uuid4
 import random
 from typing import (
+    Dict,
     Optional,
     List
 )
@@ -52,6 +53,7 @@ from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
     MessageModel,
     JoinMessageModel,
+    ReadyToAddMessageModel,
     WelcomeMessageModel,
     MessageTypeEnum,
 )
@@ -106,6 +108,11 @@ class AquariumUUIDModel(BaseModel):
     aqarium_uuid: UUID
 
 
+class JoiningNodeModel(BaseModel):
+    hostname: str
+    address: str
+
+
 class NodeMgr:
 
     _init_stage: NodeInitStage
@@ -115,6 +122,7 @@ class NodeMgr:
     _state: NodeStateModel
     _manifest: Optional[ManifestModel]
     _token: Optional[str]
+    _joining: Dict[str, JoiningNodeModel]
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
@@ -122,7 +130,7 @@ class NodeMgr:
         self._connmgr = get_conn_mgr()
         self._manifest = None
         self._token = None
-        self._aquarium_uuid = None
+        self._joining = {}
 
         self._node_init()
         assert self._state
@@ -259,6 +267,14 @@ class NodeMgr:
             fd.writelines([welcome.pubkey])
             logger.debug(f"=> mgr -- join > wrote pubkey to {authorized_keys}")
 
+        readymsg = ReadyToAddMessageModel()
+        await conn.send(
+            MessageModel(
+                type=MessageTypeEnum.READY_TO_ADD,
+                data=readymsg
+            )
+        )
+        await conn.close()
         return True
 
     async def prepare_bootstrap(self) -> None:
@@ -452,6 +468,12 @@ class NodeMgr:
         if msg.type == MessageTypeEnum.JOIN:
             logger.debug("=> mgr -- handle msg > join")
             await self._handle_join(conn, JoinMessageModel.parse_obj(msg.data))
+        elif msg.type == MessageTypeEnum.READY_TO_ADD:
+            logger.debug("=> mgr -- handle ready to add")
+            await self._handle_ready_to_add(
+                conn,
+                ReadyToAddMessageModel.parse_obj(msg.data)
+            )
         pass
 
     async def _handle_join(
@@ -475,6 +497,21 @@ class NodeMgr:
             )
             return
 
+        if not msg.address or not msg.hostname:
+            logger.info(
+                f"=> mgr -- handle join > missing address or host from {conn}"
+            )
+            await conn.send_msg(
+                MessageModel(
+                    type=MessageTypeEnum.ERROR,
+                    data=ErrorMessageModel(
+                        what="missing address or hostname",
+                        code=status.HTTP_400_BAD_REQUEST
+                    )
+                )
+            )
+            return
+
         orch = Orchestrator()
         pubkey: str = orch.get_public_key()
 
@@ -493,7 +530,36 @@ class NodeMgr:
             )
         except Exception as e:
             logger.error(f"=> mgr -- handle join > error: {str(e)}")
+            return
+
         logger.debug(f"=> mgr -- handle join > welcome sent: {welcome}")
+        self._joining[conn.address] = \
+            JoiningNodeModel(address=msg.address, hostname=msg.hostname)
+
+    async def _handle_ready_to_add(
+        self,
+        conn: IncomingConnection,
+        msg: ReadyToAddMessageModel
+    ) -> None:
+        logger.debug(f"=> mgr -- handle ready to add from {conn}")
+        address: str = conn.address
+
+        if address not in self._joining:
+            logger.info(f"=> mgr -- handle ready to add > unknown node {conn}")
+            await conn.send_msg(
+                MessageModel(
+                    type=MessageTypeEnum.ERROR,
+                    data=ErrorMessageModel(
+                        what="node not joining",
+                        code=status.HTTP_428_PRECONDITION_REQUIRED
+                    )
+                )
+            )
+            return
+
+        node: JoiningNodeModel = self._joining[address]
+        logger.info("=> mgr -- handle ready to add > "
+                    f"hostname: {node.hostname}, address: {node.address}")
 
 
 _nodemgr: Optional[NodeMgr] = None

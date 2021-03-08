@@ -115,6 +115,11 @@ class IncomingConnection(WebSocketEndpoint):
         assert self._ws
         await self._ws.send_text(data.json())
 
+    @property
+    def address(self) -> str:
+        assert self._ws
+        return cast(str, self._ws.client.host)  # pyright: reportUnknownMemberType=false
+
 
 class OutgoingConnection:
     _ws: websockets.WebSocketClientProtocol

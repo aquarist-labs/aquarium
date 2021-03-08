@@ -41,7 +41,7 @@ class WelcomeMessageModel(BaseModel):
     pubkey: str
 
 
-class OkayToAddModel(BaseModel):
+class ReadyToAddMessageModel(BaseModel):
     pass
 
 
