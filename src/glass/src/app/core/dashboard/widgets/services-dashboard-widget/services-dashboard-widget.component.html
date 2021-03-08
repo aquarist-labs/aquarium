@@ -4,11 +4,11 @@
      fxLayoutAlign="center center">
   <div *ngIf="!error && firstLoadComplete && data.length === 0"
        class="glass-services-dashboard-widget-no-services">
-      <p>No services deployed yet.</p>
-      <button mat-raised-button
-              routerLink="/installer/create/deployment">
-        <span translate>Deploy a service</span>
-      </button>
+    <p>No services deployed yet.</p>
+    <button mat-raised-button
+            routerLink="/installer/create/deployment">
+      <span translate>Deploy a service</span>
+    </button>
   </div>
   <div *ngIf="!error"
        class="glass-services-dashboard-widget-table"

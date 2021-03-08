@@ -22,7 +22,7 @@ export class BootstrapPageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  visible = false;
+  bootstrapping = false;
 
   constructor(
     private bootstrapService: BootstrapService,
@@ -37,29 +37,28 @@ export class BootstrapPageComponent implements OnInit {
     this.bootstrapService.status().subscribe({
       next: (statusReply: BootstrapStatusReply) => {
         if (statusReply.stage === BootstrapStageEnum.running) {
-          this.visible = false;
+          this.bootstrapping = true;
           this.blockUI.start(translate(TEXT('Please wait, bootstrapping in progress ...')));
           this.pollBootstrapStatus();
         }
         if (statusReply.stage === BootstrapStageEnum.none) {
-          this.visible = true;
+          this.bootstrapping = false;
         }
       },
-      error: () => (this.visible = true)
+      error: () => (this.bootstrapping = false)
     });
   }
 
-  startBootstrap(): void {
-    this.visible = false;
+  doBootstrap(): void {
+    this.bootstrapping = true;
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
-
     this.bootstrapService.start().subscribe({
       next: (basicReplay: BootstrapBasicReply) => {
         if (basicReplay.success) {
           this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
           this.pollBootstrapStatus();
         } else {
-          this.visible = true;
+          this.bootstrapping = false;
           this.blockUI.stop();
           this.notificationService.show(TEXT('Failed to start bootstrapping the system.'), {
             type: 'error'
@@ -67,7 +66,7 @@ export class BootstrapPageComponent implements OnInit {
         }
       },
       error: () => {
-        this.visible = true;
+        this.bootstrapping = false;
         this.blockUI.stop();
       }
     });
@@ -75,7 +74,7 @@ export class BootstrapPageComponent implements OnInit {
 
   pollBootstrapStatus(): void {
     const handleError = () => {
-      this.visible = true;
+      this.bootstrapping = false;
       this.blockUI.stop();
       this.notificationService.show(TEXT('Failed to bootstrap the system.'), {
         type: 'error'

@@ -9,24 +9,21 @@
     <div fxLayout="row"
          fxLayoutAlign="space-between none"
          fxLayoutGap="16px">
-      <mat-form-field [formGroup]="formGroup"
-                      fxFlex>
+      <mat-form-field fxFlex>
         <mat-label>Available Capacity</mat-label>
         <input matInput
                type="text"
                [value]="formGroup.value.availableSpace | bytesToSize"
                readonly>
       </mat-form-field>
-      <mat-form-field [formGroup]="formGroup"
-                      fxFlex>
+      <mat-form-field fxFlex>
         <mat-label>Reserved Capacity</mat-label>
         <input matInput
                type="text"
                [value]="formGroup.value.reservedSpace | bytesToSize"
                readonly>
       </mat-form-field>
-      <mat-form-field [formGroup]="formGroup"
-                      [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
+      <mat-form-field [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
                       fxFlex>
         <mat-label>Raw Required Capacity</mat-label>
         <input matInput
@@ -35,20 +32,19 @@
                readonly>
       </mat-form-field>
     </div>
-    <mat-form-field [formGroup]="formGroup"
-                    fxFlex>
+    <mat-form-field fxFlex>
       <mat-label>Service Name</mat-label>
       <input matInput
              type="text"
-             formControlName="name">
+             formControlName="name"
+             required>
       <mat-error *ngIf="formGroup.invalid">
         <span *ngIf="formGroup.hasError('required', 'name')">
           This field is required.
         </span>
       </mat-error>
     </mat-form-field>
-    <mat-form-field [formGroup]="formGroup"
-                    class="glass-form-field-no-underline glass-form-field-hint"
+    <mat-form-field class="glass-form-field-no-underline glass-form-field-hint"
                     fxFlex>
       <mat-label>Number Of Replicas</mat-label>
       <input #replicasInput
@@ -74,8 +70,7 @@
     <div fxLayout="row"
          fxLayoutAlign="space-between center"
          fxLayoutGap="16px">
-      <mat-form-field [formGroup]="formGroup"
-                      class="glass-form-field-no-underline"
+      <mat-form-field class="glass-form-field-no-underline"
                       [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
                       fxFlex="80">
         <mat-label>Estimated Required Capacity</mat-label>
@@ -93,8 +88,7 @@
                     fxFlex>
         </mat-slider>
       </mat-form-field>
-      <mat-form-field [formGroup]="formGroup"
-                      [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
+      <mat-form-field [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
                       fxFlex="20">
         <input matInput
                type="text"

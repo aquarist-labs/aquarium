@@ -55,6 +55,14 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
               result = this.router.parseUrl(urls[0]);
             }
             break;
+          case StatusStageEnum.joining:
+            url = '/installer/join/register';
+            if (url === state.url) {
+              result = true;
+            } else {
+              result = this.router.parseUrl(url);
+            }
+            break;
           case StatusStageEnum.ready:
             url = '/dashboard';
             if (url === state.url) {
@@ -68,7 +76,8 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
               [
                 '/installer/welcome',
                 '/installer/install-mode',
-                '/installer/create/bootstrap'
+                '/installer/create/bootstrap',
+                '/installer/join/register'
               ].includes(state.url)
             ) {
               result = true;

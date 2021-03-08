@@ -12,6 +12,7 @@ import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/c
 import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
+import { RegisterPageComponent } from '~/app/pages/register-page/register-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 import { SharedModule } from '~/app/shared/shared.module';
 
@@ -23,7 +24,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     InstallModePageComponent,
     WelcomePageComponent,
     NotFoundPageComponent,
-    CephfsModalComponent
+    CephfsModalComponent,
+    RegisterPageComponent
   ],
   imports: [
     CommonModule,
