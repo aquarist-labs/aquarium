@@ -13,7 +13,16 @@ msgstr ""
 msgid "5min"
 msgstr ""
 
+msgid "Address"
+msgstr ""
+
 msgid "Aquarium"
+msgstr ""
+
+msgid ""
+"Aquarium will now install and setup the core system. All recognized storage "
+"devices are automatically assigned. Afterwards, you will be able to "
+"configure the services you want to provide."
 msgstr ""
 
 msgid "Architecture"
@@ -46,9 +55,6 @@ msgstr ""
 msgid "Choose installation mode"
 msgstr ""
 
-msgid "Choose selected devices"
-msgstr ""
-
 msgid "Configure CephFS service"
 msgstr ""
 
@@ -71,6 +77,9 @@ msgid "Dashboard"
 msgstr ""
 
 msgid "Deploy a service"
+msgstr ""
+
+msgid "Deploy devices"
 msgstr ""
 
 msgid "Failed to bootstrap the system."
@@ -103,6 +112,9 @@ msgstr ""
 msgid "Hosts"
 msgstr ""
 
+msgid "Inventory"
+msgstr ""
+
 msgid "Join existing cluster"
 msgstr ""
 
@@ -110,14 +122,6 @@ msgid "Kernel"
 msgstr ""
 
 msgid "Language"
-msgstr ""
-
-msgid ""
-"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin porttitor "
-"quam convallis hendrerit lacinia. Integer consectetur metus eu nibh "
-"fringilla, ac lobortis nisl porttitor. Pellentesque habitant morbi "
-"tristique senectus et netus et malesuada fames ac turpis egestas. Donec at "
-"purus odio."
 msgstr ""
 
 msgid "Name"
@@ -130,6 +134,9 @@ msgid "No"
 msgstr ""
 
 msgid "No CephFS services configured"
+msgstr ""
+
+msgid "Node deployment"
 msgstr ""
 
 msgid "OK"
@@ -162,6 +169,9 @@ msgstr ""
 msgid "Services"
 msgstr ""
 
+msgid "Services deployment"
+msgstr ""
+
 msgid ""
 "Setup will create a new deployment from scratch, configuring this node as a "
 "standalone storage solution."
@@ -182,6 +192,9 @@ msgid "Space"
 msgstr ""
 
 msgid "Start"
+msgstr ""
+
+msgid "Summary"
 msgstr ""
 
 msgid "System Information"
