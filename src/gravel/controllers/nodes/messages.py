@@ -37,7 +37,6 @@ class JoinMessageModel(BaseModel):
 
 
 class WelcomeMessageModel(BaseModel):
-    aquarium_uuid: UUID
     pubkey: str
 
 

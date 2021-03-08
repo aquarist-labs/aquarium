@@ -242,7 +242,6 @@ class NodeMgr:
         logger.debug(f"=> mgr -- join > recv: {reply}")
         assert reply.type == MessageTypeEnum.WELCOME
         welcome = WelcomeMessageModel.parse_obj(reply.data)
-        assert welcome.aquarium_uuid
         assert welcome.pubkey
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
@@ -458,11 +457,13 @@ class NodeMgr:
         orch = Orchestrator()
         pubkey: str = orch.get_public_key()
 
+        logger.debug(f"=> mgr -- handle join > pubkey: {pubkey}")
+
         welcome = WelcomeMessageModel(
-            cluster_uuid=self._state.uuid,
             pubkey=pubkey
         )
         try:
+            logger.debug(f"=> mgr -- handle join > send welcome: {welcome}")
             await conn.send_msg(
                 MessageModel(
                     type=MessageTypeEnum.WELCOME,
