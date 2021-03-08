@@ -17,7 +17,10 @@ from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
-from gravel.controllers.nodes.errors import NodeCantBootstrapError
+from gravel.controllers.nodes.errors import (
+    NodeCantBootstrapError,
+    NodeNotStartedError
+)
 from gravel.controllers.nodes.mgr import (
     NodeMgr,
     NodeStageEnum,
@@ -72,6 +75,9 @@ class Bootstrap:
             await mgr.prepare_bootstrap()
         except NodeCantBootstrapError:
             logger.error("Can't bootstrap node")
+            return False
+        except NodeNotStartedError:
+            logger.error("Node can't bootstrap yet")
             return False
 
         try:

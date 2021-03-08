@@ -250,6 +250,8 @@ class NodeMgr:
         assert self._state
         if self._state.stage > NodeStageEnum.NONE:
             raise NodeCantBootstrapError()
+        elif self._init_stage < NodeInitStage.PRESTART:
+            raise NodeNotStartedError()
 
     async def start_bootstrap(self) -> None:
         assert self._state
