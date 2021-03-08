@@ -25,11 +25,20 @@ from typing import (
 from logging import Logger
 
 import websockets
+from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from starlette.endpoints import WebSocketEndpoint
 from starlette.websockets import WebSocket
 
 from gravel.controllers.nodes.messages import MessageModel
+
+
+class ConnectionError(Exception):
+    pass
+
+
+class ConnectionManagerNotStarted(ConnectionError):
+    pass
 
 
 logger: Logger = fastapi_logger
@@ -46,6 +55,7 @@ class Peer:
 
 class ConnMgr:
 
+    _is_started: bool
     _conns: List[Peer]
     _conn_by_endpoint: Dict[str, Peer]
 
@@ -55,11 +65,18 @@ class ConnMgr:
     _incoming_queue: asyncio.Queue[Tuple[IncomingConnection, MessageModel]]
 
     def __init__(self):
+        self._is_started = False
         self._conns = []
         self._passive_conns = []
         self._active_conns = []
         self._conn_by_endpoint = {}
         self._incoming_queue = asyncio.Queue()
+
+    def start(self) -> None:
+        self._is_started = True
+
+    def is_started(self) -> bool:
+        return self._is_started
 
     def register_connect(
         self,
@@ -67,6 +84,10 @@ class ConnMgr:
         conn: Union[OutgoingConnection, IncomingConnection],
         is_passive: bool
     ) -> None:
+
+        if not self.is_started():
+            raise ConnectionManagerNotStarted()
+
         peer = Peer(endpoint=endpoint, conn=conn)
         self._conns.append(peer)
         self._conn_by_endpoint[endpoint] = peer
@@ -82,6 +103,10 @@ class ConnMgr:
         msg: MessageModel
     ) -> None:
         logger.debug(f"=> connmgr -- incoming recv: {conn}, {msg}")
+
+        if not self.is_started():
+            raise ConnectionManagerNotStarted()
+
         await self._incoming_queue.put((conn, msg))
         logger.debug(f"=> connmgr -- queue len: {self._incoming_queue.qsize()}")
 
@@ -91,6 +116,9 @@ class ConnMgr:
         return await self._incoming_queue.get()
 
     async def connect(self, endpoint: str) -> OutgoingConnection:
+
+        if not self.is_started():
+            raise ConnectionManagerNotStarted()
 
         if endpoint in self._conn_by_endpoint:
             conn = self._conn_by_endpoint[endpoint].conn
@@ -108,6 +136,12 @@ class IncomingConnection(WebSocketEndpoint):
 
     async def on_connect(self, websocket: WebSocket) -> None:
         logger.debug(f"=> connection -- from {websocket.client}")
+
+        connmgr: ConnMgr = get_conn_mgr()
+        if not connmgr.is_started():
+            await websocket.close(status.WS_1013_TRY_AGAIN_LATER)
+            return
+
         self._ws = websocket
         host: str = \
             f"{websocket.client.host}"  # pyright: reportUnknownMemberType=false
@@ -115,7 +149,7 @@ class IncomingConnection(WebSocketEndpoint):
             f"{websocket.client.port}"  # pyright: reportUnknownMemberType=false
         endpoint: str = f"{host}:{port}"
         await websocket.accept()
-        get_conn_mgr().register_connect(endpoint, self, is_passive=True)
+        connmgr.register_connect(endpoint, self, is_passive=True)
 
     async def on_disconnect(
         self,
@@ -127,8 +161,10 @@ class IncomingConnection(WebSocketEndpoint):
 
     async def on_receive(self, websocket: WebSocket, data: Any) -> None:
         logger.debug(f"=> connection -- recv from {websocket.client}: {data}")
+        connmgr: ConnMgr = get_conn_mgr()
+        assert connmgr.is_started()
         msg: MessageModel = MessageModel.parse_raw(data)
-        await get_conn_mgr().on_incoming_receive(self, msg)
+        await connmgr.on_incoming_receive(self, msg)
 
     async def send_msg(self, data: MessageModel) -> None:
         logger.debug(f"=> connection -- send to {self._ws} data {data}")
