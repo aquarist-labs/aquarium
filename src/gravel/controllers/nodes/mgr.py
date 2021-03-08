@@ -113,7 +113,6 @@ class NodeMgr:
     _state: NodeStateModel
     _manifest: Optional[ManifestModel]
     _token: Optional[str]
-    _aquarium_uuid: Optional[UUID]
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
@@ -250,8 +249,6 @@ class NodeMgr:
         with authorized_keys.open("a") as fd:
             fd.writelines([welcome.pubkey])
             logger.debug(f"=> mgr -- join > wrote pubkey to {authorized_keys}")
-
-        self._write_aquarium_uuid(welcome.aquarium_uuid)
 
         return True
 
@@ -393,7 +390,6 @@ class NodeMgr:
     def _load(self) -> None:
         self._manifest = self._load_manifest()
         self._token = self._load_token()
-        self._aquarium_uuid = self._load_aquarium_uuid()
 
         assert (self._state and self._manifest) or \
                (not self._state and not self._manifest)
@@ -420,21 +416,6 @@ class NodeMgr:
             return None
         token = TokenModel.parse_file(tokenfile)
         return token.token
-
-    def _load_aquarium_uuid(self) -> Optional[UUID]:
-        assert self._state
-        confdir: Path = gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        uuidfile: Path = confdir.joinpath("aquarium_uuid.json")
-        if not uuidfile.exists():
-            assert self._state.stage < NodeStageEnum.READY
-            return None
-        uuid = AquariumUUIDModel.parse_file(uuidfile)
-        return uuid.aqarium_uuid
-
-    def _write_aquarium_uuid(self, uuid: UUID) -> None:
-        pass
 
     def _get_hostname(self) -> str:
         return ""
