@@ -10,6 +10,7 @@ import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layo
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
+import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
 import { MaterialModule } from '~/app/material.modules';
 
@@ -19,7 +20,8 @@ import { MaterialModule } from '~/app/material.modules';
     TopBarComponent,
     NavigationBarComponent,
     InstallerLayoutComponent,
-    BlankLayoutComponent
+    BlankLayoutComponent,
+    NavigationBarItemComponent
   ],
   imports: [
     BlockUIModule.forRoot(),

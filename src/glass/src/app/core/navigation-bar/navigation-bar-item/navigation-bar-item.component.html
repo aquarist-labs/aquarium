@@ -1,0 +1,20 @@
+<div fxLayout="row">
+  <a mat-list-item [routerLink]="item.route"
+                   [ngStyle]="{'padding-left': (depth * 20) + 'px'}"
+                   (click)="itemClicked(item)">
+    <mat-icon [svgIcon]="item.icon"></mat-icon>
+    {{ item.name | translate}}
+    <div fxFlex
+         *ngIf="item.children && item.children.length">
+      <div fxFlex></div>
+      <mat-icon svgIcon="mdi:chevron-down"
+                [ngClass]="{ 'rotated': showSub }"></mat-icon>
+    </div>
+  </a>
+</div>
+<div *ngIf="showSub">
+  <glass-navigation-bar-item *ngFor="let child of item.children"
+                             [item]="child"
+                             [depth]="depth + 1">
+  </glass-navigation-bar-item>
+</div>
