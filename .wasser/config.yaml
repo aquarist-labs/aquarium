@@ -1,0 +1,70 @@
+wasser:
+  version: '1.0'
+
+routines:
+  openSUSE Leap:
+    steps:
+    # we need preliminary dependencies on the minimal image,
+    # because we do not prepare wasser ready images and take
+    # stock leap image
+    - name: install dependencies
+      command: |
+        for i in {1..5} ; do ping -q -c1 download.opensuse.org && break ; sleep 3 ; done
+        sudo zypper --no-gpg-checks ref 2>&1
+        sudo zypper install -y git 2>&1
+    # also we need 'kernel-default' instead of 'kernel-default-base' for Leap
+    # in order to have nested virtualisation working
+    - name: install default kernel for kvm
+      command: |
+        sudo zypper remove -y kernel-default-base 2>&1
+        sudo zypper install -y kernel-default 2>&1
+    - name: install qemu kvm
+      command:
+        sudo zypper install -y qemu-kvm 2>&1
+    - reboot
+    - wait_host
+    - checkout:
+        dir: aquarium
+    - name: setup dev environment
+      command: |
+        cd aquarium
+        ./tools/setup-dev.sh 2>&1
+    - name: building image
+      command: |
+        cd aquarium
+        ./tools/build-image.sh 2>&1
+    - name: install libvirt specific packages
+      command: |
+        sudo zypper install -y qemu-kvm polkit 2>&1
+    - name: add user to wheel group to allow passwordless access to libvirt
+      command: |
+        sudo usermod -a -G wheel $USER
+    - name: allow users in wheel group to manage the libvirt daemon without authentication
+      command: |
+        sudo tee /etc/polkit-1/rules.d/50-libvirt.rules << END
+        polkit.addRule(function(action, subject) {
+            if (action.id == "org.libvirt.unix.manage" &&
+            subject.isInGroup("wheel")) {
+                return polkit.Result.YES;
+            }
+        });
+
+        END
+    - name: make sure libvirtd is running
+      command: |
+        sudo systemctl start libvirtd
+    - name: run microos image on vagrant
+      command: |
+        cd aquarium/tests/vagrant
+        ./setup.sh foo 2>&1
+        cd setups/foo
+        vagrant up --no-destroy-on-error --no-parallel 2>&1
+
+# openstack:
+flavor: b2-15
+image: openSUSE-Leap-15.2-JeOS.x86_64-15.2-OpenStack-Cloud-Build31.348
+keyfile: ~/.ssh/sa
+keyname: storage-automation
+name: aqua-%02d
+userdata: openstack/user-data.yaml
+username: opensuse
