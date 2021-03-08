@@ -123,7 +123,7 @@ class Services:
     ) -> Tuple[bool, ServiceRequirementsModel]:
         required: int = size*replicas
         reserved: int = self.total_raw_reservation
-        available: int = storage.available
+        available: int = storage.get_storage().available
         feasible: bool = ((required + reserved) <= available)
         requirements = ServiceRequirementsModel(
             reserved=reserved,

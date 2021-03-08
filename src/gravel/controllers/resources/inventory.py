@@ -40,3 +40,11 @@ class Inventory(Ticker):
 
     async def latest(self) -> Optional[NodeInfoModel]:
         return self._latest
+
+
+_inventory = Inventory()
+
+
+def get_inventory() -> Inventory:
+    global _inventory
+    return _inventory

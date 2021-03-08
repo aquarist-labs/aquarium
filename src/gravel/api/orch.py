@@ -113,7 +113,7 @@ async def get_node_info() -> NodeInfoModel:
 
 @router.get("/inventory", response_model=NodeInfoModel)
 async def get_inventory() -> NodeInfoModel:
-    latest = await inventory.latest()
+    latest = inventory.get_inventory().latest
     if not latest:
         raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
                             detail="Inventory not available")

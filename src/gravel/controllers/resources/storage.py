@@ -127,3 +127,11 @@ class Storage(Ticker):
             by_name[p.name] = pool
         self._state.pools_by_name = by_name
         self._state.pools_by_id = by_id
+
+
+_storage = Storage()
+
+
+def get_storage() -> Storage:
+    global _storage
+    return _storage
