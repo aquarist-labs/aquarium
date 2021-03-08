@@ -117,7 +117,6 @@ class NodeMgr:
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
-
         self._shutting_down = False
         self._connmgr = get_conn_mgr()
         self._manifest = None
@@ -126,6 +125,8 @@ class NodeMgr:
 
         self._node_init()
         assert self._state
+
+        logger.debug(f"=> mgr -- init > {self._state}")
 
         assert self._state.stage == NodeStageEnum.NONE or \
                self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
@@ -174,10 +175,13 @@ class NodeMgr:
                self._state.stage == NodeStageEnum.BOOTSTRAPPED
         assert self._state.role != NodeRoleEnum.NONE
 
+        logger.info("=> mgr -- start node")
+
         self._init_stage = NodeInitStage.STARTED
         if self._state.role != NodeRoleEnum.LEADER:
             return
 
+        logger.info("=> mgr -- start leader node")
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
         self._connmgr.start_receiving()
 
@@ -439,12 +443,15 @@ class NodeMgr:
         return ""
 
     async def _incoming_msg_task(self) -> None:
+        logger.info("=> mgr -- start handling incoming messages")
         while not self._shutting_down:
             logger.debug("=> mgr -- incoming msg task > wait")
             conn, msg = await self._connmgr.wait_incoming_msg()
             logger.debug(f"=> mgr -- incoming msg task > {conn}, {msg}")
             await self._handle_incoming_msg(conn, msg)
             logger.debug("=> mgr -- incoming msg task > handled")
+
+        logger.info("=> mgr -- stop handling incoming messages")
 
     async def _handle_incoming_msg(
         self,
@@ -484,8 +491,16 @@ class NodeMgr:
         logger.debug(f"=> mgr -- handle join > welcome sent: {welcome}")
 
 
-_nodemgr = NodeMgr()
+_nodemgr: Optional[NodeMgr] = None
 
 
 def get_node_mgr() -> NodeMgr:
+    global _nodemgr
+    assert _nodemgr
     return _nodemgr
+
+
+def init_node_mgr() -> None:
+    global _nodemgr
+    assert not _nodemgr
+    _nodemgr = NodeMgr()
