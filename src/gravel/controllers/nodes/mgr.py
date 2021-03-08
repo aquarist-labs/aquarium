@@ -130,9 +130,11 @@ class NodeMgr:
                self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
                self._state.stage == NodeStageEnum.READY
 
-        if self._state.stage != NodeStageEnum.READY:
+        if self._state.stage == NodeStageEnum.NONE:
             self._wait_inventory()
         else:
+            assert self._state.stage == NodeStageEnum.READY or \
+                   self._state.stage == NodeStageEnum.BOOTSTRAPPED
             self._node_start()
 
     def _node_prestart(self, nodeinfo: NodeInfoModel):
@@ -167,7 +169,8 @@ class NodeMgr:
     def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
         assert self._state
-        assert self._state.stage == NodeStageEnum.READY
+        assert self._state.stage == NodeStageEnum.READY or \
+               self._state.stage == NodeStageEnum.BOOTSTRAPPED
         assert self._state.role != NodeRoleEnum.NONE
 
         self._init_stage = NodeInitStage.STARTED
