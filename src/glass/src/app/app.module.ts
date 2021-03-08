@@ -7,11 +7,10 @@ import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-transla
 import { AppComponent } from '~/app/app.component';
 import { AppRoutingModule } from '~/app/app-routing.module';
 import { CoreModule } from '~/app/core/core.module';
-import { setTranslationService, TranslateHttpLoader } from '~/app/i18n.helper';
+import { getCurrentLanguage,setTranslationService, TranslateHttpLoader } from '~/app/i18n.helper';
 import { MaterialModule } from '~/app/material.modules';
 import { PagesModule } from '~/app/pages/pages.module';
 import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-interceptor.service';
-import { LocalStorageService } from '~/app/shared/services/local-storage.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -41,8 +40,8 @@ import { LocalStorageService } from '~/app/shared/services/local-storage.service
   bootstrap: [AppComponent]
 })
 export class AppModule {
-  constructor(localStorageService: LocalStorageService, translateService: TranslateService) {
-    const language = localStorageService.get('language', 'en_GB') as string;
+  constructor(translateService: TranslateService) {
+    const language = getCurrentLanguage();
     translateService.setDefaultLang(language);
     setTranslationService(translateService);
   }
