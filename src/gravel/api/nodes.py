@@ -13,6 +13,7 @@
 
 from logging import Logger
 from typing import Optional
+from fastapi import HTTPException, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic.main import BaseModel
@@ -28,14 +29,25 @@ router = APIRouter(
 )
 
 
+class NodeJoinRequestModel(BaseModel):
+    address: str
+    token: str
+
+
 class TokenReplyModel(BaseModel):
     token: str
 
 
 @router.post("/join")
-async def node_join():
-    logger.debug("=> api -- nodes > join")
-    return await get_node_mgr().join("127.0.0.1:1337", "foobarbaz")
+async def node_join(req: NodeJoinRequestModel):
+    logger.debug(f"=> api -- nodes > join {req.address} with {req.token}")
+    if not req.address or not req.token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="leader address and token are required"
+        )
+
+    return await get_node_mgr().join(req.address, req.token)
 
 
 @router.get("/token", response_model=TokenReplyModel)
