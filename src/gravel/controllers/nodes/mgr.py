@@ -176,6 +176,8 @@ class NodeMgr:
 
         logger.info("=> mgr -- start node")
 
+        self._load()
+
         self._init_stage = NodeInitStage.STARTED
         if self._state.role != NodeRoleEnum.LEADER:
             return
