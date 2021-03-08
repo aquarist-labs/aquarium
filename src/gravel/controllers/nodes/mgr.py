@@ -30,6 +30,7 @@ from gravel.controllers.gstate import gstate
 from gravel.controllers.resources.inventory import get_inventory
 
 from gravel.controllers.nodes.errors import (
+    NodeCantJoinError,
     NodeNetworkAddressNotAvailable,
     NodeNotBootstrappedError,
     NodeNotStartedError,
@@ -199,7 +200,15 @@ class NodeMgr:
             f"=> mgr -- join > with leader {leader_address}, token: {token}"
         )
 
+        if self._init_stage == NodeInitStage.NONE:
+            raise NodeNotStartedError()
+        elif self._init_stage > NodeInitStage.PRESTART:
+            raise NodeCantJoinError()
+
         assert self._state
+        assert self._state.hostname
+        assert self._state.address
+
         if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
             raise NodeBootstrappingError()
         elif self._state.stage == NodeStageEnum.BOOTSTRAPPED:
@@ -215,14 +224,10 @@ class NodeMgr:
         conn = await self._connmgr.connect(uri)
         logger.debug(f"=> mgr -- join > conn: {conn}")
 
-        uuid: UUID = self._state.uuid
-        hostname: str = self._get_hostname()
-        address: str = self._get_address()
-
         joinmsg = JoinMessageModel(
-            uuid=uuid,
-            hostname=hostname,
-            address=address,
+            uuid=self._state.uuid,
+            hostname=self._state.hostname,
+            address=self._state.address,
             token=token
         )
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())

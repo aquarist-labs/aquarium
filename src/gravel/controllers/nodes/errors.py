@@ -48,6 +48,10 @@ class NodeHasJoinedError(NodeError):
     pass
 
 
+class NodeCantJoinError(NodeError):
+    pass
+
+
 class NodeCantBootstrapError(NodeError):
     pass
 
