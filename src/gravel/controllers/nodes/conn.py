@@ -14,10 +14,7 @@
 from __future__ import annotations
 import asyncio
 from typing import (
-    Union,
-    List,
     Tuple,
-    Dict,
     Optional,
     Any,
     cast
@@ -44,36 +41,13 @@ class ConnectionManagerNotStarted(ConnectionError):
 logger: Logger = fastapi_logger
 
 
-class Peer:
-    endpoint: str
-    conn: Union[IncomingConnection, OutgoingConnection]
-
-    def __init__(
-        self,
-        endpoint: str,
-        conn: Union[IncomingConnection, OutgoingConnection]
-    ):
-        self.endpoint = endpoint
-        self.conn = conn
-
-
 class ConnMgr:
 
     _is_incoming_started: bool
-    _conns: List[Peer]
-    _conn_by_endpoint: Dict[str, Peer]
-
-    _passive_conns: List[Peer]
-    _active_conns: List[Peer]
-
     _incoming_queue: asyncio.Queue[Tuple[IncomingConnection, MessageModel]]
 
     def __init__(self):
         self._is_incoming_started = False
-        self._conns = []
-        self._passive_conns = []
-        self._active_conns = []
-        self._conn_by_endpoint = {}
         self._incoming_queue = asyncio.Queue()
 
     def start_receiving(self) -> None:
@@ -81,22 +55,6 @@ class ConnMgr:
 
     def is_started(self) -> bool:
         return self._is_incoming_started
-
-    def register_connect(
-        self,
-        endpoint: str,
-        conn: Union[OutgoingConnection, IncomingConnection],
-        is_passive: bool
-    ) -> None:
-
-        peer = Peer(endpoint=endpoint, conn=conn)
-        self._conns.append(peer)
-        self._conn_by_endpoint[endpoint] = peer
-
-        if is_passive:
-            self._passive_conns.append(peer)
-        else:
-            self._active_conns.append(peer)
 
     async def on_incoming_receive(
         self,
@@ -117,14 +75,8 @@ class ConnMgr:
         return await self._incoming_queue.get()
 
     async def connect(self, endpoint: str) -> OutgoingConnection:
-
-        if endpoint in self._conn_by_endpoint:
-            conn = self._conn_by_endpoint[endpoint].conn
-            return cast(OutgoingConnection, conn)
-
         wsclient = await websockets.connect(endpoint)
         conn = OutgoingConnection(wsclient)
-        self.register_connect(endpoint, conn, is_passive=False)
         return conn
 
 
@@ -141,13 +93,7 @@ class IncomingConnection(WebSocketEndpoint):
             return
 
         self._ws = websocket
-        host: str = \
-            f"{websocket.client.host}"  # pyright: reportUnknownMemberType=false
-        port: str = \
-            f"{websocket.client.port}"  # pyright: reportUnknownMemberType=false
-        endpoint: str = f"{host}:{port}"
         await websocket.accept()
-        connmgr.register_connect(endpoint, self, is_passive=True)
 
     async def on_disconnect(
         self,
