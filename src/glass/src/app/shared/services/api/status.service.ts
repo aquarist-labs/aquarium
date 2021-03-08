@@ -28,15 +28,13 @@ export enum StatusStageEnum {
   none = 0,
   bootstrapping = 1,
   bootstrapped = 2,
-  ready = 3
+  joining = 3,
+  ready = 4
 }
 
 export type Status = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  deployment_state: {
-    last_modified: string;
-    stage: StatusStageEnum;
-  };
+  node_stage: StatusStageEnum;
   cluster?: ClusterStatus;
 };
 
