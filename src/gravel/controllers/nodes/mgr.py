@@ -24,6 +24,7 @@ from typing import (
 from pathlib import Path
 
 from pydantic import BaseModel
+from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import gstate
@@ -48,6 +49,7 @@ from gravel.controllers.nodes.conn import (
     IncomingConnection
 )
 from gravel.controllers.nodes.messages import (
+    ErrorMessageModel,
     MessageModel,
     JoinMessageModel,
     WelcomeMessageModel,
@@ -240,6 +242,12 @@ class NodeMgr:
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"=> mgr -- join > recv: {reply}")
+        if reply.type == MessageTypeEnum.ERROR:
+            errmsg = ErrorMessageModel.parse_obj(reply.data)
+            logger.error(f"=> mgr -- join > error: {errmsg.what}")
+            await conn.close()
+            return False
+
         assert reply.type == MessageTypeEnum.WELCOME
         welcome = WelcomeMessageModel.parse_obj(reply.data)
         assert welcome.pubkey
@@ -453,6 +461,19 @@ class NodeMgr:
     ) -> None:
         logger.debug(f"=> mgr -- handle join {msg}")
         assert self._state is not None
+
+        if msg.token != self._token:
+            logger.info(f"=> mgr -- handle join > bad token from {conn}")
+            await conn.send_msg(
+                MessageModel(
+                    type=MessageTypeEnum.ERROR,
+                    data=ErrorMessageModel(
+                        what="bad token",
+                        code=status.HTTP_401_UNAUTHORIZED
+                    )
+                )
+            )
+            return
 
         orch = Orchestrator()
         pubkey: str = orch.get_public_key()

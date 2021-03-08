@@ -185,6 +185,10 @@ class OutgoingConnection:
         raw = await self._ws.recv()
         return MessageModel.parse_raw(raw)
 
+    async def close(self) -> None:
+        assert self._ws
+        await self._ws.close()
+
 
 _connmgr = ConnMgr()
 

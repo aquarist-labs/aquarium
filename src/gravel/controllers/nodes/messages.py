@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 
 class MessageTypeEnum(int, Enum):
+    ERROR = 0
     JOIN = 1
     WELCOME = 2
     READY_TO_ADD = 3
@@ -42,3 +43,8 @@ class WelcomeMessageModel(BaseModel):
 
 class OkayToAddModel(BaseModel):
     pass
+
+
+class ErrorMessageModel(BaseModel):
+    what: str
+    code: int
