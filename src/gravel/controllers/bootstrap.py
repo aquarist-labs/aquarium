@@ -15,7 +15,6 @@ import asyncio
 from enum import Enum
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
-from typing import Optional, List
 
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.nodes.errors import NodeCantBootstrapError
@@ -75,19 +74,8 @@ class Bootstrap:
             logger.error("Can't bootstrap node")
             return False
 
-        selected_addr: Optional[str] = None
-
         try:
-            selected_addr = await self._find_candidate_addr()
-        except NetworkAddressNotFoundError as e:
-            logger.error(f"unable to select network addr: {str(e)}")
-            return False
-
-        assert selected_addr
-        logger.info(f"bootstrap > selected addr: {selected_addr}")
-
-        try:
-            asyncio.create_task(self._do_bootstrap(selected_addr))
+            asyncio.create_task(self._do_bootstrap())
         except Exception as e:
             logger.error(f"bootstrap > error starting bootstrap task: {str(e)}")
             return False
@@ -97,53 +85,23 @@ class Bootstrap:
     async def get_stage(self) -> BootstrapStage:
         return self.stage
 
-    async def _find_candidate_addr(self) -> str:
-        logger.debug("bootstrap > find candidate address")
+    async def _do_bootstrap(self) -> None:
+        mgr: NodeMgr = get_node_mgr()
+        address = mgr.address
 
-        try:
-            cephadm: Cephadm = Cephadm()
-            facts = await cephadm.gather_facts()
-        except Exception as e:
-            raise NetworkAddressNotFoundError(e)
-
-        if len(facts.interfaces) == 0:
-            logger.error("bootstrap > unable to find interface facts!")
-            raise NetworkAddressNotFoundError("interfaces not available")
-
-        candidates: List[str] = []
-
-        for nic in facts.interfaces.values():
-            if nic.iftype == "loopback":
-                continue
-            candidates.append(nic.ipv4_address)
-
-        selected: Optional[str] = None
-        if len(candidates) > 0:
-            selected = candidates[0]
-
-        if selected is None or len(selected) == 0:
-            raise NetworkAddressNotFoundError("no address available")
-
-        netmask_idx = selected.find("/")
-        if netmask_idx > 0:
-            selected = selected[:netmask_idx]
-
-        return selected
-
-    async def _do_bootstrap(self, selected_addr: str) -> None:
-        logger.debug("bootstrap > run in background")
-        assert selected_addr is not None and len(selected_addr) > 0
+        logger.info(f"=> bootstrap > address: {address}")
+        assert address is not None and len(address) > 0
 
         mgr: NodeMgr = get_node_mgr()
         assert mgr.stage == NodeStageEnum.NONE
-        await mgr.start_bootstrap(selected_addr, "")  # XXX: needs hostname
+        await mgr.start_bootstrap()  # XXX: needs hostname
 
         self.stage = BootstrapStage.RUNNING
 
         retcode: int = 0
         try:
             cephadm: Cephadm = Cephadm()
-            _, _, retcode = await cephadm.bootstrap(selected_addr)
+            _, _, retcode = await cephadm.bootstrap(address)
         except Exception as e:
             raise BootstrapError(e) from e
 

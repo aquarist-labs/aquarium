@@ -25,10 +25,12 @@ from pathlib import Path
 
 from pydantic import BaseModel
 from fastapi.logger import logger as fastapi_logger
-
+from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import gstate
+from gravel.controllers.resources.inventory import get_inventory
 
 from gravel.controllers.nodes.errors import (
+    NodeNetworkAddressNotAvailable,
     NodeNotBootstrappedError,
     NodeNotStartedError,
     NodeShuttingDownError,
@@ -70,6 +72,14 @@ class NodeStageEnum(int, Enum):
     READY = 4
 
 
+class NodeInitStage(int, Enum):
+    NONE = 0
+    PRESTART = 1
+    STARTED = 2
+    STOPPING = 3
+    STOPPED = 4
+
+
 class NodeStateModel(BaseModel):
     uuid: UUID
     role: NodeRoleEnum
@@ -95,6 +105,7 @@ class AquariumUUIDModel(BaseModel):
 
 class NodeMgr:
 
+    _init_stage: NodeInitStage
     _connmgr: ConnMgr
     _incoming_task: asyncio.Task  # pyright: reportUnknownMemberType=false
     _shutting_down: bool
@@ -104,20 +115,81 @@ class NodeMgr:
     _aquarium_uuid: Optional[UUID]
 
     def __init__(self):
+        self._init_stage = NodeInitStage.NONE
+
         self._shutting_down = False
         self._connmgr = get_conn_mgr()
         self._manifest = None
         self._token = None
         self._aquarium_uuid = None
 
-        self._init_node()
+        self._node_init()
         assert self._state
-        if self._state.stage == NodeStageEnum.READY:
-            self.start()
 
-    def start(self):
-        self._load()
+        assert self._state.stage == NodeStageEnum.NONE or \
+               self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
+               self._state.stage == NodeStageEnum.READY
+
+        if self._state.stage != NodeStageEnum.READY:
+            self._wait_inventory()
+        else:
+            self._node_start()
+
+    def _node_prestart(self, nodeinfo: NodeInfoModel):
+        """ sets hostname and addresses; allows bootstrap, join. """
+        assert self._state.stage == NodeStageEnum.NONE
+        assert self._init_stage == NodeInitStage.NONE
+
+        self._init_stage = NodeInitStage.PRESTART
+        self._state.hostname = nodeinfo.hostname
+
+        address: Optional[str] = None
+        for nic in nodeinfo.nics.values():
+            if nic.iftype == "loopback":
+                continue
+            address = nic.ipv4_address
+            break
+
+        if not address:
+            raise NodeNetworkAddressNotAvailable()
+
+        assert address
+        netmask_idx = address.find("/")
+        if netmask_idx > 0:
+            address = address[:netmask_idx]
+
+        self._state.address = address
+
+        statefile: Path = self._get_node_file("node")
+        assert statefile.exists()
+        statefile.write_text(self._state.json())
+
+    def _node_start(self) -> None:
+        """ node is ready to accept incoming messages, if leader """
+        assert self._state
+        assert self._state.stage == NodeStageEnum.READY
+        assert self._state.role != NodeRoleEnum.NONE
+
+        self._init_stage = NodeInitStage.STARTED
+        if self._state.role != NodeRoleEnum.LEADER:
+            return
+
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
+        self._connmgr.start()
+
+    def _node_shutdown(self) -> None:
+        """ shutting down, stop node """
+        self._init_stage = NodeInitStage.STOPPING
+        self._incoming_task.cancel()
+
+    def _wait_inventory(self) -> None:
+
+        async def _subscriber(nodeinfo: NodeInfoModel) -> None:
+            logger.debug(f"=> mgr -- subscriber > node info: {nodeinfo}")
+            assert nodeinfo
+            self._node_prestart(nodeinfo)
+
+        get_inventory().subscribe(_subscriber, once=True)
 
     async def join(self, leader_address: str, token: str) -> bool:
         logger.debug(
@@ -176,12 +248,12 @@ class NodeMgr:
         if self._state.stage > NodeStageEnum.NONE:
             raise NodeCantBootstrapError()
 
-    async def start_bootstrap(self, address: str, hostname: str) -> None:
+    async def start_bootstrap(self) -> None:
         assert self._state
         assert self._state.stage == NodeStageEnum.NONE
+        assert self._state.hostname
+        assert self._state.address
         self._state.stage = NodeStageEnum.BOOTSTRAPPING
-        self._state.address = address
-        self._state.hostname = hostname
 
         statefile: Path = self._get_node_file("node")
         statefile.write_text(self._state.json())
@@ -198,6 +270,7 @@ class NodeMgr:
         assert statefile.exists()
 
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
+        self._state.role = NodeRoleEnum.LEADER
         statefile.write_text(self._state.json())
 
         manifest: ManifestModel = ManifestModel(
@@ -238,6 +311,12 @@ class NodeMgr:
         return self._state.stage
 
     @property
+    def address(self) -> str:
+        assert self._state
+        assert self._state.address
+        return self._state.address
+
+    @property
     def bootstrapping(self) -> bool:
         if not self._state:
             return False
@@ -273,7 +352,7 @@ class NodeMgr:
         assert confdir.is_dir()
         return confdir.joinpath(f"{what}.json")
 
-    def _init_node(self) -> None:
+    def _node_init(self) -> None:
         statefile: Path = self._get_node_file("node")
         if not statefile.exists():
             # other control files must not exist either

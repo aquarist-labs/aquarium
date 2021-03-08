@@ -50,3 +50,7 @@ class NodeHasJoinedError(NodeError):
 
 class NodeCantBootstrapError(NodeError):
     pass
+
+
+class NodeNetworkAddressNotAvailable(NodeError):
+    pass
