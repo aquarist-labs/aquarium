@@ -560,6 +560,9 @@ class NodeMgr:
         node: JoiningNodeModel = self._joining[address]
         logger.info("=> mgr -- handle ready to add > "
                     f"hostname: {node.hostname}, address: {node.address}")
+        orch = Orchestrator()
+        if not orch.host_add(node.hostname, node.address):
+            logger.error("=> mgr -- handle ready > failed adding host to orch")
 
 
 _nodemgr: Optional[NodeMgr] = None
