@@ -11,6 +11,7 @@ dependencies_opensuse_tumbleweed=(
   "npm"
   "vagrant"
   "vagrant-libvirt"
+  "libvirt-daemon"
 )
 
 dependencies_debian=(
@@ -20,9 +21,11 @@ dependencies_debian=(
   "python3-pip"
   "python3-rados"
   "python3-kiwi"
+  "python3-kiwi-boxed-plugin"
   "python3-venv"
   "nodejs"
   "vagrant"
+  "libvirt-daemon"
 )
 
 dependencies_ubuntu=(
@@ -32,9 +35,11 @@ dependencies_ubuntu=(
   "python3-pip"
   "python3-rados"
   "python3-kiwi"
+  "python3-kiwi-boxed-plugin"
   "python3-venv"
   "nodejs"
   "vagrant"
+  "libvirt-daemon"
 )
 
 usage() {

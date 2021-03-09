@@ -188,11 +188,27 @@ cp ${imgdir}/microOS/config.{sh,xml} ${build}/
 bundle || exit 1
 
 mkdir ${build}/{_out,_logs}
-(set -o pipefail
-sudo kiwi-ng --debug --profile=${profile} --type oem \
-  system build --description ${build} \
-  --target-dir ${build}/_out |\
-  tee ${build}/_logs/${build_name}-build.log)
+
+osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
+case $osid in
+  opensuse-tumbleweed | opensuse-leap)
+    (set -o pipefail
+    sudo kiwi-ng --debug --profile=${profile} --type oem \
+      system build --description ${build} \
+      --target-dir ${build}/_out |\
+      tee ${build}/_logs/${build_name}-build.log)
+    ;;
+  debian | ubuntu)
+    (set -o pipefail
+    sudo kiwi-ng --debug --profile=${profile} --type oem \
+      system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
+      --target-dir ${build}/_out |\
+      tee ${build}/_logs/${build_name}-build.log)
+    ;;
+  *)
+    echo "error: unsupported distribution ($osid) kiwi-ng may not work"
+    exit 1
+      ;;
+esac
 
 exit $?
-
