@@ -66,7 +66,9 @@ class Inventory(Ticker):
     async def _publish(self) -> None:
         assert self._latest
         for subscriber in self._subscribers:
-            await subscriber.cb(self._latest)
+            # ignore type because mypy is somehow broken when doing callbacks
+            # see https://github.com/python/mypy/issues/5485
+            await subscriber.cb(self._latest)  # type: ignore
             if subscriber.once:
                 self._subscribers.remove(subscriber)
 
