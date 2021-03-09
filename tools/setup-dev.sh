@@ -24,6 +24,18 @@ dependencies_debian=(
   "vagrant"
 )
 
+dependencies_ubuntu=(
+  "btrfs-progs"
+  "git"
+  "python3"
+  "python3-pip"
+  "python3-rados"
+  "python3-kiwi"
+  "python3-venv"
+  "nodejs"
+  "vagrant"
+)
+
 usage() {
   cat << EOF
 usage: $(basename $0) [options]
@@ -75,7 +87,9 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
-osid=$(grep '^ID=' /etc/os-release | sed -e 's/^ID="\(.\+\)"/\1/')
+osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
+
+
 
 if ${show_dependencies} ; then
 
@@ -85,6 +99,9 @@ if ${show_dependencies} ; then
       ;;
     debian)
       echo "  > ${dependencies_debian[*]}"
+      ;;
+    ubuntu)
+      echo "  > ${dependencies_ubuntu[*]}"
       ;;
     *)
       echo "error: unsupported distribution"
@@ -104,15 +121,25 @@ if ! ${skip_install_deps} ; then
       echo "=> try installing dependencies"
       sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || exit 1
       ;;
-    ID=debian)
+    debian)
       echo "=> installing nodejs15.x repo to apt source"
       wget -qO - https://deb.nodesource.com/setup_15.x | sudo bash -
-      echo "=> installing kiwi repo to apt source"
-      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10 ./'
       echo "=> installing kiwi repo public key"
       sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10/Release.key | sudo apt-key add -
+      echo "=> installing kiwi repo to apt source"
+      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10 ./'
       echo "=> try installing dependencies"
       sudo apt-get install -q -y ${dependencies_debian[*]} || exit 1
+      ;;
+    ubuntu)
+      echo "=> installing nodejs15.x repo to apt source"
+      wget -qO - https://deb.nodesource.com/setup_15.x | sudo bash -
+      echo "=> installing kiwi repo public key"
+      sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.04/Release.key | sudo apt-key add -
+      echo "=> installing kiwi repo to apt source"
+      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.04 ./' -y
+      echo "=> try installing dependencies"
+      sudo apt-get install -q -y ${dependencies_ubuntu[*]} || exit 1
       ;;
     *)
       echo "error: unsupported distribution ($osid)"
