@@ -59,6 +59,10 @@ routines:
         ./setup.sh foo 2>&1
         cd setups/foo
         vagrant up --no-destroy-on-error --no-parallel 2>&1
+    - name: check aquarium service is up and running
+      command: |
+        cd aquarium/tests/vagrant/setups/foo
+        vagrant ssh -c "sudo systemctl status aquarium"
 
 # openstack:
 flavor: b2-15
