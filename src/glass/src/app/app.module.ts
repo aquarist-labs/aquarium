@@ -7,7 +7,7 @@ import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-transla
 import { AppComponent } from '~/app/app.component';
 import { AppRoutingModule } from '~/app/app-routing.module';
 import { CoreModule } from '~/app/core/core.module';
-import { getCurrentLanguage,setTranslationService, TranslateHttpLoader } from '~/app/i18n.helper';
+import { getCurrentLanguage, setTranslationService, TranslateHttpLoader } from '~/app/i18n.helper';
 import { MaterialModule } from '~/app/material.modules';
 import { PagesModule } from '~/app/pages/pages.module';
 import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-interceptor.service';
