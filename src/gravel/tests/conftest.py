@@ -40,14 +40,17 @@ def ceph_conf_file_fs(request, fs):
 
 @pytest.fixture()
 def get_data_contents(fs):
-    # For tests to be able to access any files in the DATA_DIR, we need to
-    # add them to the fake filesystem. (If you open any files before the
-    # fakefs is set up they will still be accessible, so this is only as a
-    # convenience in-case you've order the `fs` before any other fixtures).
-    fs.add_real_directory(DATA_DIR)
+    def _get_data_contents(dir, fn):
+        # For tests to be able to access any file we need to  add them to the
+        # fake filesystem. (If you open any files before the fakefs is set up
+        # they will still be accessible, so this is only as a convenience
+        # in-case you've order the `fs` before any other fixtures).
+        try:
+            fs.add_real_file(os.path.join(dir, fn))
+        except FileExistsError:
+            pass
 
-    def _get_data_contents(fn):
-        with open(os.path.join(DATA_DIR, fn), 'r') as f:
+        with open(os.path.join(dir, fn), 'r') as f:
             contents = f.read()
         return contents
     yield _get_data_contents

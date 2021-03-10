@@ -10,12 +10,13 @@ from typing import Any, Dict
 from gravel.controllers.orch.ceph import Mgr, Mon
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+TEST_DIR = os.path.join(os.path.dirname(__file__), '../../../')
 
 
 def test_ceph_conf(fs):
     # default location
     fs.add_real_file(
-        os.path.join(DATA_DIR, 'default_ceph.conf'),
+        os.path.join(TEST_DIR, 'data/default_ceph.conf'),
         target_path='/etc/ceph/ceph.conf'
     )
     Mgr()
@@ -24,7 +25,7 @@ def test_ceph_conf(fs):
     # custom location
     conf_file = '/foo/bar/baz.conf'
     fs.add_real_file(
-        os.path.join(DATA_DIR, 'default_ceph.conf'),
+        os.path.join(TEST_DIR, 'data/default_ceph.conf'),
         target_path=conf_file
     )
     Mgr(conf_file=conf_file)
@@ -39,8 +40,9 @@ def test_ceph_conf(fs):
 
 def test_mon_df(ceph_conf_file_fs, mocker, get_data_contents):
     mon = Mon()
-    mon.call = mocker.MagicMock(  # type: ignore
-        return_value=json.loads(get_data_contents('mon_df_raw.json')))
+    mon.call = mocker.MagicMock(
+        return_value=json.loads(get_data_contents(DATA_DIR, 'mon_df_raw.json'))
+    )
 
     res = mon.df()
     assert res.stats.total_bytes == 0
@@ -48,8 +50,9 @@ def test_mon_df(ceph_conf_file_fs, mocker, get_data_contents):
 
 def test_get_osdmap(ceph_conf_file_fs, mocker, get_data_contents):
     mon = Mon()
-    mon.call = mocker.MagicMock(  # type: ignore
-        return_value=json.loads(get_data_contents('mon_osdmap_raw.json'))
+    mon.call = mocker.MagicMock(
+        return_value=json.loads(
+            get_data_contents(DATA_DIR, 'mon_osdmap_raw.json'))
     )
     res = mon.get_osdmap()
     assert res.epoch == 4
@@ -57,8 +60,9 @@ def test_get_osdmap(ceph_conf_file_fs, mocker, get_data_contents):
 
 def test_get_pools(ceph_conf_file_fs, mocker, get_data_contents):
     mon = Mon()
-    mon.call = mocker.MagicMock(  # type: ignore
-        return_value=json.loads(get_data_contents('mon_osdmap_raw.json'))
+    mon.call = mocker.MagicMock(
+        return_value=json.loads(
+            get_data_contents(DATA_DIR, 'mon_osdmap_raw.json'))
     )
     res = mon.get_pools()
     assert len(res) == 0

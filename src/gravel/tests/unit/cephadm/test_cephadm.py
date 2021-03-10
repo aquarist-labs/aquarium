@@ -1,10 +1,14 @@
 from typing import Any, Dict, List, Tuple
 import json
+import os
 import pytest
 
 from gravel.cephadm.cephadm import Cephadm, CephadmError
 from gravel.cephadm.models \
     import HostFactsModel, NodeInfoModel, VolumeDeviceModel
+
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
 @pytest.mark.asyncio
@@ -25,14 +29,14 @@ async def test_bootstrap(mocker):
 @pytest.mark.asyncio
 async def test_gather_facts_real(mocker, get_data_contents):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
-        return get_data_contents('gather_facts_real.json'), "", 0
+        return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
 
     cephadm = Cephadm()
     mocker.patch.object(cephadm, 'call', side_effect=mock_call)
 
     result: HostFactsModel = await cephadm.gather_facts()
     real: Dict[str, Any] = json.loads(
-        get_data_contents('gather_facts_real.json'))
+        get_data_contents(DATA_DIR, 'gather_facts_real.json'))
     assert result.dict() == real
 
 
@@ -51,7 +55,7 @@ async def test_gather_facts_fail_1(mocker):
 @pytest.mark.asyncio
 async def test_gather_facts_fail_2(mocker, get_data_contents):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
-        return get_data_contents('gather_facts_real.json'), "", 1
+        return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 1
 
     cephadm = Cephadm()
     mocker.patch.object(cephadm, 'call', side_effect=mock_call)
@@ -63,7 +67,7 @@ async def test_gather_facts_fail_2(mocker, get_data_contents):
 @pytest.mark.asyncio
 async def test_volume_inventory(mocker, get_data_contents):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
-        return get_data_contents('inventory_real.json'), "", 0
+        return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
 
     cephadm = Cephadm()
     mocker.patch.object(cephadm, 'call', side_effect=mock_call)
@@ -93,10 +97,10 @@ async def test_volume_inventory_fail(mocker):
 @pytest.mark.asyncio
 async def test_get_node_info(mocker, get_data_contents):
     async def mock_facts_call(cmd: str) -> Tuple[str, str, int]:
-        return get_data_contents('gather_facts_real.json'), "", 0
+        return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
 
     async def mock_inventory_call(cmd: str) -> Tuple[str, str, int]:
-        return get_data_contents('inventory_real.json'), "", 0
+        return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
 
     cephadm_facts = Cephadm()
     mocker.patch.object(
