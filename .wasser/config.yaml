@@ -64,11 +64,11 @@ routines:
         cd aquarium/tests/vagrant/setups/foo
         vagrant ssh -c "sudo systemctl status aquarium"
 
-# openstack:
-flavor: b2-15
-image: openSUSE-Leap-15.2-JeOS.x86_64-15.2-OpenStack-Cloud-Build31.348
-keyfile: ~/.ssh/sa
-keyname: storage-automation
-name: aqua-%02d
-userdata: openstack/user-data.yaml
-username: opensuse
+openstack:
+  flavor: b2-15
+  image: openSUSE-Leap-15.2-JeOS.x86_64-15.2-OpenStack-Cloud-Build31.348
+  keyfile: ~/.ssh/sa
+  keyname: storage-automation
+  name: aqua-%02d
+  userdata: openstack/user-data.yaml
+  username: opensuse
