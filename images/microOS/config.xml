@@ -580,6 +580,7 @@
         <package name="python3-aiofiles"/>
         <package name="python3-requests"/>
         <package name="python3-rados"/>
+        <package name="python3-websockets"/>
         <archive name="aquarium.tar"/>
     </packages>
 
