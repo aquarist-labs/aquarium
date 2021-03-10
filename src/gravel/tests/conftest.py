@@ -56,13 +56,13 @@ def get_data_contents(fs):
 @pytest.fixture()
 def gstate(mocker):
     mocker.patch('gravel.controllers.config.Config')
-    from gravel.controllers.gstate import GlobalState
-    yield GlobalState()
+    from gravel.controllers.gstate import gstate as _gstate
+    yield _gstate
 
 
 @pytest.fixture()
 def services(gstate, mocker):
-    class MockStorage(mocker.MagicMock):
+    class MockStorage(mocker.MagicMock):  # type: ignore
         available = 2000
     mocker.patch('gravel.controllers.resources.storage', MockStorage)
     mocker.patch('gravel.controllers.services.Services._save')

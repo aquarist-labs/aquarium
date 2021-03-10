@@ -15,8 +15,8 @@ async def test_tickers(gstate):
     from gravel.controllers.gstate import Ticker
 
     class TestTicker(Ticker):
-        def __init__(self):
-            super().__init__("test", 1.0)
+        def __init__(self, name):
+            super().__init__(name, 1.0)
             self.has_ticked = False
 
         async def _do_tick(self) -> None:
@@ -25,8 +25,8 @@ async def test_tickers(gstate):
         async def _should_tick(self) -> bool:
             return not self.has_ticked
 
-    ticker = TestTicker()
-    assert "test" in gstate.tickers.keys()
+    ticker = TestTicker("test")
+    assert "test" in gstate.tickers
 
     await gstate._do_ticks()  # pyright: reportPrivateUsage=false
     await asyncio.sleep(1)  # let ticker tick
@@ -35,7 +35,7 @@ async def test_tickers(gstate):
     gstate.rm_ticker("test")
     assert "test" not in gstate.tickers
 
-    ticker = TestTicker()
+    ticker = TestTicker("test")
     assert "test" in gstate.tickers
     await gstate.start()
     await asyncio.sleep(1)  # let ticker tick
