@@ -3,6 +3,7 @@
 dependencies_opensuse_tumbleweed=(
   "btrfsprogs"
   "git"
+  "kpartx"
   "python3"
   "python3-rados"
   "python3-kiwi"
