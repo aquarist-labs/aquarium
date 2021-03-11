@@ -1,24 +1,3 @@
-# project aquarium's backend
-# Copyright (C) 2021 SUSE, LLC.
-
-mon_df_raw = '''
-{
-    "stats": {
-        "total_bytes": 0,
-        "total_avail_bytes": 0,
-        "total_used_bytes": 0,
-        "total_used_raw_bytes": 0,
-        "total_used_raw_ratio": 0,
-        "num_osds": 0,
-        "num_per_pool_osds": 0,
-        "num_per_pool_omap_osds": 0
-    },
-    "stats_by_class": {},
-    "pools": []
-}
-'''
-
-mon_osdmap_raw = '''
 {
     "epoch": 4,
     "fsid": "738b16d8-7370-11eb-a679-5254007c6929",
@@ -86,4 +65,3 @@ mon_osdmap_raw = '''
         "stretch_mode_bucket": 0
     }
 }
-'''
