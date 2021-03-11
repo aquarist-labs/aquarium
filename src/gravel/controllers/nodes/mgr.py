@@ -29,6 +29,10 @@ from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import gstate
+from gravel.controllers.orch.ceph import (
+    CephCommandError,
+    Mon
+)
 from gravel.controllers.resources.inventory import get_inventory
 
 from gravel.controllers.nodes.errors import (
@@ -297,6 +301,9 @@ class NodeMgr:
     async def finish_bootstrap(self):
         assert self._state
         assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
+
+        await self._finish_bootstrap_config()
+
         manifestfile: Path = self._get_node_file("manifest")
         tokenfile: Path = self._get_node_file("token")
         statefile: Path = self._get_node_file("node")
@@ -325,6 +332,14 @@ class NodeMgr:
         tokenfile.write_text(token.json())
 
         self._load()
+
+    async def _finish_bootstrap_config(self) -> None:
+        mon: Mon = Mon()
+        try:
+            mon.set_allow_pool_size_one()
+        except CephCommandError as e:
+            logger.error("=> mgr -- unable to allow pool size 1")
+            logger.debug(str(e))
 
     async def finish_deployment(self) -> None:
         assert self._state

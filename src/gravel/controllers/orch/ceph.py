@@ -1,14 +1,33 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 from json.decoder import JSONDecodeError
-from gravel.controllers.orch.models \
-    import CephDFModel, CephOSDMapModel, CephOSDPoolEntryModel, CephStatusModel
+from gravel.controllers.orch.models import (
+    CephDFModel,
+    CephOSDMapModel,
+    CephOSDPoolEntryModel,
+    CephStatusModel
+)
 import rados
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Callable, Dict, Any, List
+from typing import (
+    Callable,
+    Dict,
+    Any,
+    List
+)
 
 
 CEPH_CONF_FILE = '/etc/ceph/ceph.conf'
@@ -161,5 +180,14 @@ class Mon(Ceph):
             "pool": name,
             "var": "size",
             "val": str(size)
+        }
+        self.call(cmd)
+
+    def set_allow_pool_size_one(self) -> None:
+        cmd: Dict[str, str] = {
+            "prefix": "config set",
+            "who": "global",
+            "name": "mon_allow_pool_size_one",
+            "value": "true"
         }
         self.call(cmd)
