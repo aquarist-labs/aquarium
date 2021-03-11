@@ -24,13 +24,13 @@ If you consider yourself to be non-technical, but interested in how communities 
 
 ## Goal for this Hackweek
 
-We are currently in Phrase 2 (Milestone 2) of the project where we are actively developing how to deploy a multi-node setup. Our goals:
+We are currently in Phase 2 (Milestone 2) of the project where we are actively developing how to deploy a multi-node setup. Our goals:
 
 - Testing deployment
 - Bug finding/squashing
 - And if you like the project, active development! We have a series of issues related to multi-node deployment, and anything you can grab is yours.
 
-If you consider yourself non-technical, but want to get involved another way:
+If you want to get involved in another way:
 
 - Work on the plans for announcements/communication plan
 - Work with the frontend development on UX/UI
