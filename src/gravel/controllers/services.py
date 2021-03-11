@@ -11,7 +11,10 @@ from gravel.controllers.orch.cephfs import CephFS, CephFSError
 from gravel.controllers.orch.models \
     import CephFSListEntryModel, CephOSDPoolEntryModel
 from gravel.controllers.gstate import gstate
-from gravel.controllers.resources import storage
+from gravel.controllers.resources.storage import (
+    Storage,
+    get_storage
+)
 
 
 class ServiceError(Exception):
@@ -110,6 +113,12 @@ class Services:
             total += (service.reservation * service.replicas)
         return total
 
+    @property
+    def available_space(self) -> int:
+        storage: Storage = get_storage()
+        total_storage: int = storage.total
+        return (total_storage - self.total_raw_reservation)
+
     def __contains__(self, name: str) -> bool:
         return name in self._services
 
@@ -123,8 +132,8 @@ class Services:
     ) -> Tuple[bool, ServiceRequirementsModel]:
         required: int = size*replicas
         reserved: int = self.total_raw_reservation
-        available: int = storage.get_storage().available
-        feasible: bool = ((required + reserved) <= available)
+        available: int = self.available_space
+        feasible: bool = (required <= available)
         requirements = ServiceRequirementsModel(
             reserved=reserved,
             available=available,
