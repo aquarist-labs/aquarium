@@ -113,7 +113,7 @@ async def get_node_info() -> NodeInfoModel:
 
 @router.get("/inventory", response_model=NodeInfoModel)
 async def get_inventory() -> NodeInfoModel:
-    latest = await inventory.latest()
+    latest = inventory.get_inventory().latest
     if not latest:
         raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
                             detail="Inventory not available")
@@ -138,6 +138,16 @@ async def all_devices_assimilated() -> bool:
     try:
         orch = Orchestrator()
         return orch.all_devices_assimilated()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
+
+
+@router.get("/pubkey")
+async def get_pubkey() -> str:
+    try:
+        orch = Orchestrator()
+        return orch.get_public_key()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))

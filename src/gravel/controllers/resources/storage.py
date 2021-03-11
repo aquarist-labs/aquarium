@@ -1,13 +1,27 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 from logging import Logger
 from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 from pydantic.fields import Field
 from pydantic.main import BaseModel
-from gravel.controllers.config import DeploymentStage
 from gravel.controllers.gstate import gstate, Ticker
+from gravel.controllers.nodes.mgr import (
+    NodeMgr,
+    NodeStageEnum,
+    get_node_mgr
+)
 from gravel.controllers.orch.ceph import Mon
 
 
@@ -58,9 +72,10 @@ class Storage(Ticker):
         await self._update()
 
     async def _should_tick(self) -> bool:
-        stage = gstate.config.deployment_state.stage
-        if stage != DeploymentStage.bootstrapped and \
-           stage != DeploymentStage.ready:
+        nodemgr: NodeMgr = get_node_mgr()
+        stage = nodemgr.stage
+        if stage != NodeStageEnum.BOOTSTRAPPED and \
+           stage != NodeStageEnum.READY:
             logger.debug(
                 f"=> storage not ticking, not bootstrapped (current={stage})"
             )
@@ -112,3 +127,11 @@ class Storage(Ticker):
             by_name[p.name] = pool
         self._state.pools_by_name = by_name
         self._state.pools_by_id = by_id
+
+
+_storage = Storage()
+
+
+def get_storage() -> Storage:
+    global _storage
+    return _storage

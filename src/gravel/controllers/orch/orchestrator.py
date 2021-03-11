@@ -3,10 +3,20 @@
 
 from typing import Any, Dict, List
 
+from logging import Logger
+from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
-from gravel.controllers.orch.ceph import Mgr
-from gravel.controllers.orch.models \
-    import OrchDevicesPerHostModel, OrchHostListModel
+from gravel.controllers.orch.ceph import (
+    CephCommandError,
+    Mgr
+)
+from gravel.controllers.orch.models import (
+    OrchDevicesPerHostModel,
+    OrchHostListModel
+)
+
+
+logger: Logger = fastapi_logger
 
 
 class Orchestrator:
@@ -53,3 +63,29 @@ class Orchestrator:
             "fs_name": fsname
         }
         self.call(cmd)
+
+    def get_public_key(self) -> str:
+        cmd = {
+            "prefix": "cephadm get-pub-key"
+        }
+        res = self.call(cmd)
+        assert "result" in res
+        return res["result"]
+
+    def host_add(self, hostname: str, address: str) -> bool:
+        assert hostname
+        assert address
+
+        cmd = {
+            "prefix": "orch host add",
+            "hostname": hostname,
+            "addr": address
+        }
+        try:
+            self.call(cmd)
+        except CephCommandError:
+            logger.error(
+                f"=> orch -- host add > unable to add {hostname} {address}"
+            )
+            return False
+        return True
