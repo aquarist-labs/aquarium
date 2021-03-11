@@ -91,7 +91,7 @@ class Ceph(ABC):
                 try:
                     res = json.loads(out)
                 except JSONDecodeError:  # maybe free-form?
-                    res = {"result": outstr}
+                    res = {"result": out}
             elif outstr:  # assume 'outstr' always as free-form text
                 res = {"result": outstr}
             return res

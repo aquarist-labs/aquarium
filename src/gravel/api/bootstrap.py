@@ -1,18 +1,35 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 from logging import Logger
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
+from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 
-from gravel.controllers.bootstrap \
-    import Bootstrap, BootstrapStage
+from gravel.controllers.bootstrap import (
+    Bootstrap,
+    BootstrapStage
+)
+from gravel.controllers.nodes.mgr import (
+    get_node_mgr,
+    NodeMgr
+)
+from gravel.controllers.nodes.errors import (
+    NodeAlreadyJoiningError,
+    NodeNotBootstrappedError,
+    NodeError
+)
 
 
 logger: Logger = fastapi_logger
@@ -48,4 +65,20 @@ async def get_status() -> StatusReplyModel:
 
 @router.post("/finished", response_model=bool)
 async def finish_bootstrap() -> bool:
-    return await bootstrap.mark_finished()
+    nodemgr: NodeMgr = get_node_mgr()
+    try:
+        await nodemgr.finish_deployment()
+    except NodeNotBootstrappedError:
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+            detail="Node has not bootstrapped"
+        )
+    except NodeAlreadyJoiningError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Node currently joining an existing cluster"
+        )
+    except NodeError:
+        logger.error("=> api -- bootstrap > unknown error on finished")
+        return False
+    return True

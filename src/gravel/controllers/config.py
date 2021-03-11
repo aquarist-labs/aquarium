@@ -1,8 +1,19 @@
+# project aquarium's backend
+# Copyright (C) 2021 SUSE, LLC.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
 import os
-from enum import Enum
 from logging import Logger
 from pathlib import Path
-from datetime import datetime
 from pydantic import BaseModel, Field
 from fastapi.logger import logger as fastapi_logger
 
@@ -15,18 +26,6 @@ _env_config_dir = "CONFIG_DIR"
 _config_dir_env = os.getenv(f"{_env_prefix}{_env_config_dir}")
 
 config_dir: str = _config_dir_env if _config_dir_env else '/etc/aquarium'
-
-
-class DeploymentStage(int, Enum):
-    none = 0
-    bootstrapping = 1
-    bootstrapped = 2
-    ready = 3
-
-
-class DeploymentStateModel(BaseModel):
-    last_modified: datetime = Field(title="Last Modified")
-    stage: DeploymentStage = Field(title="Current Deployment Stage")
 
 
 class InventoryOptionsModel(BaseModel):
@@ -47,7 +46,6 @@ class OptionsModel(BaseModel):
 class ConfigModel(BaseModel):
     version: int = Field(title="Configuration Version")
     name: str = Field(title="Deployment Name")
-    deployment_state: DeploymentStateModel = Field(title="Deployment State")
     options: OptionsModel = Field(OptionsModel(), title="Options")
 
 
@@ -62,12 +60,8 @@ class Config:
 
         if not self.confpath.exists():
             initconf: ConfigModel = ConfigModel(
-                version=3,
-                name="",
-                deployment_state=DeploymentStateModel(
-                    last_modified=datetime.now(),
-                    stage=DeploymentStage.none
-                )
+                version=1,
+                name=""
             )
             initconf.options.service_state_path = Path(path).joinpath("storage.json")
             self._saveConfig(initconf)
@@ -77,15 +71,6 @@ class Config:
     def _saveConfig(self, conf: ConfigModel) -> None:
         logger.debug(f'Writing Aquarium config: {self.confpath}')
         self.confpath.write_text(conf.json(indent=2))
-
-    @property
-    def deployment_state(self) -> DeploymentStateModel:
-        return self.config.deployment_state
-
-    def set_deployment_stage(self, stage: DeploymentStage) -> None:
-        self.config.deployment_state.last_modified = datetime.now()
-        self.config.deployment_state.stage = stage
-        self._saveConfig(self.config)
 
     @property
     def options(self) -> OptionsModel:

@@ -25,7 +25,12 @@ usage: $0 [options]
 options:
   -n NAME | --name NAME     Specify build name (default: aquarium).
   -c | --clean              Cleanup an existing build directory before building.
+  -t | --type IMGTYPE       Specify image type (default: vagrant)
   -h | --help               This message.
+
+allowed image types:
+  vagrant                   Builds a vagrant image
+  self-install              Builds an image to be run on bare metal.
 EOF
 
 }
@@ -54,6 +59,7 @@ srcdir=${rootdir}/src
 [[ ! -d "${srcdir}" ]] && \
   error_exit "unable to find 'src' directory at ${rootdir}" 
 
+imgtype="vagrant"
 build_name="aquarium"
 clean=0
 
@@ -65,6 +71,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     -c|--clean)
       clean=1
+      ;;
+    -t|--type)
+      imgtype=$2
       shift 1
       ;;
     -h|--help)
@@ -80,6 +89,21 @@ done
 
 [[ -z "${build_name}" ]] && \
   usage_error_exit "missing build name"
+
+[[ -z "${imgtype}" ]] && \
+  usage_error_exit "image type must be provided"
+
+profile=""
+case ${imgtype} in
+  vagrant) profile="Ceph-Vagrant" ;;
+  self-install) profile="Ceph" ;;
+  *)
+    usage_error_exit "unknown image type: '${imgtype}'"
+    ;;
+esac
+
+[[ -z "${profile}" ]] && \
+  usage_error_exit "bad image type: '${imgtype}"
 
 if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
@@ -169,7 +193,7 @@ osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '
 case $osid in
   opensuse-tumbleweed | opensuse-leap)
     (set -o pipefail
-    sudo kiwi-ng --debug --profile=Ceph-Vagrant --type oem \
+    sudo kiwi-ng --debug --profile={profile} --type oem \
       system build --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)

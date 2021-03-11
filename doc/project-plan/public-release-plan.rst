@@ -47,7 +47,7 @@ transition to the public space.
 
    * - Vlog
      - YouTube
-     - TBD
+     - 12/04/21
      - Demonstration of Aquarium to be released on YouTube with a brief introduction
        to the project and a little about Aquarist Labs
      - Announcement of and introduction to Aquarium
@@ -57,7 +57,7 @@ transition to the public space.
          - All
    * - Blog post
      - `suse.com/c/blog`
-     - TBD
+     - 05/04/21
      - Detailed blog introducing Aquarium to the SUSE reader base. Providing
        clear details on what the project is, how it works, and where to get
        started hacking if you want to get involved.
@@ -67,7 +67,7 @@ transition to the public space.
          - lmb@suse.com
    * - Blog post
      - `https://ceph.io/community/blog/`
-     - TBD
+     - 12/04/21
      - Detailed blog introducing Aquarium to the SUSE reader base. Providing
        clear details on what the project is, how it works, and where to get
        started hacking if you want to get involved.

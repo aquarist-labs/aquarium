@@ -9,9 +9,14 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel
 from pydantic.fields import Field
 
-from gravel.controllers.services import \
-    NotEnoughSpaceError, ServiceError, ServiceModel, \
-    ServiceRequirementsModel, ServiceTypeEnum, Services
+from gravel.controllers.services import (
+    NotEnoughSpaceError,
+    ServiceError,
+    ServiceModel,
+    ServiceRequirementsModel,
+    ServiceTypeEnum,
+    Services
+)
 from gravel.controllers.resources import storage
 
 
@@ -53,7 +58,7 @@ async def get_reservations() -> ReservationsReply:
     services = Services()
     return ReservationsReply(
         reserved=services.total_reservation,
-        available=storage.available
+        available=storage.get_storage().available
     )
 
 

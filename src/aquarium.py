@@ -26,6 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.gstate import gstate
+from gravel.controllers.nodes import mgr
 
 from gravel.api import bootstrap
 from gravel.api import orch
@@ -48,6 +49,9 @@ async def on_startup():
         uvilogger.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     logger.info("Aquarium startup!")
+
+    # init node mgr
+    mgr.init_node_mgr()
 
     # create a task simply so we don't hold up the startup
     asyncio.create_task(gstate.start())

@@ -31,17 +31,14 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
         }
         const res: Status = {
           /* eslint-disable @typescript-eslint/naming-convention */
-          deployment_state: {
-            last_modified: 'now',
-            stage: StatusStageEnum.unknown
-          }
+          node_stage: StatusStageEnum.unknown
         };
         return of(res);
       }),
       map((res: Status) => {
         let url: string;
         let result: boolean | UrlTree;
-        switch (res.deployment_state.stage) {
+        switch (res.node_stage) {
           case StatusStageEnum.bootstrapping:
             url = '/installer/create/bootstrap';
             if (url === state.url) {

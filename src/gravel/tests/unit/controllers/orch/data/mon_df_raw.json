@@ -1,0 +1,14 @@
+{
+    "stats": {
+        "total_bytes": 0,
+        "total_avail_bytes": 0,
+        "total_used_bytes": 0,
+        "total_used_raw_bytes": 0,
+        "total_used_raw_ratio": 0,
+        "num_osds": 0,
+        "num_per_pool_osds": 0,
+        "num_per_pool_omap_osds": 0
+    },
+    "stats_by_class": {},
+    "pools": []
+}
