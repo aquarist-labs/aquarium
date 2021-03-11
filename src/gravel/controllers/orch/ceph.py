@@ -12,12 +12,6 @@
 # GNU General Public License for more details.
 
 from json.decoder import JSONDecodeError
-from gravel.controllers.orch.models import (
-    CephDFModel,
-    CephOSDMapModel,
-    CephOSDPoolEntryModel,
-    CephStatusModel
-)
 import rados
 import json
 from abc import ABC, abstractmethod
@@ -28,7 +22,17 @@ from typing import (
     Any,
     List
 )
+from logging import Logger
+from fastapi.logger import logger as fastapi_logger
+from gravel.controllers.orch.models import (
+    CephDFModel,
+    CephOSDMapModel,
+    CephOSDPoolEntryModel,
+    CephStatusModel
+)
 
+
+logger: Logger = fastapi_logger
 
 CEPH_CONF_FILE = '/etc/ceph/ceph.conf'
 
@@ -175,13 +179,33 @@ class Mon(Ceph):
         return osdmap.pools
 
     def set_pool_size(self, name: str, size: int) -> None:
-        cmd: Dict[str, str] = {
+        size_cmd: Dict[str, Any] = {
             "prefix": "osd pool set",
             "pool": name,
             "var": "size",
             "val": str(size)
         }
-        self.call(cmd)
+        if size == 1:
+            size_cmd["yes_i_really_mean_it"] = True
+        try:
+            self.call(size_cmd)
+        except CephCommandError as e:
+            logger.error("=> ceph -- mon > unable to set pool size")
+            logger.debug(str(e))
+            logger.debug(str(size_cmd))
+
+        minsize = 2 if size > 2 else 1
+        minsize_cmd: Dict[str, str] = {
+            "prefix": "osd pool set",
+            "pool": name,
+            "var": "min_size",
+            "val": str(minsize)
+        }
+        try:
+            self.call(minsize_cmd)
+        except CephCommandError as e:
+            logger.error("=> ceph -- mon > unable to set pool min_size")
+            logger.debug(str(e))
 
     def set_allow_pool_size_one(self) -> None:
         cmd: Dict[str, str] = {
@@ -189,5 +213,14 @@ class Mon(Ceph):
             "who": "global",
             "name": "mon_allow_pool_size_one",
             "value": "true"
+        }
+        self.call(cmd)
+
+    def disable_warn_on_no_redundancy(self) -> None:
+        cmd: Dict[str, str] = {
+            "prefix": "config set",
+            "who": "global",
+            "name": "mon_warn_on_pool_no_redundancy",
+            "value": "false"
         }
         self.call(cmd)

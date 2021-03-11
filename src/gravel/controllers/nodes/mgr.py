@@ -341,6 +341,12 @@ class NodeMgr:
             logger.error("=> mgr -- unable to allow pool size 1")
             logger.debug(str(e))
 
+        try:
+            mon.disable_warn_on_no_redundancy()
+        except CephCommandError as e:
+            logger.error("=> mgr -- unable to disable redundancy warning")
+            logger.debug(str(e))
+
     async def finish_deployment(self) -> None:
         assert self._state
 

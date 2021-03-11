@@ -76,8 +76,14 @@ def test_set_pool_size(ceph_conf_file_fs, mocker):
         assert "val" in args
         assert args["prefix"] == "osd pool set"
         assert args["pool"] == "foobar"
-        assert args["var"] == "size"
-        assert args["val"] == "2"
+        assert args["var"] in ["size", "min_size"]
+
+        if args["var"] == "size":
+            assert args["val"] == "2"
+            assert "i_really_mean_it" not in args
+        else:
+            assert args["var"] == "min_size"
+            assert args["val"] == "1"
 
     mocker.patch.object(
         Mon, "call", new=argscheck  # type:ignore
