@@ -109,7 +109,7 @@ if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
 fi
 
-if ! /sbin/mkfs.btrfs --version &>/dev/null ; then
+if ! [[ -f /sbin/mkfs.btrfs || -f /bin/mkfs.btrfs ]]; then
   echo "error: missing btrfsprogs"
   exit 1
 fi
@@ -188,11 +188,28 @@ cp ${imgdir}/microOS/config.{sh,xml} ${build}/
 bundle || exit 1
 
 mkdir ${build}/{_out,_logs}
-(set -o pipefail
-sudo kiwi-ng --debug --profile=${profile} --type oem \
-  system build --description ${build} \
-  --target-dir ${build}/_out |\
-  tee ${build}/_logs/${build_name}-build.log)
 
-exit $?
+osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
+case $osid in
+  opensuse-tumbleweed | opensuse-leap)
+    (set -o pipefail
+    sudo kiwi-ng --debug --profile=${profile} --type oem \
+      system build --description ${build} \
+      --target-dir ${build}/_out |\
+      tee ${build}/_logs/${build_name}-build.log)
+    exit $?
+    ;;
+  debian | ubuntu)
+    (set -o pipefail
+    sudo kiwi-ng --debug --profile=${profile} --type oem \
+      system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
+      --target-dir ${build}/_out |\
+      tee ${build}/_logs/${build_name}-build.log)
+    exit $?
+    ;;
+  *)
+    echo "error: unsupported distribution ($osid) kiwi-ng may not work"
+    exit 1
+      ;;
+esac
 
