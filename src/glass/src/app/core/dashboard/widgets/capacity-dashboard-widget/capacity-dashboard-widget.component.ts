@@ -31,8 +31,8 @@ export class CapacityDashboardWidgetComponent
     // @ts-ignore
     this.subscription = this.loadDataEvent.subscribe(() => {
       this.chartData = [
-        { name: translate(TEXT('Assigned')), value: this.data.available - this.data.reserved },
-        { name: translate(TEXT('Unassigned')), value: this.data.reserved }
+        { name: translate(TEXT('Assigned')), value: this.data.reserved },
+        { name: translate(TEXT('Unassigned')), value: this.data.available }
       ];
     });
   }
