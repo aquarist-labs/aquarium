@@ -19,13 +19,13 @@
 
 import asyncio
 import logging
+import logging.config
 import os
-from typing import cast
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger as fastapi_logger
 
-from gravel.controllers.gstate import gstate
+from gravel.controllers.gstate import gstate, setup_logging
 from gravel.controllers.nodes import mgr
 
 from gravel.api import bootstrap
@@ -43,11 +43,9 @@ api = FastAPI()
 
 @app.on_event("startup")  # type: ignore
 async def on_startup():
-    uvilogger = cast(logging.Handler, logging.getLogger("uvicorn"))
-    logger.addHandler(uvilogger)
-    if os.getenv("AQUARIUM_DEBUG"):
-        uvilogger.setLevel(logging.DEBUG)
-        logger.setLevel(logging.DEBUG)
+
+    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
+    setup_logging(lvl)
     logger.info("Aquarium startup!")
 
     # init node mgr

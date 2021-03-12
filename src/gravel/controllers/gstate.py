@@ -15,6 +15,7 @@ import asyncio
 import time
 from abc import ABC, abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
+import logging.config
 from logging import Logger
 from typing import Callable, Any, Dict
 from fastapi.logger import logger as fastapi_logger
@@ -23,6 +24,52 @@ from gravel.controllers.config import Config
 
 
 logger: Logger = fastapi_logger
+
+
+def setup_logging(console_level: str) -> None:
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {
+                "format": "[%(levelname)-5s] %(asctime)s -- %(module)s -- %(message)s",
+                "datefmt": "%Y-%m-%dT%H:%M:%S"
+            },
+            "colorized": {
+                "()": "uvicorn.logging.ColourizedFormatter",
+                "format": "%(levelprefix)s %(asctime)s -- %(module)s -- %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S"
+            }
+        },
+        "handlers": {
+            "console": {
+                "level": console_level,
+                "class": "logging.StreamHandler",
+                "formatter": "colorized",
+            },
+            "log_file": {
+                "level": "DEBUG",
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "simple",
+                "filename": "/tmp/aquarium.log",
+                "maxBytes": 10485760,
+                "backupCount": 1
+            }
+        },
+        "loggers": {
+            "uvicorn": {
+                "level": "DEBUG",
+                "handlers": ["console", "log_file"],
+                "propagate": "no"
+            }
+        },
+        "root": {
+            "level": "DEBUG",
+            "handlers": ["console", "log_file"]
+        }
+    }
+
+    logging.config.dictConfig(logging_config)
 
 
 class Ticker(ABC):
