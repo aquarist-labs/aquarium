@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
 
 @Component({
@@ -26,12 +27,13 @@ export class ServicesDashboardWidgetComponent extends AbstractDashboardWidget<Se
     },
     {
       name: TEXT('Space'),
-      prop: 'space',
-      sortable: true
+      prop: 'reservation',
+      sortable: true,
+      pipe: new BytesToSizePipe()
     },
     {
-      name: TEXT('Redundancy Level'),
-      prop: 'redundancy',
+      name: TEXT('Replicas'),
+      prop: 'replicas',
       sortable: true
     }
   ];
