@@ -17,7 +17,6 @@ from gravel.controllers.services import (
     ServiceTypeEnum,
     Services
 )
-from gravel.controllers.resources import storage
 
 
 logger: Logger = fastapi_logger
@@ -57,8 +56,8 @@ class CreateReply(BaseModel):
 async def get_reservations() -> ReservationsReply:
     services = Services()
     return ReservationsReply(
-        reserved=services.total_reservation,
-        available=storage.get_storage().available
+        reserved=services.total_raw_reservation,
+        available=services.available_space
     )
 
 
