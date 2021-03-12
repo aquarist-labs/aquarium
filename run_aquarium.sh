@@ -23,12 +23,14 @@ has_config=false
 config_path=""
 is_new=false
 with_systemdeps=false
+port=1337
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     -d|--debug) is_debug=true ;;
     -c|--config) has_config=true ; config_path=$2 ; shift 1 ;;
     -n|--new) is_new=true ;;
+    -p|--port) port=$2 ; shift 1 ;;
     --with-system-deps) with_systemdeps=true ;;
     -h|--help) usage ; exit 0 ;;
     *)
@@ -55,6 +57,10 @@ fi
 $has_config && $is_new && [[ -e "${config_path}" ]] && \
   ( rm -fr ${config_path} || exit 1 )
 
+if [ -z "${port}" ]; then
+  echo "error: must specify a port with '--port'" && \
+  exit 1
+fi
 
 if ! $with_systemdeps ; then
   source ${VENV_DIR}/bin/activate || exit $?
@@ -66,7 +72,7 @@ pushd ${SCRIPT_DIR}/src &>/dev/null
 $is_debug && export AQUARIUM_DEBUG=1
 $has_config && export AQUARIUM_CONFIG_DIR=${config_path}
 
-uvicorn aquarium:app --host 0.0.0.0 --port 1337
+uvicorn aquarium:app --host 0.0.0.0 --port ${port}
 
 popd &>/dev/null
 
