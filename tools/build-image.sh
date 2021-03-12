@@ -31,6 +31,7 @@ options:
 allowed image types:
   vagrant                   Builds a vagrant image
   self-install              Builds an image to be run on bare metal.
+  live-iso		    Builds an live iso with persistent storage on bare metal.
 EOF
 
 }
@@ -95,8 +96,9 @@ done
 
 profile=""
 case ${imgtype} in
-  vagrant) profile="Ceph-Vagrant" ;;
-  self-install) profile="Ceph" ;;
+  vagrant) profile="Ceph-Vagrant" type="oem";;
+  self-install) profile="Ceph" type="oem";;
+  live-iso) profile="Ceph" type="iso";;
   *)
     usage_error_exit "unknown image type: '${imgtype}'"
     ;;
@@ -193,7 +195,7 @@ osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '
 case $osid in
   opensuse-tumbleweed | opensuse-leap)
     (set -o pipefail
-    sudo kiwi-ng --debug --profile=${profile} --type oem \
+    sudo kiwi-ng --debug --profile=${profile} --type ${type}\
       system build --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
@@ -201,7 +203,7 @@ case $osid in
     ;;
   debian | ubuntu)
     (set -o pipefail
-    sudo kiwi-ng --debug --profile=${profile} --type oem \
+    sudo kiwi-ng --debug --profile=${profile} --type ${type}\
       system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
