@@ -109,7 +109,7 @@ if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
 fi
 
-if ! /sbin/mkfs.btrfs --version &>/dev/null ; then
+if ! [[ -f /sbin/mkfs.btrfs || -f /bin/mkfs.btrfs ]]; then
   echo "error: missing btrfsprogs"
   exit 1
 fi
@@ -197,6 +197,7 @@ case $osid in
       system build --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
+    exit $?
     ;;
   debian | ubuntu)
     (set -o pipefail
@@ -204,6 +205,7 @@ case $osid in
       system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
+    exit $?
     ;;
   *)
     echo "error: unsupported distribution ($osid) kiwi-ng may not work"
@@ -211,4 +213,3 @@ case $osid in
       ;;
 esac
 
-exit $?
