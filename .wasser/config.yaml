@@ -2,7 +2,7 @@ wasser:
   version: '1.0'
 
 routines:
-  openSUSE Leap:
+  openSUSE:
     steps:
     # we need preliminary dependencies on the minimal image,
     # because we do not prepare wasser ready images and take
