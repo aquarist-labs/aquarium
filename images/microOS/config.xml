@@ -557,6 +557,33 @@
                 <vmnic driver="e1000" interface="0" mode="bridged"/>
             </machine>
         </type>
+        <type
+            image="iso"
+            primary="true"
+            flags="dmsquash"
+            hybridpersistent_filesystem="ext4"
+            hybridpersistent="true"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
+            bootkernel="custom"
+            devicepersistency="by-uuid"
+        >
+            <systemdisk>
+                <volume name="home"/>
+                <volume name="root"/>
+                <volume name="tmp"/>
+                <volume name="opt"/>
+                <volume name="srv"/>
+                <volume name="boot/grub2/i386-pc"/>
+                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/writable"/>
+                <volume name="usr/local"/>
+                <volume name="var" copy_on_write="false"/>
+            </systemdisk>
+            <machine memory="512" guestOS="suse" HWversion="4">
+                <vmdisk id="0" controller="ide"/>
+                <vmnic driver="e1000" interface="0" mode="bridged"/>
+            </machine>
+        </type>
     </preferences>
 
     <repository type="rpm-md" alias="Tumbleweed_OSS">
@@ -662,6 +689,8 @@
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-repart"/>
         <package name="dracut-kiwi-oem-dump"/>
+        <package name="dracut-kiwi-live"/>
+        <package name="syslinux"/>
         <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
     </packages>
     <packages type="bootstrap">
