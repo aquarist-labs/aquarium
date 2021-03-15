@@ -139,7 +139,7 @@ class NodeMgr:
         self._node_init()
         assert self._state
 
-        logger.debug(f"=> mgr -- init > {self._state}")
+        logger.debug(f"init > {self._state}")
 
         assert self._state.stage == NodeStageEnum.NONE or \
             self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
@@ -188,7 +188,7 @@ class NodeMgr:
             self._state.stage == NodeStageEnum.BOOTSTRAPPED
         assert self._state.role != NodeRoleEnum.NONE
 
-        logger.info("=> mgr -- start node")
+        logger.info("start node")
 
         self._load()
 
@@ -196,7 +196,7 @@ class NodeMgr:
         if self._state.role != NodeRoleEnum.LEADER:
             return
 
-        logger.info("=> mgr -- start leader node")
+        logger.info("start leader node")
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
         self._connmgr.start_receiving()
 
@@ -208,7 +208,7 @@ class NodeMgr:
     def _wait_inventory(self) -> None:
 
         async def _subscriber(nodeinfo: NodeInfoModel) -> None:
-            logger.debug(f"=> mgr -- subscriber > node info: {nodeinfo}")
+            logger.debug(f"subscriber > node info: {nodeinfo}")
             assert nodeinfo
             self._node_prestart(nodeinfo)
 
@@ -216,7 +216,7 @@ class NodeMgr:
 
     async def join(self, leader_address: str, token: str) -> bool:
         logger.debug(
-            f"=> mgr -- join > with leader {leader_address}, token: {token}"
+            f"join > with leader {leader_address}, token: {token}"
         )
 
         if self._init_stage == NodeInitStage.NONE:
@@ -241,7 +241,7 @@ class NodeMgr:
 
         uri: str = f"ws://{leader_address}/api/nodes/ws"
         conn = await self._connmgr.connect(uri)
-        logger.debug(f"=> mgr -- join > conn: {conn}")
+        logger.debug(f"join > conn: {conn}")
 
         joinmsg = JoinMessageModel(
             uuid=self._state.uuid,
@@ -253,10 +253,10 @@ class NodeMgr:
         await conn.send(msg)
 
         reply: MessageModel = await conn.receive()
-        logger.debug(f"=> mgr -- join > recv: {reply}")
+        logger.debug(f"join > recv: {reply}")
         if reply.type == MessageTypeEnum.ERROR:
             errmsg = ErrorMessageModel.parse_obj(reply.data)
-            logger.error(f"=> mgr -- join > error: {errmsg.what}")
+            logger.error(f"join > error: {errmsg.what}")
             await conn.close()
             return False
 
@@ -269,7 +269,7 @@ class NodeMgr:
             authorized_keys.parent.mkdir(0o700)
         with authorized_keys.open("a") as fd:
             fd.writelines([welcome.pubkey])
-            logger.debug(f"=> mgr -- join > wrote pubkey to {authorized_keys}")
+            logger.debug(f"join > wrote pubkey to {authorized_keys}")
 
         readymsg = ReadyToAddMessageModel()
         await conn.send(
@@ -338,13 +338,13 @@ class NodeMgr:
         try:
             mon.set_allow_pool_size_one()
         except CephCommandError as e:
-            logger.error("=> mgr -- unable to allow pool size 1")
+            logger.error("unable to allow pool size 1")
             logger.debug(str(e))
 
         try:
             mon.disable_warn_on_no_redundancy()
         except CephCommandError as e:
-            logger.error("=> mgr -- unable to disable redundancy warning")
+            logger.error("unable to disable redundancy warning")
             logger.debug(str(e))
 
     async def finish_deployment(self) -> None:
@@ -470,27 +470,27 @@ class NodeMgr:
         return ""
 
     async def _incoming_msg_task(self) -> None:
-        logger.info("=> mgr -- start handling incoming messages")
+        logger.info("start handling incoming messages")
         while not self._shutting_down:
-            logger.debug("=> mgr -- incoming msg task > wait")
+            logger.debug("incoming msg task > wait")
             conn, msg = await self._connmgr.wait_incoming_msg()
-            logger.debug(f"=> mgr -- incoming msg task > {conn}, {msg}")
+            logger.debug(f"incoming msg task > {conn}, {msg}")
             await self._handle_incoming_msg(conn, msg)
-            logger.debug("=> mgr -- incoming msg task > handled")
+            logger.debug("incoming msg task > handled")
 
-        logger.info("=> mgr -- stop handling incoming messages")
+        logger.info("stop handling incoming messages")
 
     async def _handle_incoming_msg(
         self,
         conn: IncomingConnection,
         msg: MessageModel
     ) -> None:
-        logger.debug(f"=> mgr -- handle msg > type: {msg.type}")
+        logger.debug(f"handle msg > type: {msg.type}")
         if msg.type == MessageTypeEnum.JOIN:
-            logger.debug("=> mgr -- handle msg > join")
+            logger.debug("handle msg > join")
             await self._handle_join(conn, JoinMessageModel.parse_obj(msg.data))
         elif msg.type == MessageTypeEnum.READY_TO_ADD:
-            logger.debug("=> mgr -- handle ready to add")
+            logger.debug("handle ready to add")
             await self._handle_ready_to_add(
                 conn,
                 ReadyToAddMessageModel.parse_obj(msg.data)
@@ -502,11 +502,11 @@ class NodeMgr:
         conn: IncomingConnection,
         msg: JoinMessageModel
     ) -> None:
-        logger.debug(f"=> mgr -- handle join {msg}")
+        logger.debug(f"handle join {msg}")
         assert self._state is not None
 
         if msg.token != self._token:
-            logger.info(f"=> mgr -- handle join > bad token from {conn}")
+            logger.info(f"handle join > bad token from {conn}")
             await conn.send_msg(
                 MessageModel(
                     type=MessageTypeEnum.ERROR,
@@ -520,7 +520,7 @@ class NodeMgr:
 
         if not msg.address or not msg.hostname:
             logger.info(
-                f"=> mgr -- handle join > missing address or host from {conn}"
+                f"handle join > missing address or host from {conn}"
             )
             await conn.send_msg(
                 MessageModel(
@@ -536,13 +536,13 @@ class NodeMgr:
         orch = Orchestrator()
         pubkey: str = orch.get_public_key()
 
-        logger.debug(f"=> mgr -- handle join > pubkey: {pubkey}")
+        logger.debug(f"handle join > pubkey: {pubkey}")
 
         welcome = WelcomeMessageModel(
             pubkey=pubkey
         )
         try:
-            logger.debug(f"=> mgr -- handle join > send welcome: {welcome}")
+            logger.debug(f"handle join > send welcome: {welcome}")
             await conn.send_msg(
                 MessageModel(
                     type=MessageTypeEnum.WELCOME,
@@ -550,10 +550,10 @@ class NodeMgr:
                 )
             )
         except Exception as e:
-            logger.error(f"=> mgr -- handle join > error: {str(e)}")
+            logger.error(f"handle join > error: {str(e)}")
             return
 
-        logger.debug(f"=> mgr -- handle join > welcome sent: {welcome}")
+        logger.debug(f"handle join > welcome sent: {welcome}")
         self._joining[conn.address] = \
             JoiningNodeModel(address=msg.address, hostname=msg.hostname)
 
@@ -562,11 +562,11 @@ class NodeMgr:
         conn: IncomingConnection,
         msg: ReadyToAddMessageModel
     ) -> None:
-        logger.debug(f"=> mgr -- handle ready to add from {conn}")
+        logger.debug(f"handle ready to add from {conn}")
         address: str = conn.address
 
         if address not in self._joining:
-            logger.info(f"=> mgr -- handle ready to add > unknown node {conn}")
+            logger.info(f"handle ready to add > unknown node {conn}")
             await conn.send_msg(
                 MessageModel(
                     type=MessageTypeEnum.ERROR,
@@ -579,11 +579,11 @@ class NodeMgr:
             return
 
         node: JoiningNodeModel = self._joining[address]
-        logger.info("=> mgr -- handle ready to add > "
+        logger.info("handle ready to add > "
                     f"hostname: {node.hostname}, address: {node.address}")
         orch = Orchestrator()
         if not orch.host_add(node.hostname, node.address):
-            logger.error("=> mgr -- handle ready > failed adding host to orch")
+            logger.error("handle ready > failed adding host to orch")
 
 
 _nodemgr: Optional[NodeMgr] = None

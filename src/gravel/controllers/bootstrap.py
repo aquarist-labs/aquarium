@@ -64,7 +64,7 @@ class Bootstrap:
         return nodemgr.bootstrapping
 
     async def bootstrap(self) -> bool:
-        logger.debug("bootstrap > do bootstrap")
+        logger.debug("do bootstrap")
 
         mgr: NodeMgr = get_node_mgr()
         stage: NodeStageEnum = mgr.stage
@@ -83,7 +83,7 @@ class Bootstrap:
         try:
             asyncio.create_task(self._do_bootstrap())
         except Exception as e:
-            logger.error(f"bootstrap > error starting bootstrap task: {str(e)}")
+            logger.error(f"error starting bootstrap task: {str(e)}")
             return False
 
         return True
@@ -95,7 +95,7 @@ class Bootstrap:
         mgr: NodeMgr = get_node_mgr()
         address = mgr.address
 
-        logger.info(f"=> bootstrap > address: {address}")
+        logger.info(f"address: {address}")
         assert address is not None and len(address) > 0
 
         mgr: NodeMgr = get_node_mgr()

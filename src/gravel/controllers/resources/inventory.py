@@ -58,7 +58,7 @@ class Inventory(Ticker):
         start: int = int(time.monotonic())
         nodeinfo = await cephadm.get_node_info()
         diff: int = int(time.monotonic()) - start
-        logger.info(f"=> inventory probing took {diff} seconds")
+        logger.info(f"probing took {diff} seconds")
         self._latest = nodeinfo
         await self._publish()
 

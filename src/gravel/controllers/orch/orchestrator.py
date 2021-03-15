@@ -95,7 +95,7 @@ class Orchestrator:
             self.call(cmd)
         except CephCommandError:
             logger.error(
-                f"=> orch -- host add > unable to add {hostname} {address}"
+                f"host add > unable to add {hostname} {address}"
             )
             return False
         return True

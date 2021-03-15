@@ -40,7 +40,7 @@ class TokenReplyModel(BaseModel):
 
 @router.post("/join")
 async def node_join(req: NodeJoinRequestModel):
-    logger.debug(f"=> api -- nodes > join {req.address} with {req.token}")
+    logger.debug(f"api > join {req.address} with {req.token}")
     if not req.address or not req.token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -190,7 +190,7 @@ class Mon(Ceph):
         try:
             self.call(size_cmd)
         except CephCommandError as e:
-            logger.error("=> ceph -- mon > unable to set pool size")
+            logger.error("mon > unable to set pool size")
             logger.debug(str(e))
             logger.debug(str(size_cmd))
 
@@ -204,7 +204,7 @@ class Mon(Ceph):
         try:
             self.call(minsize_cmd)
         except CephCommandError as e:
-            logger.error("=> ceph -- mon > unable to set pool min_size")
+            logger.error("mon > unable to set pool min_size")
             logger.debug(str(e))
 
     def set_allow_pool_size_one(self) -> None:

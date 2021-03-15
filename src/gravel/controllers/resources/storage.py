@@ -77,7 +77,7 @@ class Storage(Ticker):
         if stage != NodeStageEnum.BOOTSTRAPPED and \
            stage != NodeStageEnum.READY:
             logger.debug(
-                f"=> storage not ticking, not bootstrapped (current={stage})"
+                f"not ticking, not bootstrapped (current={stage})"
             )
             return False
         return True
