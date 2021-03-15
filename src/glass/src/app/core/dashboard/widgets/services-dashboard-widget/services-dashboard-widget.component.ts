@@ -1,8 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 
-import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
@@ -12,34 +11,50 @@ import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services
   templateUrl: './services-dashboard-widget.component.html',
   styleUrls: ['./services-dashboard-widget.component.scss']
 })
-export class ServicesDashboardWidgetComponent extends AbstractDashboardWidget<ServiceDesc[]> {
-  data: ServiceDesc[] = [];
-  columns: DatatableColumn[] = [
-    {
-      name: TEXT('Name'),
-      prop: 'name',
-      sortable: true
-    },
-    {
-      name: TEXT('Type'),
-      prop: 'type',
-      sortable: true
-    },
-    {
-      name: TEXT('Space'),
-      prop: 'reservation',
-      sortable: true,
-      pipe: new BytesToSizePipe()
-    },
-    {
-      name: TEXT('Replicas'),
-      prop: 'replicas',
-      sortable: true
-    }
-  ];
+export class ServicesDashboardWidgetComponent implements OnInit {
+  @ViewChild('flavor', { static: true })
+  flavor?: TemplateRef<any>;
 
-  constructor(private service: ServicesService) {
-    super();
+  data: ServiceDesc[] = [];
+  columns?: DatatableColumn[];
+
+  constructor(private service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {}
+
+  ngOnInit() {
+    this.columns = [
+      {
+        name: TEXT('Name'),
+        prop: 'name',
+        sortable: true
+      },
+      {
+        name: TEXT('Type'),
+        prop: 'type',
+        sortable: true
+      },
+      {
+        name: TEXT('Usable Size'),
+        prop: 'reservation',
+        pipe: this.bytesToSizePipe,
+        sortable: true
+      },
+      {
+        name: TEXT('Raw Size'),
+        prop: 'raw_size',
+        pipe: this.bytesToSizePipe,
+        sortable: true
+      },
+      {
+        name: TEXT('Flavor'),
+        prop: 'replicas',
+        cellTemplate: this.flavor,
+        sortable: true
+      }
+    ];
+  }
+
+  updateData($data: ServiceDesc[]) {
+    this.data = $data;
   }
 
   loadData(): Observable<ServiceDesc[]> {

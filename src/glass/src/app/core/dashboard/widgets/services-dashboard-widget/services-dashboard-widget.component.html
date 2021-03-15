@@ -1,33 +1,34 @@
-<div class="glass-services-dashboard-widget"
-     [ngClass]="{'error': error}"
-     fxLayout="row"
-     fxLayoutAlign="center center">
-  <div *ngIf="!error && firstLoadComplete && data.length === 0"
-       class="glass-services-dashboard-widget-no-services">
-    <p>No services deployed yet.</p>
-    <button mat-raised-button
-            routerLink="/installer/create/deployment">
-      <span translate>Deploy a service</span>
-    </button>
-  </div>
-  <div *ngIf="!error"
-       class="glass-services-dashboard-widget-table"
-       fxFlex
-       fxLayout="column">
-    <div *ngIf="!firstLoadComplete"
-         class="glass-services-dashboard-widget-loader">
-      <mat-progress-bar *ngIf="loading"
-                        mode="indeterminate">
-      </mat-progress-bar>
+<glass-widget [loadData]="loadData.bind(this)"
+              title="Services"
+              (loadDataEvent)="updateData($event)">
+  <div class="glass-services-dashboard-widget"
+       fxLayout="row"
+       fxLayoutAlign="center center">
+    <div *ngIf="data.length === 0"
+         class="glass-services-dashboard-widget-no-services">
+      <p>No services deployed yet.</p>
+      <button mat-raised-button
+              routerLink="/installer/create/deployment">
+        <span translate>Deploy a service</span>
+      </button>
     </div>
-    <glass-datatable *ngIf="firstLoadComplete && data.length > 0"
-                     [data]="data"
-                     [columns]="columns"
-                     [pageSize]="5"
-                     [hidePageSize]="true">
-    </glass-datatable>
+    <div class="glass-services-dashboard-widget-table"
+         fxFlex
+         fxLayout="column">
+      <glass-datatable *ngIf="data.length > 0 && columns"
+                       [data]="data"
+                       [columns]="columns"
+                       [pageSize]="5"
+                       [hidePageSize]="true">
+      </glass-datatable>
+    </div>
   </div>
-  <mat-icon *ngIf="error"
-            svgIcon="mdi:lan-disconnect">
-  </mat-icon>
-</div>
+</glass-widget>
+
+<ng-template #flavor
+             let-row="row"
+             let-value="value">
+  <span
+    [matTooltip]="value | redundancyLevel:'short'"
+  >{{value | redundancyLevel:'flavor'}}</span>
+</ng-template>
