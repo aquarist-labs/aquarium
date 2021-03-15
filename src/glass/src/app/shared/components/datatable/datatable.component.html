@@ -15,7 +15,7 @@
       <td mat-cell
           *matCellDef="let row"
           [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}">
-        <div *ngIf="!column.cellTemplateName">{{ renderCellValue(row, column) }}</div>
+        <div *ngIf="!(column.cellTemplateName || column.cellTemplate)">{{ renderCellValue(row, column) }}</div>
         <ng-template *ngIf="column.cellTemplate"
                      [ngTemplateOutlet]="column.cellTemplate"
                      [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined }">
