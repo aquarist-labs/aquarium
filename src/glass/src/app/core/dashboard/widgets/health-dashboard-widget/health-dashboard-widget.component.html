@@ -1,19 +1,20 @@
-<div class="glass-health-dashboard-widget"
-     [class.glass-color-theme-ok]="isOkay && !error"
-     [class.glass-color-theme-error]="isError || !hasStatus || error"
-     [class.glass-color-theme-warn]="isWarn && !error"
-     fxLayout="row"
-     fxLayoutAlign="center center">
-  <mat-icon *ngIf="isOkay && !error"
-            svgIcon="mdi:thumb-up">
-  </mat-icon>
-  <mat-icon *ngIf="isError && !error"
-            svgIcon="mdi:thumb-down">
-  </mat-icon>
-  <mat-icon *ngIf="isWarn && !error"
-            svgIcon="mdi:alert-circle-outline">
-  </mat-icon>
-  <mat-icon *ngIf="error || !hasStatus"
-            svgIcon="mdi:lan-disconnect">
-  </mat-icon>
-</div>
+<glass-widget [loadData]="loadData.bind(this)"
+              title="Health"
+              (loadDataEvent)="setHealthStatus($event)">
+  <div class="glass-health-dashboard-widget"
+       [class.glass-color-theme-ok]="isOkay"
+       [class.glass-color-theme-error]="isError || !hasStatus"
+       [class.glass-color-theme-warn]="isWarn"
+       fxLayout="row"
+       fxLayoutAlign="center center">
+    <mat-icon *ngIf="isOkay"
+              svgIcon="mdi:thumb-up">
+    </mat-icon>
+    <mat-icon *ngIf="isError"
+              svgIcon="mdi:thumb-down">
+    </mat-icon>
+    <mat-icon *ngIf="isWarn"
+              svgIcon="mdi:alert-circle-outline">
+    </mat-icon>
+  </div>
+</glass-widget>

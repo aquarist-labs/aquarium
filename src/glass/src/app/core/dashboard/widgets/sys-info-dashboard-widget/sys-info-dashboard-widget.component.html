@@ -1,67 +1,69 @@
-<div class="glass-sys-info-dashboard-widget"
-     [ngClass]="{'error': error}"
-     fxLayout="row"
-     fxLayoutAlign="center center">
-  <div *ngIf="!error"
-       fxFlexFill
-       fxLayout="row wrap">
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="50">
-      <div class="glass-text-bold"
-           translate>Hostname</div>
-      <div>{{ data?.hostname }}</div>
-    </div>
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="50">
-      <div class="glass-text-bold"
-           translate>Operating System</div>
-      <div>{{ data?.operating_system }}</div>
-    </div>
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="50">
-      <div class="glass-text-bold"
-           translate>Kernel</div>
-      <div>{{ data?.kernel }}</div>
-    </div>
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="50">
-      <div class="glass-text-bold"
-           translate>Architecture</div>
-      <div>{{ data?.arch }}</div>
-    </div>
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="50">
-      <div class="glass-text-bold"
-           translate>Uptime</div>
-      <div>{{ data?.system_uptime | relativeDate:true }}</div>
-    </div>
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="100"
-         fxLayout="column">
-      <div class="glass-text-bold">Memory</div>
-      <div fxFlex>
-        <ngx-charts-advanced-pie-chart [scheme]="memoryChartColorScheme"
-                                       [results]="memoryChartData"
-                                       [animations]="false"
-                                       [tooltipDisabled]="true"
-                                       [valueFormatting]="valueFormatting.bind(this)">
-        </ngx-charts-advanced-pie-chart>
+<glass-widget [loadData]="loadData.bind(this)"
+              title="System Information"
+              (loadDataEvent)="updateData($event)">
+  <div class="glass-sys-info-dashboard-widget"
+       fxLayout="row"
+       fxLayoutAlign="center center">
+    <div fxFlexFill
+         fxLayout="row wrap">
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="50">
+        <div class="glass-text-bold"
+             translate>Hostname</div>
+        <div>{{ data?.hostname }}</div>
       </div>
-    </div>
-    <div class="glass-sys-info-dashboard-widget-cell"
-         fxFlex="100"
-         fxLayout="column">
-      <div class="glass-text-bold"
-           translate>CPU Load</div>
-      <div fxFlex>
-        <ngx-charts-number-card [scheme]="cpuLoadColorScheme"
-                                [results]="cpuLoadChartData"
-                                [animations]="false">
-        </ngx-charts-number-card>
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="50">
+        <div class="glass-text-bold"
+             translate>Operating System</div>
+        <div>{{ data?.operating_system }}</div>
+      </div>
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="50">
+        <div class="glass-text-bold"
+             translate>Kernel</div>
+        <div>{{ data?.kernel }}</div>
+      </div>
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="50">
+        <div class="glass-text-bold"
+             translate>Architecture</div>
+        <div>{{ data?.arch }}</div>
+      </div>
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="50">
+        <div class="glass-text-bold"
+             translate>Uptime</div>
+        <div>{{ data?.system_uptime | relativeDate:true }}</div>
+      </div>
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="100"
+           fxLayout="column">
+        <div class="glass-text-bold">Memory</div>
+        <div fxFlex>
+          <ngx-charts-advanced-pie-chart [scheme]="memoryChartColorScheme"
+                                         [results]="memoryChartData"
+                                         [view]="[500,175]"
+                                         [animations]="false"
+                                         [tooltipDisabled]="true"
+                                         [valueFormatting]="valueFormatting.bind(this)">
+          </ngx-charts-advanced-pie-chart>
+        </div>
+      </div>
+      <div class="glass-sys-info-dashboard-widget-cell"
+           fxFlex="none"
+           fxLayoutAlign="none"
+           fxLayout="column">
+        <div class="glass-text-bold"
+             translate>CPU Load</div>
+        <div fxFlex>
+          <ngx-charts-number-card [scheme]="cpuLoadColorScheme"
+                                  [results]="cpuLoadChartData"
+                                  [view]="[500,150]"
+                                  [animations]="false">
+          </ngx-charts-number-card>
+        </div>
       </div>
     </div>
   </div>
-  <mat-icon *ngIf="error"
-            svgIcon="mdi:lan-disconnect">
-  </mat-icon>
-</div>
+</glass-widget>

@@ -8,6 +8,7 @@ import { DatatableComponent } from '~/app/shared/components/datatable/datatable.
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { LanguageButtonComponent } from '~/app/shared/components/language-button/language-button.component';
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
+import { WidgetComponent } from '~/app/shared/components/widget/widget.component';
 import { TokenInputComponent } from '~/app/shared/components/token-input/token-input.component';
 
 @NgModule({
@@ -16,14 +17,16 @@ import { TokenInputComponent } from '~/app/shared/components/token-input/token-i
     DialogComponent,
     DatatableComponent,
     LanguageButtonComponent,
-    TokenInputComponent
+    TokenInputComponent,
+    WidgetComponent
   ],
   exports: [
     SubmitButtonComponent,
     DialogComponent,
     DatatableComponent,
     LanguageButtonComponent,
-    TokenInputComponent
+    TokenInputComponent,
+    WidgetComponent
   ],
   imports: [CommonModule, FlexLayoutModule, MaterialModule, TranslateModule.forChild()]
 })
