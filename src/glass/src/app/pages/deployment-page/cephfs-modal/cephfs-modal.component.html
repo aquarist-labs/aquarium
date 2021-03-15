@@ -62,9 +62,7 @@
                   fxFlex>
       </mat-slider>
       <mat-hint>
-        <span *ngIf="formGroup.value.replicas === 1">Only one replica of the data is created, which is reflected in the maximum available storage capacity.</span>
-        <span *ngIf="formGroup.value.replicas === 2">Two replicas of the data are created. This doubles the required storage capacity. At the same time, the data failure security increases.</span>
-        <span *ngIf="formGroup.value.replicas === 3">Three replicas of the data are created. The required storage capacity triples as a result. The data failure security is even higher.</span>
+        <span>{{formGroup.get('replicas')?.value | redundancyLevel:'long'}}</span>
       </mat-hint>
     </mat-form-field>
     <div fxLayout="row"
