@@ -37,9 +37,8 @@ We have the following channels:
 
 - #announcements: For all announcements related to Aquarist Labs and the Aquarium project
 - #aquarium: For all conversation and questions surrounding the Aquarium project
-- #general: General conversation surrounding Aquarist Labs
+- #general: Show us your best gif!
 - #github-notifications: Notifications from the [github app](https://slack.github.com/).
-- #random: Show us your best gif!
 
 If you have a new idea, or want to discuss any implementation details, we recommend using our [Discussion page](https://github.com/aquarist-labs/forum/discussions) on GitHub.
 
