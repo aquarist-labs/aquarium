@@ -69,6 +69,7 @@ export type Inventory = {
   system_uptime: number;
   current_time: number;
   cpu: {
+    arch: string;
     model: string;
     cores: number;
     count: number;

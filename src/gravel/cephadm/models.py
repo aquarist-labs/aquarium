@@ -122,6 +122,7 @@ class NodeCPULoadModel(BaseModel):
 
 
 class NodeCPUInfoModel(BaseModel):
+    arch: str
     model: str
     cores: int
     count: int
