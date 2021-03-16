@@ -33,8 +33,33 @@ from gravel.api import nodes
 
 logger: logging.Logger = fastapi_logger
 
+
+api_tags_metadata = [
+    {
+        "name": "bootstrap",
+        "description": "Allows creating a minimal cluster on the node."
+    },
+    {
+        "name": "orch",
+        "description": "Operations related to Ceph cluster orchestration."
+    },
+    {
+        "name": "status",
+        "description": "Allows obtaining operation status information."
+    },
+    {
+        "name": "services",
+        "description": "Create, destroy, and operate Aquarium Services."
+    },
+    {
+        "name": "nodes",
+        "description": "Perform Aquarium Cluster node operations"
+    }
+]
+
+
 app = FastAPI()
-api = FastAPI()
+api = FastAPI(openapi_tags=api_tags_metadata)
 
 
 @app.on_event("startup")  # type: ignore
