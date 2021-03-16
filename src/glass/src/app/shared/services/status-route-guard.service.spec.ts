@@ -29,7 +29,7 @@ describe('StatusRouteGuardService', () => {
     result: boolean | UrlTree,
     done: DoneCallback
   ) => {
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: status }));
+    spyOn(statusService, 'status').and.returnValue(of({ inited: true, node_stage: status }));
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toEqual(result);
       done();
