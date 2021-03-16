@@ -16,6 +16,10 @@ from typing import List
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from fastapi import HTTPException, status
+from pydantic import (
+    BaseModel,
+    Field
+)
 
 from gravel.cephadm.cephadm import Cephadm
 from gravel.cephadm.models import (
@@ -23,6 +27,11 @@ from gravel.cephadm.models import (
     VolumeDeviceModel
 )
 from gravel.controllers.resources import inventory
+from gravel.controllers.nodes.mgr import (
+    NodeStageEnum,
+    NodeMgr,
+    get_node_mgr
+)
 
 
 logger: Logger = fastapi_logger
@@ -31,6 +40,11 @@ router: APIRouter = APIRouter(
     prefix="/local",
     tags=["local"]
 )
+
+
+class NodeStatusReplyModel(BaseModel):
+    inited: bool = Field("Node has been inited and can be used")
+    node_stage: NodeStageEnum = Field("Node Deployment Stage")
 
 
 @router.get(
@@ -96,3 +110,24 @@ async def get_inventory() -> NodeInfoModel:
         raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
                             detail="Inventory not available")
     return latest
+
+
+@router.get(
+    "/status",
+    name="Obtain local node's status",
+    response_model=NodeStatusReplyModel
+)
+async def get_status() -> NodeStatusReplyModel:
+    """
+    Obtain this node's current status.
+
+    Includes information on whether the node has been initiated and can be used,
+    as well as the node's deployment stage.
+    """
+
+    nodemgr: NodeMgr = get_node_mgr()
+
+    return NodeStatusReplyModel(
+        inited=nodemgr.inited,
+        node_stage=nodemgr.stage
+    )
