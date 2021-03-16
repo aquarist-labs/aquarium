@@ -42,12 +42,14 @@ async def get_volumes() -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
 
-    Information is obtained via `cephadm`.
-
-    This is a sync call to `cephadm` and may take a while to return.
+    This information is obtained via `cephadm`, periodically, and may not be
+    100% up to date between calls to this endpoint.
     """
-    cephadm = Cephadm()
-    return await cephadm.get_volume_inventory()
+    latest = inventory.get_inventory().latest
+    if not latest:
+        raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
+                            detail="Volume list not yet available")
+    return latest.disks
 
 
 @router.get(
