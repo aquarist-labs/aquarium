@@ -93,12 +93,23 @@ class DeviceSysInfoModel(BaseModel):
     vendor: str
 
 
+class LogicalVolumeEntryModel(BaseModel):
+    block_uuid: str
+    cluster_fsid: str
+    cluster_name: str
+    name: str
+    osd_fsid: str
+    osd_id: int
+    osdspec_affinity: str
+    type: str
+
+
 class VolumeDeviceModel(BaseModel):
     available: bool
     device_id: str
     human_readable_type: str = Field("")
     lsm_data: Dict[str, Any]
-    lvs: List[Any]
+    lvs: List[LogicalVolumeEntryModel]
     path: str
     rejected_reasons: List[str]
     sys_api: DeviceSysInfoModel
