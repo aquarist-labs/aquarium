@@ -47,8 +47,6 @@ export enum StatusStageEnum {
 }
 
 export type Status = {
-  /* eslint-disable @typescript-eslint/naming-convention */
-  node_stage: StatusStageEnum;
   cluster?: ClusterStatus;
 };
 
