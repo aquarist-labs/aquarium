@@ -26,22 +26,25 @@ import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import {
+  LocalNodeService,
   NodeStatus,
-  StatusService,
   StatusStageEnum
-} from '~/app/shared/services/api/status.service';
+} from '~/app/shared/services/api/local.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StatusRouteGuardService implements CanActivate, CanActivateChild {
-  constructor(private router: Router, private statusService: StatusService) {}
+  constructor(
+    private router: Router,
+    private localNodeService: LocalNodeService
+  ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    return this.statusService.node_status().pipe(
+    return this.localNodeService.status().pipe(
       catchError((err) => {
         // Do not show an error notification.
         if (_.isFunction(err.preventDefault)) {

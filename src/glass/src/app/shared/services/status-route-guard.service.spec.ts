@@ -5,8 +5,11 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@a
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
-import { StatusService, StatusStageEnum } from '~/app/shared/services/api/status.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
+import {
+  LocalNodeService,
+  StatusStageEnum
+} from '~/app/shared/services/api/local.service';
 import DoneCallback = jest.DoneCallback;
 
 const fakeRouterStateSnapshot = (url: string): RouterStateSnapshot =>
@@ -16,7 +19,7 @@ const fakeRouterStateSnapshot = (url: string): RouterStateSnapshot =>
 
 describe('StatusRouteGuardService', () => {
   let service: StatusRouteGuardService;
-  let statusService: StatusService;
+  let localNodeService: LocalNodeService;
   let router: Router;
   let httpTestingController: HttpTestingController;
   let urlTree: (url: string) => UrlTree;
@@ -29,7 +32,7 @@ describe('StatusRouteGuardService', () => {
     result: boolean | UrlTree,
     done: DoneCallback
   ) => {
-    spyOn(statusService, 'status').and.returnValue(of({ inited: true, node_stage: status }));
+    spyOn(localNodeService, 'status').and.returnValue(of({ inited: true, node_stage: status }));
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toEqual(result);
       done();
@@ -43,7 +46,7 @@ describe('StatusRouteGuardService', () => {
     });
 
     service = TestBed.inject(StatusRouteGuardService);
-    statusService = TestBed.inject(StatusService);
+    localNodeService = TestBed.inject(LocalNodeService);
     router = TestBed.inject(Router);
     httpTestingController = TestBed.inject(HttpTestingController);
 
@@ -65,7 +68,7 @@ describe('StatusRouteGuardService', () => {
       done();
     });
     httpTestingController
-      .expectOne('api/status/')
+      .expectOne('api/local/status')
       .error(new ErrorEvent('Unknown Error'), { status: 500 });
     httpTestingController.verify();
   });

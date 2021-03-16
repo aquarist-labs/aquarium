@@ -89,6 +89,22 @@ export type Inventory = {
   disks: Volume[];
 };
 
+// eslint-disable-next-line no-shadow
+export enum StatusStageEnum {
+  unknown = -1,
+  none = 0,
+  bootstrapping = 1,
+  bootstrapped = 2,
+  joining = 3,
+  ready = 4
+}
+
+export interface NodeStatus {
+  inited: boolean;
+  /* eslint-disable @typescript-eslint/naming-convention */
+  node_stage: StatusStageEnum;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -114,5 +130,12 @@ export class LocalNodeService {
    */
   public inventory(): Observable<Inventory> {
     return this.http.get<Inventory>(`${this.url}/inventory`);
+  }
+
+  /**
+   * Get node's status
+   */
+  public status(): Observable<NodeStatus> {
+    return this.http.get<NodeStatus>(`${this.url}/status`);
   }
 }

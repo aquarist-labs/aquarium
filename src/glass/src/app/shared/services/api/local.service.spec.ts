@@ -35,4 +35,9 @@ describe('LocalNodeService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should call local node status', () => {
+    service.status().subscribe();
+    const req = httpTesting.expectOne('api/local/status');
+    expect(req.request.method).toBe('GET');
+  });
 });

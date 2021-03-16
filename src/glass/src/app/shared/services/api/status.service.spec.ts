@@ -38,10 +38,4 @@ describe('StatusService', () => {
     const req = httpTesting.expectOne('api/status/');
     expect(req.request.method).toBe('GET');
   });
-
-  it('should call local node status', () => {
-    service.node_status().subscribe();
-    const req = httpTesting.expectOne('api/local/status');
-    expect(req.request.method).toBe('GET');
-  });
 });

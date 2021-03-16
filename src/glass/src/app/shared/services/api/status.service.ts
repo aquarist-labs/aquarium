@@ -36,33 +36,17 @@ export interface ClusterStatus {
   health: HealthStatus;
 }
 
-// eslint-disable-next-line no-shadow
-export enum StatusStageEnum {
-  unknown = -1,
-  none = 0,
-  bootstrapping = 1,
-  bootstrapped = 2,
-  joining = 3,
-  ready = 4
-}
-
 export type Status = {
   cluster?: ClusterStatus;
 };
 
-export interface NodeStatus {
-  inited: boolean;
-  /* eslint-disable @typescript-eslint/naming-convention */
-  node_stage: StatusStageEnum;
-}
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class StatusService {
-  private cluster_status_url = 'api/status';
-  private node_local_url = 'api/local';
+  private url = 'api/status';
 
   constructor(private http: HttpClient) {}
 
@@ -70,10 +54,6 @@ export class StatusService {
    * Get the current status.
    */
   status(): Observable<Status> {
-    return this.http.get<Status>(`${this.cluster_status_url}/`);
-  }
-
-  public node_status(): Observable<NodeStatus> {
-    return this.http.get<NodeStatus>(`${this.node_local_url}/status`);
+    return this.http.get<Status>(`${this.url}/`);
   }
 }
