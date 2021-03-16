@@ -19,7 +19,6 @@ from fastapi import HTTPException, status
 
 from gravel.cephadm.cephadm import Cephadm
 from gravel.cephadm.models import (
-    HostFactsModel,
     NodeInfoModel,
     VolumeDeviceModel
 )
@@ -42,9 +41,9 @@ router: APIRouter = APIRouter(
 async def get_volumes() -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
-    
+
     Information is obtained via `cephadm`.
-    
+
     This is a sync call to `cephadm` and may take a while to return.
     """
     cephadm = Cephadm()
@@ -95,20 +94,3 @@ async def get_inventory() -> NodeInfoModel:
         raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
                             detail="Inventory not available")
     return latest
-
-
-@router.get(
-    "/facts",
-    name="Obtain local node's facts",
-    response_model=HostFactsModel
-)
-async def get_facts() -> HostFactsModel:
-    """
-    Obtain this node's host facts, including OS information, NICs, etc.
-
-    This information is obtained via `cephadm`.
-
-    This is a sync call to `cephadm` and may take a while to return.
-    """
-    cephadm = Cephadm()
-    return await cephadm.gather_facts()
