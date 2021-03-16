@@ -2,7 +2,7 @@ wasser:
   version: '1.0'
 
 routines:
-  openSUSE Leap:
+  openSUSE:
     steps:
     # we need preliminary dependencies on the minimal image,
     # because we do not prepare wasser ready images and take
@@ -18,9 +18,12 @@ routines:
       command: |
         sudo zypper remove -y kernel-default-base 2>&1
         sudo zypper install -y kernel-default 2>&1
-    - name: install qemu kvm
+    # 1. On Tumbleweed JeOS images the system-group-wheel is not installed by default,
+    # which is good to have in order to ease control of sudo access for a user.
+    # 2. The polkit package is needed for passwordless access to libvirt.
+    - name: install qemu-kvm
       command:
-        sudo zypper install -y qemu-kvm 2>&1
+        sudo zypper install -y qemu-kvm system-group-wheel polkit 2>&1
     - reboot
     - wait_host
     - checkout:
@@ -33,9 +36,6 @@ routines:
       command: |
         cd aquarium
         ./tools/build-image.sh 2>&1
-    - name: install libvirt specific packages
-      command: |
-        sudo zypper install -y qemu-kvm polkit 2>&1
     - name: add user to wheel group to allow passwordless access to libvirt
       command: |
         sudo usermod -a -G wheel $USER
