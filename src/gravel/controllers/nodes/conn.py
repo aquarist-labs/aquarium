@@ -61,13 +61,13 @@ class ConnMgr:
         conn: IncomingConnection,
         msg: MessageModel
     ) -> None:
-        logger.debug(f"=> connmgr -- incoming recv: {conn}, {msg}")
+        logger.debug(f"connmgr -- incoming recv: {conn}, {msg}")
 
         if not self.is_started():
             raise ConnectionManagerNotStarted()
 
         await self._incoming_queue.put((conn, msg))
-        logger.debug(f"=> connmgr -- queue len: {self._incoming_queue.qsize()}")
+        logger.debug(f"connmgr -- queue len: {self._incoming_queue.qsize()}")
 
     async def wait_incoming_msg(
         self
@@ -85,7 +85,7 @@ class IncomingConnection(WebSocketEndpoint):
     _ws: Optional[WebSocket] = None
 
     async def on_connect(self, websocket: WebSocket) -> None:
-        logger.debug(f"=> connection -- from {websocket.client}")
+        logger.debug(f"incoming -- from {websocket.client}")
 
         connmgr: ConnMgr = get_conn_mgr()
         if not connmgr.is_started():
@@ -100,18 +100,18 @@ class IncomingConnection(WebSocketEndpoint):
         websocket: WebSocket,
         close_code: int
     ) -> None:
-        logger.debug(f"=> connection -- disconnect from {websocket.client}")
+        logger.debug(f"incoming -- disconnect from {websocket.client}")
         self._ws = None
 
     async def on_receive(self, websocket: WebSocket, data: Any) -> None:
-        logger.debug(f"=> connection -- recv from {websocket.client}: {data}")
+        logger.debug(f"incoming -- recv from {websocket.client}: {data}")
         connmgr: ConnMgr = get_conn_mgr()
         assert connmgr.is_started()
         msg: MessageModel = MessageModel.parse_raw(data)
         await connmgr.on_incoming_receive(self, msg)
 
     async def send_msg(self, data: MessageModel) -> None:
-        logger.debug(f"=> connection -- send to {self._ws} data {data}")
+        logger.debug(f"incoming -- send to {self._ws} data {data}")
         assert self._ws
         await self._ws.send_text(data.json())
 

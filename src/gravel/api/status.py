@@ -13,6 +13,7 @@
 
 from logging import Logger
 from typing import Optional
+from pathlib import Path
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -61,3 +62,12 @@ async def get_status() -> StatusModel:
         cluster=cluster
     )
     return status
+
+
+@router.get("/logs")
+async def get_logs() -> str:
+
+    logfile: Path = Path("/tmp/aquarium.log")
+    if not logfile.exists():
+        return ""
+    return logfile.read_text()

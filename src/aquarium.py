@@ -3,29 +3,25 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# This library is distributed in the hope that it will be useful,
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 import asyncio
 import logging
+import logging.config
 import os
-from typing import cast
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger as fastapi_logger
 
-from gravel.controllers.gstate import gstate
+from gravel.controllers.gstate import gstate, setup_logging
 from gravel.controllers.nodes import mgr
 
 from gravel.api import bootstrap
@@ -43,11 +39,9 @@ api = FastAPI()
 
 @app.on_event("startup")  # type: ignore
 async def on_startup():
-    uvilogger = cast(logging.Handler, logging.getLogger("uvicorn"))
-    logger.addHandler(uvilogger)
-    if os.getenv("AQUARIUM_DEBUG"):
-        uvilogger.setLevel(logging.DEBUG)
-        logger.setLevel(logging.DEBUG)
+
+    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
+    setup_logging(lvl)
     logger.info("Aquarium startup!")
 
     # init node mgr

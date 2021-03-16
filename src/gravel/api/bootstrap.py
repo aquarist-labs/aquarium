@@ -53,7 +53,7 @@ class StatusReplyModel(BaseModel):
 @router.post("/start", response_model=StartReplyModel)
 async def start_bootstrap() -> StartReplyModel:
     res: bool = await bootstrap.bootstrap()
-    logger.debug(f"bootstrap > start (success: {res})")
+    logger.debug(f"api > start (success: {res})")
     return StartReplyModel(success=res)
 
 
@@ -79,6 +79,6 @@ async def finish_bootstrap() -> bool:
             detail="Node currently joining an existing cluster"
         )
     except NodeError:
-        logger.error("=> api -- bootstrap > unknown error on finished")
+        logger.error("api > unknown error on finished")
         return False
     return True
