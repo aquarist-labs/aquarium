@@ -1,0 +1,97 @@
+<div class="glass-install-config-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <span translate>NTP Configuration</span>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div fxLayout="column"
+           fxLayoutGap="10px">
+        <span translate>
+          Your Aquarium environment needs to have the time synchronized with a reliable
+          time source. You do have two options in order to configure the time synchronization:
+        </span>
+        <div fxLayout="row"
+             fxLayoutGap="5px">
+          <mat-card mat-ripple
+                    (click)="selectionChange(false)"
+                    [ngClass]="{ 'selected': !useDefault }"
+                    [matRippleCentered]="true">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-radio-button [checked]="!useDefault"
+                                  (click)="selectionChange(false)"></mat-radio-button>
+              </div>
+              <mat-card-title>
+                <span translate>Use your own NTP host</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="glass-card-last-child"
+                              fxLayout="column"
+                              fxLayoutGap="10px">
+              <span translate>
+                If you do have your own NTP host configured on the network, please add it below.
+              </span>
+              <form [formGroup]="formGroup"
+                    novalidate>
+                <mat-form-field color="accent"
+                                fxFlex>
+                  <mat-label translate>NTP host IP/FQDN</mat-label>
+                  <input matInput
+                         type="text"
+                         formControlName="ntpAddress"
+                         required>
+                  <mat-hint translate>The IP address or FQDN of the NTP host.</mat-hint>
+                  <mat-error *ngIf="formGroup.invalid">
+                    <span *ngIf="formGroup.hasError('required', 'ntpAddress')"
+                          translate>
+                      This field is required.
+                    </span>
+                    <span *ngIf="formGroup.hasError('hostAddress', 'ntpAddress')"
+                          translate>
+                      This field must be an IP address or FQDN (&lt;address&gt;:&lt;port&gt;).
+                    </span>
+                  </mat-error>
+                </mat-form-field>
+              </form>
+            </mat-card-content>
+          </mat-card>
+          <mat-card mat-ripple
+                    (click)="selectionChange(true)"
+                    [ngClass]="{ 'selected': useDefault }"
+                    [matRippleCentered]="true">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-radio-button [checked]="useDefault"
+                                  (click)="selectionChange(true)"></mat-radio-button>
+              </div>
+              <mat-card-title>
+                <span translate>Use an NTP host on the internet</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="glass-card-last-child">
+              If you don't have your own NTP host configured, you can use an NTP server pool
+              ({{ ntpDefault }}) on the internet.
+              <br><b>Please note:</b> this option requires access to the internet.
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-icon-button
+              matTooltip="{{ 'Back' | translate }}"
+              routerLink="/installer/install-mode">
+        <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+      </button>
+      <button mat-button
+              (click)="next()">
+        <span translate>Next</span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
