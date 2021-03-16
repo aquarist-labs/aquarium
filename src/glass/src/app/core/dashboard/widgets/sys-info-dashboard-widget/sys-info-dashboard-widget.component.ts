@@ -5,7 +5,10 @@ import { map } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { Facts, OrchService } from '~/app/shared/services/api/orch.service';
+import {
+  Facts,
+  LocalNodeService
+} from '~/app/shared/services/api/local.service';
 
 @Component({
   selector: 'glass-sys-info-dashboard-widget',
@@ -25,7 +28,10 @@ export class SysInfoDashboardWidgetComponent {
     domain: ['#ffecb5', '#ffc107', '#ff9e02']
   };
 
-  constructor(private bytesToSizePipe: BytesToSizePipe, private orchService: OrchService) {}
+  constructor(
+    private bytesToSizePipe: BytesToSizePipe,
+    private localNodeService: LocalNodeService
+  ) { }
 
   valueFormatting(c: any) {
     return this.bytesToSizePipe.transform(c);
@@ -36,7 +42,7 @@ export class SysInfoDashboardWidgetComponent {
   }
 
   loadData(): Observable<Facts> {
-    return this.orchService.facts().pipe(
+    return this.localNodeService.facts().pipe(
       map((facts: Facts) => {
         this.memoryChartData = [
           {
