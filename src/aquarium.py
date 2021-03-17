@@ -63,8 +63,14 @@ api_tags_metadata = [
 ]
 
 
-app = FastAPI()
-api = FastAPI(openapi_tags=api_tags_metadata)
+app = FastAPI(docs_url=None)
+api = FastAPI(
+    title="Project Aquarium",
+    description="Project Aquarium is a SUSE-sponsored open source project " +
+                "aiming at becoming an easy to use, rock solid storage " +
+                "appliance based on Ceph.",
+    version="1.0.0",
+    openapi_tags=api_tags_metadata)
 
 
 @app.on_event("startup")  # type: ignore
