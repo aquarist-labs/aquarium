@@ -98,6 +98,47 @@ class CephDFModel(BaseModel):
     pools: List[CephDFPoolModel]
 
 
+class CephOSDDFEntryModel(BaseModel):
+    id: int
+    device_class: str
+    name: str
+    type: str
+    type_id: int
+    crush_weight: float
+    depth: int
+    pool_weights: Dict[str, Any]
+    reweight: int
+    kb: int
+    kb_used: int
+    kb_used_data: int
+    kb_used_omap: int
+    kb_used_meta: int
+    kb_avail: int
+    utilization: float
+    var: float
+    pgs: int
+    status: str
+
+
+class CephOSDDFSummaryModel(BaseModel):
+    total_kb: int
+    total_kb_used: int
+    total_kb_used_data: int
+    total_kb_used_meta: int
+    total_kb_avail: int
+    average_utilization: float
+    min_var: float
+    max_var: float
+    dev: float
+
+
+class CephOSDDFModel(BaseModel):
+    """ Result from 'osd df' """
+    nodes: List[CephOSDDFEntryModel]
+    stray: List[Any]
+    summary: CephOSDDFSummaryModel
+
+
 class CephOSDPoolEntryModel(BaseModel):
     pool: int
     pool_name: str
