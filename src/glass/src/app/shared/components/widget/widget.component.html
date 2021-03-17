@@ -1,6 +1,15 @@
 <mat-card class="glass-dashboard-widget" [ngClass]="{'error': error}">
-  <mat-card-title-group>
-    <mat-card-title>{{ title | translate }}</mat-card-title>
+  <mat-card-title-group fxLayout="row"
+                        fxLayoutAlign="space-between center">
+      <mat-card-title>
+        <span>{{ title | translate }}</span>
+      </mat-card-title>
+      <button mat-icon-button
+              *ngIf="actionMenu"
+              [matMenuTriggerFor]="menu"
+              matTooltip="{{title | translate}} actions">
+        <mat-icon svgIcon="mdi:menu"></mat-icon>
+      </button>
   </mat-card-title-group>
   <mat-card-content>
     <div *ngIf="!firstLoadComplete && loading"
@@ -16,3 +25,10 @@
     </mat-icon>
   </mat-card-content>
 </mat-card>
+<mat-menu #menu="matMenu">
+  <button *ngFor="let item of actionMenu"
+          mat-menu-item (click)="item.action()">
+    <mat-icon svgIcon="mdi:{{item.icon}}"></mat-icon>
+    <span>{{item.name | translate}}</span>
+  </button>
+</mat-menu>
