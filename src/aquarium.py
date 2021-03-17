@@ -24,12 +24,15 @@ from fastapi.logger import logger as fastapi_logger
 from gravel.controllers.gstate import gstate, setup_logging
 from gravel.controllers.nodes import mgr
 
-from gravel.api import bootstrap
-from gravel.api import orch
-from gravel.api import status
-from gravel.api import services
-from gravel.api import nodes
-from gravel.api import local
+from gravel.api import (
+    bootstrap,
+    orch,
+    status,
+    services,
+    nodes,
+    local,
+    devices
+)
 
 
 logger: logging.Logger = fastapi_logger
@@ -59,6 +62,10 @@ api_tags_metadata = [
     {
         "name": "nodes",
         "description": "Perform Aquarium Cluster node operations"
+    },
+    {
+        "name": "devices",
+        "description": "Obtain and perform operations on cluster devices"
     }
 ]
 
@@ -99,6 +106,7 @@ api.include_router(orch.router)
 api.include_router(status.router)
 api.include_router(services.router)
 api.include_router(nodes.router)
+api.include_router(devices.router)
 
 
 #
