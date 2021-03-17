@@ -1,17 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
-import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { BootstrapService } from '~/app/shared/services/api/bootstrap.service';
 import { Device, OrchService } from '~/app/shared/services/api/orch.service';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
+import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -68,7 +67,7 @@ export class DeploymentPageComponent implements OnInit {
   public cephfsList: ServiceDesc[] = [];
 
   constructor(
-    private dialog: MatDialog,
+    private dialog: DialogService,
     private notificationService: NotificationService,
     private orchService: OrchService,
     private services: ServicesService,
@@ -110,22 +109,25 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   chooseDevices(): void {
-    const dialogRef = this.dialog.open(DialogComponent, {
-      width: '35%',
-      data: {
-        type: 'yesNo',
-        icon: 'warn',
-        title: TEXT('Deploy devices'),
-        message: TEXT(
-          'The step will erase all data on the listed devices. Are you sure you want to continue?'
-        )
+    this.dialog.open(
+      DialogComponent,
+      (decision) => {
+        if (decision) {
+          this.startAssimilation();
+        }
+      },
+      {
+        width: '35%',
+        data: {
+          type: 'yesNo',
+          icon: 'warn',
+          title: TEXT('Deploy devices'),
+          message: TEXT(
+            'The step will erase all data on the listed devices. Are you sure you want to continue?'
+          )
+        }
       }
-    });
-    dialogRef.afterClosed().subscribe((decision: boolean) => {
-      if (decision) {
-        this.startAssimilation();
-      }
-    });
+    );
   }
 
   startAssimilation(): void {
@@ -160,14 +162,9 @@ export class DeploymentPageComponent implements OnInit {
   }
 
   public openCephfsDialog(): void {
-    const ref = this.dialog.open(CephfsModalComponent, {
-      width: '60%'
-    });
-    ref.afterClosed().subscribe({
-      next: (result: boolean) => {
-        if (result) {
-          this.updateCephfsList();
-        }
+    this.dialog.openCephfs((result) => {
+      if (result) {
+        this.updateCephfsList();
       }
     });
   }
