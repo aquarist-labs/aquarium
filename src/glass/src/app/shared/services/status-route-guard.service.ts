@@ -35,60 +35,9 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
         };
         return of(res);
       }),
-      map((res: Status) => {
-        let url: string;
-        let result: boolean | UrlTree;
-        switch (res.node_stage) {
-          case StatusStageEnum.bootstrapping:
-            url = '/installer/create/bootstrap';
-            if (url === state.url) {
-              result = true;
-            } else {
-              result = this.router.parseUrl(url);
-            }
-            break;
-          case StatusStageEnum.bootstrapped:
-            const urls = ['/installer/create/deployment', '/dashboard'];
-            if (urls.includes(state.url)) {
-              result = true;
-            } else {
-              result = this.router.parseUrl(urls[0]);
-            }
-            break;
-          case StatusStageEnum.joining:
-            url = '/installer/join/register';
-            if (url === state.url) {
-              result = true;
-            } else {
-              result = this.router.parseUrl(url);
-            }
-            break;
-          case StatusStageEnum.ready:
-            url = '/dashboard';
-            if (url === state.url) {
-              result = true;
-            } else {
-              result = this.router.parseUrl(url);
-            }
-            break;
-          case StatusStageEnum.none:
-            if (
-              [
-                '/installer/welcome',
-                '/installer/install-mode',
-                '/installer/create/bootstrap',
-                '/installer/join/register'
-              ].includes(state.url)
-            ) {
-              result = true;
-            } else {
-              result = this.router.parseUrl('/installer');
-            }
-            break;
-          default:
-            result = true;
-        }
-        return result;
+      map((res: Status): boolean | UrlTree => {
+        const url = this.isUrlChangeNeeded(res.node_stage, state.url);
+        return _.isString(url) ? this.router.parseUrl(url) : true;
       })
     );
   }
@@ -98,5 +47,24 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
     return this.canActivate(childRoute, state);
+  }
+
+  private isUrlChangeNeeded(stage: StatusStageEnum, currentUrl: string): string | boolean {
+    const stageAndUrl = (isStage: StatusStageEnum, urls: string[]): string | boolean => {
+      const redirectUrl = urls[0];
+      return (
+        stage === isStage &&
+        !urls.includes(currentUrl) &&
+        !currentUrl.startsWith(redirectUrl) &&
+        redirectUrl
+      );
+    };
+    return (
+      stageAndUrl(StatusStageEnum.none, ['/installer']) ||
+      stageAndUrl(StatusStageEnum.bootstrapping, ['/installer/create/bootstrap']) ||
+      stageAndUrl(StatusStageEnum.bootstrapped, ['/installer/create/deployment', '/dashboard']) ||
+      stageAndUrl(StatusStageEnum.joining, ['/installer/join/register']) ||
+      stageAndUrl(StatusStageEnum.ready, ['/dashboard'])
+    );
   }
 }

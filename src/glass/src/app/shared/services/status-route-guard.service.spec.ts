@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 
 import { StatusService, StatusStageEnum } from '~/app/shared/services/api/status.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
+import DoneCallback = jest.DoneCallback;
 
 const fakeRouterStateSnapshot = (url: string): RouterStateSnapshot =>
   ({
@@ -21,6 +22,19 @@ describe('StatusRouteGuardService', () => {
   let urlTree: (url: string) => UrlTree;
 
   const activatedRouteSnapshot = {} as ActivatedRouteSnapshot;
+
+  const expectRouting = (
+    url: string,
+    status: StatusStageEnum,
+    result: boolean | UrlTree,
+    done: DoneCallback
+  ) => {
+    spyOn(statusService, 'status').and.returnValue(of({ node_stage: status }));
+    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
+      expect(res).toEqual(result);
+      done();
+    });
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -41,12 +55,7 @@ describe('StatusRouteGuardService', () => {
   });
 
   it('should redirect', (done) => {
-    const url = '/foo';
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: StatusStageEnum.none }));
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toEqual(urlTree('/installer'));
-      done();
-    });
+    expectRouting('/foo', StatusStageEnum.none, urlTree('/installer'), done);
   });
 
   it('should redirect with error', (done) => {
@@ -62,91 +71,52 @@ describe('StatusRouteGuardService', () => {
   });
 
   it('should not redirect [bootstrapping]', (done) => {
-    const url = '/installer/create/bootstrap';
-    spyOn(statusService, 'status').and.returnValue(
-      of({ node_stage: StatusStageEnum.bootstrapping })
-    );
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toBeTruthy();
-      done();
-    });
+    expectRouting('/installer/create/bootstrap', StatusStageEnum.bootstrapping, true, done);
   });
 
   it('should redirect [bootstrapping]', (done) => {
-    const url = '/installer/welcome';
-    spyOn(statusService, 'status').and.returnValue(
-      of({ node_stage: StatusStageEnum.bootstrapping })
+    expectRouting(
+      '/installer/welcome',
+      StatusStageEnum.bootstrapping,
+      urlTree('/installer/create/bootstrap'),
+      done
     );
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toEqual(urlTree('/installer/create/bootstrap'));
-      done();
-    });
   });
 
   it('should not redirect [bootstrapped]', (done) => {
-    const url = '/installer/create/deployment';
-    spyOn(statusService, 'status').and.returnValue(
-      of({ node_stage: StatusStageEnum.bootstrapped })
-    );
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toBeTruthy();
-      done();
-    });
+    expectRouting('/installer/create/deployment', StatusStageEnum.bootstrapped, true, done);
+  });
+
+  it('should not redirect [bootstrapped] on dashboard', (done) => {
+    expectRouting('/dashboard', StatusStageEnum.bootstrapped, true, done);
   });
 
   it('should redirect [bootstrapped]', (done) => {
-    const url = '/installer/welcome';
-    spyOn(statusService, 'status').and.returnValue(
-      of({ node_stage: StatusStageEnum.bootstrapped })
+    expectRouting(
+      '/installer/welcome',
+      StatusStageEnum.bootstrapped,
+      urlTree('/installer/create/deployment'),
+      done
     );
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toEqual(urlTree('/installer/create/deployment'));
-      done();
-    });
   });
 
   it('should redirect [ready]', (done) => {
-    const url = '/bar';
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: StatusStageEnum.ready }));
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toEqual(urlTree('/dashboard'));
-      done();
-    });
+    expectRouting('/bar', StatusStageEnum.ready, urlTree('/dashboard'), done);
   });
 
   it('should not redirect [none,1]', (done) => {
-    const url = '/installer/welcome';
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: StatusStageEnum.none }));
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toBeTruthy();
-      done();
-    });
+    expectRouting('/installer/welcome', StatusStageEnum.none, true, done);
   });
 
   it('should not redirect [none,2]', (done) => {
-    const url = '/installer/install-mode';
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: StatusStageEnum.none }));
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toBeTruthy();
-      done();
-    });
+    expectRouting('/installer/install-mode', StatusStageEnum.none, true, done);
   });
 
   it('should not redirect [none,3]', (done) => {
-    const url = '/installer/create/bootstrap';
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: StatusStageEnum.none }));
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toBeTruthy();
-      done();
-    });
+    expectRouting('/installer/create/bootstrap', StatusStageEnum.none, true, done);
   });
 
   it('should redirect [none]', (done) => {
-    const url = '/baz';
-    spyOn(statusService, 'status').and.returnValue(of({ node_stage: StatusStageEnum.none }));
-    service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
-      expect(res).toEqual(urlTree('/installer'));
-      done();
-    });
+    expectRouting('/baz', StatusStageEnum.none, urlTree('/installer'), done);
   });
 });

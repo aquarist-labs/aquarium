@@ -13,31 +13,24 @@
     <div *ngFor="let widget of enabledWidgets"
          class="widget">
       <ng-container [ngSwitch]="widget.id">
-        <mat-card class="glass-dashboard-widget">
-          <mat-card-title-group>
-            <mat-card-title>{{ widget.title | translate }}</mat-card-title>
-          </mat-card-title-group>
-          <mat-card-content>
-            <ng-template [ngSwitchCase]="'capacity'">
-              <glass-capacity-dashboard-widget></glass-capacity-dashboard-widget>
-            </ng-template>
-            <ng-template [ngSwitchCase]="'volumes'">
-              <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
-            </ng-template>
-            <ng-template [ngSwitchCase]="'health'">
-              <glass-health-dashboard-widget></glass-health-dashboard-widget>
-            </ng-template>
-            <ng-template [ngSwitchCase]="'services'">
-              <glass-services-dashboard-widget></glass-services-dashboard-widget>
-            </ng-template>
-            <ng-template [ngSwitchCase]="'sysInfo'">
-              <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
-            </ng-template>
-            <ng-template [ngSwitchCase]="'hosts'">
-              <glass-hosts-dashboard-widget></glass-hosts-dashboard-widget>
-            </ng-template>
-          </mat-card-content>
-        </mat-card>
+        <ng-template [ngSwitchCase]="'capacity'">
+          <glass-capacity-dashboard-widget></glass-capacity-dashboard-widget>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'volumes'">
+          <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'health'">
+          <glass-health-dashboard-widget></glass-health-dashboard-widget>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'services'">
+          <glass-services-dashboard-widget></glass-services-dashboard-widget>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'sysInfo'">
+          <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'hosts'">
+          <glass-hosts-dashboard-widget></glass-hosts-dashboard-widget>
+        </ng-template>
       </ng-container>
     </div>
   </div>

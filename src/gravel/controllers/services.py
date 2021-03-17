@@ -47,6 +47,7 @@ class ServiceModel(BaseModel):
     type: ServiceTypeEnum
     pools: List[int]
     replicas: int
+    raw_size: int
 
 
 class StateModel(BaseModel):
@@ -86,7 +87,8 @@ class Services:
             reservation=size,
             type=type,
             pools=[],
-            replicas=replicas
+            replicas=replicas,
+            raw_size=size*replicas
         )
         self._create_service(svc)
         self._services[name] = svc

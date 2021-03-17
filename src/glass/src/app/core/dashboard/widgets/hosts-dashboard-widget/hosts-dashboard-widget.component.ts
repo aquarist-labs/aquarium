@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 
-import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { Host, OrchService } from '~/app/shared/services/api/orch.service';
 
@@ -11,7 +10,7 @@ import { Host, OrchService } from '~/app/shared/services/api/orch.service';
   templateUrl: './hosts-dashboard-widget.component.html',
   styleUrls: ['./hosts-dashboard-widget.component.scss']
 })
-export class HostsDashboardWidgetComponent extends AbstractDashboardWidget<Host[]> {
+export class HostsDashboardWidgetComponent {
   data: Host[] = [];
   columns: DatatableColumn[] = [
     {
@@ -26,8 +25,10 @@ export class HostsDashboardWidgetComponent extends AbstractDashboardWidget<Host[
     }
   ];
 
-  constructor(private orchService: OrchService) {
-    super();
+  constructor(private orchService: OrchService) {}
+
+  updateData($data: Host[]) {
+    this.data = $data;
   }
 
   loadData(): Observable<Host[]> {

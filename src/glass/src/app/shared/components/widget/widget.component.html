@@ -1,0 +1,18 @@
+<mat-card class="glass-dashboard-widget" [ngClass]="{'error': error}">
+  <mat-card-title-group>
+    <mat-card-title>{{ title | translate }}</mat-card-title>
+  </mat-card-title-group>
+  <mat-card-content>
+    <div *ngIf="!firstLoadComplete && loading"
+         class="glass-hosts-dashboard-widget-loader">
+      <mat-progress-bar mode="indeterminate">
+      </mat-progress-bar>
+    </div>
+    <ng-container *ngIf="!error && firstLoadComplete">
+      <ng-content></ng-content>
+    </ng-container>
+    <mat-icon *ngIf="error && !loading"
+              svgIcon="mdi:lan-disconnect">
+    </mat-icon>
+  </mat-card-content>
+</mat-card>

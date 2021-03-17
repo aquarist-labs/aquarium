@@ -3,7 +3,6 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 import { translate } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { Facts, OrchService } from '~/app/shared/services/api/orch.service';
@@ -13,7 +12,8 @@ import { Facts, OrchService } from '~/app/shared/services/api/orch.service';
   templateUrl: './sys-info-dashboard-widget.component.html',
   styleUrls: ['./sys-info-dashboard-widget.component.scss']
 })
-export class SysInfoDashboardWidgetComponent extends AbstractDashboardWidget<Facts> {
+export class SysInfoDashboardWidgetComponent {
+  data: Facts = {} as Facts;
   memoryChartData: any[] = [];
   memoryChartColorScheme = {
     // EOS colors: [$eos-bc-red-500, $eos-bc-green-500]
@@ -25,12 +25,14 @@ export class SysInfoDashboardWidgetComponent extends AbstractDashboardWidget<Fac
     domain: ['#ffecb5', '#ffc107', '#ff9e02']
   };
 
-  constructor(private bytesToSizePipe: BytesToSizePipe, private orchService: OrchService) {
-    super();
-  }
+  constructor(private bytesToSizePipe: BytesToSizePipe, private orchService: OrchService) {}
 
   valueFormatting(c: any) {
     return this.bytesToSizePipe.transform(c);
+  }
+
+  updateData($data: Facts) {
+    this.data = $data;
   }
 
   loadData(): Observable<Facts> {

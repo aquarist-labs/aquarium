@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AbstractDashboardWidget } from '~/app/core/dashboard/widgets/abstract-dashboard-widget';
 import { Status, StatusService } from '~/app/shared/services/api/status.service';
 
 @Component({
@@ -9,38 +8,37 @@ import { Status, StatusService } from '~/app/shared/services/api/status.service'
   templateUrl: './health-dashboard-widget.component.html',
   styleUrls: ['./health-dashboard-widget.component.scss']
 })
-export class HealthDashboardWidgetComponent extends AbstractDashboardWidget<Status> {
+export class HealthDashboardWidgetComponent {
   public isError = false;
   public isWarn = false;
   public isOkay = false;
   public hasStatus = false;
 
-  public constructor(private statusService: StatusService) {
-    super();
-    this.loadDataEvent.subscribe((status: Status) => {
-      this.isError = this.isWarn = this.isOkay = false;
-      this.hasStatus = false;
+  public constructor(private statusService: StatusService) {}
 
-      if (!status.cluster) {
-        return;
-      }
+  setHealthStatus(status: Status) {
+    this.isError = this.isWarn = this.isOkay = false;
+    this.hasStatus = false;
 
-      this.hasStatus = true;
-      switch (status.cluster.health.status.toLowerCase()) {
-        case 'health_ok':
-          this.isOkay = true;
-          break;
-        case 'health_warn':
-          this.isWarn = true;
-          break;
-        case 'health_err':
-          this.isError = true;
-          break;
-        default:
-          this.hasStatus = false;
-          break;
-      }
-    });
+    if (!status.cluster) {
+      return;
+    }
+
+    this.hasStatus = true;
+    switch (status.cluster.health.status.toLowerCase()) {
+      case 'health_ok':
+        this.isOkay = true;
+        break;
+      case 'health_warn':
+        this.isWarn = true;
+        break;
+      case 'health_err':
+        this.isError = true;
+        break;
+      default:
+        this.hasStatus = false;
+        break;
+    }
   }
 
   loadData(): Observable<Status> {

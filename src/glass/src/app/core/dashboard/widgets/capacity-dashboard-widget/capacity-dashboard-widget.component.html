@@ -1,16 +1,15 @@
-<div class="glass-capacity-dashboard-widget"
-     [ngClass]="{'error': error}"
-     fxLayout="row"
-     fxLayoutAlign="center center">
-  <ng-container *ngIf="!error">
+<glass-widget [loadData]="loadData.bind(this)"
+              title="Capacity"
+              (loadDataEvent)="updateChartData($event)">
+  <div class="glass-capacity-dashboard-widget"
+       fxLayout="row"
+       fxLayoutAlign="start start">
     <ngx-charts-advanced-pie-chart [scheme]="colorScheme"
                                    [results]="chartData"
                                    [animations]="false"
+                                   [view]="[500,175]"
                                    [tooltipDisabled]="true"
                                    [valueFormatting]="valueFormatting.bind(this)">
     </ngx-charts-advanced-pie-chart>
-  </ng-container>
-  <mat-icon *ngIf="error"
-            svgIcon="mdi:lan-disconnect">
-  </mat-icon>
-</div>
+  </div>
+</glass-widget>

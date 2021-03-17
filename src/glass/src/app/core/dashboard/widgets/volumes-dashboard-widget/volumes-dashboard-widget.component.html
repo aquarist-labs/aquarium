@@ -1,25 +1,17 @@
-<div class="glass-volumes-dashboard-widget"
-     [ngClass]="{'error': error}"
-     fxLayout="row"
-     fxLayoutAlign="center center">
-  <div *ngIf="!error"
-       class="glass-volumes-dashboard-widget-table"
-       fxFlex
-       fxLayout="column">
-    <div *ngIf="!firstLoadComplete"
-         class="glass-volumes-dashboard-widget-loader">
-      <mat-progress-bar *ngIf="loading"
-                        mode="indeterminate">
-      </mat-progress-bar>
+<glass-widget [loadData]="loadData.bind(this)"
+              title="Volumes"
+              (loadDataEvent)="updateData($event)">
+  <div class="glass-volumes-dashboard-widget"
+       fxLayout="row"
+       fxLayoutAlign="center center">
+    <div class="glass-volumes-dashboard-widget-table"
+         fxFlex
+         fxLayout="column">
+      <glass-datatable [data]="data"
+                       [columns]="columns"
+                       [pageSize]="5"
+                       [hidePageSize]="true">
+      </glass-datatable>
     </div>
-    <glass-datatable *ngIf="firstLoadComplete"
-                     [data]="data"
-                     [columns]="columns"
-                     [pageSize]="5"
-                     [hidePageSize]="true">
-    </glass-datatable>
   </div>
-  <mat-icon *ngIf="error"
-            svgIcon="mdi:lan-disconnect">
-  </mat-icon>
-</div>
+</glass-widget>

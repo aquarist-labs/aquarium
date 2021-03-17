@@ -1,0 +1,5 @@
+@import 'styles.scss';
+
+.glass-dashboard-widget.error {
+  @extend .glass-color-theme-error;
+}
