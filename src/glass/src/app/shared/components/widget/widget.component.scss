@@ -1,5 +1,12 @@
 @import 'styles.scss';
 
+.glass-dashboard-widget {
+  padding: unset;
+
+  .mat-card-title-group {
+    padding: 16px 16px 8px 16px;
+  }
+}
 .glass-dashboard-widget.error {
   @extend .glass-color-theme-error;
 }
