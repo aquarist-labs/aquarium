@@ -13,6 +13,7 @@ import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar
 import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
 import { MaterialModule } from '~/app/material.modules';
+import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { MaterialModule } from '~/app/material.modules';
     MaterialModule,
     RouterModule,
     DashboardModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    SharedModule
   ],
   exports: [DashboardModule]
 })

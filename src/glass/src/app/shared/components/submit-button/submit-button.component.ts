@@ -28,6 +28,7 @@ export class SubmitButtonComponent implements OnInit {
           (control: AbstractControl, key: string) => {
             if (control.invalid) {
               control.markAllAsTouched();
+              control.updateValueAndValidity();
             }
           }
         );

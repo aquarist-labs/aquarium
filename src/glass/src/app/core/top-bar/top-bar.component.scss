@@ -1,13 +1,7 @@
 @import 'styles.scss';
 
 .mat-toolbar {
-  button .mat-icon {
+  ::ng-deep button .mat-icon {
     color: $glass-color-primary-complementary;
   }
-}
-.mat-menu-item {
-  border-left: 5px solid transparent;
-}
-.mat-menu-item.active {
-  border-left: 5px solid $eos-bc-cerulean-900;
 }

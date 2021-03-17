@@ -1,0 +1,63 @@
+@import 'styles.scss';
+
+.glass-register-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #001b38;
+
+  .glass-register-page-background {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: $glass-color-accent;
+    background-image: url('./../../../assets/images/isabel-galvez-i54owgDjXeY-unsplash.jpg');
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    animation: zoom-in-out 60s ease infinite;
+  }
+
+  .glass-register-page-content {
+    height: 100%;
+    width: 100%;
+
+    ::ng-deep .mat-card {
+      width: 50%;
+      @extend .glass-color-theme-white;
+
+      .mat-card-header > .mat-card-header-text {
+        margin-left: unset;
+      }
+
+      .mat-form-field .mat-form-field-wrapper {
+        .mat-form-field-infix .mat-form-field-label,
+        .mat-hint {
+          color: $glass-color-white;
+        }
+        .mat-form-field-underline {
+          background-color: $glass-color-white;
+        }
+      }
+
+      .mat-card-actions {
+        .glass-submit-button {
+          @extend .glass-color-theme-accent;
+        }
+      }
+    }
+  }
+}
+
+@keyframes zoom-in-out {
+  50% {
+    transform: scale3d(2, 2, 1) translate3d(-30px, -30px, 0);
+    transform-origin: top left;
+  }
+  100% {
+    transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+    transform-origin: top left;
+  }
+}

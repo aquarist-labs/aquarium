@@ -5,7 +5,7 @@
   <div class="glass-bootstrap-page-content"
        fxLayout="column"
        fxLayoutAlign="center center">
-    <mat-card *ngIf="visible">
+    <mat-card *ngIf="!bootstrapping">
       <mat-card-header>
         <mat-card-title translate>Bootstrap system</mat-card-title>
       </mat-card-header>
@@ -24,7 +24,7 @@
           <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
         </button>
         <button mat-button
-                (click)="startBootstrap()">
+                (click)="doBootstrap()">
           <span translate>Start</span>
         </button>
       </mat-card-actions>

@@ -9,6 +9,7 @@ import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-pag
 import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
+import { RegisterPageComponent } from '~/app/pages/register-page/register-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 
@@ -32,6 +33,13 @@ const routes: Routes = [
         path: 'create',
         children: [
           { path: 'bootstrap', component: BootstrapPageComponent },
+          { path: 'deployment', component: DeploymentPageComponent }
+        ]
+      },
+      {
+        path: 'join',
+        children: [
+          { path: 'register', component: RegisterPageComponent },
           { path: 'deployment', component: DeploymentPageComponent }
         ]
       }

@@ -5,19 +5,5 @@
     <mat-icon svgIcon="mdi:menu"></mat-icon>
   </button>
   <span fxFlex></span>
-  <button mat-icon-button
-          matTooltip="{{ 'Language' | translate }}"
-          [matMenuTriggerFor]="languageMenu">
-    <mat-icon svgIcon="mdi:earth"></mat-icon>
-  </button>
-
-  <mat-menu #languageMenu="matMenu">
-    <button *ngFor="let language of languages | keyvalue"
-            mat-menu-item
-            [ngClass]="{'active': language.key === currentLanguage}"
-            [disabled]="language.key === currentLanguage"
-            (click)="onSelectLanguage(language.key)">
-      <span>{{ language.value }}</span>
-    </button>
-  </mat-menu>
+  <glass-language-button></glass-language-button>
 </mat-toolbar>

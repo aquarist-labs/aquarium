@@ -1,8 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 
-import { getCurrentLanguage, setCurrentLanguage, supportedLanguages } from '~/app/i18n.helper';
-
 @Component({
   selector: 'glass-top-bar',
   templateUrl: './top-bar.component.html',
@@ -13,19 +11,9 @@ export class TopBarComponent {
   @Input('navigationSidenav')
   navigationSidenav!: MatSidenav;
 
-  languages = supportedLanguages;
-  currentLanguage: string;
-
-  constructor() {
-    this.currentLanguage = getCurrentLanguage();
-  }
+  constructor() {}
 
   onToggleNavigationBar() {
     this.navigationSidenav.toggle();
-  }
-
-  onSelectLanguage(language: string): void {
-    setCurrentLanguage(language);
-    document.location.replace('');
   }
 }

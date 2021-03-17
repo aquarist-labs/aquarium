@@ -1,7 +1,8 @@
 <div fxLayout="row">
-  <a mat-list-item [routerLink]="item.route"
-                   [ngStyle]="{'padding-left': (depth * 20) + 'px'}"
-                   (click)="itemClicked(item)">
+  <a mat-list-item
+     [routerLink]="item.route"
+     [ngStyle]="{'padding-left': (depth * 20) + 'px'}"
+     (click)="itemClicked(item)">
     <mat-icon [svgIcon]="item.icon"></mat-icon>
     {{ item.name | translate}}
     <div fxFlex
