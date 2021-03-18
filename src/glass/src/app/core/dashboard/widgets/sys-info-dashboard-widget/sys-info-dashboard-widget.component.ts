@@ -58,8 +58,8 @@ export class SysInfoDashboardWidgetComponent {
   loadData(): Observable<Inventory> {
     return this.localNodeService.inventory().pipe(
       map((inventory: Inventory) => {
-        let total: number = inventory.memory.total_kb * 1024;
-        let free: number = inventory.memory.free_kb * 1024;
+        const total: number = inventory.memory.total_kb * 1024;
+        const free: number = inventory.memory.free_kb * 1024;
         this.memoryChartData = [
           {
             name: translate(TEXT('Used')),

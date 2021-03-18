@@ -5,11 +5,11 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@a
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
-import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 import {
   LocalNodeService,
   StatusStageEnum
 } from '~/app/shared/services/api/local.service';
+import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 import DoneCallback = jest.DoneCallback;
 
 const fakeRouterStateSnapshot = (url: string): RouterStateSnapshot =>
