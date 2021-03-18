@@ -165,10 +165,7 @@ class NodeMgr:
             address = address[:netmask_idx]
 
         self._state.address = address
-
-        statefile: Path = self._get_node_file("node")
-        assert statefile.exists()
-        statefile.write_text(self._state.json())
+        self._save_state()
 
     def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
@@ -241,11 +238,8 @@ class NodeMgr:
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
 
-        statefile: Path = self._get_node_file("node")
-        assert statefile.exists()
-
         self._state.stage = NodeStageEnum.JOINING
-        statefile.write_text(self._state.json())
+        self._save_state()
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
@@ -254,7 +248,7 @@ class NodeMgr:
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
             self._state.stage = NodeStageEnum.NONE
-            statefile.write_text(self._state.json())
+            self._save_state()
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -279,12 +273,10 @@ class NodeMgr:
 
         self._state.stage = NodeStageEnum.READY
         self._state.role = NodeRoleEnum.FOLLOWER
-        statefile.write_text(self._state.json())
+        self._save_state()
 
-        tokenfile: Path = self._get_node_file("token")
-        assert not tokenfile.exists()
-        tokenval: TokenModel = TokenModel(token=token)
-        tokenfile.write_text(tokenval.json())
+        self._token = token
+        self._save_token(should_exist=False)
 
         self._node_start()
         return True
@@ -302,9 +294,7 @@ class NodeMgr:
         assert self._state.hostname
         assert self._state.address
         self._state.stage = NodeStageEnum.BOOTSTRAPPING
-
-        statefile: Path = self._get_node_file("node")
-        statefile.write_text(self._state.json())
+        self._save_state()
 
     async def finish_bootstrap(self):
         assert self._state
@@ -312,22 +302,16 @@ class NodeMgr:
 
         await self._finish_bootstrap_config()
 
-        tokenfile: Path = self._get_node_file("token")
-        statefile: Path = self._get_node_file("node")
-
-        assert not tokenfile.exists()
-        assert statefile.exists()
-
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
         self._state.role = NodeRoleEnum.LEADER
-        statefile.write_text(self._state.json())
+        self._save_state()
 
         def gen() -> str:
             return ''.join(random.choice("0123456789abcdef") for _ in range(4))
 
         tokenstr = '-'.join(gen() for _ in range(4))
-        token: TokenModel = TokenModel(token=tokenstr)
-        tokenfile.write_text(token.json())
+        self._token = tokenstr
+        self._save_token(should_exist=False)
 
         self._load()
         self._node_start()
@@ -357,9 +341,7 @@ class NodeMgr:
             return
 
         self._state.stage = NodeStageEnum.READY
-        statefile: Path = self._get_node_file("node")
-        assert statefile.exists()
-        statefile.write_text(self._state.json())
+        self._save_state()
 
     @property
     def inited(self) -> bool:
@@ -448,6 +430,31 @@ class NodeMgr:
             return None
         token = TokenModel.parse_file(tokenfile)
         return token.token
+
+    def _save_token(self, should_exist: bool = True) -> None:
+        tokenfile: Path = self._get_node_file("token")
+
+        # this check could be a single assert, but it's important to know which
+        # path failed.
+        if should_exist:
+            assert tokenfile.exists()
+        else:
+            assert not tokenfile.exists()
+
+        token: TokenModel = TokenModel(token=self._token)
+        tokenfile.write_text(token.json())
+
+    def _save_state(self, should_exist: bool = True) -> None:
+        statefile: Path = self._get_node_file("node")
+
+        # this check could be a single assert, but it's important to know which
+        # path failed.
+        if should_exist:
+            assert statefile.exists()
+        else:
+            assert not statefile.exists()
+
+        statefile.write_text(self._state.json())
 
     def _get_hostname(self) -> str:
         return ""
