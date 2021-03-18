@@ -48,6 +48,7 @@ class StartReplyModel(BaseModel):
 
 class StatusReplyModel(BaseModel):
     stage: BootstrapStage = Field(title="Current bootstrapping stage")
+    progress: int = Field(0, Field="Bootstrap progress (percent)")
 
 
 @router.post("/start", response_model=StartReplyModel)
@@ -60,7 +61,8 @@ async def start_bootstrap() -> StartReplyModel:
 @router.get("/status", response_model=StatusReplyModel)
 async def get_status() -> StatusReplyModel:
     stage: BootstrapStage = await bootstrap.get_stage()
-    return StatusReplyModel(stage=stage)
+    percent: int = await bootstrap.get_progress()
+    return StatusReplyModel(stage=stage, progress=percent)
 
 
 @router.post("/finished", response_model=bool)
