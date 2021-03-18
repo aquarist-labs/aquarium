@@ -15,6 +15,11 @@ export class NavigationBarComponent implements OnInit {
       name: TEXT('Dashboard'),
       icon: 'mdi:apps',
       route: '/dashboard'
+    },
+    {
+      name: TEXT('Services'),
+      icon: 'mdi:share-variant',
+      route: '/services'
     }
   ];
   /* Subitem example. Can be removed as soon as we

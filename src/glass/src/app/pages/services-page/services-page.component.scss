@@ -1,0 +1,17 @@
+@import 'styles.scss';
+
+.glass-services-page {
+  margin: 24px;
+
+  .glass-services-page-actions {
+    margin-bottom: 8px;
+    button {
+      @extend .glass-color-theme-primary;
+    }
+  }
+  .glass-services-page-content {
+    .mat-card {
+      padding: unset;
+    }
+  }
+}

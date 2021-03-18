@@ -11,7 +11,7 @@ import { RelativeDatePipe } from './pipes/relative-date.pipe';
 
 @NgModule({
   declarations: [BytesToSizePipe, SortByPipe, RelativeDatePipe, RedundancyLevelPipe],
-  providers: [BytesToSizePipe, SortByPipe, RelativeDatePipe],
+  providers: [BytesToSizePipe, SortByPipe, RelativeDatePipe, RedundancyLevelPipe],
   exports: [BytesToSizePipe, ComponentsModule, SortByPipe, RelativeDatePipe, RedundancyLevelPipe],
   imports: [CommonModule, ComponentsModule, MaterialModule]
 })
