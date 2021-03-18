@@ -12,12 +12,12 @@
       <mat-icon svgIcon="mdi:menu"></mat-icon>
     </button>
   </mat-card-title-group>
+  <div *ngIf="!firstLoadComplete && loading"
+       class="glass-hosts-dashboard-widget-loader">
+    <mat-progress-bar mode="indeterminate">
+    </mat-progress-bar>
+  </div>
   <mat-card-content>
-    <div *ngIf="!firstLoadComplete && loading"
-         class="glass-hosts-dashboard-widget-loader">
-      <mat-progress-bar mode="indeterminate">
-      </mat-progress-bar>
-    </div>
     <ng-container *ngIf="!error && firstLoadComplete">
       <ng-content></ng-content>
     </ng-container>
