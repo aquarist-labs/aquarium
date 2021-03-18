@@ -40,8 +40,6 @@ export type Status = {
   cluster?: ClusterStatus;
 };
 
-
-
 @Injectable({
   providedIn: 'root'
 })

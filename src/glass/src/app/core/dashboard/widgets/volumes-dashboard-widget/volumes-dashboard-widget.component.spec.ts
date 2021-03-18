@@ -7,10 +7,7 @@ import { of } from 'rxjs';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { VolumesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/volumes-dashboard-widget/volumes-dashboard-widget.component';
-import {
-  LocalNodeService,
-  Volume
-} from '~/app/shared/services/api/local.service';
+import { LocalNodeService, Volume } from '~/app/shared/services/api/local.service';
 
 describe('DevicesDashboardWidgetComponent', () => {
   let component: VolumesDashboardWidgetComponent;
@@ -205,8 +202,7 @@ describe('DevicesDashboardWidgetComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(VolumesDashboardWidgetComponent);
     component = fixture.componentInstance;
-    spyOn(TestBed.inject(LocalNodeService), 'volumes')
-    .and.returnValue(of(mockedVolumes));
+    spyOn(TestBed.inject(LocalNodeService), 'volumes').and.returnValue(of(mockedVolumes));
     fixture.detectChanges();
   });
 

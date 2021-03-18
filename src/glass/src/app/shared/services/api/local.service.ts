@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /*
  * Project Aquarium's frontend (glass)
  * Copyright (C) 2021 SUSE, LLC.
@@ -16,7 +17,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
 
 export type Volume = {
   available: boolean;
@@ -105,17 +105,13 @@ export interface NodeStatus {
   node_stage: StatusStageEnum;
 }
 
-
 @Injectable({
   providedIn: 'root'
 })
 export class LocalNodeService {
+  private url = 'api/local';
 
-  private url = "api/local";
-
-  public constructor(
-    private http: HttpClient
-  ) { }
+  public constructor(private http: HttpClient) {}
 
   /**
    * Get volumes

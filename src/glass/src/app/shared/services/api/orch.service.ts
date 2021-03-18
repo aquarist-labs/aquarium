@@ -25,7 +25,6 @@ export type HostDevices = {
   devices: Device[];
 };
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -61,5 +60,4 @@ export class OrchService {
   assimilateStatus(): Observable<boolean> {
     return this.http.get<boolean>(`${this.url}/devices/all_assimilated`);
   }
-
 }

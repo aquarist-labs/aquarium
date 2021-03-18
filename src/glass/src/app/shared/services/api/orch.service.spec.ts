@@ -42,5 +42,4 @@ describe('OrchService', () => {
     const req = httpTesting.expectOne('api/orch/devices/all_assimilated');
     expect(req.request.method).toBe('GET');
   });
-
 });

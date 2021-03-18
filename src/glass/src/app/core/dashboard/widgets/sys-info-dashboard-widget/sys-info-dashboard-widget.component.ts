@@ -19,10 +19,7 @@ import { map } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import {
-  Inventory,
-  LocalNodeService
-} from '~/app/shared/services/api/local.service';
+import { Inventory, LocalNodeService } from '~/app/shared/services/api/local.service';
 
 @Component({
   selector: 'glass-sys-info-dashboard-widget',
@@ -45,7 +42,7 @@ export class SysInfoDashboardWidgetComponent {
   constructor(
     private bytesToSizePipe: BytesToSizePipe,
     private localNodeService: LocalNodeService
-  ) { }
+  ) {}
 
   valueFormatting(c: any) {
     return this.bytesToSizePipe.transform(c);

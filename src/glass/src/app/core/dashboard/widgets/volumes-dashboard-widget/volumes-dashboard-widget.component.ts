@@ -3,10 +3,7 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
-import {
-  LocalNodeService,
-  Volume
-} from '~/app/shared/services/api/local.service';
+import { LocalNodeService, Volume } from '~/app/shared/services/api/local.service';
 
 @Component({
   selector: 'glass-volumes-dashboard-widget',

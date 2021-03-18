@@ -35,10 +35,7 @@ import {
   providedIn: 'root'
 })
 export class StatusRouteGuardService implements CanActivate, CanActivateChild {
-  constructor(
-    private router: Router,
-    private localNodeService: LocalNodeService
-  ) {}
+  constructor(private router: Router, private localNodeService: LocalNodeService) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
