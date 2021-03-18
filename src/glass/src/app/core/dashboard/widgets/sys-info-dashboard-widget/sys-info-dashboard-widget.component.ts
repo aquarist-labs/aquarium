@@ -30,8 +30,8 @@ export class SysInfoDashboardWidgetComponent {
   data: Inventory = {} as Inventory;
   memoryChartData: any[] = [];
   memoryChartColorScheme = {
-    // EOS colors: [$eos-bc-red-500, $eos-bc-green-500]
-    domain: ['#dc3545', '#30ba78']
+    // EOS colors: [$eos-bc-green-500, $eos-bc-gray-100]
+    domain: ['#30ba78', '#e0dfdf']
   };
   cpuLoadChartData: any[] = [];
   cpuLoadColorScheme = {
