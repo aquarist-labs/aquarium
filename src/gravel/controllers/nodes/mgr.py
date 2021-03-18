@@ -363,6 +363,10 @@ class NodeMgr:
         statefile.write_text(self._state.json())
 
     @property
+    def inited(self) -> bool:
+        return self._init_stage >= NodeInitStage.PRESTART
+
+    @property
     def stage(self) -> NodeStageEnum:
         assert self._state
         return self._state.stage

@@ -3,7 +3,7 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
-import { OrchService, Volume } from '~/app/shared/services/api/orch.service';
+import { LocalNodeService, Volume } from '~/app/shared/services/api/local.service';
 
 @Component({
   selector: 'glass-volumes-dashboard-widget',
@@ -40,13 +40,13 @@ export class VolumesDashboardWidgetComponent {
     }
   ];
 
-  constructor(private orchService: OrchService) {}
+  constructor(private localNodeService: LocalNodeService) {}
 
   updateData($data: Volume[]) {
     this.data = $data;
   }
 
   loadData(): Observable<Volume[]> {
-    return this.orchService.volumes();
+    return this.localNodeService.volumes();
   }
 }

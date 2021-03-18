@@ -14,8 +14,12 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import validator from 'validator';
 
 import { translate } from '~/app/i18n.helper';
+import {
+  LocalNodeService,
+  NodeStatus,
+  StatusStageEnum
+} from '~/app/shared/services/api/local.service';
 import { NodesService } from '~/app/shared/services/api/nodes.service';
-import { Status, StatusService, StatusStageEnum } from '~/app/shared/services/api/status.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -39,7 +43,7 @@ export class RegisterPageComponent implements OnInit {
     private notificationService: NotificationService,
     private pollService: PollService,
     private router: Router,
-    private statusService: StatusService
+    private localNodeService: LocalNodeService
   ) {
     this.formGroup = this.formBuilder.group({
       address: [null, [Validators.required, this.addressValidator()]],
@@ -49,7 +53,7 @@ export class RegisterPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.blockUI.resetGlobal();
-    this.statusService.status().subscribe((res: Status) => {
+    this.localNodeService.status().subscribe((res: NodeStatus) => {
       if (res.node_stage === StatusStageEnum.joining) {
         this.joining = true;
         this.blockUI.start(
@@ -97,17 +101,17 @@ export class RegisterPageComponent implements OnInit {
         type: 'error'
       });
     };
-    this.statusService
+    this.localNodeService
       .status()
       .pipe(
         this.pollService.poll(
-          (res: Status) => res.node_stage === StatusStageEnum.joining,
+          (res: NodeStatus) => res.node_stage === StatusStageEnum.joining,
           undefined,
           TEXT('Failed to join existing cluster.')
         )
       )
       .subscribe(
-        (res: Status) => {
+        (res: NodeStatus) => {
           switch (res.node_stage) {
             case StatusStageEnum.none:
             case StatusStageEnum.unknown:

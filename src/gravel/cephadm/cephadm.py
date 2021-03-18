@@ -132,6 +132,7 @@ class Cephadm:
             system_uptime=facts.system_uptime,
             current_time=facts.timestamp,
             cpu=NodeCPUInfoModel(
+                arch=facts.arch,
                 model=facts.cpu_model,
                 cores=facts.cpu_cores,
                 count=facts.cpu_count,

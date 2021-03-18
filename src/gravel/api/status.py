@@ -36,9 +36,7 @@ router: APIRouter = APIRouter(
 
 
 class StatusModel(BaseModel):
-    node_stage: NodeStageEnum = Field(title="Node Deployment Stage")
     cluster: Optional[CephStatusModel] = Field(title="cluster status")
-    pass
 
 
 @router.get("/", response_model=StatusModel)
@@ -58,7 +56,6 @@ async def get_status() -> StatusModel:
             pass
 
     status: StatusModel = StatusModel(
-        node_stage=stage,
         cluster=cluster
     )
     return status
