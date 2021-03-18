@@ -40,7 +40,7 @@ export class CephfsModalComponent implements OnInit {
         2,
         [Validators.required, Validators.min(1), Validators.max(3), this.budgetValidator(this)]
       ],
-      requiredSpace: [0, [Validators.required, Validators.min(0), this.budgetValidator(this)]]
+      requiredSpace: [0, [Validators.required, Validators.min(1), this.budgetValidator(this)]]
     });
   }
 

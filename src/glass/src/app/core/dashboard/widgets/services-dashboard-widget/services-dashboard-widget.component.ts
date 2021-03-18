@@ -25,7 +25,7 @@ export class ServicesDashboardWidgetComponent implements OnInit {
   actions: WidgetAction[] = [
     {
       icon: 'plus-circle-outline',
-      name: 'Add CephFS Share',
+      name: TEXT('Add CephFS Share'),
       action: () =>
         this.dialog.openCephfs((res) => {
           if (res) {
