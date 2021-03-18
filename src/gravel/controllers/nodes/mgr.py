@@ -332,6 +332,7 @@ class NodeMgr:
         tokenfile.write_text(token.json())
 
         self._load()
+        self._node_start()
 
     async def _finish_bootstrap_config(self) -> None:
         mon: Mon = Mon()
