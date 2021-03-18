@@ -241,12 +241,20 @@ class NodeMgr:
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
 
+        statefile: Path = self._get_node_file("node")
+        assert statefile.exists()
+
+        self._state.stage = NodeStageEnum.JOINING
+        statefile.write_text(self._state.json())
+
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
         if reply.type == MessageTypeEnum.ERROR:
             errmsg = ErrorMessageModel.parse_obj(reply.data)
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
+            self._state.stage = NodeStageEnum.NONE
+            statefile.write_text(self._state.json())
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -268,6 +276,17 @@ class NodeMgr:
             )
         )
         await conn.close()
+
+        self._state.stage = NodeStageEnum.READY
+        self._state.role = NodeRoleEnum.FOLLOWER
+        statefile.write_text(self._state.json())
+
+        tokenfile: Path = self._get_node_file("token")
+        assert not tokenfile.exists()
+        tokenval: TokenModel = TokenModel(token=token)
+        tokenfile.write_text(tokenval.json())
+
+        self._node_start()
         return True
 
     async def prepare_bootstrap(self) -> None:
