@@ -23,8 +23,8 @@ export class CapacityDashboardWidgetComponent {
 
   updateChartData($data: Reservations) {
     this.chartData = [
-      { name: translate(TEXT('Assigned')), value: $data.reserved },
-      { name: translate(TEXT('Unassigned')), value: $data.available }
+      { name: translate(TEXT('Used')), value: $data.reserved },
+      { name: translate(TEXT('Free')), value: $data.available }
     ];
   }
 
