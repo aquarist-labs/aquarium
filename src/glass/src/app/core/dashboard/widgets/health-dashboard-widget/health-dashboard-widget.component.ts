@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 
+import { translate } from '~/app/i18n.helper';
 import { Status, StatusService } from '~/app/shared/services/api/status.service';
 
 @Component({
@@ -13,6 +15,7 @@ export class HealthDashboardWidgetComponent {
   public isWarn = false;
   public isOkay = false;
   public hasStatus = false;
+  public statusText = '';
 
   public constructor(private statusService: StatusService) {}
 
@@ -28,12 +31,15 @@ export class HealthDashboardWidgetComponent {
     switch (status.cluster.health.status.toLowerCase()) {
       case 'health_ok':
         this.isOkay = true;
+        this.statusText = translate(TEXT('OK'));
         break;
       case 'health_warn':
         this.isWarn = true;
+        this.statusText = translate(TEXT('Warning'));
         break;
       case 'health_err':
         this.isError = true;
+        this.statusText = translate(TEXT('Error'));
         break;
       default:
         this.hasStatus = false;
