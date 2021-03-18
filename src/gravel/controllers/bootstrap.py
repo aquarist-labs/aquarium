@@ -110,7 +110,7 @@ class Bootstrap:
         self.stage = BootstrapStage.RUNNING
 
         def progress_cb(percent: int) -> None:
-            logger.debug(f"bootstrap > {percent}")
+            logger.debug(f"bootstrap > {percent}%")
             self.progress = percent
 
         retcode: int = 0
