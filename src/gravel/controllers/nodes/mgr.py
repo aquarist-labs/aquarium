@@ -323,8 +323,10 @@ class NodeMgr:
 
     async def _prepare_bootstrap(self) -> None:
         assert self._state
-        if self._state.stage > NodeStageEnum.NONE:
-            raise NodeCantBootstrapError()
+        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
+            raise NodeCantBootstrapError("node bootstrapping")
+        elif self._state.stage > NodeStageEnum.NONE:
+            raise NodeCantBootstrapError("node can't be bootstrapped")
         elif self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
 
