@@ -109,8 +109,8 @@ async def start_bootstrap() -> StartReplyModel:
 
 @router.get("/status", response_model=StatusReplyModel)
 async def get_status() -> StatusReplyModel:
-    stage: BootstrapStage = await get_node_mgr().bootstrapper_stage
-    percent: int = await get_node_mgr().bootstrapper_progress
+    stage: BootstrapStage = get_node_mgr().bootstrapper_stage
+    percent: int = get_node_mgr().bootstrapper_progress
     return StatusReplyModel(stage=stage, progress=percent)
 
 

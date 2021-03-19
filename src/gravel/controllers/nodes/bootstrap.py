@@ -42,12 +42,12 @@ class BootstrapStage(int, Enum):
 
 class Bootstrap:
 
-    stage: BootstrapStage
-    progress: int
+    _stage: BootstrapStage
+    _progress: int
 
     def __init__(self):
-        self.stage = BootstrapStage.NONE
-        self.progress = 0
+        self._stage = BootstrapStage.NONE
+        self._progress = 0
         pass
 
     async def bootstrap(
@@ -57,7 +57,7 @@ class Bootstrap:
     ) -> None:
         logger.debug(f"start bootstrapping, address: {address}")
 
-        assert self.stage == BootstrapStage.NONE
+        assert self._stage == BootstrapStage.NONE
 
         # TODO: check here if a cluster already exists, raise if so.
 
@@ -67,11 +67,13 @@ class Bootstrap:
             logger.error(f"error starting bootstrap task: {str(e)}")
             raise BootstrapError("error starting bootstrap task")
 
-    async def get_stage(self) -> BootstrapStage:
-        return self.stage
+    @property
+    def stage(self) -> BootstrapStage:
+        return self._stage
 
-    async def get_progress(self) -> int:
-        return self.progress
+    @property
+    def progress(self) -> int:
+        return self._progress
 
     async def _do_bootstrap(
         self,
@@ -81,11 +83,11 @@ class Bootstrap:
         logger.info(f"bootstrap address: {address}")
         assert address is not None and len(address) > 0
 
-        self.stage = BootstrapStage.RUNNING
+        self._stage = BootstrapStage.RUNNING
 
         def progress_cb(percent: int) -> None:
             logger.debug(f"bootstrap > {percent}%")
-            self.progress = percent
+            self._progress = percent
 
         retcode: int = 0
         try:
@@ -93,13 +95,13 @@ class Bootstrap:
             _, _, retcode = await cephadm.bootstrap(address, progress_cb)
         except Exception as e:
             await cb(False, f"error bootstrapping: {str(e)}")
-            self.stage = BootstrapStage.ERROR
+            self._stage = BootstrapStage.ERROR
             return
 
         if retcode != 0:
             await cb(False, f"error bootstrapping: rc = {retcode}")
-            self.stage = BootstrapStage.ERROR
+            self._stage = BootstrapStage.ERROR
             return
 
-        self.stage = BootstrapStage.DONE
+        self._stage = BootstrapStage.DONE
         await cb(True, None)

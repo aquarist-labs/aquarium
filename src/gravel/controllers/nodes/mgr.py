@@ -392,16 +392,16 @@ class NodeMgr:
             logger.debug(str(e))
 
     @property
-    async def bootstrapper_stage(self) -> BootstrapStage:
+    def bootstrapper_stage(self) -> BootstrapStage:
         if not self._bootstrapper:
             return BootstrapStage.NONE
-        return await self._bootstrapper.get_stage()
+        return self._bootstrapper.stage
 
     @property
-    async def bootstrapper_progress(self) -> int:
+    def bootstrapper_progress(self) -> int:
         if not self._bootstrapper:
             return 0
-        return await self._bootstrapper.get_progress()
+        return self._bootstrapper.progress
 
     async def finish_deployment(self) -> None:
         assert self._state
