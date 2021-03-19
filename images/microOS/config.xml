@@ -1,115 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- OBS-Profiles: @BUILD_FLAVOR@ -->
-<image schemaversion="6.7" name="project-aquarium-microOS" displayname="Project Aquarium's MicroOS">
+<image schemaversion="6.8" name="project-aquarium-microOS" displayname="Project Aquarium's MicroOS">
     <description type="system">
-        <author>openSUSE Project</author>
-        <contact>opensuse-factory@opensuse.org</contact>
-        <specification>openSUSE MicroOS</specification>
+        <author>Aquarium Project</author>
+        <contact>alau@suse.com</contact>
+        <specification>
+            Aquarium Appliance, is a up and run storage image that replace ceph distribution.
+        </specification>
     </description>
     <profiles>
         <!-- Ceph foo -->
         <profile name="Ceph-base" description="Ceph requirements"/>
         <!-- Profiles used as dependencies of actual image profiles -->
         <!-- Flavors -->
-        <profile name="ContainerHost" description="MicroOS with container runtime (podman)"/>
-        <profile name="Kubic-kubeadm" description="MicroOS with CRI-O and kubeadm"/>
+        <profile name="ContainerHost" description="Aquarium with container runtime (podman)"/>
         <!-- Platforms -->
-        <profile name="kvm-and-xen_x86_64" description="kvm-and-xen for x86_64" arch="x86_64"/>
-        <profile name="kvm-and-xen_aarch64" description="kvm-and-xen for aarch64" arch="aarch64"/>
-        <profile name="kvm-and-xen" description="kvm-and-xen" arch="x86_64">
-            <requires profile="kvm-and-xen_x86_64"/>
-        </profile>
-        <profile name="kvm-and-xen" description="kvm-and-xen" arch="aarch64">
-            <requires profile="kvm-and-xen_aarch64"/>
-        </profile>
-        <profile name="VMware" description="VMware for x86_64" arch="x86_64"/>
-        <profile name="MS-HyperV" description="Hyper-V for x86_64" arch="x86_64"/>
-        <profile name="OpenStack-Cloud" description="OpenStack Cloud for x86_64" arch="x86_64"/>
-        <profile name="VirtualBox" description="VirtualBox for x86_64" arch="x86_64"/>
-        <profile name="Pine64" description="Pine64" arch="aarch64"/>
-        <profile name="RaspberryPi" description="RaspberryPi (3+, aarch64)" arch="aarch64"/>
-        <profile name="RaspberryPi2" description="RaspberryPi2 (armv7)" arch="armv7l"/>
         <profile name="Vagrant_x86_64" description="Vagrant for x86_64" arch="x86_64"/>
-        <profile name="Vagrant_aarch64" description="Vagrant for aarch64" arch="aarch64"/>
         <profile name="Vagrant" description="Vagrant" arch="x86_64">
             <requires profile="Vagrant_x86_64"/>
         </profile>
-        <profile name="Vagrant" description="Vagrant" arch="aarch64">
-            <requires profile="Vagrant_aarch64"/>
-        </profile>
         <profile name="SelfInstall" description="Self Installing Image" arch="x86_64"/>
         <!-- Images (flavor + platform) -->
-        <profile name="ContainerHost-kvm-and-xen" description="MicroOS with Podman for KVM and HVM Xen" arch="x86_64">
-            <requires profile="kvm-and-xen_x86_64"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-kvm-and-xen" description="MicroOS with Podman for KVM and HVM Xen" arch="aarch64">
-            <requires profile="kvm-and-xen_aarch64"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-VMware" description="MicroOS with Podman for VMware" arch="x86_64">
-            <requires profile="VMware"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-MS-HyperV" description="MicroOS with Podman for Hyper-V" arch="x86_64">
-            <requires profile="MS-HyperV"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-OpenStack-Cloud" description="MicroOS with Podman for OpenStack Cloud" arch="x86_64">
-            <requires profile="OpenStack-Cloud"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-Pine64" description="MicroOS with Podman for the Pine64" arch="aarch64">
-            <requires profile="Pine64"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-RaspberryPi" description="MicroOS with Podman for the Raspberry Pi" arch="aarch64">
-            <requires profile="RaspberryPi"/>
-            <requires profile="ContainerHost"/>
-        </profile>
         <profile name="ContainerHost-Vagrant" description="MicroOS with Podman for Vagrant" arch="x86_64">
             <requires profile="Vagrant_x86_64"/>
             <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-Vagrant" description="MicroOS with Podman for Vagrant" arch="aarch64">
-            <requires profile="Vagrant_aarch64"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="Kubic-kubeadm-kvm-and-xen" description="kubeadm with CRI-O for KVM and HVM Xen" arch="x86_64">
-            <requires profile="kvm-and-xen_x86_64"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-kvm-and-xen" description="kubeadm with CRI-O for KVM and HVM Xen" arch="aarch64">
-            <requires profile="kvm-and-xen_aarch64"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-VMware" description="kubeadm with CRI-O for VMware" arch="x86_64">
-            <requires profile="VMware"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-MS-HyperV" description="kubeadm with CRI-O for Hyper-V" arch="x86_64">
-            <requires profile="MS-HyperV"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-OpenStack-Cloud" description="kubeadm with CRI-O for OpenStack Cloud" arch="x86_64">
-            <requires profile="OpenStack-Cloud"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-Pine64" description="kubeadm with CRI-O for the Pine64" arch="aarch64">
-            <requires profile="Pine64"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-RaspberryPi" description="kubeadm with CRI-O for the Raspberry Pi" arch="aarch64">
-            <requires profile="RaspberryPi"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-Vagrant" description="kubeadm with CRI-O for Vagrant" arch="x86_64">
-            <requires profile="Vagrant_x86_64"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-Vagrant" description="kubeadm with CRI-O for Vagrant" arch="aarch64">
-            <requires profile="Vagrant_aarch64"/>
-            <requires profile="Kubic-kubeadm"/>
         </profile>
         <profile name="ContainerHost-SelfInstall" description="MicroOS with Podman for SelfInstallation" arch="x86_64">
             <requires profile="SelfInstall"/>
@@ -124,344 +38,28 @@
             <requires profile="Ceph-base"/>
         </profile>
     </profiles>
-    <preferences profiles="kvm-and-xen_x86_64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="qcow2"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">20</size>
-        </type>
-    </preferences>
-    <preferences profiles="kvm-and-xen_aarch64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="qcow2"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">20</size>
-        </type>
-    </preferences>
-    <preferences profiles="VMware">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="vmdk"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=vmware"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">24</size>
-            <machine memory="1024" HWversion="10" guestOS="suse-64"/>
-        </type>
-    </preferences>
-    <preferences profiles="OpenStack-Cloud">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="qcow2"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=openstack"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">24</size>
-        </type>
-    </preferences>
-    <preferences profiles="MS-HyperV">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="vhdx"
-            boottimeout="10"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes rootdelay=300 console=ttyS0,115200 console=tty0 earlyprintk=ttyS0,115200 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <!-- Microsoft wants 30GB images -->
-            <size unit="G">30</size>
-        </type>
-    </preferences>
-    <preferences profiles="VirtualBox">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="vdi"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=virtualbox"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">20</size>
-        </type>
-    </preferences>
-    <preferences profiles="Pine64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime"
-            bootloader="grub2"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200n8 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_pine64.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
-    <preferences profiles="RaspberryPi">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime,compress=lzo"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200n8 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_rpi.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
-    <preferences profiles="RaspberryPi2">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime,compress=lzo"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyAMA0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_rpi.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm-efi" mountpoint="boot/grub2/arm-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
     <preferences profiles="Vagrant_x86_64">
         <version>16.0.0</version>
         <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
         <locale>en_US</locale>
+        <keytable>us</keytable>
+        <rpm-excludedocs>true</rpm-excludedocs>
+        <rpm-check-signatures>false</rpm-check-signatures>
+        <bootloader-theme>openSUSE</bootloader-theme>
         <type
-            image="vmx"
-            filesystem="btrfs"
+            image="oem"
+            filesystem="ext4"
             format="vagrant"
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal root=/dev/vda1 disk=/dev/vda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
         >
+            <vagrantconfig provider="libvirt" virtualsize="24"/>
+            <size unit="G">24</size>
             <systemdisk>
                 <volume name="home"/>
                 <volume name="root"/>
@@ -472,43 +70,6 @@
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
-            <vagrantconfig provider="libvirt" virtualsize="24"/>
-            <size unit="G">24</size>
-        </type>
-    </preferences>
-    <preferences profiles="Vagrant_aarch64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="vagrant"
-            bootloader="grub2"
-            bootloader_console="gfxterm"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <vagrantconfig provider="libvirt" virtualsize="24"/>
-            <size unit="G">24</size>
         </type>
     </preferences>
     <preferences profiles="SelfInstall">
@@ -516,23 +77,20 @@
         <packagemanager>zypper</packagemanager>
         <bootsplash-theme>openSUSE</bootsplash-theme>
         <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
         <locale>en_US</locale>
+        <keytable>us</keytable>
+        <rpm-excludedocs>true</rpm-excludedocs>
+        <rpm-check-signatures>false</rpm-check-signatures>
         <type
             image="oem"
-            filesystem="btrfs"
+            filesystem="ext4"
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
             initrd_system="dracut"
             installiso="true"
             kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
-            bootpartition="false"
-            bootkernel="custom"
             devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
         >
             <systemdisk>
                 <volume name="home"/>
@@ -560,31 +118,16 @@
         <type
             image="iso"
             primary="true"
-            flags="dmsquash"
+            flags="overlay"
             hybridpersistent_filesystem="ext4"
             hybridpersistent="true"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-        >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="tmp"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-            <machine memory="512" guestOS="suse" HWversion="4">
-                <vmdisk id="0" controller="ide"/>
-                <vmnic driver="e1000" interface="0" mode="bridged"/>
-            </machine>
-        </type>
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0"
+            devicepersistency="by-uuid"/>
     </preferences>
+    <users>
+        <user password="suse1234" home="/root" name="root" groups="root" pwdformat="plain"/>
+        <user password="suse1234" home="/home/vagrant" name="vagrant" pwdformat="plain"/>
+    </users>
 
     <repository type="rpm-md" alias="Tumbleweed_OSS">
         <source path='https://download.opensuse.org/tumbleweed/repo/oss'/>
@@ -611,7 +154,7 @@
         <archive name="aquarium.tar"/>
     </packages>
 
-    <packages type="image" profiles="kvm-and-xen,kvm-and-xen_x86_64,kvm-and-xen_aarch64,VMware,MS-HyperV,VirtualBox,Pine64,RaspberryPi,RaspberryPi2,Vagrant_x86_64,Vagrant_aarch64">
+    <packages type="image" profiles="Vagrant_x86_64">
         <!-- Needed for initial configuration, except on OpenStack-Cloud, where cloud-init is used -->
         <package name="ignition-dracut"/>
         <package name="combustion"/>
@@ -623,65 +166,6 @@
         <namedCollection name="microos_apparmor"/>
         <package name="patterns-microos-apparmor"/>
     </packages>
-    <packages type="image" profiles="Kubic-kubeadm">
-        <namedCollection name="container_runtime_kubernetes"/>
-        <package name="patterns-containers-container_runtime_kubernetes"/>
-        <namedCollection name="kubeadm"/>
-        <package name="patterns-containers-kubeadm"/>
-        <namedCollection name="kubic_admin"/>
-        <package name="patterns-containers-kubic_admin"/>
-        <namedCollection name="kubic_loadbalancer"/>
-        <package name="patterns-containers-kubic_loadbalancer"/>
-        <namedCollection name="kubic_worker"/>
-        <package name="patterns-containers-kubic_worker"/>
-        <namedCollection name="microos_apparmor"/>
-        <package name="patterns-microos-apparmor"/>
-    </packages>
-    <packages type="image" profiles="kvm-and-xen,kvm-and-xen_x86_64,kvm-and-xen_aarch64">
-        <!-- KVM and Xen specific packages -->
-        <package name="xen-tools-domU" arch="x86_64"/>
-        <package name="qemu-guest-agent"/>
-    </packages>
-    <packages type="image" profiles="VMware">
-        <package name="open-vm-tools" arch="x86_64"/>
-    </packages>
-    <packages type="image" profiles="MS-HyperV">
-        <package name="hyper-v" arch="x86_64"/>
-    </packages>
-    <packages type="image" profiles="OpenStack-Cloud">
-        <namedCollection name="microos_cloud"/>
-        <package name="patterns-microos-cloud"/>
-    </packages>
-    <packages type="image" profiles="VirtualBox">
-        <package name="virtualbox-guest-tools"/>
-    </packages>
-    <packages type="image" profiles="Pine64">
-        <package name="u-boot-pine64plus" arch="aarch64"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="ntp"/>
-    </packages>
-    <packages type="image" profiles="RaspberryPi">
-        <package name="raspberrypi-firmware" arch="aarch64"/>
-        <package name="raspberrypi-firmware-config" arch="aarch64"/>
-        <package name="raspberrypi-firmware-dt" arch="aarch64"/>
-        <package name="u-boot-rpiarm64" arch="aarch64"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="bcm43xx-firmware"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
-        <package name="wireless-tools"/>
-        <package name="wpa_supplicant"/>
-    </packages>
-    <packages type="image" profiles="RaspberryPi2">
-        <package name="raspberrypi-firmware" arch="armv7l"/>
-        <package name="raspberrypi-firmware-config" arch="armv7l"/>
-        <package name="raspberrypi-firmware-dt" arch="armv7l"/>
-        <package name="u-boot-rpi2" arch="armv7l"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="bcm43xx-firmware"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
-        <package name="wireless-tools"/>
-        <package name="wpa_supplicant"/>
-    </packages>
     <packages type="image" profiles="Vagrant,Vagrant_x86_64,Vagrant_aarch64">
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
@@ -689,12 +173,16 @@
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-repart"/>
         <package name="dracut-kiwi-oem-dump"/>
-        <package name="dracut-kiwi-live"/>
-        <package name="syslinux"/>
         <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
     </packages>
+    <packages type="iso">
+        <package name="dracut-kiwi-live"/>
+        <package name="syslinux"/>
+    </packages>
+
     <packages type="bootstrap">
         <!-- Avoid that zypper picks the busybox-foo variant for those, that would fail later -->
+        <package name="udev"/>
         <package name="coreutils"/>
         <package name="gzip"/>
         <package name="gawk"/>
