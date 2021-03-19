@@ -14,6 +14,7 @@
 import asyncio
 from enum import Enum
 from logging import Logger
+from typing import Optional
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
@@ -36,7 +37,13 @@ class NetworkAddressNotFoundError(Exception):
 
 
 class BootstrapError(Exception):
-    pass
+    def __init__(self, msg: Optional[str] = ""):
+        super().__init__()
+        self._msg = msg
+
+    @property
+    def message(self) -> str:
+        return self._msg if self._msg else "bootstrap error"
 
 
 class BootstrapStage(int, Enum):
@@ -118,7 +125,7 @@ class Bootstrap:
             cephadm: Cephadm = Cephadm()
             _, _, retcode = await cephadm.bootstrap(address, progress_cb)
         except Exception as e:
-            raise BootstrapError(e) from e
+            raise BootstrapError(str(e)) from e
 
         if retcode != 0:
             raise BootstrapError(f"error bootstrapping: rc = {retcode}")
