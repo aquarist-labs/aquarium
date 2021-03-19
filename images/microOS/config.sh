@@ -56,6 +56,26 @@ suseImportBuildKey
 #--------------------------------------
 baseUpdateSysConfig /etc/sysconfig/network/dhcp DHCLIENT_SET_HOSTNAME yes
 
+# Add repos from /etc/YaST2/control.xml
+if [ -x /usr/sbin/add-yast-repos ]; then
+	add-yast-repos
+	zypper --non-interactive rm -u live-add-yast-repos
+fi
+
+# Adjust zypp conf
+sed -i 's/^multiversion =.*/multiversion =/g' /etc/zypp/zypp.conf
+
+#======================================
+# Disable recommends on virtual images (keep hardware supplements, see bsc#1089498)
+#--------------------------------------
+sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = true/g' /etc/zypp/zypp.conf
+
+#======================================
+# Disable installing documentation
+#--------------------------------------
+sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = yes/g' /etc/zypp/zypp.conf
+
+
 #=====================================
 # Enable chrony if installed
 #-------------------------------------
