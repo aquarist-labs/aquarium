@@ -14,26 +14,13 @@
 import asyncio
 from enum import Enum
 from logging import Logger
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
-from gravel.controllers.nodes.errors import (
-    NodeCantBootstrapError,
-    NodeNotStartedError
-)
-from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    NodeStageEnum,
-    get_node_mgr
-)
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
-
-
-class NetworkAddressNotFoundError(Exception):
-    pass
 
 
 class BootstrapError(Exception):
@@ -63,39 +50,22 @@ class Bootstrap:
         self.progress = 0
         pass
 
-    async def _should_bootstrap(self) -> bool:
-        nodemgr = get_node_mgr()
-        stage: NodeStageEnum = nodemgr.stage
-        return stage == NodeStageEnum.NONE
+    async def bootstrap(
+        self,
+        address: str,
+        cb: Callable[[bool, Optional[str]], Awaitable[None]]
+    ) -> None:
+        logger.debug(f"start bootstrapping, address: {address}")
 
-    async def _is_bootstrapping(self) -> bool:
-        nodemgr = get_node_mgr()
-        return nodemgr.bootstrapping
+        assert self.stage == BootstrapStage.NONE
 
-    async def bootstrap(self) -> bool:
-        logger.debug("do bootstrap")
-
-        mgr: NodeMgr = get_node_mgr()
-        stage: NodeStageEnum = mgr.stage
-        if stage > NodeStageEnum.NONE:  # no longer vanilla, can't bootstrap
-            return False
+        # TODO: check here if a cluster already exists, raise if so.
 
         try:
-            await mgr.prepare_bootstrap()
-        except NodeCantBootstrapError:
-            logger.error("Can't bootstrap node")
-            return False
-        except NodeNotStartedError:
-            logger.error("Node can't bootstrap yet")
-            return False
-
-        try:
-            asyncio.create_task(self._do_bootstrap())
+            asyncio.create_task(self._do_bootstrap(address, cb))
         except Exception as e:
             logger.error(f"error starting bootstrap task: {str(e)}")
-            return False
-
-        return True
+            raise BootstrapError("error starting bootstrap task")
 
     async def get_stage(self) -> BootstrapStage:
         return self.stage
@@ -103,16 +73,13 @@ class Bootstrap:
     async def get_progress(self) -> int:
         return self.progress
 
-    async def _do_bootstrap(self) -> None:
-        mgr: NodeMgr = get_node_mgr()
-        address = mgr.address
-
-        logger.info(f"address: {address}")
+    async def _do_bootstrap(
+        self,
+        address: str,
+        cb: Callable[[bool, Optional[str]], Awaitable[None]]
+    ) -> None:
+        logger.info(f"bootstrap address: {address}")
         assert address is not None and len(address) > 0
-
-        mgr: NodeMgr = get_node_mgr()
-        assert mgr.stage == NodeStageEnum.NONE
-        await mgr.start_bootstrap()  # XXX: needs hostname
 
         self.stage = BootstrapStage.RUNNING
 
@@ -125,10 +92,14 @@ class Bootstrap:
             cephadm: Cephadm = Cephadm()
             _, _, retcode = await cephadm.bootstrap(address, progress_cb)
         except Exception as e:
-            raise BootstrapError(str(e)) from e
+            await cb(False, f"error bootstrapping: {str(e)}")
+            self.stage = BootstrapStage.ERROR
+            return
 
         if retcode != 0:
-            raise BootstrapError(f"error bootstrapping: rc = {retcode}")
+            await cb(False, f"error bootstrapping: rc = {retcode}")
+            self.stage = BootstrapStage.ERROR
+            return
 
         self.stage = BootstrapStage.DONE
-        await get_node_mgr().finish_bootstrap()
+        await cb(True, None)

@@ -18,7 +18,6 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 
 from gravel.controllers.nodes.bootstrap import (
-    Bootstrap,
     BootstrapStage
 )
 from gravel.controllers.nodes.mgr import (
@@ -39,8 +38,6 @@ router: APIRouter = APIRouter(
     tags=["bootstrap"]
 )
 
-bootstrap = Bootstrap()
-
 
 class StartReplyModel(BaseModel):
     success: bool = Field(title="Operation started successfully")
@@ -53,15 +50,20 @@ class StatusReplyModel(BaseModel):
 
 @router.post("/start", response_model=StartReplyModel)
 async def start_bootstrap() -> StartReplyModel:
-    res: bool = await bootstrap.bootstrap()
-    logger.debug(f"api > start (success: {res})")
-    return StartReplyModel(success=res)
+    try:
+        await get_node_mgr().bootstrap()
+    except NodeError as e:
+        logger.error(f"api => can't bootstrap: {e.message}")
+        return StartReplyModel(success=False)
+
+    logger.debug("api => start bootstrap")
+    return StartReplyModel(success=True)
 
 
 @router.get("/status", response_model=StatusReplyModel)
 async def get_status() -> StatusReplyModel:
-    stage: BootstrapStage = await bootstrap.get_stage()
-    percent: int = await bootstrap.get_progress()
+    stage: BootstrapStage = await get_node_mgr().bootstrapper_stage
+    percent: int = await get_node_mgr().bootstrapper_progress
     return StatusReplyModel(stage=stage, progress=percent)
 
 
