@@ -40,14 +40,25 @@ class BootstrapStage(int, Enum):
     ERROR = 3
 
 
+class BootstrapErrorEnum(int, Enum):
+    NONE = 0
+    CANT_BOOTSTRAP = 1
+    NODE_NOT_STARTED = 2
+    UNKNOWN_ERROR = 3
+
+
 class Bootstrap:
 
     _stage: BootstrapStage
     _progress: int
+    _error_code: BootstrapErrorEnum
+    _error_msg: str
 
     def __init__(self):
         self._stage = BootstrapStage.NONE
         self._progress = 0
+        self._error_code = BootstrapErrorEnum.NONE
+        self._error_msg = ""
         pass
 
     async def bootstrap(
@@ -75,6 +86,18 @@ class Bootstrap:
     def progress(self) -> int:
         return self._progress
 
+    @property
+    def error_code(self) -> BootstrapErrorEnum:
+        return self._error_code
+
+    @property
+    def error_msg(self) -> str:
+        return self._error_msg
+
+    async def set_error(self, code: BootstrapErrorEnum, msg: str) -> None:
+        self._error_code = code
+        self._error_msg = msg
+
     async def _do_bootstrap(
         self,
         address: str,
@@ -96,11 +119,15 @@ class Bootstrap:
         except Exception as e:
             await cb(False, f"error bootstrapping: {str(e)}")
             self._stage = BootstrapStage.ERROR
+            self._error_code = BootstrapErrorEnum.CANT_BOOTSTRAP
+            self._error_msg = "error bootstrapping"
             return
 
         if retcode != 0:
             await cb(False, f"error bootstrapping: rc = {retcode}")
             self._stage = BootstrapStage.ERROR
+            self._error_code = BootstrapErrorEnum.CANT_BOOTSTRAP
+            self._error_msg = "error bootstrapping"
             return
 
         self._stage = BootstrapStage.DONE

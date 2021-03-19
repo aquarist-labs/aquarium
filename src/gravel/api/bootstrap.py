@@ -11,7 +11,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from enum import Enum
 from logging import Logger
 from typing import Optional
 from fastapi.routing import APIRouter
@@ -20,6 +19,7 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 
 from gravel.controllers.nodes.bootstrap import (
+    BootstrapErrorEnum,
     BootstrapStage
 )
 from gravel.controllers.nodes.mgr import (
@@ -41,13 +41,6 @@ router: APIRouter = APIRouter(
 )
 
 
-class BootstrapErrorEnum(int, Enum):
-    NONE = 0
-    CANT_BOOTSTRAP = 1
-    NODE_NOT_STARTED = 2
-    UNKNOWN_ERROR = 3
-
-
 class BootstrapErrorModel(BaseModel):
     code: BootstrapErrorEnum = Field(BootstrapErrorEnum.NONE,
                                      title="Error code")
@@ -63,6 +56,8 @@ class StartReplyModel(BaseModel):
 class StatusReplyModel(BaseModel):
     stage: BootstrapStage = Field(title="Current bootstrapping stage")
     progress: int = Field(0, title="Bootstrap progress (percent)")
+    error: BootstrapErrorModel = Field(BootstrapErrorModel(),
+                                       title="Bootstrap error")
 
 
 @router.post("/start", response_model=StartReplyModel)
@@ -109,9 +104,25 @@ async def start_bootstrap() -> StartReplyModel:
 
 @router.get("/status", response_model=StatusReplyModel)
 async def get_status() -> StatusReplyModel:
+    """
+    Get bootstrapping status from this node.
+
+    Provides the current state, and progress if currently bootstrapping or fully
+    bootstrapped. Provides error code and message in case it's in an error
+    state.
+
+    This information does not survive Aquarium restarts.
+    """
     stage: BootstrapStage = get_node_mgr().bootstrapper_stage
     percent: int = get_node_mgr().bootstrapper_progress
-    return StatusReplyModel(stage=stage, progress=percent)
+    return StatusReplyModel(
+        stage=stage,
+        progress=percent,
+        error=BootstrapErrorModel(
+            code=get_node_mgr().bootstrapper_error_code,
+            message=get_node_mgr().bootstrapper_error_msg
+        )
+    )
 
 
 @router.post("/finished", response_model=bool)

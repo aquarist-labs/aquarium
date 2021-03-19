@@ -27,7 +27,12 @@ from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import gstate
-from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError, BootstrapStage
+from gravel.controllers.nodes.bootstrap import (
+    Bootstrap,
+    BootstrapError,
+    BootstrapErrorEnum,
+    BootstrapStage
+)
 from gravel.controllers.orch.ceph import (
     CephCommandError,
     Mon
@@ -402,6 +407,18 @@ class NodeMgr:
         if not self._bootstrapper:
             return 0
         return self._bootstrapper.progress
+
+    @property
+    def bootstrapper_error_code(self) -> BootstrapErrorEnum:
+        if not self._bootstrapper:
+            return BootstrapErrorEnum.NONE
+        return self._bootstrapper.error_code
+
+    @property
+    def bootstrapper_error_msg(self) -> str:
+        if not self._bootstrapper:
+            return ""
+        return self._bootstrapper.error_msg
 
     async def finish_deployment(self) -> None:
         assert self._state
