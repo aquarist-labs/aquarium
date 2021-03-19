@@ -49,9 +49,11 @@ class BootstrapStage(int, Enum):
 class Bootstrap:
 
     stage: BootstrapStage
+    progress: int
 
     def __init__(self):
         self.stage = BootstrapStage.NONE
+        self.progress = 0
         pass
 
     async def _should_bootstrap(self) -> bool:
@@ -91,6 +93,9 @@ class Bootstrap:
     async def get_stage(self) -> BootstrapStage:
         return self.stage
 
+    async def get_progress(self) -> int:
+        return self.progress
+
     async def _do_bootstrap(self) -> None:
         mgr: NodeMgr = get_node_mgr()
         address = mgr.address
@@ -104,10 +109,14 @@ class Bootstrap:
 
         self.stage = BootstrapStage.RUNNING
 
+        def progress_cb(percent: int) -> None:
+            logger.debug(f"bootstrap > {percent}%")
+            self.progress = percent
+
         retcode: int = 0
         try:
             cephadm: Cephadm = Cephadm()
-            _, _, retcode = await cephadm.bootstrap(address)
+            _, _, retcode = await cephadm.bootstrap(address, progress_cb)
         except Exception as e:
             raise BootstrapError(e) from e
 

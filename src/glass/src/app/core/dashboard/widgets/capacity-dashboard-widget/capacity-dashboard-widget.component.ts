@@ -15,16 +15,16 @@ export class CapacityDashboardWidgetComponent {
   // Options for chart
   chartData: any[] = [];
   colorScheme = {
-    // EOS colors: [$eos-bc-green-500, $eos-bc-red-500]
-    domain: ['#30ba78', '#dc3545']
+    // EOS colors: [$eos-bc-green-500, $eos-bc-gray-100]
+    domain: ['#30ba78', '#e0dfdf']
   };
 
   constructor(public service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {}
 
   updateChartData($data: Reservations) {
     this.chartData = [
-      { name: translate(TEXT('Assigned')), value: $data.reserved },
-      { name: translate(TEXT('Unassigned')), value: $data.available }
+      { name: translate(TEXT('Used')), value: $data.reserved },
+      { name: translate(TEXT('Free')), value: $data.available }
     ];
   }
 

@@ -1,16 +1,13 @@
 <glass-widget [loadData]="loadData.bind(this)"
               title="Services"
+              [actionMenu]="actions"
               (loadDataEvent)="updateData($event)">
   <div class="glass-services-dashboard-widget"
        fxLayout="row"
        fxLayoutAlign="center center">
     <div *ngIf="data.length === 0"
          class="glass-services-dashboard-widget-no-services">
-      <p>No services deployed yet.</p>
-      <button mat-raised-button
-              routerLink="/installer/create/deployment">
-        <span translate>Deploy a service</span>
-      </button>
+      <p translate>No services deployed yet.</p>
     </div>
     <div class="glass-services-dashboard-widget-table"
          fxFlex
@@ -26,7 +23,6 @@
 </glass-widget>
 
 <ng-template #flavor
-             let-row="row"
              let-value="value">
   <span
     [matTooltip]="value | redundancyLevel:'short'"

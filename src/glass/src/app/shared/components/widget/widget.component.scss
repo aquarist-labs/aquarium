@@ -9,4 +9,7 @@
 }
 .glass-dashboard-widget.error {
   @extend .glass-color-theme-error;
+  .mat-card-content {
+    padding: 16px;
+  }
 }

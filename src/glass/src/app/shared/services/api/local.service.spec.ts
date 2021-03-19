@@ -15,17 +15,17 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { StatusService } from '~/app/shared/services/api/status.service';
+import { LocalNodeService } from './local.service';
 
-describe('StatusService', () => {
-  let service: StatusService;
+describe('LocalNodeService', () => {
+  let service: LocalNodeService;
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule]
     });
-    service = TestBed.inject(StatusService);
+    service = TestBed.inject(LocalNodeService);
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
@@ -33,9 +33,9 @@ describe('StatusService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call status', () => {
+  it('should call local node status', () => {
     service.status().subscribe();
-    const req = httpTesting.expectOne('api/status/');
+    const req = httpTesting.expectOne('api/local/status');
     expect(req.request.method).toBe('GET');
   });
 });

@@ -3,6 +3,12 @@ import * as _ from 'lodash';
 import { EMPTY, Observable, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 
+export type WidgetAction = {
+  icon: string;
+  name: string;
+  action: () => void;
+};
+
 @Component({
   selector: 'glass-widget',
   templateUrl: './widget.component.html',
@@ -16,6 +22,8 @@ export class WidgetComponent implements OnInit, OnDestroy {
   title = '';
   @Input()
   loadData?: () => Observable<any>;
+  @Input()
+  actionMenu?: WidgetAction[];
 
   error = false;
   loading = false;
@@ -25,18 +33,17 @@ export class WidgetComponent implements OnInit, OnDestroy {
   private loadingWithoutError = true;
   private refreshDataSubscription?: Subscription;
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  private readonly RELOAD = 15000;
+  private readonly reloadTime = 15000;
 
   ngOnInit(): void {
-    this.refreshData();
+    this.reload();
   }
 
   ngOnDestroy(): void {
     this.refreshDataSubscription?.unsubscribe();
   }
 
-  private refreshData(): void {
+  reload(): void {
     if (!this.loadData) {
       throw new Error('loadData attribute not set');
     }
@@ -56,10 +63,10 @@ export class WidgetComponent implements OnInit, OnDestroy {
           this.error = !this.loadingWithoutError;
           this.firstLoadComplete = this.loadingWithoutError;
           this.refreshDataSubscription?.unsubscribe();
-          if (this.RELOAD > 0) {
+          if (this.reloadTime > 0) {
             setTimeout(() => {
-              this.refreshData();
-            }, this.RELOAD);
+              this.reload();
+            }, this.reloadTime);
           }
           this.loading = false;
         })
