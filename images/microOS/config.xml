@@ -129,6 +129,10 @@
         <user password="suse1234" home="/home/vagrant" name="vagrant" pwdformat="plain"/>
     </users>
 
+    <repository type="rpm-md" alias="kiwi" priority="1">
+        <source path="obs://Virtualization:Appliances:Builder/openSUSE_Tumbleweed"/>
+    </repository>
+
     <repository type="rpm-md" alias="Tumbleweed_OSS">
         <source path='https://download.opensuse.org/tumbleweed/repo/oss'/>
     </repository>
@@ -136,21 +140,23 @@
         <package name="live-add-yast-repos"/>
         <!-- Apparently zypper (?) doesn't like having multiple patterns with the same name,
              so avoid using namedCollection at least for basesystem -->
+	<!--
         <package name="patterns-microos-basesystem"/>
-        <package name="patterns-base-bootloader"/>
         <package name="patterns-microos-defaults"/>
+	-->
+        <package name="patterns-base-bootloader"/>
         <package name="kernel-default"/>
     </packages>
 
-    <packages type="image" profiles="Ceph-base">
+    <packages type="image" profiles="Ceph-base" patternType="onlyRequired"> 
         <package name="lvm2"/>
         <package name="chrony"/>
         <package name="tuned"/>
-        <package name="python3-pip"/>
-        <package name="python3-aiofiles"/>
-        <package name="python3-requests"/>
+        <package name="python38-pip"/>
+        <package name="python38-aiofiles"/>
+        <package name="python38-requests"/>
         <package name="python3-rados"/>
-        <package name="python3-websockets"/>
+        <package name="python38-websockets"/>
         <archive name="aquarium.tar"/>
     </packages>
 
@@ -163,8 +169,6 @@
     <packages type="image" profiles="ContainerHost">
         <namedCollection name="container_runtime"/>
         <package name="patterns-containers-container_runtime"/>
-        <namedCollection name="microos_apparmor"/>
-        <package name="patterns-microos-apparmor"/>
     </packages>
     <packages type="image" profiles="Vagrant,Vagrant_x86_64,Vagrant_aarch64">
         <!-- vagrant-libvirt uses nfs for synced folders -->
@@ -174,9 +178,8 @@
         <package name="dracut-kiwi-oem-repart"/>
         <package name="dracut-kiwi-oem-dump"/>
         <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
-    </packages>
-    <packages type="iso">
         <package name="dracut-kiwi-live"/>
+        <package name="dracut-kiwi-lib"/>
         <package name="syslinux"/>
     </packages>
 
@@ -184,6 +187,8 @@
         <!-- Avoid that zypper picks the busybox-foo variant for those, that would fail later -->
         <package name="udev"/>
         <package name="coreutils"/>
+        <package name="xz"/>
+        <package name="grep"/>
         <package name="gzip"/>
         <package name="gawk"/>
 

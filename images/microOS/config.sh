@@ -62,20 +62,6 @@ if [ -x /usr/sbin/add-yast-repos ]; then
 	zypper --non-interactive rm -u live-add-yast-repos
 fi
 
-# Adjust zypp conf
-sed -i 's/^multiversion =.*/multiversion =/g' /etc/zypp/zypp.conf
-
-#======================================
-# Disable recommends on virtual images (keep hardware supplements, see bsc#1089498)
-#--------------------------------------
-sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = true/g' /etc/zypp/zypp.conf
-
-#======================================
-# Disable installing documentation
-#--------------------------------------
-sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = yes/g' /etc/zypp/zypp.conf
-
-
 #=====================================
 # Enable chrony if installed
 #-------------------------------------
@@ -87,7 +73,7 @@ fi
 # Configure Vagrant specifics
 #--------------------------------------
 
-chmod 0755 /vagrant
+chmod 0755 /home/vagrant
 chmod 0700 /home/vagrant/.ssh
 chmod 0600 /home/vagrant/.ssh/authorized_keys
 chown -R vagrant:users /home/vagrant/.ssh
