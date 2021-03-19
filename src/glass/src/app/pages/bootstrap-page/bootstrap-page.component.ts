@@ -10,6 +10,8 @@ import {
   BootstrapStageEnum,
   BootstrapStatusReply
 } from '~/app/shared/services/api/bootstrap.service';
+import { NodeStatus } from '~/app/shared/services/api/local.service';
+import { LocalNodeService } from '~/app/shared/services/api/local.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -28,7 +30,8 @@ export class BootstrapPageComponent implements OnInit {
     private bootstrapService: BootstrapService,
     private notificationService: NotificationService,
     private router: Router,
-    private pollService: PollService
+    private pollService: PollService,
+    private localNodeService: LocalNodeService
   ) {}
 
   ngOnInit(): void {
@@ -47,6 +50,40 @@ export class BootstrapPageComponent implements OnInit {
       },
       error: () => (this.bootstrapping = false)
     });
+  }
+
+  onStart(): void {
+    // We need to check if the node is initialized before we can start
+    // bootstrapping.
+    this.blockUI.start(translate(TEXT('Please wait, checking node status ...')));
+    this.pollNodeStatus();
+  }
+
+  pollNodeStatus(): void {
+    this.localNodeService
+      .status()
+      .pipe(
+        this.pollService.poll(
+          (status: NodeStatus) => !status.inited,
+          10,
+          TEXT('Bootstrapping not possible at the moment, please retry later.'),
+          1000
+        )
+      )
+      .subscribe(
+        (status: NodeStatus) => {
+          this.blockUI.stop();
+          if (status.inited) {
+            this.doBootstrap();
+          }
+        },
+        (err) => {
+          this.blockUI.stop();
+          this.notificationService.show(err.message, {
+            type: 'error'
+          });
+        }
+      );
   }
 
   doBootstrap(): void {
@@ -85,7 +122,7 @@ export class BootstrapPageComponent implements OnInit {
       .pipe(
         this.pollService.poll(
           (statusReply) => statusReply.stage === BootstrapStageEnum.running,
-          undefined,
+          Infinity,
           TEXT('Failed to bootstrap the system.')
         )
       )

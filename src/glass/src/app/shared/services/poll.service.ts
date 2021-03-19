@@ -11,6 +11,19 @@ import { translate } from '~/app/i18n.helper';
 export class PollService {
   constructor() {}
 
+  /**
+   * Poll the specified service until the given callback function
+   * returns `false`.
+   *
+   * @param isActive The callback function. Must return `false` to
+   *   stop polling.
+   * @param maxAttempts The maximum number of attempts. Defaults
+   *   to `Infinity`.
+   * @param errorMessage The error message thrown when the maximum
+   *   number of attempts have been reached.
+   * @param interval The poll interval in milliseconds.
+   * @param retLastResult Return the last result? Defaults to `true`.
+   */
   poll<T>(
     isActive: (res: T) => boolean,
     maxAttempts: number = Infinity,
