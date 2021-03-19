@@ -17,7 +17,7 @@ from fastapi.logger import logger as fastapi_logger
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 
-from gravel.controllers.bootstrap import (
+from gravel.controllers.nodes.bootstrap import (
     Bootstrap,
     BootstrapStage
 )
