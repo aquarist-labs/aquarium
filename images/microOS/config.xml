@@ -60,16 +60,6 @@
         >
             <vagrantconfig provider="libvirt" virtualsize="24"/>
             <size unit="G">24</size>
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
         </type>
     </preferences>
     <preferences profiles="SelfInstall">
@@ -92,18 +82,6 @@
             kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
             devicepersistency="by-uuid"
         >
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="tmp"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
             <oemconfig>
                 <oem-systemsize>2048</oem-systemsize>
                 <oem-swap>true</oem-swap>
@@ -171,11 +149,11 @@
         <package name="patterns-containers-container_runtime"/>
     </packages>
     <packages type="image" profiles="Vagrant,Vagrant_x86_64,Vagrant_aarch64">
+        <package name="dracut-kiwi-oem-repart"/>
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
     </packages>
     <packages type="image" profiles="SelfInstall">
-        <package name="dracut-kiwi-oem-repart"/>
         <package name="dracut-kiwi-oem-dump"/>
         <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
         <package name="dracut-kiwi-live"/>
@@ -199,7 +177,6 @@
         <package name="glibc-locale-base"/>
         <!-- So that https repos work for image package downloads -->
         <package name="ca-certificates-mozilla"/>
-        <!-- TODO: Use the proper flavors once available -->
-        <package name="MicroOS-release-dvd"/>
+        <package name="dracut-kiwi-oem-repart"/>
     </packages>
 </image>
