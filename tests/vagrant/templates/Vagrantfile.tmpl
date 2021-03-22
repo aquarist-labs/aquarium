@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "{BOXNAME}"
+    # The nfs server on Leap has udp enabled by default, but not on Tumbleweed
+    # Disable udp to make it working for any host system by default.
+    config.vm.synced_folder "{ROOTDIR}", "/srv/aquarium", type: "nfs", nfs_udp: false
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+
+    config.vm.define :"node01", primary: true do |node|
+        node.vm.hostname = "node01"
+        node.vm.network "forwarded_port", guest: 1337, host: 1337, host_ip: "*"
+
+        node.vm.provider "libvirt" do |lv|
+            lv.memory = 4096
+            lv.cpus = 1
+            lv.storage :file, size: "8G", type: "qcow2", serial: "01123456"
+            lv.storage :file, size: "8G", type: "qcow2", serial: "01789101"
+            lv.storage :file, size: "8G", type: "qcow2", serial: "01112131"
+            lv.storage :file, size: "8G", type: "qcow2", serial: "01415161"
+        end
+    end
+
+    config.vm.define :"node02" do |node|
+        node.vm.hostname = "node02"
+        node.vm.network "forwarded_port", guest: 1337, host: 1338, host_ip: "*"
+
+        node.vm.provider "libvirt" do |lv|
+            lv.memory = 4096
+            lv.cpus = 1
+            lv.storage :file, size: "8G", type: "qcow2", serial: "02123456"
+            lv.storage :file, size: "8G", type: "qcow2", serial: "02789101"
+            lv.storage :file, size: "8G", type: "qcow2", serial: "02112131"
+            lv.storage :file, size: "8G", type: "qcow2", serial: "02415161"
+        end
+    end
+end
