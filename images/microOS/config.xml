@@ -103,8 +103,9 @@
             devicepersistency="by-uuid"/>
     </preferences>
     <users>
-        <user password="suse1234" home="/root" name="root" groups="root" pwdformat="plain"/>
-        <user password="suse1234" home="/home/vagrant" name="vagrant" pwdformat="plain"/>
+         <user password="suse1234" home="/root" name="root" groups="root" pwdformat="plain"/>
+         <user password="suse1234" home="/home/vagrant" name="vagrant" pwdformat="plain"/>
+         <user password="suse1234" home="/home/aquarium" name="aquarium" pwdformat="plain"/>
     </users>
 
     <repository type="rpm-md" alias="kiwi" priority="1">
@@ -149,9 +150,10 @@
         <package name="patterns-containers-container_runtime"/>
     </packages>
     <packages type="image" profiles="Vagrant,Vagrant_x86_64,Vagrant_aarch64">
-        <package name="dracut-kiwi-oem-repart"/>
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
+        <!-- vagrant user ssh key and sudoer -->
+        <archive name="vagrant.tar"/>
     </packages>
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-dump"/>
@@ -159,6 +161,7 @@
         <package name="dracut-kiwi-live"/>
         <package name="dracut-kiwi-lib"/>
         <package name="syslinux"/>
+        <archive name="aquarium_user.tar"/>
     </packages>
 
     <packages type="bootstrap">
@@ -169,6 +172,10 @@
         <package name="grep"/>
         <package name="gzip"/>
         <package name="gawk"/>
+
+        <!-- Vagrant sudo-->
+        <package name="sudo"/>
+        <package name="openssh-server"/>
 
         <!-- This requires openssl, and so avoids that zypper picks libressl here -->
         <package name="mokutil"/>
