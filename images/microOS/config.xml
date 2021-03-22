@@ -175,6 +175,7 @@
 
         <!-- Vagrant sudo-->
         <package name="sudo"/>
+        <package name="openssh"/>
         <package name="openssh-server"/>
 
         <!-- This requires openssl, and so avoids that zypper picks libressl here -->
