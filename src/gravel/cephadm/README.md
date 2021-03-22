@@ -2,7 +2,7 @@ cephadm
 ========
 
 Here lies (or should lie) a symlink to upstream's cephadm. This symlink,
-`cephadm.py` should be pointing to `ceph.git/src/cephadm/cephadm`. This ceph
+`cephadm.bin` should be pointing to `ceph.git/src/cephadm/cephadm`. This ceph
 repository should be living in the root of this project's repository,
 initialized as a submodule. The version should be fixed.
 
