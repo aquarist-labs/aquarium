@@ -132,6 +132,19 @@ def _find_deployments_path() -> Path:
     return setupsdir
 
 
+def _get_deployment_path(name: str) -> Path:
+    """ Obtain path to deployment `name` """
+    deployments = _list_deployments()
+    if name not in deployments:
+        raise DeploymentNotFoundError(f"unable to find deployment '{name}'")
+
+    deployments_path = _find_deployments_path()
+    assert deployments_path.exists()
+    deployment = deployments_path.joinpath(name)
+    assert deployment.exists()
+    return deployment
+
+
 @click.group()
 @click.option("-d", "--debug", flag_value=True)
 @click.option("--json", flag_value=True)
@@ -308,16 +321,12 @@ def _remove_box(name: str) -> None:
 
 def _remove(name: str) -> None:
     """ Remove an existing deployment """
-    deployments = _list_deployments()
-    if name not in deployments:
-        return
 
     try:
-        path = _find_deployments_path()
-    except DeploymentPathNotFoundError as e:
-        raise BaseError(f"unable to find path: {e.message}")
+        deployment = _get_deployment_path(name)
+    except DeploymentNotFoundError:
+        return
 
-    deployment = path.joinpath(name)
     if not deployment.exists():
         return
 
@@ -585,19 +594,6 @@ def _parse_vagrant(raw: str) -> Dict[str, List[Tuple[str, str]]]:
         result[state].append(entry)
 
     return result
-
-
-def _get_deployment_path(name: str) -> Path:
-
-    deployments = _list_deployments()
-    if name not in deployments:
-        raise DeploymentNotFoundError(f"unable to find deployment '{name}'")
-
-    deployments_path = _find_deployments_path()
-    assert deployments_path.exists()
-    deployment = deployments_path.joinpath(name)
-    assert deployment.exists()
-    return deployment
 
 
 def _get_vagrant_status() -> Dict[str, List[Tuple[str, str]]]:
