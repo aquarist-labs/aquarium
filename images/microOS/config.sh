@@ -69,21 +69,13 @@ if [ -f /etc/chrony.conf ]; then
 	suseInsertService chronyd
 fi
 
+
 #======================================
 # Configure Vagrant specifics
 #--------------------------------------
-
-# chmod 0755 /home/vagrant
-# chmod 0700 /home/vagrant/.ssh
-# chmod 0600 /home/vagrant/.ssh/authorized_keys
-# chown -R vagrant:users /home/vagrant/.ssh
-# groupadd vagrant
-# usermod -a -G vagrant vagrant
+baseVagrantSetup
 
 pip install fastapi uvicorn
-
-# Not compatible with set -e
-baseCleanMount || true
 
 exit 0
 

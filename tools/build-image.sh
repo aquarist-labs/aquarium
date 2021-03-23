@@ -179,8 +179,10 @@ bundle() {
   cp -r ${imgdir}/microOS/root/* ${bundledir} || exit 1
 
   pushd ${build}
+  sudo chown root.root -R ${bundledir}
   tar -C ${bundledir} etc usr -cf aquarium.tar || exit 1
-  tar -C ${imgdir}/microOS/vagrant_root etc home -cf vagrant.tar || exit 1
+  ## tar -C ${imgdir}/microOS/vagrant_root etc home -cf vagrant.tar || exit 1
+  sudo chown root.root -R ${imgdir}/microOS/aquarium_root
   tar -C ${imgdir}/microOS/aquarium_root etc -cf aquarium_user.tar || exit 1
   popd
 }

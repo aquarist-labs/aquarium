@@ -104,8 +104,8 @@
     </preferences>
     <users>
          <user password="suse1234" home="/root" name="root" groups="root" pwdformat="plain"/>
-         <user password="suse1234" home="/home/vagrant" name="vagrant" pwdformat="plain"/>
-         <user password="suse1234" home="/home/aquarium" name="aquarium" pwdformat="plain"/>
+	 <user password="vagrant" home="/home/vagrant" name="vagrant" groups="vagrant" pwdformat="plain"/>
+         <user password="aquarium" home="/home/aquarium" name="aquarium" groups="aquarium"  pwdformat="plain"/>
     </users>
 
     <repository type="rpm-md" alias="kiwi" priority="1">
@@ -153,7 +153,9 @@
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
         <!-- vagrant user ssh key and sudoer -->
+        <!--
         <archive name="vagrant.tar"/>
+	-->
     </packages>
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-dump"/>
