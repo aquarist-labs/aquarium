@@ -263,6 +263,8 @@ class NodeMgr:
         assert reply.type == MessageTypeEnum.WELCOME
         welcome = WelcomeMessageModel.parse_obj(reply.data)
         assert welcome.pubkey
+        assert welcome.cephconf
+        assert welcome.keyring
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
         if not authorized_keys.parent.exists():
@@ -270,6 +272,15 @@ class NodeMgr:
         with authorized_keys.open("a") as fd:
             fd.writelines([welcome.pubkey])
             logger.debug(f"join > wrote pubkey to {authorized_keys}")
+
+        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
+        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
+        if not cephconf_path.parent.exists():
+            cephconf_path.parent.mkdir(0o755)
+        cephconf_path.write_text(welcome.cephconf)
+        keyring_path.write_text(welcome.keyring)
+        keyring_path.chmod(0o600)
+        cephconf_path.chmod(0o644)
 
         readymsg = ReadyToAddMessageModel()
         await conn.send(
@@ -619,10 +630,22 @@ class NodeMgr:
         orch = Orchestrator()
         pubkey: str = orch.get_public_key()
 
+        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
+        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
+        assert cephconf_path.exists()
+        assert keyring_path.exists()
+
+        cephconf: str = cephconf_path.read_text("utf-8")
+        keyring: str = keyring_path.read_text("utf-8")
+        assert len(cephconf) > 0
+        assert len(keyring) > 0
+
         logger.debug(f"handle join > pubkey: {pubkey}")
 
         welcome = WelcomeMessageModel(
-            pubkey=pubkey
+            pubkey=pubkey,
+            cephconf=cephconf,
+            keyring=keyring
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")
