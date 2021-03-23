@@ -645,7 +645,7 @@ def _check_vagrant_state(statenames: List[str]) -> bool:
 
 
 #
-# start, stop
+# start, stop, shell commands
 #
 
 def _vagrant_enter_deployment(name: str) -> None:
@@ -747,6 +747,49 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
         sys.exit(1)
 
     click.secho("Deployment stopped.", fg="green")
+
+
+@app.command("shell")
+@click.argument("name", required=True, type=str)
+@click.option("-n", "--node", required=False, type=str)
+@pass_appctx
+def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
+    """
+    Obtain a shell to a given deployment, to a specific node if specified
+    """
+
+    _cmd_try_vagrant_deployment(name)
+
+    running = False
+    try:
+        running: bool = _check_vagrant_state(["running"])
+    except BaseError as e:
+        click.secho(f"Something went wrong: {e.message}", fg="red")
+
+    if not running:
+        click.secho("Deployment not running.", fg="yellow")
+        sys.exit(1)
+
+    if node:
+        has_node: bool = False
+        metadata: Dict[str, List[Tuple[str, str]]] = _get_vagrant_status()
+        for nodename, state in metadata["state"]:
+            if nodename == node:
+                if state != "running":
+                    click.secho(f"Node '{node}' not running", fg="red")
+                    sys.exit(errno.EINVAL)
+                has_node = True
+            if has_node:
+                break
+        if not has_node:
+            click.secho(f"Deployment node '{node}' does not exist", fg="red")
+            sys.exit(errno.ENOENT)
+
+    cmd = "vagrant ssh"
+    if node:
+        cmd += f" {node}"
+
+    subprocess.run(shlex.split(cmd))
 
 
 if __name__ == "__main__":
