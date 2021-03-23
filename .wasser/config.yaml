@@ -56,11 +56,12 @@ routines:
     - name: run microos image on vagrant
       command: |
         cd aquarium
+        source venv/bin/activate
         ./tools/aqrdev create foo 2>&1
         ./tools/aqrdev start foo --conservative 2>&1
     - name: check aquarium service is up and running
       command: |
-        cd aquarium/tests/vagrant/setups/foo
+        cd aquarium/tests/vagrant/deployments/foo
         vagrant ssh -c "sudo systemctl status aquarium"
 
 openstack:
