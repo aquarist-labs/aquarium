@@ -55,10 +55,9 @@ routines:
         sudo systemctl start libvirtd
     - name: run microos image on vagrant
       command: |
-        cd aquarium/tests/vagrant
-        ./setup.sh foo 2>&1
-        cd setups/foo
-        vagrant up --no-destroy-on-error --no-parallel 2>&1
+        cd aquarium
+        ./tools/aqrdev create foo 2>&1
+        ./tools/aqrdev start foo --conservative 2>&1
     - name: check aquarium service is up and running
       command: |
         cd aquarium/tests/vagrant/setups/foo
