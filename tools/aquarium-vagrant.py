@@ -71,6 +71,14 @@ class DeploymentNotFoundError(BaseError):
     pass
 
 
+class DeploymentNotFinishedError(BaseError):
+    pass
+
+
+class EnterDeploymentError(BaseError):
+    pass
+
+
 class DeploymentModel(BaseModel):
     name: str
     created_on: str
@@ -636,28 +644,55 @@ def _check_vagrant_state(statenames: List[str]) -> bool:
     return num_at_state > 0
 
 
-@app.command("start")
-@click.argument("name", required=True, type=str)
-@pass_appctx
-def cmd_start(ctx: AppCtx, name: str) -> None:
+#
+# start, stop
+#
 
-    try:
-        deployment = _get_deployment_path(name)
-    except DeploymentNotFoundError:
-        click.secho(f"Deployment '{name}' not found", fg="red")
-        sys.exit(errno.ENOENT)
+def _vagrant_enter_deployment(name: str) -> None:
+
+    # may raise DeploymentNotFound
+    deployment = _get_deployment_path(name)
 
     try:
         os.chdir(deployment)
     except Exception as e:
         logger.error(f"unable to change directories: {str(e)}")
-        click.secho(f"Something went wrong: {str(e)}", fg="red")
-        sys.exit(1)
+        raise EnterDeploymentError(str(e))
 
     vagrantfile = deployment.joinpath("Vagrantfile")
     if not vagrantfile.exists():
-        click.secho(f"Deployment '{name}' wasn't finished. Recreate.")
-        sys.exit(errno.ENOENT)
+        logger.error(f"unable to find Vagrantfile at {vagrantfile}")
+        raise DeploymentNotFinishedError()
+
+
+def _cmd_try_vagrant_deployment(name: str) -> None:
+
+    error: int = 0
+    try:
+        _vagrant_enter_deployment(name)
+    except DeploymentNotFoundError:
+        click.secho(f"Deployment '{name}' not found", fg="red")
+        error = errno.ENOENT
+    except DeploymentNotFinishedError:
+        click.secho(f"Deployment '{name}' wasn't finished. Should recreate.")
+        error = errno.EINVAL
+    except FileNotFoundError:
+        click.secho("Couldn't find Deployment's directory")
+        error = errno.ENOENT
+    except PermissionError:
+        click.secho(f"No permissions to use Deployment '{name}'")
+        error = errno.EPERM
+
+    if error != 0:
+        sys.exit(error)
+
+
+@app.command("start")
+@click.argument("name", required=True, type=str)
+@pass_appctx
+def cmd_start(ctx: AppCtx, name: str) -> None:
+
+    _cmd_try_vagrant_deployment(name)
 
     try:
         running: bool = _check_vagrant_state(["running", "preparing"])
@@ -688,23 +723,7 @@ def cmd_start(ctx: AppCtx, name: str) -> None:
 @pass_appctx
 def cmd_stop(ctx: AppCtx, name: str) -> None:
 
-    try:
-        deployment = _get_deployment_path(name)
-    except DeploymentNotFoundError:
-        click.secho(f"Deployment '{name}' not found", fg="red")
-        sys.exit(errno.ENOENT)
-
-    try:
-        os.chdir(deployment)
-    except Exception as e:
-        logger.error(f"unable to change directories: {str(e)}")
-        click.secho(f"Something went wrong: {str(e)}", fg="red")
-        sys.exit(1)
-
-    vagrantfile = deployment.joinpath("Vagrantfile")
-    if not vagrantfile.exists():
-        click.secho(f"Deployment '{name}' wasn't finished. Recreate.")
-        sys.exit(errno.ENOENT)
+    _cmd_try_vagrant_deployment(name)
 
     try:
         stopped: bool = _check_vagrant_state(["shutoff", "not_created"])
