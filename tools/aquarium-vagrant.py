@@ -17,7 +17,7 @@ import os
 import sys
 import errno
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import click
 import logging
 import subprocess
@@ -565,6 +565,93 @@ def cmd_list_deployments(ctx: AppCtx) -> None:
         ))
     if ctx.json:
         print(json.dumps(json_lst))
+
+
+def _parse_vagrant(raw: str) -> Dict[str, List[Tuple[str, str]]]:
+
+    result: Dict[str, List[Tuple[str, str]]] = {}
+    lines = raw.splitlines()
+
+    for line in lines:
+        fields = line.split(",")
+        entry: Tuple[str, str] = (fields[1], fields[3])
+        state: str = fields[2]
+        if state not in result:
+            result[state] = []
+        result[state].append(entry)
+
+    return result
+
+
+@app.command("start")
+@click.argument("name", required=True, type=str)
+@pass_appctx
+def cmd_start(ctx: AppCtx, name: str) -> None:
+
+    deployments = _list_deployments()
+    if name not in deployments:
+        click.secho(f"Deployment '{name}' not found", fg="red")
+        sys.exit(errno.ENOENT)
+
+    deployments_path = _find_deployments_path()
+    assert deployments_path.exists()
+    deployment = deployments_path.joinpath(name)
+    assert deployment.exists()
+
+    try:
+        os.chdir(deployment)
+    except Exception as e:
+        logger.error(f"unable to change directories: {str(e)}")
+        click.secho(f"Something went wrong: {str(e)}", fg="red")
+        sys.exit(1)
+
+    vagrantfile = deployment.joinpath("Vagrantfile")
+    if not vagrantfile.exists():
+        click.secho(f"Deployment '{name}' wasn't finished. Recreate.")
+        sys.exit(errno.ENOENT)
+
+    proc = subprocess.run(
+        shlex.split("vagrant status --machine-readable"),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+    stdout = proc.stdout.decode("utf-8")
+    stderr = proc.stderr.decode("utf-8")
+    if proc.returncode != 0:
+        logger.error(f"error getting vagrant status: {stderr}")
+
+    metadata: Dict[str, List[Tuple[str, str]]] = _parse_vagrant(stdout)
+    num_nodes: int = 0
+    num_running: int = 0
+
+    if "state" not in metadata:
+        logger.error("unable to find vagrant machine's state")
+        click.secho("Unable to obtain information about deployment", fg="red")
+        sys.exit(errno.EINVAL)
+
+    for _, state in metadata["state"]:
+        num_nodes += 1
+        if state != "not_created":
+            num_running += 1
+
+    assert num_nodes > 0
+    if num_running > 0:
+        click.secho("Deployment already running", fg="yellow")
+        sys.exit(0)
+
+    proc = subprocess.run(
+        shlex.split("vagrant up"),
+        stderr=subprocess.PIPE
+    )
+
+    stderr = proc.stderr.decode("utf-8")
+    if proc.returncode != 0:
+        logger.error(f"unable to start vagrant machines: {stderr}")
+        click.secho("Unable to start deployment", fg="red")
+        sys.exit(1)
+
+    click.secho("Deployment started.")
 
 
 if __name__ == "__main__":
