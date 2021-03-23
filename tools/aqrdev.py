@@ -420,8 +420,12 @@ def cmd_create(
         remove_existing_deployment = True
 
     if not box and not image:
-        box = "aquarium"
-    elif not box and image:
+        if "aquarium" in avail_boxes:
+            box = "aquarium"
+        elif "aquarium" in avail_images:
+            image = "aquarium"
+
+    if not box and image:
         if image not in avail_images:
             click.secho(f"Image '{image}' not found", fg="red")
             sys.exit(errno.ENOENT)
@@ -689,8 +693,9 @@ def _cmd_try_vagrant_deployment(name: str) -> None:
 
 @app.command("start")
 @click.argument("name", required=True, type=str)
+@click.option("--conservative", flag_value=True)
 @pass_appctx
-def cmd_start(ctx: AppCtx, name: str) -> None:
+def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
 
     _cmd_try_vagrant_deployment(name)
 
@@ -704,8 +709,12 @@ def cmd_start(ctx: AppCtx, name: str) -> None:
         click.secho("Deployment already running", fg="yellow")
         return
 
+    cmd = "vagrant up"
+    if conservative:
+        cmd += " --no-parallel --no-destroy-on-error"
+
     proc = subprocess.run(
-        shlex.split("vagrant up"),
+        shlex.split(cmd),
         stderr=subprocess.PIPE
     )
 
