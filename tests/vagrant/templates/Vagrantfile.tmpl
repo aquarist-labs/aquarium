@@ -2,10 +2,10 @@
 # vim: set ft=ruby
 
 Vagrant.configure("2") do |config|
-    config.vm.box = "{{BOXNAME}}"
+    config.vm.box = "{BOXNAME}"
     # The nfs server on Leap has udp enabled by default, but not on Tumbleweed
     # Disable udp to make it working for any host system by default.
-    config.vm.synced_folder "{{ROOTDIR}}", "/srv/aquarium", type: "nfs", nfs_udp: false
+    config.vm.synced_folder "{ROOTDIR}", "/srv/aquarium", type: "nfs", nfs_udp: false
     config.vm.synced_folder ".", "/vagrant", disabled: true
 
     config.vm.define :"node01", primary: true do |node|

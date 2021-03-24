@@ -129,23 +129,21 @@ environment upon booting the image.
 Assuming we've succesfully built a MicroOS image, getting a `Vagrant` setup up
 and running should not be much of a hurdle.
 
-1. `cd ./tests/vagrant/`
+1. run `./tools/aqrdev create [--box BOXNAME] [--image IMAGENAME] <NAME>`
 
-2. run `./setup.sh [-b BUILDNAME] <NAME>`
+    This will create a vagrant deployment under `tests/vagrant/deployments/` with
+    name `NAME`. If omitted, `BOXNAME` defaults to `aquarium`. If `IMAGENAME` is
+    provided, then the tool will attempt to find an existing image with said
+    name and import it as a Vagrant box to be used for this deployment. As an
+    example, let's assume we run `./tools/aqrdev create foobar`.
 
-    This will create a vagrant deployment under `tests/vagrant/setups/` with
-    name `NAME`. If omitted, `BUILDNAME` defaults to `aquarium`. As an example,
-    let's assume we run `./setup.sh foobar`.
+2. to start the deployment we just created, we'll run:
 
-3. `cd setups/foobar/`
-
-4. the first time, run:
-
-    `vagrant up --no-destroy-on-error --no-parallel`
+    `./tools/aqrdev start --conservative foobar`
 
    which will bring up your machines one by one. (Once you are happy
-   this works, you can drop the last two options and bring all your
-   machines up in parallel!)
+   this works, you can drop the last option and bring all your machines up in
+   parallel!)
 
    Important notes:
 
@@ -155,7 +153,7 @@ and running should not be much of a hurdle.
      if you wish to avoid this); and
 
    - on some systems one might have to open NFS ports prior to running
-     `vagrant up`, or it just might get stuck trying to reach a server
+     `aqrdev start`, or it just might get stuck trying to reach a server
      that is unreachable.
 
    - if you see an error such as
@@ -174,9 +172,9 @@ and running should not be much of a hurdle.
      `Vagrantfile` [to use
      NFSv4](https://www.vagrantup.com/docs/synced-folders/nfs#other-notes)
 
-5. This break has the perfect length for an espresso.
+3. This break has the perfect length for an espresso.
 
-6. `vagrant ssh [NODE]`
+4. `./tools/aqrdev shell foobar [--node NODE]`
 
     If `NODE` is not specified, the shell will be dropped by default on
     `node01`. You can always choose to drop into `node02` by specifying that
