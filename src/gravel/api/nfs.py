@@ -51,3 +51,16 @@ async def service_create(name: str, req: ServiceRequest) -> Response:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
     return Response(detail=res)
+
+
+@router.patch(
+    '/service/{name}',
+    name='update an nfs service',
+    response_model=Response)
+async def service_update(name: str, req: ServiceRequest) -> Response:
+    try:
+        res = NFSService().update(name, req.placement if req.placement else '*')
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return Response(detail=res)

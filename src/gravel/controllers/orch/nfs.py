@@ -41,3 +41,11 @@ class NFSService:
         if placement:
             cmd['placement'] = placement
         return self._call(cmd)['result']
+
+    def update(self, name: str, placement: str) -> str:
+        res = self._call({
+            'prefix': 'nfs cluster update',
+            'clusterid': name,
+            'placement': placement,
+        })
+        return res['result']
