@@ -18,13 +18,12 @@ from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    NodeStageEnum,
-    get_node_mgr
-)
-from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import CephStatusModel
+from gravel.controllers.resources.status import (
+    CephStatusNotAvailableError,
+    Status,
+    get_status_ctrl
+)
 
 
 logger: Logger = fastapi_logger
@@ -42,18 +41,14 @@ class StatusModel(BaseModel):
 @router.get("/", response_model=StatusModel)
 async def get_status() -> StatusModel:
 
-    nodemgr: NodeMgr = get_node_mgr()
-    stage: NodeStageEnum = nodemgr.stage
+    status_ctrl: Status = get_status_ctrl()
     cluster: Optional[CephStatusModel] = None
 
-    if stage >= NodeStageEnum.BOOTSTRAPPED and \
-       stage != NodeStageEnum.JOINING:
-        mon = Mon()
-        try:
-            cluster = mon.status
-        except Exception:
-            logger.error("unable to obtain cluster status!")
-            pass
+    try:
+        cluster = status_ctrl.status
+    except CephStatusNotAvailableError:
+        logger.warn("unable to obtain ceph cluster status")
+        cluster = None
 
     status: StatusModel = StatusModel(
         cluster=cluster
