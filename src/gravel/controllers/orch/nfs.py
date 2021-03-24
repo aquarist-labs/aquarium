@@ -49,3 +49,10 @@ class NFSService:
             'placement': placement,
         })
         return res['result']
+
+    def delete(self, name: str) -> str:
+        res = self._call({
+            'prefix': 'nfs cluster delete',
+            'clusterid': name,
+        })
+        return res['result']

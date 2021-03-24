@@ -64,3 +64,16 @@ async def service_update(name: str, req: ServiceRequest) -> Response:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
     return Response(detail=res)
+
+
+@router.delete(
+    '/service/{name}',
+    name='delete an nfs service',
+    response_model=Response)
+async def service_delete(name: str) -> Response:
+    try:
+        res = NFSService().delete(name)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return Response(detail=res)
