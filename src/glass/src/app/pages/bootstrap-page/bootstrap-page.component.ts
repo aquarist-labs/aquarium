@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
+import { tap } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import {
@@ -38,7 +39,9 @@ export class BootstrapPageComponent implements OnInit {
       next: (statusReply: BootstrapStatusReply) => {
         if (statusReply.stage === BootstrapStageEnum.running) {
           this.bootstrapping = true;
-          this.blockUI.start(translate(TEXT('Please wait, bootstrapping in progress ...')));
+          this.blockUI.start(
+            translate(TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`))
+          );
           this.pollBootstrapStatus();
         }
         if (statusReply.stage === BootstrapStageEnum.none) {
@@ -83,6 +86,11 @@ export class BootstrapPageComponent implements OnInit {
     this.bootstrapService
       .status()
       .pipe(
+        tap((statusReply: BootstrapStatusReply) => {
+          this.blockUI.update(
+            translate(TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`))
+          );
+        }),
         this.pollService.poll(
           (statusReply) => statusReply.stage === BootstrapStageEnum.running,
           undefined,
@@ -97,6 +105,11 @@ export class BootstrapPageComponent implements OnInit {
               break;
             case BootstrapStageEnum.none:
             case BootstrapStageEnum.done:
+              this.blockUI.update(
+                translate(
+                  TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`)
+                )
+              );
               this.blockUI.stop();
               this.router.navigate(['/installer/create/deployment']);
               break;
