@@ -58,7 +58,7 @@
             bootkernel="custom"
             devicepersistency="by-uuid"
         >
-            <vagrantconfig provider="libvirt" virtualsize="24"/>
+            <vagrantconfig provider="virtualbox" virtualsize="24"/>
             <size unit="G">24</size>
         </type>
     </preferences>
