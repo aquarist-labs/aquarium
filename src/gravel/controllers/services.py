@@ -35,10 +35,10 @@ class NotEnoughSpaceError(ServiceError):
 
 class ServiceTypeEnum(str, Enum):
     CEPHFS = "cephfs"
-    NFS = "nfs"
-    RBD = "rbd"
-    ISCSI = "iscsi"
-    RGW = "rgw"
+    # NFS = "nfs"
+    # RBD = "rbd"
+    # ISCSI = "iscsi"
+    # RGW = "rgw"
 
 
 class ServiceModel(BaseModel):
@@ -73,8 +73,6 @@ class Services:
                size: int,
                replicas: int
                ) -> ServiceModel:
-        if type != ServiceTypeEnum.CEPHFS:
-            raise NotImplementedError("only cephfs is currently supported")
         if name in self._services:
             raise ServiceExistsError(f"service {name} already exists")
 
@@ -90,7 +88,12 @@ class Services:
             replicas=replicas,
             raw_size=size*replicas
         )
-        self._create_service(svc)
+
+        if svc.type == ServiceTypeEnum.CEPHFS:
+            self._create_cephfs(svc)
+        else:
+            raise NotImplementedError(f"unknown service type: {svc.type}")
+
         self._services[name] = svc
         self._save()
         return svc
@@ -142,12 +145,6 @@ class Services:
             required=required
         )
         return feasible, requirements
-
-    def _create_service(self, svc: ServiceModel) -> None:
-        if svc.type == ServiceTypeEnum.CEPHFS:
-            self._create_cephfs(svc)
-        else:
-            raise NotImplementedError("only cephfs is currently supported")
 
     def _create_cephfs(self, svc: ServiceModel) -> None:
         cephfs = CephFS()

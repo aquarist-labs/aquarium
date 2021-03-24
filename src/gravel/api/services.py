@@ -102,9 +102,9 @@ async def create_service(req: CreateRequest) -> CreateReply:
     services = Services()
     try:
         services.create(req.name, req.type, req.size, req.replicas)
-    except NotImplementedError:
+    except NotImplementedError as e:
         raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED,
-                            detail="service type not supported")
+                            detail=str(e))
     except NotEnoughSpaceError:
         raise HTTPException(status.HTTP_507_INSUFFICIENT_STORAGE)
     except ServiceError as e:
