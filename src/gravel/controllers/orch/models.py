@@ -12,7 +12,10 @@
 # GNU General Public License for more details.
 
 from typing import Any, Dict, List
-from pydantic import BaseModel
+from pydantic import (
+    BaseModel,
+    Field
+)
 
 from gravel.cephadm.models import VolumeDeviceModel
 
@@ -168,6 +171,33 @@ class CephHealthStatusModel(BaseModel):
     checks: Dict[str, CephHealthCheckModel]
 
 
+class CephPGStateModel(BaseModel):
+    state_name: str
+    count: int
+
+
+class CephPGMapModel(BaseModel):
+    pgs_by_state: List[CephPGStateModel]
+    num_pgs: int = Field(0, title="Number of placement groups")
+    num_pools: int = Field(0, title="Number of pools")
+    num_objects: int = Field(0, title="Number of objects")
+    # storage statistics
+    data_bytes: int = Field(0, title="Total data (byte)")
+    bytes_used: int = Field(0, title="Used storage (byte)")
+    bytes_avail: int = Field(0, title="Available storage (byte)")
+    bytes_total: int = Field(0, title="Total storage (byte)")
+    # pg statistics
+    inactive_pgs_ratio: float = Field(0, title="Ratio of inactive PGs")
+    degraded_objects: int = Field(0, title="Number of degraded objects")
+    degraded_total: int = Field(0, title="Total number of degraded copies")
+    degraded_ratio: float = Field(0, title="Ratio of degraded objects")
+    # client io
+    read_bytes_sec: int = Field(0, title="Client reads per second (byte)")
+    write_bytes_sec: int = Field(0, title="Client writes per second (byte)")
+    read_op_per_sec: int = Field(0, title="Client read operations per second")
+    write_op_per_sec: int = Field(0, title="Client write operations per second")
+
+
 class CephStatusModel(BaseModel):
     fsid: str
     election_epoch: int
@@ -175,3 +205,25 @@ class CephStatusModel(BaseModel):
     quorum_names: List[str]
     quorum_age: int
     health: CephHealthStatusModel
+    pgmap: CephPGMapModel
+
+
+class CephOSDPoolRecoveryStatsModel(BaseModel):
+    degraded_objects: int = Field(0, title="Number of degraded objects")
+    degraded_total: int = Field(0, title="Total number of degraded copies")
+    degraded_ratio: float = Field(0, title="Ratio of degraded objects")
+
+
+class CephOSDPoolClientIORateModel(BaseModel):
+    read_bytes_sec: int = Field(0, title="Client reads per second (byte)")
+    write_bytes_sec: int = Field(0, title="Client writes per second (byte)")
+    read_op_per_sec: int = Field(0, title="Client read operations per second")
+    write_op_per_sec: int = Field(0, title="Client write operations per second")
+
+
+class CephOSDPoolStatsModel(BaseModel):
+    pool_name: str
+    pool_id: int
+    recovery: CephOSDPoolRecoveryStatsModel
+    recovery_rate: Dict[str, Any]
+    client_io_rate: CephOSDPoolClientIORateModel

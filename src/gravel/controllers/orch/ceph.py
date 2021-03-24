@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 from json.decoder import JSONDecodeError
+from pydantic.tools import parse_obj_as
 import rados
 import json
 from abc import ABC, abstractmethod
@@ -28,7 +29,7 @@ from gravel.controllers.orch.models import (
     CephDFModel,
     CephOSDDFModel,
     CephOSDMapModel,
-    CephOSDPoolEntryModel,
+    CephOSDPoolEntryModel, CephOSDPoolStatsModel,
     CephStatusModel
 )
 
@@ -233,3 +234,11 @@ class Mon(Ceph):
             "value": "false"
         }
         self.call(cmd)
+
+    def get_pools_stats(self) -> List[CephOSDPoolStatsModel]:
+        cmd: Dict[str, str] = {
+            "prefix": "osd pool stats",
+            "format": "json"
+        }
+        results: Dict[str, Any] = self.call(cmd)
+        return parse_obj_as(List[CephOSDPoolStatsModel], results)
