@@ -94,7 +94,7 @@ class Storage(Ticker):
     def total(self) -> int:
         return self._state.stats.total
 
-    async def usage(self) -> StorageModel:
+    def usage(self) -> StorageModel:
         return self._state
 
     async def _update(self) -> None:
