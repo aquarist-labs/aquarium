@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import HTTPException, status
 from fastapi.logger import logger as fastapi_logger
@@ -77,3 +77,11 @@ async def service_delete(name: str) -> Response:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
     return Response(detail=res)
+
+
+@router.get(
+    '/service',
+    name='list nfs service names',
+    response_model=List[str])
+def get_service_ls() -> List[str]:
+    return NFSService().ls()

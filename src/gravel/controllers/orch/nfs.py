@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from gravel.controllers.orch.ceph import CephCommandError, Mgr
 
@@ -56,3 +56,10 @@ class NFSService:
             'clusterid': name,
         })
         return res['result']
+
+    def ls(self) -> List[str]:
+        res = self._call({
+            'prefix': 'nfs cluster ls',
+            'format': 'json',
+        })
+        return res['result'].split() if res.get('result') else []
