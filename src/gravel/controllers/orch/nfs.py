@@ -13,7 +13,21 @@
 
 from typing import Any, Dict, List, Optional
 
+from pydantic.tools import parse_obj_as
+from pydantic import BaseModel
+
 from gravel.controllers.orch.ceph import CephCommandError, Mgr
+
+
+class NFSDaemonModel(BaseModel):
+    hostname: str
+    ip: List[str]
+    port: int
+
+
+class NFSServiceModel(BaseModel):
+    name: str
+    daemons: List[NFSDaemonModel]
 
 
 class NFSError(Exception):
@@ -63,3 +77,24 @@ class NFSService:
             'format': 'json',
         })
         return res['result'].split() if res.get('result') else []
+
+    def info(self, name: Optional[str] = None) -> List[NFSServiceModel]:
+        cmd = {
+            'prefix': 'nfs cluster info',
+            'format': 'json',
+        }
+        if name:
+            cmd['clusterid'] = name
+
+        res = self._call(cmd)
+
+        ret: List[NFSServiceModel] = []
+        for name in res:
+            daemons = parse_obj_as(List[NFSDaemonModel], res[name])
+            ret.append(
+                NFSServiceModel(
+                    name=name,
+                    daemons=daemons
+                )
+            )
+        return ret

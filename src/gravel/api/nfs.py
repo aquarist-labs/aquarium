@@ -21,7 +21,7 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
 from gravel.controllers.orch.nfs import \
-    NFSError, NFSService
+    NFSError, NFSService, NFSServiceModel
 
 
 logger: Logger = fastapi_logger
@@ -85,3 +85,18 @@ async def service_delete(name: str) -> Response:
     response_model=List[str])
 def get_service_ls() -> List[str]:
     return NFSService().ls()
+
+
+@router.get(
+    '/service/{name}',
+    name='nfs service detail',
+    response_model=NFSServiceModel)
+def get_service_info(name: str) -> NFSServiceModel:
+    try:
+        for svc in NFSService().info(name=name):
+            if svc.name == name:
+                return svc
+        raise NFSError(f'unknown nfs service: {name}')
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
