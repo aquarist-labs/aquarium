@@ -31,7 +31,8 @@ from gravel.api import (
     services,
     nodes,
     local,
-    devices
+    devices,
+    nfs,
 )
 
 
@@ -107,6 +108,7 @@ api.include_router(status.router)
 api.include_router(services.router)
 api.include_router(nodes.router)
 api.include_router(devices.router)
+api.include_router(nfs.router)
 
 
 #
