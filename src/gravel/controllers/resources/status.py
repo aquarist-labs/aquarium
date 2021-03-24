@@ -12,8 +12,15 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Optional
+from typing import (
+    Dict, List,
+    Optional
+)
 from fastapi.logger import logger as fastapi_logger
+from pydantic import (
+    BaseModel,
+    Field
+)
 
 from gravel.controllers.gstate import (
     Ticker,
@@ -21,12 +28,17 @@ from gravel.controllers.gstate import (
 )
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import (
+    CephOSDPoolStatsModel,
     CephStatusModel
 )
 from gravel.controllers.nodes.mgr import (
     NodeMgr,
     NodeStageEnum,
     get_node_mgr
+)
+from gravel.controllers.services import (
+    ServiceTypeEnum,
+    Services
 )
 
 
@@ -37,10 +49,33 @@ class CephStatusNotAvailableError(Exception):
     pass
 
 
+class ClientIORateNotAvailableError(Exception):
+    pass
+
+
+class ClientIORateModel(BaseModel):
+    read: int = Field(0, title="Client read rate (byte/s)")
+    write: int = Field(0, title="Client write rate (byte/s)")
+    read_ops: int = Field(0, title="Client read ops rate (ops/s)")
+    write_ops: int = Field(0, title="Client write ops rate (ops/s)")
+
+
+class ServiceIORateModel(BaseModel):
+    service_name: str = Field("", title="Service name")
+    service_type: ServiceTypeEnum = Field("", title="Service type")
+    io_rate: ClientIORateModel = Field(ClientIORateModel(), title="IO rates")
+
+
+class OverallClientIORateModel(BaseModel):
+    cluster: ClientIORateModel = Field(ClientIORateModel(), title="cluster IO")
+    services: List[ServiceIORateModel] = Field([], title="services IO")
+
+
 class Status(Ticker):
 
-    _latest: Optional[CephStatusModel]
     _mon: Optional[Mon]
+    _latest_cluster: Optional[CephStatusModel]
+    _latest_pools_stats: Dict[int, CephOSDPoolStatsModel]
 
     def __init__(self):
         super().__init__(
@@ -49,6 +84,7 @@ class Status(Ticker):
         )
         self._mon = None
         self._latest = None
+        self._latest_pools_stats = {}
 
     async def _do_tick(self) -> None:
 
@@ -63,13 +99,60 @@ class Status(Ticker):
 
     async def probe(self) -> None:
         assert self._mon
-        self._latest = self._mon.status
+        self._latest_cluster = self._mon.status
+
+        pool_stats: List[CephOSDPoolStatsModel] = self._mon.get_pools_stats()
+        latest_pool_stats: Dict[int, CephOSDPoolStatsModel] = {}
+        for pool in pool_stats:
+            latest_pool_stats[pool.pool_id] = pool
+        self._latest_pools_stats = latest_pool_stats
 
     @property
     def status(self) -> CephStatusModel:
-        if not self._latest:
+        if not self._latest_cluster:
             raise CephStatusNotAvailableError()
-        return self._latest
+        return self._latest_cluster
+
+    @property
+    def client_io_rate(self) -> OverallClientIORateModel:
+
+        if len(self._latest_pools_stats) == 0 or not self._latest_cluster:
+            raise ClientIORateNotAvailableError()
+
+        services_rates: List[ServiceIORateModel] = []
+        services: Services = Services()
+        for service in services.ls():
+            svc_name: str = service.name
+            svc_type: ServiceTypeEnum = service.type
+
+            svc_io_rate: ClientIORateModel = ClientIORateModel()
+            for poolid in service.pools:
+                assert poolid in self._latest_pools_stats
+                stats: CephOSDPoolStatsModel = self._latest_pools_stats[poolid]
+                svc_io_rate.read += stats.client_io_rate.read_bytes_sec
+                svc_io_rate.write += stats.client_io_rate.write_bytes_sec
+                svc_io_rate.read_ops += stats.client_io_rate.read_op_per_sec
+                svc_io_rate.write_ops += stats.client_io_rate.write_op_per_sec
+
+            services_rates.append(
+                ServiceIORateModel(
+                    service_name=svc_name,
+                    service_type=svc_type,
+                    io_rate=svc_io_rate
+                )
+            )
+
+        cluster_rates: ClientIORateModel = ClientIORateModel(
+            read=self._latest_cluster.pgmap.read_bytes_sec,
+            write=self._latest_cluster.pgmap.write_bytes_sec,
+            read_ops=self._latest_cluster.pgmap.read_op_per_sec,
+            write_ops=self._latest_cluster.pgmap.write_op_per_sec
+        )
+
+        return OverallClientIORateModel(
+            cluster=cluster_rates,
+            services=services_rates
+        )
 
 
 _status = Status()
