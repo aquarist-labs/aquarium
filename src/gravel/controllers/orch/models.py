@@ -206,3 +206,24 @@ class CephStatusModel(BaseModel):
     quorum_age: int
     health: CephHealthStatusModel
     pgmap: CephPGMapModel
+
+
+class CephOSDPoolRecoveryStatsModel(BaseModel):
+    degraded_objects: int = Field(0, title="Number of degraded objects")
+    degraded_total: int = Field(0, title="Total number of degraded copies")
+    degraded_ratio: float = Field(0, title="Ratio of degraded objects")
+
+
+class CephOSDPoolClientIORateModel(BaseModel):
+    read_bytes_sec: int = Field(0, title="Client reads per second (byte)")
+    write_bytes_sec: int = Field(0, title="Client writes per second (byte)")
+    read_op_per_sec: int = Field(0, title="Client read operations per second")
+    write_op_per_sec: int = Field(0, title="Client write operations per second")
+
+
+class CephOSDPoolStatsModel(BaseModel):
+    pool_name: str
+    pool_id: int
+    recovery: CephOSDPoolRecoveryStatsModel
+    recovery_rate: Dict[str, Any]
+    client_io_rate: CephOSDPoolClientIORateModel
