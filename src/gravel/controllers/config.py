@@ -44,6 +44,12 @@ class StatusOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Status Probe Interval")
 
 
+class EventsOptionsModel(BaseModel):
+    tick_interval: float = Field(30.0, title="Events Probe Interval")
+    ttl: int = Field(3600, title="Number of seconds an event is valid for")
+    queue_max: int = Field(100, title="Maximum number of events to keep")
+
+
 class OptionsModel(BaseModel):
     service_state_path: Path = Field(Path(config_dir).joinpath("storage.json"),
                                      title="Path to Service State file")
@@ -51,6 +57,7 @@ class OptionsModel(BaseModel):
     storage: StorageOptionsModel = Field(StorageOptionsModel())
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
+    events: EventsOptionsModel = Field(EventsOptionsModel())
 
 
 class ConfigModel(BaseModel):
