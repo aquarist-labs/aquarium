@@ -28,6 +28,7 @@ from gravel.controllers.gstate import (
 )
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import (
+    CephHealthStatusModel,
     CephOSDPoolStatsModel,
     CephStatusModel
 )
@@ -39,6 +40,10 @@ from gravel.controllers.nodes.mgr import (
 from gravel.controllers.services import (
     ServiceTypeEnum,
     Services
+)
+from gravel.controllers.events import (
+    get_events_ctrl,
+    EventSeverityEnum
 )
 
 
@@ -106,6 +111,28 @@ class Status(Ticker):
         for pool in pool_stats:
             latest_pool_stats[pool.pool_id] = pool
         self._latest_pools_stats = latest_pool_stats
+
+        await self._gather_events()
+
+    async def _gather_events(self) -> None:
+
+        logger.debug("gather events")
+        assert self._latest_cluster
+        health: CephHealthStatusModel = self._latest_cluster.health
+        events = get_events_ctrl()
+
+        for entry in health.checks.keys():
+            msg = ""
+            sev = EventSeverityEnum.NONE
+            if entry == "PG_DEGRADED":
+                sev = EventSeverityEnum.WARN
+                msg = "Reduced data redundancy"
+            elif entry == "PG_AVAILABILITY":
+                sev = EventSeverityEnum.WARN
+                msg = "Reduced data availability"
+            else:
+                continue
+            await events.add(msg, sev)
 
     @property
     def status(self) -> CephStatusModel:
