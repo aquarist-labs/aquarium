@@ -1,5 +1,7 @@
 @import 'styles.scss';
 
+$mat-typography-config: mat-typography-config();
+
 .glass-sys-info-dashboard-widget {
   padding-left: 24px;
   padding-right: 24px;
@@ -7,6 +9,16 @@
 
   .glass-sys-info-dashboard-widget-cell {
     margin-bottom: 8px;
+
+    &.cpu-load {
+      .mat-card {
+        padding: 8px;
+
+        .value {
+          font-size: mat-font-size($mat-typography-config, subheading-2);
+        }
+      }
+    }
   }
 }
 .glass-sys-info-dashboard-widget.error {
