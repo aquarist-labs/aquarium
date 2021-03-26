@@ -66,6 +66,18 @@ class CephFSListEntryModel(BaseModel):
     data_pools: List[str]
 
 
+class CephFSCapsModel(BaseModel):
+    mds: str = Field("", title="mds capabilities")
+    mon: str = Field("", title="mon capabilities")
+    osd: str = Field("", title="osd capabilities")
+
+
+class CephFSAuthorizationModel(BaseModel):
+    entity: str
+    key: str
+    caps: CephFSCapsModel
+
+
 class CephDFStatsBaseModel(BaseModel):
     total_bytes: int
     total_avail_bytes: int

@@ -16,8 +16,11 @@ from typing import List
 from pydantic.tools import parse_obj_as
 from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 
-from gravel.controllers.orch.models \
-    import CephFSListEntryModel, CephFSNameModel, CephFSVolumeListModel
+from gravel.controllers.orch.models import (
+    CephFSAuthorizationModel, CephFSListEntryModel,
+    CephFSNameModel,
+    CephFSVolumeListModel
+)
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -82,3 +85,24 @@ class CephFS:
             if fs.name == name:
                 return fs
         raise CephFSError(f"unknown filesystem {name}")
+
+    def authorize(
+        self,
+        fsname: str,
+        clientid: str
+    ) -> CephFSAuthorizationModel:
+        assert fsname and clientid
+        cmd = {
+            "prefix": "fs authorize",
+            "filesystem": fsname,
+            "entity": f"client.{fsname}-{clientid}",
+            "caps": ["/", "rw"],
+            "format": "json"
+        }
+        try:
+            res = self.mon.call(cmd)
+        except CephCommandError as e:
+            raise CephFSError(str(e)) from e
+        lst = parse_obj_as(List[CephFSAuthorizationModel], res)
+        assert len(lst) == 1
+        return lst[0]

@@ -14,6 +14,8 @@
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Tuple
+from logging import Logger
+from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
 from gravel.controllers.orch.ceph import Mon
@@ -27,6 +29,9 @@ from gravel.controllers.resources.storage import (
     Storage, StoragePoolModel,
     get_storage
 )
+
+
+logger: Logger = fastapi_logger
 
 
 class ServiceError(Exception):
@@ -231,6 +236,17 @@ class Services:
             if data_pool.size != svc.replicas:
                 mon.set_pool_size(data_pool.pool_name, svc.replicas)
             svc.pools.append(data_pool.pool)
+
+        # create cephfs default user
+        logger.debug("authorize default user")
+        try:
+            cephfs.authorize(svc.name, "default")
+            logger.info(f"created cephfs client for service '{svc.name}'")
+        except CephFSError as e:
+            logger.error(f"Unable to authorize cephfs client: {str(e)}")
+            logger.exception(e)
+            # do nothing else, the service still works without an authorized
+            # client.
 
     def _save(self) -> None:
         assert gstate.config.options.service_state_path
