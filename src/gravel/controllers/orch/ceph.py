@@ -122,24 +122,26 @@ class Ceph(ABC):
              cmd: Dict[str, Any]
              ) -> Any:
         self.assert_is_ready()
+        cmdstr: str = json.dumps(cmd)
+
         try:
-            cmdstr: str = json.dumps(cmd)
             rc, out, outstr = func(cmdstr, b"")
-            res: Dict[str, Any] = {}
-            if rc != 0:
-                logger.error(
-                    f"error running command: rc = {rc}, reason = {outstr}")
-                raise CephCommandError(outstr, rc=rc)
-            if out:
-                try:
-                    res = json.loads(out)
-                except JSONDecodeError:  # maybe free-form?
-                    res = {"result": out}
-            elif outstr:  # assume 'outstr' always as free-form text
-                res = {"result": outstr}
-            return res
         except Exception as e:
-            raise CephCommandError(str(e)) from e
+            raise CephCommandError(str(e))
+
+        res: Dict[str, Any] = {}
+        if rc != 0:
+            logger.error(
+                f"error running command: rc = {rc}, reason = {outstr}")
+            raise CephCommandError(outstr, rc=rc)
+        if out:
+            try:
+                res = json.loads(out)
+            except JSONDecodeError:  # maybe free-form?
+                res = {"result": out}
+        elif outstr:  # assume 'outstr' always as free-form text
+            res = {"result": outstr}
+        return res
 
     def mon(self, cmd: Dict[str, Any]) -> Any:
         return self._cmd(self.cluster.mon_command, cmd)
