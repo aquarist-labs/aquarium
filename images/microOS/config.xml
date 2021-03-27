@@ -5,7 +5,7 @@
         <author>Aquarium Project</author>
         <contact>alau@suse.com</contact>
         <specification>
-            Aquarium Appliance, is a up and run storage image that replace ceph distribution.
+            Aquarium Appliance, is an up and running storage image that wrapped around ceph.
         </specification>
     </description>
     <profiles>
@@ -13,32 +13,42 @@
         <profile name="Ceph-base" description="Ceph requirements"/>
         <!-- Profiles used as dependencies of actual image profiles -->
         <!-- Flavors -->
-        <profile name="ContainerHost" description="Aquarium with container runtime (podman)"/>
+	    <!-- <profile name="ContainerHost" description="Aquarium with container runtime (podman)"/> -->
         <!-- Platforms -->
-        <profile name="Vagrant_x86_64" description="Vagrant for x86_64" arch="x86_64"/>
+        <profile name="Vagrant-VirtualBox-x86_64" description="Vagrant for x86_64 VirtualBox" arch="x86_64"/>
+        <profile name="Vagrant-x86_64" description="Vagrant for x86_64 libvirt" arch="x86_64"/>
         <profile name="Vagrant" description="Vagrant" arch="x86_64">
-            <requires profile="Vagrant_x86_64"/>
+            <requires profile="Vagrant-x86_64"/>
         </profile>
         <profile name="SelfInstall" description="Self Installing Image" arch="x86_64"/>
         <!-- Images (flavor + platform) -->
+	<!--
         <profile name="ContainerHost-Vagrant" description="MicroOS with Podman for Vagrant" arch="x86_64">
-            <requires profile="Vagrant_x86_64"/>
+            <requires profile="Vagrant-x86_64"/>
             <requires profile="ContainerHost"/>
         </profile>
-        <profile name="ContainerHost-SelfInstall" description="MicroOS with Podman for SelfInstallation" arch="x86_64">
+	-->
+        <profile name="Vagrant-VirtualBox" description="MicroOS with Podman for Vagrant" arch="x86_64">
+            <requires profile="Vagrant-VirtualBox-x86_64"/>
+        </profile>
+        <profile name="SelfInstall" description="MicroOS with Podman for SelfInstallation" arch="x86_64">
             <requires profile="SelfInstall"/>
-            <requires profile="ContainerHost"/>
         </profile>
-        <profile name="Ceph" description="Ceph for Container Host" arch="x86_64">
-            <requires profile="ContainerHost-SelfInstall"/>
+        <profile name="Ceph" description="Ceph for Host install" arch="x86_64">
+            <requires profile="SelfInstall"/>
             <requires profile="Ceph-base"/>
         </profile>
-        <profile name="Ceph-Vagrant" description="Ceph for Container Host, Vagrant" arch="x86_64">
-            <requires profile="ContainerHost-Vagrant"/>
+        <!-- default vagrant images using libvirt, optional virtualbox -->
+        <profile name="Ceph-Vagrant-VirtualBox" description="Ceph for Vagrant Host with VirtualBox" arch="x86_64">
+            <requires profile="Vagrant-VirtualBox"/>
+            <requires profile="Ceph-base"/>
+        </profile>
+        <profile name="Ceph-Vagrant" description="Ceph for Vagrant Host with libvirt" arch="x86_64">
+            <requires profile="Vagrant"/>
             <requires profile="Ceph-base"/>
         </profile>
     </profiles>
-    <preferences profiles="Vagrant_x86_64">
+    <preferences>
         <version>16.0.0</version>
         <packagemanager>zypper</packagemanager>
         <locale>en_US</locale>
@@ -46,6 +56,8 @@
         <rpm-excludedocs>true</rpm-excludedocs>
         <rpm-check-signatures>false</rpm-check-signatures>
         <bootloader-theme>openSUSE</bootloader-theme>
+    </preferences>
+    <preferences profiles="Vagrant-x86_64">
         <type
             image="oem"
             filesystem="ext4"
@@ -62,15 +74,24 @@
             <size unit="G">24</size>
         </type>
     </preferences>
+    <preferences profiles="Vagrant-VirtualBox-x86_64">
+        <type
+            image="oem"
+            filesystem="ext4"
+            format="vagrant"
+            bootloader="grub2"
+            bootloader_console="gfxterm"
+            firmware="uefi"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal root=/dev/vda1 disk=/dev/vda"
+            bootpartition="false"
+            bootkernel="custom"
+            devicepersistency="by-uuid"
+        >
+            <vagrantconfig provider="virtualbox" virtualsize="24"/>
+            <size unit="G">24</size>
+        </type>
+    </preferences>
     <preferences profiles="SelfInstall">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootsplash-theme>openSUSE</bootsplash-theme>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <locale>en_US</locale>
-        <keytable>us</keytable>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <rpm-check-signatures>false</rpm-check-signatures>
         <type
             image="oem"
             filesystem="ext4"
@@ -123,6 +144,7 @@
         <package name="patterns-microos-basesystem"/>
         <package name="patterns-microos-defaults"/>
 	-->
+        <package name="patterns-base-base"/>
         <package name="patterns-base-bootloader"/>
         <package name="kernel-default"/>
     </packages>
@@ -139,17 +161,19 @@
         <archive name="aquarium.tar"/>
     </packages>
 
-    <packages type="image" profiles="Vagrant_x86_64">
+    <packages type="image" profiles="Vagrant-x86_64">
         <!-- Needed for initial configuration, except on OpenStack-Cloud, where cloud-init is used -->
         <package name="ignition-dracut"/>
         <package name="combustion"/>
         <package name="growpart-generator"/>
     </packages>
+    <!--
     <packages type="image" profiles="ContainerHost">
-        <namedCollection name="container_runtime"/>
-        <package name="patterns-containers-container_runtime"/>
+        <namedCollection name="container-runtime"/>
+        <package name="patterns-containers-container-runtime"/>
     </packages>
-    <packages type="image" profiles="Vagrant,Vagrant_x86_64,Vagrant_aarch64">
+    --> 
+    <packages type="image" profiles="Vagrant,Vagrant-x86_64,Vagrant-VirtualBox-x86_64,Vagrant-aarch64">
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
         <!-- vagrant user ssh key and sudoer -->
