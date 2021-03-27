@@ -12,12 +12,18 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Dict, List
+from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 from pydantic.fields import Field
+from gravel.controllers.orch.cephfs import (
+    CephFS,
+    CephFSError,
+    CephFSNoAuthorizationError
+)
+from gravel.controllers.orch.models import CephFSAuthorizationModel
 
 from gravel.controllers.services import (
     NotEnoughSpaceError,
@@ -130,3 +136,34 @@ async def get_statistics() -> Dict[str, ServiceStorageModel]:
     """
     services = Services()
     return services.get_stats()
+
+
+@router.get(
+    "/cephfs/auth/{name}",
+    name="Obtain authentication details for a cephfs service",
+    response_model=CephFSAuthorizationModel
+)
+async def get_authorization(
+    name: str,
+    clientid: Optional[str] = None
+) -> CephFSAuthorizationModel:
+    """
+    Obtain authorization credentials for a given service `name`. In case of
+    success, will return an entity and a cephx key. If `clientid` is supplied,
+    will obtain the authorization for a client with said `clientid`, if it
+    exists.
+    """
+    cephfs: CephFS = CephFS()
+    try:
+        result = cephfs.get_authorization(name, clientid)
+        return result
+    except CephFSNoAuthorizationError:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail="No authorization found for service"
+        )
+    except CephFSError as e:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
