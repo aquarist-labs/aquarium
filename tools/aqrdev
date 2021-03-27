@@ -801,5 +801,82 @@ def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
     subprocess.run(shlex.split(cmd))
 
 
+def _get_deployment_status(name: str) -> List[Tuple[str, str]]:
+    """
+    Returns a List of Tuples with the node's name as first element, and the
+    node's state as the second element.
+    """
+
+    path: Path = _get_deployment_path(name)
+    assert path.exists()
+
+    env: Dict[str, str] = os.environ.copy()
+    env["VAGRANT_CWD"] = str(path)
+    proc = subprocess.run(
+        shlex.split("vagrant status --machine-readable"),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env
+    )
+
+    if proc.returncode != 0:
+        stderr = proc.stderr.decode("utf-8")
+        click.secho(
+            f"Unable to obtain deployment '{name}' status: {stderr}", fg="red"
+        )
+        sys.exit(proc.returncode)
+
+    state: Dict[str, List[Tuple[str, str]]] = \
+        _parse_vagrant(proc.stdout.decode("utf-8"))
+
+    if "state" not in state:
+        click.secho(
+            f"Unable to obtain deployment '{name}' node's state", fg="red"
+        )
+        sys.exit(errno.EINVAL)
+
+    return state["state"]
+
+
+@app.command("status")
+@click.argument("name", required=False, type=str)
+@pass_appctx
+def cmd_status(ctx: AppCtx, name: Optional[str]) -> None:
+    """
+    Obtain status of existing deployments
+    """
+
+    deployments: List[str] = _list_deployments()
+
+    if name:
+        if name not in deployments:
+            click.secho(f"Unknown deployment '{name}'", fg="red")
+            sys.exit(errno.ENOENT)
+        deployments = [name]
+
+    for deployment in deployments:
+        hdr = chr(0x25CF)
+        click.secho("{} {}".format(
+            click.style(hdr, fg="cyan", bold=True),
+            click.style(f"{deployment}", fg="white", bold=True)
+        ))
+        state = _get_deployment_status(deployment)
+
+        while len(state) > 0:
+            entry: Tuple[str, str] = state.pop(0)
+            boxline = chr(0x251C)
+            if len(state) == 0:
+                boxline = chr(0x2514)
+
+            node, node_state = entry
+            color: str = "green" if node_state == "running" else "red"
+            node_state = " ".join(node_state.split("_"))
+            click.secho("{} {} {}".format(
+                click.style(boxline, fg="cyan", bold=True),
+                click.style(f"{node}:", fg="white"),
+                click.style(node_state, fg=color)
+            ))
+
+
 if __name__ == "__main__":
     app()
