@@ -79,6 +79,10 @@ class EnterDeploymentError(BaseError):
     pass
 
 
+class DeploymentStatusError(BaseError):
+    pass
+
+
 class DeploymentModel(BaseModel):
     name: str
     created_on: str
@@ -608,40 +612,65 @@ def _parse_vagrant(raw: str) -> Dict[str, List[Tuple[str, str]]]:
     return result
 
 
-def _get_vagrant_status() -> Dict[str, List[Tuple[str, str]]]:
+def _get_deployment_status(name: str) -> Dict[str, List[Tuple[str, str]]]:
+    """
+    Returns a List of Tuples with the node's name as first element, and the
+    node's state as the second element.
+    """
+
+    path: Path = _get_deployment_path(name)
+    if not path.exists():
+        raise DeploymentPathNotFoundError()
+
+    vagrantfile = path.joinpath("Vagrantfile")
+    if not vagrantfile:
+        raise DeploymentNotFinishedError()
+
+    env: Dict[str, str] = os.environ.copy()
+    env["VAGRANT_CWD"] = str(path)
     proc = subprocess.run(
         shlex.split("vagrant status --machine-readable"),
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        env=env
     )
 
-    stdout = proc.stdout.decode("utf-8")
-    stderr = proc.stderr.decode("utf-8")
     if proc.returncode != 0:
-        logger.error(f"error getting vagrant status: {stderr}")
-        raise BaseError("unable to obtain vagrant status")
+        stderr = proc.stderr.decode("utf-8")
+        raise DeploymentStatusError(stderr)
 
-    return _parse_vagrant(stdout)
+    return _parse_vagrant(proc.stdout.decode("utf-8"))
 
 
-def _check_vagrant_state(statenames: List[str]) -> bool:
+def _get_deployment_state(name: str) -> List[Tuple[str, str]]:
 
     try:
-        metadata: Dict[str, List[Tuple[str, str]]] = _get_vagrant_status()
+        metadata: Dict[str, List[Tuple[str, str]]] = \
+            _get_deployment_status(name)
     except BaseError as e:
-        logger.error(f"Error obtaining Vagrant status: {e.message}")
+        logger.error(f"unable to obtain deployment's state: {str(e)}")
         raise e
 
     if "state" not in metadata:
-        logger.error("Unable to find Vagrant machine's state")
-        raise BaseError("unable to find Vagrant machine's state")
+        return []
+
+    return metadata["state"]
+
+
+def _check_deployment_state(name: str, statenames: List[str]) -> bool:
+
+    try:
+        state: List[Tuple[str, str]] = _get_deployment_state(name)
+    except BaseError as e:
+        logger.error(f"unable to check deployment's state: {str(e)}")
+        raise e
 
     num_at_state: int = 0
     num_nodes: int = 0
 
-    for _, state in metadata["state"]:
+    for _, node_state in state:
         num_nodes += 1
-        if state in statenames:
+        if node_state in statenames:
             num_at_state += 1
 
     assert num_nodes > 0
@@ -700,7 +729,7 @@ def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
     _cmd_try_vagrant_deployment(name)
 
     try:
-        running: bool = _check_vagrant_state(["running", "preparing"])
+        running: bool = _check_deployment_state(name, ["running", "preparing"])
     except BaseError as e:
         click.secho(f"Something went wrong: {e.message}", fg="red")
         sys.exit(errno.EINVAL)
@@ -735,7 +764,8 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
     _cmd_try_vagrant_deployment(name)
 
     try:
-        stopped: bool = _check_vagrant_state(["shutoff", "not_created"])
+        stopped: bool = \
+            _check_deployment_state(name, ["shutoff", "not_created"])
     except BaseError as e:
         click.secho(f"Something went wrong: {e.message}", fg="red")
         sys.exit(errno.EINVAL)
@@ -771,7 +801,7 @@ def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
 
     running = False
     try:
-        running: bool = _check_vagrant_state(["running"])
+        running: bool = _check_deployment_state(name, ["running"])
     except BaseError as e:
         click.secho(f"Something went wrong: {e.message}", fg="red")
 
@@ -781,7 +811,8 @@ def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
 
     if node:
         has_node: bool = False
-        metadata: Dict[str, List[Tuple[str, str]]] = _get_vagrant_status()
+        metadata: Dict[str, List[Tuple[str, str]]] = \
+            _get_deployment_status(name)
         for nodename, state in metadata["state"]:
             if nodename == node:
                 if state != "running":
@@ -799,43 +830,6 @@ def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
         cmd += f" {node}"
 
     subprocess.run(shlex.split(cmd))
-
-
-def _get_deployment_status(name: str) -> List[Tuple[str, str]]:
-    """
-    Returns a List of Tuples with the node's name as first element, and the
-    node's state as the second element.
-    """
-
-    path: Path = _get_deployment_path(name)
-    assert path.exists()
-
-    env: Dict[str, str] = os.environ.copy()
-    env["VAGRANT_CWD"] = str(path)
-    proc = subprocess.run(
-        shlex.split("vagrant status --machine-readable"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env
-    )
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8")
-        click.secho(
-            f"Unable to obtain deployment '{name}' status: {stderr}", fg="red"
-        )
-        sys.exit(proc.returncode)
-
-    state: Dict[str, List[Tuple[str, str]]] = \
-        _parse_vagrant(proc.stdout.decode("utf-8"))
-
-    if "state" not in state:
-        click.secho(
-            f"Unable to obtain deployment '{name}' node's state", fg="red"
-        )
-        sys.exit(errno.EINVAL)
-
-    return state["state"]
 
 
 @app.command("status")
@@ -860,7 +854,7 @@ def cmd_status(ctx: AppCtx, name: Optional[str]) -> None:
             click.style(hdr, fg="cyan", bold=True),
             click.style(f"{deployment}", fg="white", bold=True)
         ))
-        state = _get_deployment_status(deployment)
+        state = _get_deployment_state(deployment)
 
         while len(state) > 0:
             entry: Tuple[str, str] = state.pop(0)
