@@ -21,7 +21,8 @@ from typing import (
     Callable,
     Dict,
     Any,
-    List
+    List,
+    Optional
 )
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
@@ -40,7 +41,22 @@ CEPH_CONF_FILE = '/etc/ceph/ceph.conf'
 
 
 class CephError(Exception):
-    pass
+
+    def __init__(self, msg: Optional[str] = "", rc: int = 1):
+        super().__init__()
+        self._msg = msg
+        self._rc = rc if rc >= 0 else -rc
+
+    @property
+    def message(self) -> str:
+        return self._msg if self._msg else "node error"
+
+    @property
+    def rc(self) -> int:
+        return self._rc
+
+    def __str__(self) -> str:
+        return str(self.message)
 
 
 class CephNotConnectedError(CephError):
@@ -73,12 +89,12 @@ class Ceph(ABC):
         try:
             self.cluster.connect()
         except Exception as e:
-            raise CephError(e) from e
+            raise CephError(str(e)) from e
 
         try:
             self.cluster.require_state("connected")
         except rados.RadosStateError as e:
-            raise CephError(e) from e
+            raise CephError(str(e)) from e
 
         self._is_connected = True
 
@@ -100,7 +116,7 @@ class Ceph(ABC):
         try:
             return self.cluster.get_fsid()
         except Exception as e:
-            raise CephError(e)
+            raise CephError(str(e))
 
     def _cmd(self, func: Callable[[str, bytes], Any],
              cmd: Dict[str, Any]
@@ -111,7 +127,9 @@ class Ceph(ABC):
             rc, out, outstr = func(cmdstr, b"")
             res: Dict[str, Any] = {}
             if rc != 0:
-                raise CephCommandError(outstr)
+                logger.error(
+                    f"error running command: rc = {rc}, reason = {outstr}")
+                raise CephCommandError(outstr, rc=rc)
             if out:
                 try:
                     res = json.loads(out)
@@ -121,7 +139,7 @@ class Ceph(ABC):
                 res = {"result": outstr}
             return res
         except Exception as e:
-            raise CephCommandError(e) from e
+            raise CephCommandError(str(e)) from e
 
     def mon(self, cmd: Dict[str, Any]) -> Any:
         return self._cmd(self.cluster.mon_command, cmd)
