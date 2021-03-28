@@ -407,6 +407,12 @@ class NodeMgr:
             logger.error("unable to disable redundancy warning")
             logger.debug(str(e))
 
+        try:
+            mon.set_default_pool_size_one()
+        except CephCommandError as e:
+            logger.error("unable to set default pool size 1")
+            logger.exception(e)
+
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
         if not self._bootstrapper:

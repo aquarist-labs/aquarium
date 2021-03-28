@@ -242,3 +242,12 @@ class Mon(Ceph):
         }
         results: Dict[str, Any] = self.call(cmd)
         return parse_obj_as(List[CephOSDPoolStatsModel], results)
+
+    def set_default_pool_size_one(self) -> None:
+        cmd: Dict[str, str] = {
+            "prefix": "config set",
+            "who": "global",
+            "name": "osd_pool_default_size",
+            "value": "1"
+        }
+        self.call(cmd)
