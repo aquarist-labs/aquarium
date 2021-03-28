@@ -407,6 +407,10 @@ class NodeMgr:
             logger.error("unable to disable redundancy warning")
             logger.debug(str(e))
 
+        res: bool = mon.set_default_ruleset()
+        if not res:
+            logger.error("unable to set default ruleset")
+
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
         if not self._bootstrapper:

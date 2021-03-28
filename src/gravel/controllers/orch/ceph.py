@@ -21,7 +21,8 @@ from typing import (
     Callable,
     Dict,
     Any,
-    List
+    List,
+    Optional
 )
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
@@ -187,6 +188,56 @@ class Mon(Ceph):
     def get_pools(self) -> List[CephOSDPoolEntryModel]:
         osdmap = self.get_osdmap()
         return osdmap.pools
+
+    def set_default_ruleset(self) -> bool:
+        cmd: Dict[str, str] = {
+            "prefix": "osd crush rule create-replicated",
+            "name": "single_node_rule",
+            "root": "default",
+            "type": "osd"
+        }
+        try:
+            self.call(cmd)
+        except CephCommandError as e:
+            logger.error(
+                f"mon > unable to create single-node ruleset: {str(e)}")
+            logger.exception(e)
+            return False
+
+        cmd = {
+            "prefix": "osd crush rule dump",
+            "format": "json"
+        }
+        try:
+            result = self.call(cmd)
+            assert type(result) == list
+            rulesetid: Optional[int] = None
+            for ruleset in result:
+                assert "rule_name" in ruleset
+                assert "ruleset" in ruleset
+                if ruleset["rule_name"] == "single_node_rule":
+                    rulesetid = ruleset["ruleset"]
+                    break
+            assert rulesetid is not None
+        except CephCommandError as e:
+            logger.error(f"mon > unable to obtain ruleset id: {str(e)}")
+            logger.exception(e)
+            return False
+
+        cmd = {
+            "prefix": "config set",
+            "who": "global",
+            "name": "osd_pool_default_crush_rule",
+            "value": f"{rulesetid}"
+        }
+        try:
+            self.call(cmd)
+        except CephCommandError as e:
+            logger.error(f"mon > unable to set default crush rule: {str(e)}")
+            logger.exception(e)
+            return False
+
+        return True
 
     def set_pool_size(self, name: str, size: int) -> None:
         size_cmd: Dict[str, Any] = {
