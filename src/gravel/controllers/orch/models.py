@@ -147,6 +147,7 @@ class CephOSDPoolEntryModel(BaseModel):
     pool_name: str
     size: int
     min_size: int
+    crush_rule: int
 
 
 class CephOSDMapModel(BaseModel):

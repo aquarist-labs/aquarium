@@ -52,6 +52,10 @@ class CephCommandError(CephError):
     pass
 
 
+class NoRulesetError(CephError):
+    pass
+
+
 class Ceph(ABC):
 
     cluster: rados.Rados
@@ -189,6 +193,43 @@ class Mon(Ceph):
         osdmap = self.get_osdmap()
         return osdmap.pools
 
+    def _get_ruleset_id(self, name: str) -> int:
+        cmd = {
+            "prefix": "osd crush rule dump",
+            "format": "json"
+        }
+        try:
+            result = self.call(cmd)
+            assert type(result) == list
+            rulesetid: Optional[int] = None
+            for ruleset in result:
+                assert "rule_name" in ruleset
+                assert "ruleset" in ruleset
+                if ruleset["rule_name"] == name:
+                    rulesetid = ruleset["ruleset"]
+                    break
+            assert rulesetid is not None
+            return rulesetid
+        except CephCommandError as e:
+            logger.error(f"mon > unable to obtain ruleset id: {str(e)}")
+            logger.exception(e)
+            raise NoRulesetError()
+
+    def _set_default_ruleset_config(self, rulesetid: int) -> bool:
+        cmd = {
+            "prefix": "config set",
+            "who": "global",
+            "name": "osd_pool_default_crush_rule",
+            "value": f"{rulesetid}"
+        }
+        try:
+            self.call(cmd)
+        except CephCommandError as e:
+            logger.error(f"mon > unable to set default crush rule: {str(e)}")
+            logger.exception(e)
+            return False
+        return True
+
     def set_default_ruleset(self) -> bool:
         cmd: Dict[str, str] = {
             "prefix": "osd crush rule create-replicated",
@@ -204,39 +245,52 @@ class Mon(Ceph):
             logger.exception(e)
             return False
 
-        cmd = {
-            "prefix": "osd crush rule dump",
-            "format": "json"
-        }
+        rulesetid: int = -1
         try:
-            result = self.call(cmd)
-            assert type(result) == list
-            rulesetid: Optional[int] = None
-            for ruleset in result:
-                assert "rule_name" in ruleset
-                assert "ruleset" in ruleset
-                if ruleset["rule_name"] == "single_node_rule":
-                    rulesetid = ruleset["ruleset"]
-                    break
-            assert rulesetid is not None
-        except CephCommandError as e:
-            logger.error(f"mon > unable to obtain ruleset id: {str(e)}")
-            logger.exception(e)
+            rulesetid = self._get_ruleset_id("single_node_rule")
+        except NoRulesetError:
             return False
 
-        cmd = {
-            "prefix": "config set",
-            "who": "global",
-            "name": "osd_pool_default_crush_rule",
-            "value": f"{rulesetid}"
+        if not self._set_default_ruleset_config(rulesetid):
+            return False
+
+        return True
+
+    def set_replicated_ruleset(self) -> bool:
+        rulesetid = self._get_ruleset_id("replicated_rule")
+        assert rulesetid >= 0
+        if not self._set_default_ruleset_config(rulesetid):
+            return False
+
+        expected_rulesetid = self._get_ruleset_id("single_node_rule")
+        assert expected_rulesetid >= 0
+        pools: List[CephOSDPoolEntryModel] = self.get_pools()
+        for pool in pools:
+            if pool.crush_rule != expected_rulesetid:
+                # the user must have changed the ruleset, let them keep it.
+                logger.info(
+                    "skipping setting replicated rule on pool "
+                    f"{pool.pool_name} because it has a user-defined rule"
+                )
+                continue
+            if not self.set_pool_ruleset(pool.pool_name, "replicated_rule"):
+                return False
+        return True
+
+    def set_pool_ruleset(self, poolname: str, ruleset: str) -> bool:
+        assert ruleset
+        cmd: Dict[str, str] = {
+            "prefix": "osd pool set",
+            "pool": poolname,
+            "var": "crush_rule",
+            "val": ruleset
         }
         try:
             self.call(cmd)
         except CephCommandError as e:
-            logger.error(f"mon > unable to set default crush rule: {str(e)}")
+            logger.error(f"mon > unable to set pool crush ruleset: {str(e)}")
             logger.exception(e)
             return False
-
         return True
 
     def set_pool_size(self, name: str, size: int) -> None:
