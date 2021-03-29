@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from pydantic.fields import Field
 
 from gravel.controllers.services import (
+    ConstraintsModel,
     NotEnoughSpaceError,
     ServiceError,
     ServiceModel,
@@ -61,6 +62,16 @@ class CreateRequest(BaseModel):
 
 class CreateResponse(BaseModel):
     success: bool
+
+
+@router.get(
+    "/constraints",
+    name="Obtain service constraints",
+    response_model=ConstraintsModel
+)
+async def get_constraints() -> ConstraintsModel:
+    services = Services()
+    return services.constraints
 
 
 @router.get("/reservations", response_model=ReservationsResponse)
