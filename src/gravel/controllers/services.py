@@ -182,7 +182,11 @@ class Services:
             used_bytes: int = 0
 
             for poolid in svc.pools:
-                assert poolid in storage_pools
+                if poolid not in storage_pools:
+                    # given storage pools are updated periodically, we may not
+                    # have up-to-date statistics yet; and that means we might be
+                    # missing a pool. Jump over said pool if so.
+                    continue
                 stats = storage_pools[poolid].stats
                 used_bytes += stats.used
 
