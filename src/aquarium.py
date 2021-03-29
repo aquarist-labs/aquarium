@@ -31,7 +31,8 @@ from gravel.api import (
     services,
     nodes,
     local,
-    devices
+    devices,
+    events
 )
 
 
@@ -66,6 +67,10 @@ api_tags_metadata = [
     {
         "name": "devices",
         "description": "Obtain and perform operations on cluster devices"
+    },
+    {
+        "name": "events",
+        "description": "Obtain list of latest events"
     }
 ]
 
@@ -107,6 +112,7 @@ api.include_router(status.router)
 api.include_router(services.router)
 api.include_router(nodes.router)
 api.include_router(devices.router)
+api.include_router(events.router)
 
 
 #
