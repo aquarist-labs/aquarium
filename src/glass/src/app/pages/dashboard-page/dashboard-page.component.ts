@@ -39,6 +39,10 @@ export class DashboardPageComponent implements OnInit {
     {
       id: 'hosts',
       title: TEXT('Hosts')
+    },
+    {
+      id: 'services-capacity',
+      title: TEXT('Services Capacity')
     }
   ];
 
