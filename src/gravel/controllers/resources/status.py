@@ -83,7 +83,7 @@ class Status(Ticker):
             gstate.config.options.status.probe_interval
         )
         self._mon = None
-        self._latest = None
+        self._latest_cluster = None
         self._latest_pools_stats = {}
 
     async def _do_tick(self) -> None:
