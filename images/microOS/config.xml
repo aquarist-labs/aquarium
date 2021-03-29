@@ -140,10 +140,6 @@
         <package name="live-add-yast-repos"/>
         <!-- Apparently zypper (?) doesn't like having multiple patterns with the same name,
              so avoid using namedCollection at least for basesystem -->
-	<!--
-        <package name="patterns-microos-basesystem"/>
-        <package name="patterns-microos-defaults"/>
-	-->
         <package name="patterns-base-base"/>
         <package name="patterns-base-bootloader"/>
         <package name="kernel-default"/>
@@ -167,19 +163,9 @@
         <package name="combustion"/>
         <package name="growpart-generator"/>
     </packages>
-    <!--
-    <packages type="image" profiles="ContainerHost">
-        <namedCollection name="container-runtime"/>
-        <package name="patterns-containers-container-runtime"/>
-    </packages>
-    --> 
     <packages type="image" profiles="Vagrant,Vagrant-x86_64,Vagrant-VirtualBox-x86_64,Vagrant-aarch64">
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
-        <!-- vagrant user ssh key and sudoer -->
-        <!--
-        <archive name="vagrant.tar"/>
-	-->
     </packages>
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-dump"/>
@@ -212,5 +198,9 @@
         <!-- So that https repos work for image package downloads -->
         <package name="ca-certificates-mozilla"/>
         <package name="dracut-kiwi-oem-repart"/>
+
+	<!-- container for ceph to run on -->
+        <namedCollection name="container_runtime"/>
+        <package name="patterns-containers-container_runtime"/>
     </packages>
 </image>
