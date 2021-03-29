@@ -38,11 +38,6 @@ router: APIRouter = APIRouter(
 )
 
 
-class ReservationsResponse(BaseModel):
-    reserved: int = Field(0, title="Total reserved storage space (bytes)")
-    available: int = Field(0, title="Available storage space (bytes)")
-
-
 class RequirementsRequest(BaseModel):
     size: int = Field(0, title="Expected storage space (bytes)", gt=0)
     replicas: int = Field(0, title="Number of replicas", gt=0)
@@ -72,15 +67,6 @@ class CreateResponse(BaseModel):
 async def get_constraints() -> ConstraintsModel:
     services = Services()
     return services.constraints
-
-
-@router.get("/reservations", response_model=ReservationsResponse)
-async def get_reservations() -> ReservationsResponse:
-    services = Services()
-    return ReservationsResponse(
-        reserved=services.total_raw_reservation,
-        available=services.available_space
-    )
 
 
 @router.get("/", response_model=List[ServiceModel])
