@@ -72,13 +72,6 @@ export class ServicesService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Obtain existing service reservations in byte.
-   */
-  public reservations(): Observable<Reservations> {
-    return this.http.get<Reservations>(`${this.url}/reservations`);
-  }
-
   public checkRequirements(_size: number, _replicas: number): Observable<CheckRequirementsReply> {
     const request: CheckRequirementsRequest = {
       size: _size,
