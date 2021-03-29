@@ -41,12 +41,12 @@ class Response(BaseModel):
 
 
 @router.put(
-    '/service/{name}',
+    '/service/{service_id}',
     name='create an nfs service',
     response_model=Response)
-async def service_create(name: str, req: ServiceRequest) -> Response:
+async def service_create(service_id: str, req: ServiceRequest) -> Response:
     try:
-        res = NFSService().create(name, placement=req.placement)
+        res = NFSService().create(service_id, placement=req.placement)
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
@@ -54,12 +54,12 @@ async def service_create(name: str, req: ServiceRequest) -> Response:
 
 
 @router.patch(
-    '/service/{name}',
+    '/service/{service_id}',
     name='update an nfs service',
     response_model=Response)
-async def service_update(name: str, req: ServiceRequest) -> Response:
+async def service_update(service_id: str, req: ServiceRequest) -> Response:
     try:
-        res = NFSService().update(name, req.placement if req.placement else '*')
+        res = NFSService().update(service_id, req.placement if req.placement else '*')
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
@@ -67,12 +67,12 @@ async def service_update(name: str, req: ServiceRequest) -> Response:
 
 
 @router.delete(
-    '/service/{name}',
+    '/service/{service_id}',
     name='delete an nfs service',
     response_model=Response)
-async def service_delete(name: str) -> Response:
+async def service_delete(service_id: str) -> Response:
     try:
-        res = NFSService().delete(name)
+        res = NFSService().delete(service_id)
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
@@ -88,15 +88,15 @@ def get_service_ls() -> List[str]:
 
 
 @router.get(
-    '/service/{name}',
+    '/service/{service_id}',
     name='nfs service detail',
     response_model=NFSServiceModel)
-def get_service_info(name: str) -> NFSServiceModel:
+def get_service_info(service_id: str) -> NFSServiceModel:
     try:
-        for svc in NFSService().info(name=name):
-            if svc.name == name:
+        for svc in NFSService().info(service_id=service_id):
+            if svc.service_id == service_id:
                 return svc
-        raise NFSError(f'unknown nfs service: {name}')
+        raise NFSError(f'unknown nfs service: {service_id}')
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))

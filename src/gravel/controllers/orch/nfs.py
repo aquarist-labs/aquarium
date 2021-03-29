@@ -26,7 +26,7 @@ class NFSDaemonModel(BaseModel):
 
 
 class NFSServiceModel(BaseModel):
-    name: str
+    service_id: str
     daemons: List[NFSDaemonModel]
 
 
@@ -48,28 +48,28 @@ class NFS:
 
 
 class NFSService(NFS):
-    def create(self, name: str, placement: Optional[str]) -> str:
+    def create(self, service_id: str, placement: Optional[str]) -> str:
         cmd = {
             'prefix': 'nfs cluster create',
             'type': 'cephfs',  # TODO: pending https://github.com/ceph/ceph/pull/40411
-            'clusterid': name,
+            'clusterid': service_id,
         }
         if placement:
             cmd['placement'] = placement
         return self._call(cmd)['result']
 
-    def update(self, name: str, placement: str) -> str:
+    def update(self, service_id: str, placement: str) -> str:
         res = self._call({
             'prefix': 'nfs cluster update',
-            'clusterid': name,
+            'clusterid': service_id,
             'placement': placement,
         })
         return res['result']
 
-    def delete(self, name: str) -> str:
+    def delete(self, service_id: str) -> str:
         res = self._call({
             'prefix': 'nfs cluster delete',
-            'clusterid': name,
+            'clusterid': service_id,
         })
         return res['result']
 
@@ -80,22 +80,22 @@ class NFSService(NFS):
         })
         return res['result'].split() if res.get('result') else []
 
-    def info(self, name: Optional[str] = None) -> List[NFSServiceModel]:
+    def info(self, service_id: Optional[str] = None) -> List[NFSServiceModel]:
         cmd = {
             'prefix': 'nfs cluster info',
             'format': 'json',
         }
-        if name:
-            cmd['clusterid'] = name
+        if service_id:
+            cmd['clusterid'] = service_id
 
         res = self._call(cmd)
 
         ret: List[NFSServiceModel] = []
-        for name in res:
-            daemons = parse_obj_as(List[NFSDaemonModel], res[name])
+        for service_id in res:
+            daemons = parse_obj_as(List[NFSDaemonModel], res[service_id])
             ret.append(
                 NFSServiceModel(
-                    name=name,
+                    service_id=service_id,
                     daemons=daemons
                 )
             )
