@@ -1,4 +1,20 @@
-<h1 mat-dialog-title>CephFS</h1>
+<div fxLayout="row"
+     fxLayoutAlign="start start"
+     fxLayoutGap="16px">
+  <h1 mat-dialog-title>CephFS</h1>
+  <div *ngIf="showWarning"
+       fxLayout="column"
+       fxLayoutAlign="start start">
+    <span *ngFor="let warning of showWarningText"
+          fxLayout="row"
+          fxLayoutAlign="start center"
+          fxLayoutGap="5px"
+          style="font-size: 12px;">
+      <mat-icon svgIcon="mdi:alert" style="transform: scale(0.6)"></mat-icon>
+      <span>{{warning}}</span>
+    </span>
+  </div>
+</div>
 <mat-dialog-content fxLayout="column"
                     fxLayoutAlign="none">
   <form [formGroup]="formGroup"
