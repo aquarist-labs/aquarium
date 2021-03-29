@@ -49,7 +49,7 @@ class NFSService:
     def create(self, name: str, placement: Optional[str]) -> str:
         cmd = {
             'prefix': 'nfs cluster create',
-            'type': 'cephfs',  # TODO: fix upstream
+            'type': 'cephfs',  # TODO: pending https://github.com/ceph/ceph/pull/40411
             'clusterid': name,
         }
         if placement:
