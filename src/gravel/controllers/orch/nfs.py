@@ -34,7 +34,7 @@ class NFSError(Exception):
     pass
 
 
-class NFSService:
+class NFS:
     mgr: Mgr
 
     def __init__(self):
@@ -46,6 +46,8 @@ class NFSService:
         except CephCommandError as e:
             raise NFSError(e) from e
 
+
+class NFSService(NFS):
     def create(self, name: str, placement: Optional[str]) -> str:
         cmd = {
             'prefix': 'nfs cluster create',
