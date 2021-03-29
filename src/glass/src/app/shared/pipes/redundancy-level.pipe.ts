@@ -30,7 +30,10 @@ export class RedundancyLevelPipe implements PipeTransform {
     }
   };
 
-  transform(level: number | undefined | null, option: 'flavor' | 'short' | 'long'): string {
+  transform(
+    level: number | undefined | null,
+    option: 'flavor' | 'short' | 'long' = 'flavor'
+  ): string {
     if (!(level && option) || level < 1 || level > 3) {
       return '';
     }
