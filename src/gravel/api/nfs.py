@@ -134,6 +134,19 @@ async def export_create(
     return res
 
 
+@router.delete(
+    '/export/{service_id}/{export_id}',
+    name='delete an nfs export',
+    response_model=Response)
+async def export_delete(service_id: str, export_id: int) -> Response:
+    try:
+        res = NFSExport().delete(service_id, export_id)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return Response(detail=res)
+
+
 @router.get(
     '/export/{service_id}',
     name='list nfs export ids',

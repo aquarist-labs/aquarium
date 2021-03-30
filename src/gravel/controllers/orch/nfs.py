@@ -163,6 +163,19 @@ class NFSExport(NFS):
             raise NFSError(res['result'])
         raise NFSError(f'failed to create nfs export: {res}')
 
+    def delete(self, service_id: str, export_id: int):
+        for export in self.info(service_id):
+            if export.export_id == export_id:
+                res = self._call({
+                    'prefix': 'nfs export delete',
+                    'clusterid': service_id,
+                    # TODO: fix upstream: delete by `export_id`?
+                    'binding': str(Path('/').joinpath(export.pseudo)),
+                })
+                return res['result']
+        # TODO: return errno to create HTTP 404
+        raise NFSError('export not found')
+
     def ls(self, service_id: str) -> List[int]:
         return sorted([e.export_id for e in self.info(service_id)])
 
