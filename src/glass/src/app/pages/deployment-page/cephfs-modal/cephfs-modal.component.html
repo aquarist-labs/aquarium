@@ -4,12 +4,14 @@
   <h1 mat-dialog-title>CephFS</h1>
   <div *ngIf="showWarning"
        fxLayout="column"
-       fxLayoutAlign="start start">
+       fxLayoutAlign="start start"
+       style="width: 100%;">
     <span *ngFor="let warning of showWarningText"
           fxLayout="row"
           fxLayoutAlign="start center"
           fxLayoutGap="5px"
-          style="font-size: 12px;">
+          style="font-size: 12px; width: 100%; color: black"
+          class="glass-color-theme-warn">
       <mat-icon svgIcon="mdi:alert" style="transform: scale(0.6)"></mat-icon>
       <span>{{warning}}</span>
     </span>
