@@ -38,7 +38,7 @@ $glass-color-accent-complementary: white;
   background-color: $glass-color-primary;
 }
 .glass-color-theme-warn {
-  color: whitesmoke;
+  color: $glass-color-black;
   background-color: $eos-bc-yellow-500;
 }
 
@@ -77,9 +77,13 @@ $glass-color-accent-complementary: white;
   font-weight: bold;
 }
 
+.glass-icon-2x {
+  height: 48px;
+  width: 48px;
+}
 .glass-icon-large {
-  height: 100px;
-  width: 100px;
+  height: 96px;
+  width: 96px;
 }
 
 html,
