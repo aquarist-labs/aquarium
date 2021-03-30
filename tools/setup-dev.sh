@@ -78,6 +78,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       usage
+      exit 0
       ;;
     *)
       echo "error: unrecognized parameter '$1'"

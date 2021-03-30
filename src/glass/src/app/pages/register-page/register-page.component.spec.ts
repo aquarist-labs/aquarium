@@ -33,49 +33,10 @@ describe('RegisterPageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should validate addr [1]', () => {
-    const control = component.formGroup.get('address');
-    control?.setValue('foo.local');
-    expect(control?.valid).toBeTruthy();
-  });
-
-  it('should validate addr [2]', () => {
-    const control = component.formGroup.get('address');
-    control?.setValue('172.160.0.1');
-    expect(control?.valid).toBeTruthy();
-  });
-
-  it('should validate addr [3]', () => {
-    const control = component.formGroup.get('address');
-    control?.setValue('bar:1337');
-    expect(control?.valid).toBeTruthy();
-  });
-
-  it('should not validate addr [1]', () => {
+  it('should not validate address if empty', () => {
     const control = component.formGroup.get('address');
     control?.setValue('');
     expect(control?.errors).toEqual({ required: true });
-  });
-
-  it('should not validate addr [2]', () => {
-    const control = component.formGroup.get('address');
-    control?.setValue('123.456');
-    expect(control?.invalid).toBeTruthy();
-    expect(control?.errors).toEqual({ address: true });
-  });
-
-  it('should not validate addr [3]', () => {
-    const control = component.formGroup.get('address');
-    control?.setValue('foo.ba_z.com');
-    expect(control?.invalid).toBeTruthy();
-    expect(control?.errors).toEqual({ address: true });
-  });
-
-  it('should not validate addr [4]', () => {
-    const control = component.formGroup.get('address');
-    control?.setValue('foo:1a');
-    expect(control?.invalid).toBeTruthy();
-    expect(control?.errors).toEqual({ address: true });
   });
 
   it('should validate token [1]', () => {

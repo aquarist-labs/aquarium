@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import List
+from typing import Dict, List
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from fastapi import HTTPException, status
@@ -24,6 +24,7 @@ from gravel.controllers.services import (
     ServiceError,
     ServiceModel,
     ServiceRequirementsModel,
+    ServiceStorageModel,
     ServiceTypeEnum,
     Services
 )
@@ -102,9 +103,9 @@ async def create_service(req: CreateRequest) -> CreateReply:
     services = Services()
     try:
         services.create(req.name, req.type, req.size, req.replicas)
-    except NotImplementedError:
+    except NotImplementedError as e:
         raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED,
-                            detail="service type not supported")
+                            detail=str(e))
     except NotEnoughSpaceError:
         raise HTTPException(status.HTTP_507_INSUFFICIENT_STORAGE)
     except ServiceError as e:
@@ -114,3 +115,18 @@ async def create_service(req: CreateRequest) -> CreateReply:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
     return CreateReply(success=True)
+
+
+@router.get(
+    "/stats",
+    name="Obtain services statistics",
+    response_model=Dict[str, ServiceStorageModel]
+)
+async def get_statistics() -> Dict[str, ServiceStorageModel]:
+    """
+    Returns a dictionary of service names to a dictionary containing the
+    allocated space for said service and how much space is being used, along
+    with the service's space utilization.
+    """
+    services = Services()
+    return services.get_stats()

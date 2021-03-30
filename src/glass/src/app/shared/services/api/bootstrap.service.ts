@@ -16,6 +16,7 @@ export enum BootstrapStageEnum {
 
 export type BootstrapStatusReply = {
   stage: BootstrapStageEnum;
+  progress: number;
 };
 
 @Injectable({

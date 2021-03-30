@@ -1,19 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ValidationErrors,
-  ValidatorFn,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
-import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import validator from 'validator';
 
 import { translate } from '~/app/i18n.helper';
+import { GlassValidators } from '~/app/shared/forms/validators';
 import {
   LocalNodeService,
   NodeStatus,
@@ -46,7 +38,7 @@ export class RegisterPageComponent implements OnInit {
     private localNodeService: LocalNodeService
   ) {
     this.formGroup = this.formBuilder.group({
-      address: [null, [Validators.required, this.addressValidator()]],
+      address: [null, [Validators.required, GlassValidators.hostAddress()]],
       token: [null, [Validators.required, Validators.pattern(TOKEN_REGEXP)]]
     });
   }
@@ -126,24 +118,5 @@ export class RegisterPageComponent implements OnInit {
         },
         () => handleError()
       );
-  }
-
-  protected addressValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      if (_.isEmpty(control.value)) {
-        return null;
-      }
-      const errResult = { address: true };
-      const parts = control.value.split(':');
-      if (parts.length === 2) {
-        if (!validator.isPort(parts[1])) {
-          return errResult;
-        }
-      }
-      const valid =
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        validator.isIP(parts[0]) || validator.isFQDN(parts[0], { require_tld: false });
-      return !valid ? errResult : null;
-    };
   }
 }

@@ -19,6 +19,10 @@ class NodeError(Exception):
         super().__init__()
         self._msg = msg
 
+    @property
+    def message(self) -> str:
+        return self._msg if self._msg else "node error"
+
 
 class NodeNotStartedError(NodeError):
     pass

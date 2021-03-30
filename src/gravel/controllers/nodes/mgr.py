@@ -27,6 +27,12 @@ from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import gstate
+from gravel.controllers.nodes.bootstrap import (
+    Bootstrap,
+    BootstrapError,
+    BootstrapErrorEnum,
+    BootstrapStage
+)
 from gravel.controllers.orch.ceph import (
     CephCommandError,
     Mon
@@ -77,6 +83,7 @@ class NodeStageEnum(int, Enum):
     BOOTSTRAPPED = 2
     JOINING = 3
     READY = 4
+    ERROR = 5
 
 
 class NodeInitStage(int, Enum):
@@ -117,6 +124,7 @@ class NodeMgr:
     _state: NodeStateModel
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
+    _bootstrapper: Optional[Bootstrap]
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
@@ -124,6 +132,7 @@ class NodeMgr:
         self._connmgr = get_conn_mgr()
         self._token = None
         self._joining = {}
+        self._bootstrapper = None
 
         self._node_init()
         assert self._state
@@ -254,6 +263,8 @@ class NodeMgr:
         assert reply.type == MessageTypeEnum.WELCOME
         welcome = WelcomeMessageModel.parse_obj(reply.data)
         assert welcome.pubkey
+        assert welcome.cephconf
+        assert welcome.keyring
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
         if not authorized_keys.parent.exists():
@@ -261,6 +272,15 @@ class NodeMgr:
         with authorized_keys.open("a") as fd:
             fd.writelines([welcome.pubkey])
             logger.debug(f"join > wrote pubkey to {authorized_keys}")
+
+        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
+        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
+        if not cephconf_path.parent.exists():
+            cephconf_path.parent.mkdir(0o755)
+        cephconf_path.write_text(welcome.cephconf)
+        keyring_path.write_text(welcome.keyring)
+        keyring_path.chmod(0o600)
+        cephconf_path.chmod(0o644)
 
         readymsg = ReadyToAddMessageModel()
         await conn.send(
@@ -281,14 +301,52 @@ class NodeMgr:
         self._node_start()
         return True
 
-    async def prepare_bootstrap(self) -> None:
+    async def bootstrap(self) -> None:
+
         assert self._state
-        if self._state.stage > NodeStageEnum.NONE:
-            raise NodeCantBootstrapError()
+        if self._state.stage == NodeStageEnum.ERROR:
+            raise NodeCantBootstrapError("node is in error state")
+
+        try:
+            await self._prepare_bootstrap()
+        except NodeError as e:
+            logger.error(f"bootstrap prepare error: {e.message}")
+            raise e
+
+        assert not self._bootstrapper
+        await self._start_bootstrap()
+        self._bootstrapper = Bootstrap()
+
+        async def finish_bootstrap_cb(
+            success: bool,
+            error: Optional[str]
+        ) -> None:
+            if not success:
+                error = error if error else "unknown error"
+                logger.error(f"bootstrap finish error: {error}")
+                await self._finish_bootstrap_error(error)
+                return
+
+            await self._finish_bootstrap()
+
+        try:
+            await self._bootstrapper.bootstrap(
+                self.address, finish_bootstrap_cb
+            )
+        except BootstrapError as e:
+            logger.error(f"bootstrap error: {e.message}")
+            raise NodeCantBootstrapError(e.message)
+
+    async def _prepare_bootstrap(self) -> None:
+        assert self._state
+        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
+            raise NodeCantBootstrapError("node bootstrapping")
+        elif self._state.stage > NodeStageEnum.NONE:
+            raise NodeCantBootstrapError("node can't be bootstrapped")
         elif self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
 
-    async def start_bootstrap(self) -> None:
+    async def _start_bootstrap(self) -> None:
         assert self._state
         assert self._state.stage == NodeStageEnum.NONE
         assert self._state.hostname
@@ -296,9 +354,26 @@ class NodeMgr:
         self._state.stage = NodeStageEnum.BOOTSTRAPPING
         self._save_state()
 
-    async def finish_bootstrap(self):
+    async def _finish_bootstrap_error(self, error: str) -> None:
+        """
+        Called asynchronously, we don't benefit anyone by throwing
+        exceptions, but we can easily lock down the node by setting state to
+        error.
+        """
         assert self._state
         assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
+
+        self._state.stage = NodeStageEnum.ERROR
+        self._save_state()
+
+    async def _finish_bootstrap(self):
+        """
+        Called asynchronously, presumes bootstrap was successful.
+        """
+        assert self._state
+        assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
+
+        logger.info("finishing bootstrap")
 
         await self._finish_bootstrap_config()
 
@@ -312,6 +387,8 @@ class NodeMgr:
         tokenstr = '-'.join(gen() for _ in range(4))
         self._token = tokenstr
         self._save_token(should_exist=False)
+
+        logger.debug(f"finished bootstrap: token = {tokenstr}")
 
         self._load()
         self._node_start()
@@ -329,6 +406,30 @@ class NodeMgr:
         except CephCommandError as e:
             logger.error("unable to disable redundancy warning")
             logger.debug(str(e))
+
+    @property
+    def bootstrapper_stage(self) -> BootstrapStage:
+        if not self._bootstrapper:
+            return BootstrapStage.NONE
+        return self._bootstrapper.stage
+
+    @property
+    def bootstrapper_progress(self) -> int:
+        if not self._bootstrapper:
+            return 0
+        return self._bootstrapper.progress
+
+    @property
+    def bootstrapper_error_code(self) -> BootstrapErrorEnum:
+        if not self._bootstrapper:
+            return BootstrapErrorEnum.NONE
+        return self._bootstrapper.error_code
+
+    @property
+    def bootstrapper_error_msg(self) -> str:
+        if not self._bootstrapper:
+            return ""
+        return self._bootstrapper.error_msg
 
     async def finish_deployment(self) -> None:
         assert self._state
@@ -529,10 +630,22 @@ class NodeMgr:
         orch = Orchestrator()
         pubkey: str = orch.get_public_key()
 
+        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
+        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
+        assert cephconf_path.exists()
+        assert keyring_path.exists()
+
+        cephconf: str = cephconf_path.read_text("utf-8")
+        keyring: str = keyring_path.read_text("utf-8")
+        assert len(cephconf) > 0
+        assert len(keyring) > 0
+
         logger.debug(f"handle join > pubkey: {pubkey}")
 
         welcome = WelcomeMessageModel(
-            pubkey=pubkey
+            pubkey=pubkey,
+            cephconf=cephconf,
+            keyring=keyring
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")

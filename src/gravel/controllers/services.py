@@ -1,5 +1,15 @@
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 from enum import Enum
 from pathlib import Path
@@ -8,11 +18,13 @@ from pydantic import BaseModel
 from pydantic.fields import Field
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
-from gravel.controllers.orch.models \
-    import CephFSListEntryModel, CephOSDPoolEntryModel
+from gravel.controllers.orch.models import (
+    CephFSListEntryModel,
+    CephOSDPoolEntryModel
+)
 from gravel.controllers.gstate import gstate
 from gravel.controllers.resources.storage import (
-    Storage,
+    Storage, StoragePoolModel,
     get_storage
 )
 
@@ -35,10 +47,10 @@ class NotEnoughSpaceError(ServiceError):
 
 class ServiceTypeEnum(str, Enum):
     CEPHFS = "cephfs"
-    NFS = "nfs"
-    RBD = "rbd"
-    ISCSI = "iscsi"
-    RGW = "rgw"
+    # NFS = "nfs"
+    # RBD = "rbd"
+    # ISCSI = "iscsi"
+    # RGW = "rgw"
 
 
 class ServiceModel(BaseModel):
@@ -60,6 +72,14 @@ class ServiceRequirementsModel(BaseModel):
     required: int = Field(0, title="Required additional storage space (bytes)")
 
 
+class ServiceStorageModel(BaseModel):
+    name: str = Field(0, title="Service name")
+    used: int = Field(0, title="Used space (byte)")
+    avail: int = Field(0, title="Available space (byte)")
+    allocated: int = Field(0, title="Allocated space (bytes)")
+    utilization: float = Field(0, title="Utilization")
+
+
 class Services:
 
     _services: Dict[str, ServiceModel]
@@ -73,8 +93,6 @@ class Services:
                size: int,
                replicas: int
                ) -> ServiceModel:
-        if type != ServiceTypeEnum.CEPHFS:
-            raise NotImplementedError("only cephfs is currently supported")
         if name in self._services:
             raise ServiceExistsError(f"service {name} already exists")
 
@@ -90,7 +108,12 @@ class Services:
             replicas=replicas,
             raw_size=size*replicas
         )
-        self._create_service(svc)
+
+        if svc.type == ServiceTypeEnum.CEPHFS:
+            self._create_cephfs(svc)
+        else:
+            raise NotImplementedError(f"unknown service type: {svc.type}")
+
         self._services[name] = svc
         self._save()
         return svc
@@ -143,11 +166,38 @@ class Services:
         )
         return feasible, requirements
 
-    def _create_service(self, svc: ServiceModel) -> None:
-        if svc.type == ServiceTypeEnum.CEPHFS:
-            self._create_cephfs(svc)
-        else:
-            raise NotImplementedError("only cephfs is currently supported")
+    def get_stats(self) -> Dict[str, ServiceStorageModel]:
+        """
+        Obtain services statistics, including how much space is currently being
+        used for each service, and utilization as a function of the used space
+        and the allocated space.
+        """
+        storage: Storage = get_storage()
+        storage_pools: Dict[int, StoragePoolModel] = storage.usage().pools_by_id
+
+        services: Dict[str, ServiceStorageModel] = {}
+
+        for svc in self._services.values():
+            allocated: int = svc.reservation
+            used_bytes: int = 0
+
+            for poolid in svc.pools:
+                assert poolid in storage_pools
+                stats = storage_pools[poolid].stats
+                used_bytes += stats.used
+
+            available: int = allocated - used_bytes
+            utilization: float = used_bytes / allocated
+
+            services[svc.name] = ServiceStorageModel(
+                name=svc.name,
+                used=used_bytes,
+                avail=available,
+                allocated=allocated,
+                utilization=utilization
+            )
+
+        return services
 
     def _create_cephfs(self, svc: ServiceModel) -> None:
         cephfs = CephFS()

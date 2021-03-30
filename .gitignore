@@ -15,6 +15,7 @@ src/gravel/cephadm/cephadm.bin
 src/.tox/
 images/build/
 tests/vagrant/setups/
+tests/vagrant/deployments/
 .vagrant/
 .idea/
 conf/

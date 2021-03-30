@@ -39,6 +39,8 @@ class JoinMessageModel(BaseModel):
 
 class WelcomeMessageModel(BaseModel):
     pubkey: str
+    cephconf: str
+    keyring: str
 
 
 class ReadyToAddMessageModel(BaseModel):

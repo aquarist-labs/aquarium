@@ -14,17 +14,19 @@
 from logging import Logger
 from typing import Optional
 from pathlib import Path
+from fastapi import HTTPException, status
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    NodeStageEnum,
-    get_node_mgr
-)
-from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import CephStatusModel
+from gravel.controllers.resources.status import (
+    CephStatusNotAvailableError,
+    ClientIORateNotAvailableError,
+    OverallClientIORateModel,
+    Status,
+    get_status_ctrl
+)
 
 
 logger: Logger = fastapi_logger
@@ -42,18 +44,14 @@ class StatusModel(BaseModel):
 @router.get("/", response_model=StatusModel)
 async def get_status() -> StatusModel:
 
-    nodemgr: NodeMgr = get_node_mgr()
-    stage: NodeStageEnum = nodemgr.stage
+    status_ctrl: Status = get_status_ctrl()
     cluster: Optional[CephStatusModel] = None
 
-    if stage >= NodeStageEnum.BOOTSTRAPPED and \
-       stage != NodeStageEnum.JOINING:
-        mon = Mon()
-        try:
-            cluster = mon.status
-        except Exception:
-            logger.error("unable to obtain cluster status!")
-            pass
+    try:
+        cluster = status_ctrl.status
+    except CephStatusNotAvailableError:
+        logger.warn("unable to obtain ceph cluster status")
+        cluster = None
 
     status: StatusModel = StatusModel(
         cluster=cluster
@@ -68,3 +66,30 @@ async def get_logs() -> str:
     if not logfile.exists():
         return ""
     return logfile.read_text()
+
+
+@router.get(
+    "/client-io-rates",
+    name="Obtain Client I/O rates for the cluster and individual services",
+    response_model=OverallClientIORateModel
+)
+async def get_client_io_rates() -> OverallClientIORateModel:
+    """
+    Obtain the cluster's overal IO rates, and service-specific IO rates.
+
+    The service specific rates are calculated from the cluster's provided
+    per-pool rates, by potentially aggregating multiple pools depending on how
+    many pools a given service relies on.
+
+    This information is obtained periodically.
+    """
+
+    status_ctrl: Status = get_status_ctrl()
+    try:
+        rates = status_ctrl.client_io_rate
+        return rates
+    except ClientIORateNotAvailableError:
+        raise HTTPException(
+            status_code=status.HTTP_412_PRECONDITION_FAILED,
+            detail="Client IO rates not available at the moment"
+        )
