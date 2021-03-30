@@ -9,6 +9,7 @@ import { MaterialModule } from '~/app/material.modules';
 import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
+import { InstallConfigPageComponent } from '~/app/pages/install-config-page/install-config-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { RegisterPageComponent } from '~/app/pages/register-page/register-page.component';
@@ -25,7 +26,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     WelcomePageComponent,
     NotFoundPageComponent,
     RegisterPageComponent,
-    ServicesPageComponent
+    ServicesPageComponent,
+    InstallConfigPageComponent
   ],
   imports: [
     CommonModule,

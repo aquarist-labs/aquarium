@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from typing import Dict, List
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
+from gravel.controllers.orch.ntp import set_address
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
 
@@ -51,6 +52,10 @@ class HostsDevicesModel(BaseModel):
     address: str
     hostname: str
     devices: List[DeviceModel]
+
+
+class SetNtpRequest(BaseModel):
+    addr: str
 
 
 @router.get("/hosts", response_model=List[HostModel])
@@ -123,6 +128,15 @@ async def get_pubkey() -> str:
     try:
         orch = Orchestrator()
         return orch.get_public_key()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
+
+
+@router.put("/ntp", response_model=bool)
+async def set_ntp(req: SetNtpRequest) -> bool:
+    try:
+        return set_address(req.addr)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
