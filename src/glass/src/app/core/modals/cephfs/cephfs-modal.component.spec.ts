@@ -4,8 +4,8 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
-import { PagesModule } from '~/app/pages/pages.module';
+import { CoreModule } from '~/app/core/core.module';
+import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
 
 describe('CephfsModalComponent', () => {
   let component: CephfsModalComponent;
@@ -16,7 +16,7 @@ describe('CephfsModalComponent', () => {
       imports: [
         HttpClientTestingModule,
         NoopAnimationsModule,
-        PagesModule,
+        CoreModule,
         TranslateModule.forRoot()
       ],
       providers: [

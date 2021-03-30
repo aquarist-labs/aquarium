@@ -2,7 +2,7 @@ import { ComponentType } from '@angular/cdk/portal';
 import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 
-import { CephfsModalComponent } from '~/app/pages/deployment-page/cephfs-modal/cephfs-modal.component';
+import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
 
 @Injectable({
   providedIn: 'root'
