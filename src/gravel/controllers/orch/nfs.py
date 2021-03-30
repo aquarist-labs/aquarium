@@ -30,6 +30,19 @@ class NFSServiceModel(BaseModel):
     daemons: List[NFSDaemonModel]
 
 
+class NFSExportModel(BaseModel):
+    export_id: int
+    path: str
+    pseudo: str
+    access_type: str
+    squash: str
+    security_label: bool
+    protocols: List[str]
+    transports: List[str]
+    fsal: Dict  # TODO: create model for this?
+    clients: List[str]
+
+
 class NFSError(Exception):
     pass
 
@@ -97,6 +110,27 @@ class NFSService(NFS):
                 NFSServiceModel(
                     service_id=service_id,
                     daemons=daemons
+                )
+            )
+        return ret
+
+
+class NFSExport(NFS):
+    def info(self, service_id: str) -> List[NFSExportModel]:
+        cmd = {
+            'prefix': 'nfs export ls',
+            'clusterid': service_id,
+            'detailed': True,  # TODO: fix upstream: `detailed` -> `detail`?
+            'format': 'json',
+        }
+
+        res = self._call(cmd)
+
+        ret: List[NFSExportModel] = []
+        for export in res:
+            ret.append(
+                NFSExportModel(
+                    **export
                 )
             )
         return ret

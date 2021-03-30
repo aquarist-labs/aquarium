@@ -21,7 +21,8 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
 from gravel.controllers.orch.nfs import \
-    NFSError, NFSService, NFSServiceModel
+    NFSError, NFSExport, NFSExportModel, \
+    NFSService, NFSServiceModel
 
 
 logger: Logger = fastapi_logger
@@ -100,3 +101,21 @@ def get_service_info(service_id: str) -> NFSServiceModel:
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
+
+
+@router.get(
+    '/export/{service_id}/{export_id}',
+    name='nfs export detail',
+    response_model=NFSExportModel)
+async def get_export_info(service_id: str, export_id: int) -> NFSExportModel:
+    try:
+        res = NFSExport().info(service_id)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+
+    for export in res:
+        if export.export_id == export_id:
+            return export
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND)
