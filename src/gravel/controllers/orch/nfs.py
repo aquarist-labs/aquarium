@@ -116,6 +116,9 @@ class NFSService(NFS):
 
 
 class NFSExport(NFS):
+    def ls(self, service_id: str) -> List[int]:
+        return sorted([e.export_id for e in self.info(service_id)])
+
     def info(self, service_id: str) -> List[NFSExportModel]:
         cmd = {
             'prefix': 'nfs export ls',

@@ -104,6 +104,19 @@ def get_service_info(service_id: str) -> NFSServiceModel:
 
 
 @router.get(
+    '/export/{service_id}',
+    name='list nfs export ids',
+    response_model=List[int])
+async def get_export_ls(service_id: str) -> List[int]:
+    try:
+        res = NFSExport().ls(service_id)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return res
+
+
+@router.get(
     '/export/{service_id}/{export_id}',
     name='nfs export detail',
     response_model=NFSExportModel)
