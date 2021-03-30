@@ -21,7 +21,8 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
 from gravel.controllers.orch.nfs import \
-    NFSError, NFSExport, NFSExportModel, \
+    NFSError, NFSBackingStoreEnum, \
+    NFSExport, NFSExportModel, \
     NFSService, NFSServiceModel
 
 
@@ -35,6 +36,14 @@ router: APIRouter = APIRouter(
 
 class ServiceRequest(BaseModel):
     placement: Optional[str] = '*'
+
+
+class ExportRequest(BaseModel):
+    binding: str
+    fs_type: NFSBackingStoreEnum = NFSBackingStoreEnum.CEPHFS
+    fs_name: str
+    fs_path: Optional[str]
+    readonly: bool = False
 
 
 class Response(BaseModel):
@@ -101,6 +110,28 @@ def get_service_info(service_id: str) -> NFSServiceModel:
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
+
+
+@router.post(
+    '/export/{service_id}',
+    name='create an nfs export',
+    response_model=NFSExportModel)
+async def export_create(
+        service_id: str,
+        req: ExportRequest) -> NFSExportModel:
+    try:
+        res: NFSExportModel = \
+            NFSExport().create(
+                service_id=service_id,
+                binding=req.binding,
+                fs_type=req.fs_type,
+                fs_name=req.fs_name,
+                fs_path=req.fs_path,
+                readonly=req.readonly)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return res
 
 
 @router.get(
