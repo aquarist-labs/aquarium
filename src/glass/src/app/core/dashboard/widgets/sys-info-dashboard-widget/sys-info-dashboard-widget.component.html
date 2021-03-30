@@ -50,18 +50,22 @@
           </ngx-charts-advanced-pie-chart>
         </div>
       </div>
-      <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="none"
-           fxLayoutAlign="none"
+      <div class="glass-sys-info-dashboard-widget-cell cpu-load"
+           fxFlex="100"
            fxLayout="column">
         <div class="glass-text-bold"
              translate>CPU Load</div>
-        <div fxFlex>
-          <ngx-charts-number-card [scheme]="cpuLoadColorScheme"
-                                  [results]="cpuLoadChartData"
-                                  [view]="[500,150]"
-                                  [animations]="false">
-          </ngx-charts-number-card>
+        <div fxFlex
+             fxLayoutGap="8px"
+             fxLayout="row">
+          <mat-card *ngFor="let item of cpuLoadChartData; index as i"
+                    [ngStyle]="{'backgroundColor': cpuLoadColorScheme.domain[i] }"
+                    fxFlex>
+            <mat-card-content>
+              <div class="value">{{ item.value }}</div>
+              <div>{{ item.name }}</div>
+            </mat-card-content>
+          </mat-card>
         </div>
       </div>
     </div>

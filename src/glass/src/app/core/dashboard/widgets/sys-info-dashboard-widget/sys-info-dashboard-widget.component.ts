@@ -72,9 +72,9 @@ export class SysInfoDashboardWidgetComponent {
         const load_5min = Math.floor(inventory.cpu.load.five_min * 100);
         const load_15min = Math.floor(inventory.cpu.load.fifteen_min * 100);
         this.cpuLoadChartData = [
-          { name: translate(TEXT('1min')), value: `${load_1min}%` },
-          { name: translate(TEXT('5min')), value: `${load_5min}%` },
-          { name: translate(TEXT('15min')), value: `${load_15min}%` }
+          { name: translate(TEXT('1 min')), value: `${load_1min}%` },
+          { name: translate(TEXT('5 min')), value: `${load_5min}%` },
+          { name: translate(TEXT('15 min')), value: `${load_15min}%` }
         ];
         // Modify the uptime value to allow the `relativeDate` pipe
         // to calculate the correct time to display.
