@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from pydantic.fields import Field
 
 from gravel.controllers.services import (
+    ConstraintsModel,
     NotEnoughSpaceError,
     ServiceError,
     ServiceModel,
@@ -37,17 +38,12 @@ router: APIRouter = APIRouter(
 )
 
 
-class ReservationsReply(BaseModel):
-    reserved: int = Field(0, title="Total reserved storage space (bytes)")
-    available: int = Field(0, title="Available storage space (bytes)")
-
-
 class RequirementsRequest(BaseModel):
     size: int = Field(0, title="Expected storage space (bytes)", gt=0)
     replicas: int = Field(0, title="Number of replicas", gt=0)
 
 
-class RequirementsReply(BaseModel):
+class RequirementsResponse(BaseModel):
     feasible: bool = Field(False, title="Requested requirements are feasible")
     requirements: ServiceRequirementsModel
 
@@ -59,17 +55,18 @@ class CreateRequest(BaseModel):
     replicas: int
 
 
-class CreateReply(BaseModel):
+class CreateResponse(BaseModel):
     success: bool
 
 
-@router.get("/reservations", response_model=ReservationsReply)
-async def get_reservations() -> ReservationsReply:
+@router.get(
+    "/constraints",
+    name="Obtain service constraints",
+    response_model=ConstraintsModel
+)
+async def get_constraints() -> ConstraintsModel:
     services = Services()
-    return ReservationsReply(
-        reserved=services.total_raw_reservation,
-        available=services.available_space
-    )
+    return services.constraints
 
 
 @router.get("/", response_model=List[ServiceModel])
@@ -78,10 +75,10 @@ async def get_services() -> List[ServiceModel]:
     return services.ls()
 
 
-@router.post("/check-requirements", response_model=RequirementsReply)
+@router.post("/check-requirements", response_model=RequirementsResponse)
 async def check_requirements(
     requirements: RequirementsRequest
-) -> RequirementsReply:
+) -> RequirementsResponse:
 
     size: int = requirements.size
     replicas: int = requirements.replicas
@@ -94,11 +91,11 @@ async def check_requirements(
 
     services = Services()
     feasible, reqs = services.check_requirements(size, replicas)
-    return RequirementsReply(feasible=feasible, requirements=reqs)
+    return RequirementsResponse(feasible=feasible, requirements=reqs)
 
 
-@router.post("/create", response_model=CreateReply)
-async def create_service(req: CreateRequest) -> CreateReply:
+@router.post("/create", response_model=CreateResponse)
+async def create_service(req: CreateRequest) -> CreateResponse:
 
     services = Services()
     try:
@@ -114,7 +111,7 @@ async def create_service(req: CreateRequest) -> CreateReply:
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
-    return CreateReply(success=True)
+    return CreateResponse(success=True)
 
 
 @router.get(

@@ -8,8 +8,8 @@ import { finalize } from 'rxjs/operators';
 
 import {
   CheckRequirementsReply,
+  Constraints,
   CreateServiceReply,
-  Reservations,
   ServicesService
 } from '~/app/shared/services/api/services.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -24,6 +24,10 @@ export class CephfsModalComponent implements OnInit {
   blockUI!: NgBlockUI;
 
   public formGroup: FormGroup;
+  public showWarning = false;
+  public showWarningText: string[] = [];
+
+  private constraints: Constraints|undefined = undefined;
 
   public constructor(
     private dialogRef: MatDialogRef<CephfsModalComponent>,
@@ -45,12 +49,13 @@ export class CephfsModalComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.services.reservations().subscribe({
-      next: (reservations: Reservations) => {
+    this.services.getConstraints().subscribe({
+      next: (constraints: Constraints) => {
         this.formGroup.patchValue({
-          availableSpace: _.defaultTo(reservations.available, 0),
-          reservedSpace: _.defaultTo(reservations.reserved, 0)
+          availableSpace: _.defaultTo(constraints.allocations.available, 0),
+          reservedSpace: _.defaultTo(constraints.allocations.allocated, 0)
         });
+        this.constraints = constraints;
         this.updateValues();
       }
     });
@@ -93,6 +98,26 @@ export class CephfsModalComponent implements OnInit {
     const values = this.formGroup.value;
     const rawRequiredSpace = values.requiredSpace * values.replicas;
     this.formGroup.patchValue({ rawRequiredSpace });
+
+    this.showWarning = false;
+    this.showWarningText = [];
+    if (this.constraints) {
+      const maxReplicas = this.constraints.redundancy.max_replicas;
+      const numHosts = this.constraints.availability.hosts;
+      if (values.replicas > maxReplicas) {
+        this.showWarning = true;
+        this.showWarningText.push(
+          `Current deployment can only guarantee ${maxReplicas} replicas`
+        );
+      }
+
+      if (numHosts === 1) {
+        this.showWarning = true;
+        this.showWarningText.push(
+          'Current deployment has a single host and can\'t tolerate failures'
+        );
+      }
+    }
   }
 
   private createService(): void {

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { translate } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { Reservations, ServicesService } from '~/app/shared/services/api/services.service';
+import { Constraints, ServicesService } from '~/app/shared/services/api/services.service';
 
 @Component({
   selector: 'glass-capacity-dashboard-widget',
@@ -21,10 +21,10 @@ export class CapacityDashboardWidgetComponent {
 
   constructor(public service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {}
 
-  updateChartData($data: Reservations) {
+  updateChartData($data: Constraints) {
     this.chartData = [
-      { name: translate(TEXT('Used')), value: $data.reserved },
-      { name: translate(TEXT('Free')), value: $data.available }
+      { name: translate(TEXT('Used')), value: $data.allocations.allocated },
+      { name: translate(TEXT('Free')), value: $data.allocations.available }
     ];
   }
 
@@ -32,7 +32,7 @@ export class CapacityDashboardWidgetComponent {
     return this.bytesToSizePipe.transform(c);
   }
 
-  loadData(): Observable<Reservations> {
-    return this.service.reservations();
+  loadData(): Observable<Constraints> {
+    return this.service.getConstraints();
   }
 }

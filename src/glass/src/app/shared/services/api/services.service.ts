@@ -23,6 +23,26 @@ export interface CheckRequirementsReply {
   requirements: Requirements;
 }
 
+export interface AllocationConstraints {
+  allocated: number;
+  available: number;
+}
+
+export interface RedundancyConstraints {
+  /* eslint-disable @typescript-eslint/naming-convention */
+  max_replicas: number;
+}
+
+export interface AvailabilityConstraints {
+  hosts: number;
+}
+
+export interface Constraints {
+  allocations: AllocationConstraints;
+  redundancy: RedundancyConstraints;
+  availability: AvailabilityConstraints;
+}
+
 export declare type ServiceType = 'cephfs' | 'rbd' | 'rgw' | 'iscsi' | 'nfs';
 
 export interface CreateServiceRequest {
@@ -52,19 +72,21 @@ export class ServicesService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Obtain existing service reservations in byte.
-   */
-  public reservations(): Observable<Reservations> {
-    return this.http.get<Reservations>(`${this.url}/reservations`);
-  }
-
   public checkRequirements(_size: number, _replicas: number): Observable<CheckRequirementsReply> {
     const request: CheckRequirementsRequest = {
       size: _size,
       replicas: _replicas
     };
     return this.http.post<CheckRequirementsReply>(`${this.url}/check-requirements`, request);
+  }
+
+  /**
+   * Obtains current service creation constraints.
+   *
+   * @returns Observable to a Constraints object
+   */
+  public getConstraints(): Observable<Constraints> {
+    return this.http.get<Constraints>(`${this.url}/constraints`);
   }
 
   public create(

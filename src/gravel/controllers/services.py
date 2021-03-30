@@ -14,8 +14,11 @@
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Tuple
+from logging import Logger
+from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
+
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
 from gravel.controllers.orch.models import (
@@ -23,10 +26,18 @@ from gravel.controllers.orch.models import (
     CephOSDPoolEntryModel
 )
 from gravel.controllers.gstate import gstate
+from gravel.controllers.resources.devices import (
+    DeviceHostModel,
+    Devices,
+    get_devices
+)
 from gravel.controllers.resources.storage import (
     Storage, StoragePoolModel,
     get_storage
 )
+
+
+logger: Logger = fastapi_logger
 
 
 class ServiceError(Exception):
@@ -70,6 +81,28 @@ class ServiceRequirementsModel(BaseModel):
     reserved: int = Field(0, title="Total existing reservations (bytes)")
     available: int = Field(0, title="Available storage space (bytes)")
     required: int = Field(0, title="Required additional storage space (bytes)")
+
+
+class RedundancyConstraints(BaseModel):
+    max_replicas: int = Field(0, title="maximum provided replicas")
+
+
+class AvailabilityConstraints(BaseModel):
+    hosts: int = Field(0, title="number of available hosts")
+
+
+class AllocationConstraints(BaseModel):
+    allocated: int = Field(0, title="Allocated space (byte)")
+    available: int = Field(0, title="Available space (byte)")
+
+
+class ConstraintsModel(BaseModel):
+    allocations: AllocationConstraints = \
+        Field(AllocationConstraints(), title="allocations constraints")
+    redundancy: RedundancyConstraints = \
+        Field(RedundancyConstraints(), title="redundancy constraints")
+    availability: AvailabilityConstraints = \
+        Field(AvailabilityConstraints(), title="availability constraints")
 
 
 class ServiceStorageModel(BaseModel):
@@ -151,6 +184,58 @@ class Services:
         if name not in self._services:
             raise UnknownServiceError(name)
         return self._services[name]
+
+    @property
+    def constraints(self) -> ConstraintsModel:
+        """
+        Calculate constraints for service deployment. These are generic and not
+        tied to any particular service's requirements.
+        """
+        devices_ctrl: Devices = get_devices()
+        devs_per_host: Dict[str, DeviceHostModel] = \
+            devices_ctrl.devices_per_host
+
+        logger.debug(f"get constraints, hosts = {devs_per_host}")
+
+        hosts: List[str] = \
+            [h for h, d in devs_per_host.items() if len(d.devices) > 0]
+        num_hosts: int = len(hosts)
+
+        availability: AvailabilityConstraints = \
+            AvailabilityConstraints(hosts=num_hosts)
+
+        max_devs: int = 0
+        min_devs: int = -1
+        for h in hosts:
+            ndevs: int = len(devs_per_host[h].devices)
+            max_devs = max(max_devs, ndevs)
+            min_devs = ndevs if min_devs < 0 else min(min_devs, ndevs)
+
+        if num_hosts == 1:
+            assert max_devs == min_devs
+
+        elif min_devs < max_devs:
+            # TODO: warn about unbalanced cluster
+            pass
+
+        # if we have one host, our redundancy is tied to said host's devices,
+        # and thus we max out at the total number of devices; if we have
+        # multiple hosts, we want to replicate across hosts, and thus we're tied
+        # to the number of hosts.
+        #
+        redundancy: RedundancyConstraints = RedundancyConstraints()
+        redundancy.max_replicas = max_devs if num_hosts == 1 else num_hosts
+
+        allocations: AllocationConstraints = AllocationConstraints(
+            allocated=self.total_raw_reservation,
+            available=self.available_space
+        )
+
+        return ConstraintsModel(
+            allocations=allocations,
+            redundancy=redundancy,
+            availability=availability
+        )
 
     def check_requirements(
         self, size: int, replicas: int

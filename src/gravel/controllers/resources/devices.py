@@ -81,7 +81,7 @@ class Devices(Ticker):
 
     async def _should_tick(self) -> bool:
         nodemgr: NodeMgr = get_node_mgr()
-        return nodemgr.ready
+        return (nodemgr.bootstrapped or nodemgr.ready)
 
     async def probe(self) -> None:
 
