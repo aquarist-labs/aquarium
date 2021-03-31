@@ -64,16 +64,27 @@
         <mat-panel-title>NFS</mat-panel-title>
         <mat-panel-description>
           {{ 'Configure NFS service' | translate }}
-          <mat-icon *ngIf="!nfs"
-                    class="glass-color-accent"
-                    svgIcon="mdi:plus-circle-outline">
-          </mat-icon>
-          <mat-icon *ngIf="nfs"
-                    class="glass-color-primary"
-                    svgIcon="mdi:check-circle-outline">
+          <mat-icon class="glass-color-accent"
+                    svgIcon="mdi:plus-circle-outline"
+                    (click)="openNfsDialog()">
           </mat-icon>
         </mat-panel-description>
       </mat-expansion-panel-header>
+      <div *ngIf="nfsList.length === 0">
+        <span translate>No NFS services configured</span>
+      </div>
+
+      <div *ngIf="nfsList.length > 0"
+           fxLayout="column"
+           fxLayoutAlign="start start">
+        <div *ngFor="let service of nfsList"
+             fxLayout="row"
+             fxLayoutAlign="start center">
+          <mat-icon svgIcon="mdi:nas"></mat-icon>
+          <span>&nbsp;</span>
+          <span>{{ service.name }} ({{ service.reservation | bytesToSize }})</span>
+        </div>
+      </div>
     </mat-expansion-panel>
 
     <mat-expansion-panel>

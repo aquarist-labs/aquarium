@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
@@ -28,7 +29,6 @@ export class DeploymentPageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  nfs = false;
   devices: Device[] = [];
   devicesColumns: DatatableColumn[] = [
     {
@@ -65,6 +65,7 @@ export class DeploymentPageComponent implements OnInit {
   deploymentSuccessful = true;
 
   public cephfsList: ServiceDesc[] = [];
+  public nfsList: ServiceDesc[] = [];
 
   constructor(
     private dialog: DialogService,
@@ -77,11 +78,7 @@ export class DeploymentPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.getDevices();
-    this.updateCephfsList();
-  }
-
-  addNfs(): void {
-    this.nfs = true;
+    this.updateServicesLists();
   }
 
   getDevices(): void {
@@ -161,10 +158,18 @@ export class DeploymentPageComponent implements OnInit {
       );
   }
 
+  public openNfsDialog(): void {
+    this.dialog.openNfs((result) => {
+      if (result) {
+        this.updateServicesLists(['nfs']);
+      }
+    });
+  }
+
   public openCephfsDialog(): void {
     this.dialog.openCephfs((result) => {
       if (result) {
-        this.updateCephfsList();
+        this.updateServicesLists(['cephfs']);
       }
     });
   }
@@ -181,11 +186,20 @@ export class DeploymentPageComponent implements OnInit {
     });
   }
 
-  private updateCephfsList(): void {
-    this.services.list().subscribe({
-      next: (result: ServiceDesc[]) => {
-        this.cephfsList = result;
-      }
+  private updateServicesLists(serviceTypes: string[] = ['cephfs', 'nfs']): void {
+    this.services.list().subscribe((result: ServiceDesc[]) => {
+      serviceTypes.forEach((serviceType) => {
+        switch (serviceType) {
+          case 'cephfs': {
+            this.cephfsList = _.filter(result, { type: 'cephfs' });
+            break;
+          }
+          case 'nfs': {
+            this.nfsList = _.filter(result, { type: 'nfs' });
+            break;
+          }
+        }
+      });
     });
   }
 
