@@ -68,6 +68,13 @@ export class ServicesPageComponent implements OnInit {
           }
         });
         break;
+      case 'nfs':
+        this.dialog.openNfs((res) => {
+          if (res) {
+            this.loadData();
+          }
+        });
+        break;
     }
   }
 
