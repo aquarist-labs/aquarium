@@ -321,6 +321,17 @@ class Services:
                 mon.set_pool_size(data_pool.pool_name, svc.replicas)
             svc.pools.append(data_pool.pool)
 
+        # create cephfs default user
+        logger.debug("authorize default user")
+        try:
+            cephfs.authorize(svc.name, "default")
+            logger.info(f"created cephfs client for service '{svc.name}'")
+        except CephFSError as e:
+            logger.error(f"Unable to authorize cephfs client: {str(e)}")
+            logger.exception(e)
+            # do nothing else, the service still works without an authorized
+            # client.
+
     def _save(self) -> None:
         assert gstate.config.options.service_state_path
         path = Path(gstate.config.options.service_state_path)

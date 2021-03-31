@@ -11,17 +11,25 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import List
+import errno
+from typing import List, Optional
 
 from pydantic.tools import parse_obj_as
 from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 
-from gravel.controllers.orch.models \
-    import CephFSListEntryModel, CephFSNameModel, CephFSVolumeListModel
+from gravel.controllers.orch.models import (
+    CephFSAuthorizationModel, CephFSListEntryModel,
+    CephFSNameModel,
+    CephFSVolumeListModel
+)
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 class CephFSError(Exception):
+    pass
+
+
+class CephFSNoAuthorizationError(CephFSError):
     pass
 
 
@@ -82,3 +90,49 @@ class CephFS:
             if fs.name == name:
                 return fs
         raise CephFSError(f"unknown filesystem {name}")
+
+    def authorize(
+        self,
+        fsname: str,
+        clientid: str
+    ) -> CephFSAuthorizationModel:
+        assert fsname and clientid
+        cmd = {
+            "prefix": "fs authorize",
+            "filesystem": fsname,
+            "entity": f"client.{fsname}-{clientid}",
+            "caps": ["/", "rw"],
+            "format": "json"
+        }
+        try:
+            res = self.mon.call(cmd)
+        except CephCommandError as e:
+            raise CephFSError(str(e)) from e
+        lst = parse_obj_as(List[CephFSAuthorizationModel], res)
+        assert len(lst) == 1
+        return lst[0]
+
+    def get_authorization(
+        self,
+        fsname: str,
+        clientid: Optional[str]
+    ) -> CephFSAuthorizationModel:
+
+        if not clientid:
+            clientid = "default"
+
+        cmd = {
+            "prefix": "auth get",
+            "entity": f"client.{fsname}-{clientid}",
+            "format": "json"
+        }
+        try:
+            res = self.mon.call(cmd)
+        except CephCommandError as e:
+            if e.rc == errno.ENOENT:
+                raise CephFSNoAuthorizationError(e.message)
+            raise CephFSError(str(e)) from e
+        lst = parse_obj_as(List[CephFSAuthorizationModel], res)
+        if len(lst) == 0:
+            raise CephFSNoAuthorizationError()
+        return lst[0]
