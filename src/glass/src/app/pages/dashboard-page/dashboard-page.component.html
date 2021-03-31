@@ -13,6 +13,9 @@
     <div *ngFor="let widget of enabledWidgets"
          class="widget">
       <ng-container [ngSwitch]="widget.id">
+        <ng-template [ngSwitchCase]="'performance'">
+          <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
+        </ng-template>
         <ng-template [ngSwitchCase]="'capacity'">
           <glass-capacity-dashboard-widget></glass-capacity-dashboard-widget>
         </ng-template>
