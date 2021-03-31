@@ -108,6 +108,10 @@ class Devices(Ticker):
                     continue
 
                 for lv in dev.lvs:
+                    if not lv.osd_id:
+                        # not a ceph lv
+                        continue
+
                     osd_entries[lv.osd_id] = DeviceModel(
                         host=host,
                         osd_id=lv.osd_id,
