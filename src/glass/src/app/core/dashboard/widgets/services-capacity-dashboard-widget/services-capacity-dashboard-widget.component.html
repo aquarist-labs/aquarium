@@ -1,0 +1,17 @@
+<glass-widget [loadData]="loadData.bind(this)"
+              title="{{ 'Services Capacity - Top 5' | translate }}"
+              (loadDataEvent)="updateChartData($event)">
+  <div class="glass-services-capacity-dashboard-widget"
+       fxLayout="row"
+       fxLayoutAlign="start start">
+    <ngx-charts-bar-horizontal [scheme]="colorScheme"
+                               [results]="chartData"
+                               [animations]="false"
+                               [legend]="true"
+                               [showDataLabel]="true"
+                               [dataLabelFormatting]="dataLabelFormatting.bind(this)"
+                               [roundEdges]="false"
+                               [tooltipDisabled]="true">
+    </ngx-charts-bar-horizontal>
+  </div>
+</glass-widget>

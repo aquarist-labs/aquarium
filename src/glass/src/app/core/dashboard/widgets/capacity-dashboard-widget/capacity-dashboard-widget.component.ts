@@ -19,7 +19,7 @@ export class CapacityDashboardWidgetComponent {
     domain: ['#30ba78', '#e0dfdf']
   };
 
-  constructor(public service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {}
+  constructor(private service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {}
 
   updateChartData($data: Constraints) {
     this.chartData = [

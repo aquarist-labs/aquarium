@@ -64,6 +64,14 @@ export interface ServiceDesc {
   replicas: number;
 }
 
+export type ServiceStorage = {
+  name: string;
+  used: number;
+  avail: number;
+  allocated: number;
+  utilization: number;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -106,5 +114,9 @@ export class ServicesService {
 
   public list(): Observable<ServiceDesc[]> {
     return this.http.get<ServiceDesc[]>(`${this.url}/`);
+  }
+
+  public stats(): Observable<Record<string, ServiceStorage>> {
+    return this.http.get<Record<string, ServiceStorage>>(`${this.url}/stats`);
   }
 }
