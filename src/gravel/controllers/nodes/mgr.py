@@ -407,6 +407,10 @@ class NodeMgr:
             logger.error("unable to disable redundancy warning")
             logger.debug(str(e))
 
+        res: bool = mon.set_default_ruleset()
+        if not res:
+            logger.error("unable to set default ruleset")
+
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
         if not self._bootstrapper:
@@ -690,6 +694,13 @@ class NodeMgr:
         orch = Orchestrator()
         if not orch.host_add(node.hostname, node.address):
             logger.error("handle ready > failed adding host to orch")
+
+        # reset default crush ruleset, and adjust pools to use a multi-node
+        # ruleset, spreading replicas across hosts rather than osds.
+        mon = Mon()
+        if not mon.set_replicated_ruleset():
+            logger.error(
+                "handle ready to add > unable to set replicated ruleset")
 
 
 _nodemgr: Optional[NodeMgr] = None
