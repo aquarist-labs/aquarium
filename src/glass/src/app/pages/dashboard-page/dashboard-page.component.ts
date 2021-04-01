@@ -11,7 +11,7 @@ import { LocalStorageService } from '~/app/shared/services/local-storage.service
   styleUrls: ['./dashboard-page.component.scss']
 })
 export class DashboardPageComponent implements OnInit {
-  enabled: string[] = ['health', 'capacity', 'services', 'hosts'];
+  enabled: string[] = ['health', 'capacity', 'services-capacity'];
 
   // New dashboard widgets must be added here. Don't forget to enhance
   // the template to render the new widget.
