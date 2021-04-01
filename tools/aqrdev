@@ -821,6 +821,21 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
         sys.exit(rc)
 
 
+@app.command("restart")
+@click.argument("name", required=True, type=str)
+@pass_appctx
+def cmd_restart(ctx: AppCtx, name: str) -> None:
+    _cmd_try_vagrant_deployment(name)
+    
+    rc: int = _stop(name)
+    if rc != 0:
+        sys.exit(rc)
+    rc = _start(name, False)
+    if rc != 0:
+        sys.exit(rc)
+
+
+
 @app.command("shell")
 @click.argument("name", required=True, type=str)
 @click.option("-n", "--node", required=False, type=str)
