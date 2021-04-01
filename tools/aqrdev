@@ -34,13 +34,19 @@ logger: logging.Logger = logging.getLogger("aquarium")
 
 class BaseError(Exception):
     _msg: str
+    _rc: int
 
-    def __init__(self, msg: str = ""):
+    def __init__(self, msg: str = "", rc: int = 1):
         self._msg = msg
+        self._rc = rc
 
     @property
     def message(self) -> str:
         return self._msg
+
+    @property
+    def returncode(self) -> int:
+        return self._rc
 
 
 class BoxAlreadyExistsError(BaseError):
