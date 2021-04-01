@@ -19,12 +19,6 @@ describe('ServicesService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call reservations', () => {
-    service.reservations().subscribe();
-    const req = httpTesting.expectOne('api/services/reservations');
-    expect(req.request.method).toBe('GET');
-  });
-
   it('should call list', () => {
     service.list().subscribe();
     const req = httpTesting.expectOne('api/services/');
