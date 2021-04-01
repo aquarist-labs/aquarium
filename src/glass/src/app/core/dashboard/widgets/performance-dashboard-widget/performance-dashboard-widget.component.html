@@ -1,29 +1,31 @@
 <glass-widget [loadData]="loadData.bind(this)"
               title="Performance"
               (loadDataEvent)="updateChartData($event)">
-  <div class="glass-capacity-dashboard-widget"
+  <div class="glass-performance-dashboard-widget"
+       fxFlexFill
        fxLayout="column"
-       fxLayoutAlign="center center">
-    <div fxLayout="row"
-         fxLayoutAlign="center center">
-      <ngx-charts-gauge [results]="chartDataRead"
-                        [view]="[225,225]"
-                        [showAxis]="false"
-                        [tooltipDisabled]="false"
-                        fxFlex="50"
-                        units="Read"
-                        [valueFormatting]="valueFormatting.bind(this)"
-                        [animations]="false">
-      </ngx-charts-gauge>
-      <ngx-charts-gauge [results]="chartDataWrite"
-                        [showAxis]="false"
-                        [tooltipDisabled]="false"
-                        fxFlex="50"
-                        [view]="[225,225]"
-                        units="Write"
-                        [valueFormatting]="valueFormatting.bind(this)"
-                        [animations]="false">
-      </ngx-charts-gauge>
+       fxLayoutAlign="start stretch">
+    <div fxFlexFill
+         fxLayout="row"
+         fxLayoutAlign="center stretch">
+      <div fxFlex="50">
+        <ngx-charts-gauge [results]="chartDataRead"
+                          [showAxis]="false"
+                          [tooltipDisabled]="false"
+                          units="Read"
+                          [valueFormatting]="valueFormatting.bind(this)"
+                          [animations]="false">
+        </ngx-charts-gauge>
+      </div>
+      <div fxFlex="50">
+        <ngx-charts-gauge [results]="chartDataWrite"
+                          [showAxis]="false"
+                          [tooltipDisabled]="false"
+                          units="Write"
+                          [valueFormatting]="valueFormatting.bind(this)"
+                          [animations]="false">
+        </ngx-charts-gauge>
+      </div>
     </div>
     <!-- Area chart will come below as soon as rate series are available -->
   </div>

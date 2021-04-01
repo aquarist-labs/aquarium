@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
@@ -32,7 +33,8 @@ export class PerformanceDashboardWidgetComponent {
     $data: ClientIO,
     rate: 'read' | 'write'
   ): { name: string; value: number }[] {
-    return $data.services.map((s) => ({
+    _.orderBy($data.services, ['io_rate.rate'], ['desc']);
+    return _.take($data.services, 5).map((s) => ({
       name: `${s.service_name} (${s.service_type})`,
       value: s.io_rate[rate]
     }));
