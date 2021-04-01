@@ -630,11 +630,16 @@ def _get_deployment_status(name: str) -> Dict[str, List[Tuple[str, str]]]:
 
     path: Path = _get_deployment_path(name)
     if not path.exists():
-        raise DeploymentPathNotFoundError()
+        raise DeploymentPathNotFoundError(
+            "deployment not found",
+            rc=errno.ENOENT
+        )
 
     vagrantfile = path.joinpath("Vagrantfile")
     if not vagrantfile:
-        raise DeploymentNotFinishedError()
+        raise DeploymentNotFinishedError(
+            "deployment not finished", rc=errno.ENOENT
+        )
 
     env: Dict[str, str] = os.environ.copy()
     env["VAGRANT_CWD"] = str(path)
@@ -647,7 +652,7 @@ def _get_deployment_status(name: str) -> Dict[str, List[Tuple[str, str]]]:
 
     if proc.returncode != 0:
         stderr = proc.stderr.decode("utf-8")
-        raise DeploymentStatusError(stderr)
+        raise DeploymentStatusError(stderr, rc=proc.returncode)
 
     return _parse_vagrant(proc.stdout.decode("utf-8"))
 
@@ -662,7 +667,7 @@ def _get_deployment_state(name: str) -> List[Tuple[str, str]]:
         raise e
     except BaseError as e:
         logger.error(f"unable to obtain deployment's state: {str(e)}")
-        raise DeploymentStateError(str(e))
+        raise DeploymentStateError(e.message, e.returncode)
 
     if "state" not in metadata:
         return []
@@ -733,23 +738,17 @@ def _cmd_try_vagrant_deployment(name: str) -> None:
         sys.exit(error)
 
 
-@app.command("start")
-@click.argument("name", required=True, type=str)
-@click.option("--conservative", flag_value=True)
-@pass_appctx
-def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
-
-    _cmd_try_vagrant_deployment(name)
+def _start(name: str, conservative: bool) -> int:
 
     try:
         running: bool = _check_deployment_state(name, ["running", "preparing"])
     except BaseError as e:
         click.secho(f"Something went wrong: {e.message}", fg="red")
-        sys.exit(errno.EINVAL)
+        return e.returncode
 
     if running:
         click.secho("Deployment already running", fg="yellow")
-        return
+        return 0
 
     cmd = "vagrant up"
     if conservative:
@@ -764,28 +763,37 @@ def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
         stderr = proc.stderr.decode("utf-8")
         logger.error(f"unable to start vagrant machines: {stderr}")
         click.secho("Unable to start deployment", fg="red")
-        sys.exit(1)
+        return proc.returncode
 
     click.secho("Deployment started.")
+    return 0
 
 
-@app.command("stop")
+@app.command("start")
 @click.argument("name", required=True, type=str)
+@click.option("--conservative", flag_value=True)
 @pass_appctx
-def cmd_stop(ctx: AppCtx, name: str) -> None:
+def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
 
     _cmd_try_vagrant_deployment(name)
+
+    rc = _start(name, conservative)
+    if rc != 0:
+        sys.exit(rc)
+
+
+def _stop(name: str) -> int:
 
     try:
         stopped: bool = \
             _check_deployment_state(name, ["shutoff", "not_created"])
     except BaseError as e:
         click.secho(f"Something went wrong: {e.message}", fg="red")
-        sys.exit(errno.EINVAL)
+        return errno.EINVAL
 
     if stopped:
         click.secho("Deployment already stopped.", fg="green")
-        return
+        return 0
 
     proc = subprocess.run(
         shlex.split("vagrant destroy"),
@@ -796,9 +804,21 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
         stderr = proc.stderr.decode("utf-8")
         logger.error(f"Unable to stop vagrant machines: {stderr}")
         click.secho("Unable to stop deployment", fg="red")
-        sys.exit(1)
+        return proc.returncode
 
     click.secho("Deployment stopped.", fg="green")
+    return 0
+
+
+@app.command("stop")
+@click.argument("name", required=True, type=str)
+@pass_appctx
+def cmd_stop(ctx: AppCtx, name: str) -> None:
+    _cmd_try_vagrant_deployment(name)
+
+    rc = _stop(name)
+    if rc != 0:
+        sys.exit(rc)
 
 
 @app.command("shell")
