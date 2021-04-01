@@ -40,6 +40,24 @@ export type Status = {
   cluster?: ClusterStatus;
 };
 
+export type IORate = {
+  read: number;
+  write: number;
+  read_ops: number;
+  write_ops: number;
+};
+
+export type ServiceIO = {
+  service_name: string;
+  service_type: string;
+  io_rate: IORate;
+};
+
+export type ClientIO = {
+  cluster: IORate;
+  services: ServiceIO[];
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -53,5 +71,9 @@ export class StatusService {
    */
   status(): Observable<Status> {
     return this.http.get<Status>(`${this.url}/`);
+  }
+
+  clientIO(): Observable<ClientIO> {
+    return this.http.get<ClientIO>(`${this.url}/client-io-rates`);
   }
 }

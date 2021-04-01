@@ -38,4 +38,10 @@ describe('StatusService', () => {
     const req = httpTesting.expectOne('api/status/');
     expect(req.request.method).toBe('GET');
   });
+
+  it('should call clientIO', () => {
+    service.clientIO().subscribe();
+    const req = httpTesting.expectOne('api/status/client-io-rates');
+    expect(req.request.method).toBe('GET');
+  });
 });

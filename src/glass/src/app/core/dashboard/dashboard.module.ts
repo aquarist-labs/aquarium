@@ -9,6 +9,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { CapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/capacity-dashboard-widget/capacity-dashboard-widget.component';
 import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/health-dashboard-widget/health-dashboard-widget.component';
 import { HostsDashboardWidgetComponent } from '~/app/core/dashboard/widgets/hosts-dashboard-widget/hosts-dashboard-widget.component';
+import { PerformanceDashboardWidgetComponent } from '~/app/core/dashboard/widgets/performance-dashboard-widget/performance-dashboard-widget.component';
 import { ServicesCapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-capacity-dashboard-widget/services-capacity-dashboard-widget.component';
 import { ServicesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-dashboard-widget/services-dashboard-widget.component';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
@@ -24,7 +25,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     ServicesDashboardWidgetComponent,
     SysInfoDashboardWidgetComponent,
     HostsDashboardWidgetComponent,
-    ServicesCapacityDashboardWidgetComponent
+    ServicesCapacityDashboardWidgetComponent,
+    PerformanceDashboardWidgetComponent
   ],
   exports: [
     CapacityDashboardWidgetComponent,
@@ -33,7 +35,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     ServicesDashboardWidgetComponent,
     SysInfoDashboardWidgetComponent,
     HostsDashboardWidgetComponent,
-    ServicesCapacityDashboardWidgetComponent
+    ServicesCapacityDashboardWidgetComponent,
+    PerformanceDashboardWidgetComponent
   ],
   imports: [
     CommonModule,
