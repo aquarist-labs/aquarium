@@ -83,6 +83,10 @@ class DeploymentStatusError(BaseError):
     pass
 
 
+class DeploymentStateError(BaseError):
+    pass
+
+
 class DeploymentModel(BaseModel):
     name: str
     created_on: str
@@ -647,9 +651,12 @@ def _get_deployment_state(name: str) -> List[Tuple[str, str]]:
     try:
         metadata: Dict[str, List[Tuple[str, str]]] = \
             _get_deployment_status(name)
+    except DeploymentPathNotFoundError as e:
+        logger.error(f"unable to find deployment '{name}'")
+        raise e
     except BaseError as e:
         logger.error(f"unable to obtain deployment's state: {str(e)}")
-        raise e
+        raise DeploymentStateError(str(e))
 
     if "state" not in metadata:
         return []
