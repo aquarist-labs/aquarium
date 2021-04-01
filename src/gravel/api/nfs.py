@@ -21,7 +21,9 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
 from gravel.controllers.orch.nfs import \
-    NFSError, NFSService, NFSServiceModel
+    NFSError, NFSBackingStoreEnum, \
+    NFSExport, NFSExportModel, \
+    NFSService, NFSServiceModel
 
 
 logger: Logger = fastapi_logger
@@ -36,17 +38,25 @@ class ServiceRequest(BaseModel):
     placement: Optional[str] = '*'
 
 
+class ExportRequest(BaseModel):
+    binding: str
+    fs_type: NFSBackingStoreEnum = NFSBackingStoreEnum.CEPHFS
+    fs_name: str
+    fs_path: Optional[str]
+    readonly: bool = False
+
+
 class Response(BaseModel):
     detail: str
 
 
 @router.put(
-    '/service/{name}',
+    '/service/{service_id}',
     name='create an nfs service',
     response_model=Response)
-async def service_create(name: str, req: ServiceRequest) -> Response:
+async def service_create(service_id: str, req: ServiceRequest) -> Response:
     try:
-        res = NFSService().create(name, placement=req.placement)
+        res = NFSService().create(service_id, placement=req.placement)
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
@@ -54,12 +64,12 @@ async def service_create(name: str, req: ServiceRequest) -> Response:
 
 
 @router.patch(
-    '/service/{name}',
+    '/service/{service_id}',
     name='update an nfs service',
     response_model=Response)
-async def service_update(name: str, req: ServiceRequest) -> Response:
+async def service_update(service_id: str, req: ServiceRequest) -> Response:
     try:
-        res = NFSService().update(name, req.placement if req.placement else '*')
+        res = NFSService().update(service_id, req.placement if req.placement else '*')
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
@@ -67,12 +77,12 @@ async def service_update(name: str, req: ServiceRequest) -> Response:
 
 
 @router.delete(
-    '/service/{name}',
+    '/service/{service_id}',
     name='delete an nfs service',
     response_model=Response)
-async def service_delete(name: str) -> Response:
+async def service_delete(service_id: str) -> Response:
     try:
-        res = NFSService().delete(name)
+        res = NFSService().delete(service_id)
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
@@ -88,15 +98,81 @@ def get_service_ls() -> List[str]:
 
 
 @router.get(
-    '/service/{name}',
+    '/service/{service_id}',
     name='nfs service detail',
     response_model=NFSServiceModel)
-def get_service_info(name: str) -> NFSServiceModel:
+def get_service_info(service_id: str) -> NFSServiceModel:
     try:
-        for svc in NFSService().info(name=name):
-            if svc.name == name:
+        for svc in NFSService().info(service_id=service_id):
+            if svc.service_id == service_id:
                 return svc
-        raise NFSError(f'unknown nfs service: {name}')
+        raise NFSError(f'unknown nfs service: {service_id}')
     except NFSError as e:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
                             detail=str(e))
+
+
+@router.post(
+    '/export/{service_id}',
+    name='create an nfs export',
+    response_model=NFSExportModel)
+async def export_create(
+        service_id: str,
+        req: ExportRequest) -> NFSExportModel:
+    try:
+        res: NFSExportModel = \
+            NFSExport().create(
+                service_id=service_id,
+                binding=req.binding,
+                fs_type=req.fs_type,
+                fs_name=req.fs_name,
+                fs_path=req.fs_path,
+                readonly=req.readonly)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return res
+
+
+@router.delete(
+    '/export/{service_id}/{export_id}',
+    name='delete an nfs export',
+    response_model=Response)
+async def export_delete(service_id: str, export_id: int) -> Response:
+    try:
+        res = NFSExport().delete(service_id, export_id)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return Response(detail=res)
+
+
+@router.get(
+    '/export/{service_id}',
+    name='list nfs export ids',
+    response_model=List[int])
+async def get_export_ls(service_id: str) -> List[int]:
+    try:
+        res = NFSExport().ls(service_id)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+    return res
+
+
+@router.get(
+    '/export/{service_id}/{export_id}',
+    name='nfs export detail',
+    response_model=NFSExportModel)
+async def get_export_info(service_id: str, export_id: int) -> NFSExportModel:
+    try:
+        res = NFSExport().info(service_id)
+    except NFSError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
+                            detail=str(e))
+
+    for export in res:
+        if export.export_id == export_id:
+            return export
+
+    raise HTTPException(status.HTTP_404_NOT_FOUND)
