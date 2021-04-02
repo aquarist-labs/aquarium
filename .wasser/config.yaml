@@ -10,20 +10,20 @@ routines:
     - name: install dependencies
       command: |
         for i in {1..5} ; do ping -q -c1 download.opensuse.org && break ; sleep 3 ; done
-        sudo zypper --no-gpg-checks ref 2>&1
-        sudo zypper install -y git 2>&1
+        sudo zypper --no-gpg-checks ref
+        sudo zypper install -y git
     # also we need 'kernel-default' instead of 'kernel-default-base' for Leap
     # in order to have nested virtualisation working
     - name: install default kernel for kvm
       command: |
-        sudo zypper remove -y kernel-default-base 2>&1
-        sudo zypper install -y kernel-default 2>&1
+        sudo zypper remove -y kernel-default-base
+        sudo zypper install -y kernel-default
     # 1. On Tumbleweed JeOS images the system-group-wheel is not installed by default,
     # which is good to have in order to ease control of sudo access for a user.
     # 2. The polkit package is needed for passwordless access to libvirt.
     - name: install qemu-kvm
       command:
-        sudo zypper install -y qemu-kvm system-group-wheel polkit 2>&1
+        sudo zypper install -y qemu-kvm system-group-wheel polkit
     - reboot
     - wait_host
     - checkout:
@@ -31,11 +31,11 @@ routines:
     - name: setup dev environment
       command: |
         cd aquarium
-        ./tools/setup-dev.sh 2>&1
+        ./tools/setup-dev.sh
     - name: building image
       command: |
         cd aquarium
-        ./tools/build-image.sh 2>&1
+        ./tools/build-image.sh
     - name: add user to wheel group to allow passwordless access to libvirt
       command: |
         sudo usermod -a -G wheel $USER
@@ -57,8 +57,8 @@ routines:
       command: |
         cd aquarium
         source venv/bin/activate
-        ./tools/aqrdev create foo 2>&1
-        ./tools/aqrdev start foo --conservative 2>&1
+        ./tools/aqrdev create foo
+        ./tools/aqrdev start foo --conservative
     - name: check aquarium service is up and running
       command: |
         cd aquarium/tests/vagrant/deployments/foo
