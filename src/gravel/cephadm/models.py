@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 from pydantic.fields import Field
 
@@ -94,14 +94,15 @@ class DeviceSysInfoModel(BaseModel):
 
 
 class LogicalVolumeEntryModel(BaseModel):
-    block_uuid: str
-    cluster_fsid: str
-    cluster_name: str
+    block_uuid: Optional[str]
+    cluster_fsid: Optional[str]
+    cluster_name: Optional[str]
     name: str
-    osd_fsid: str
-    osd_id: int
-    osdspec_affinity: str
-    type: str
+    osd_fsid: Optional[str]
+    osd_id: Optional[int]
+    osdspec_affinity: Optional[str]
+    type: Optional[str]
+    comment: Optional[str]
 
 
 class VolumeDeviceModel(BaseModel):
@@ -109,7 +110,7 @@ class VolumeDeviceModel(BaseModel):
     device_id: str
     human_readable_type: str = Field("")
     lsm_data: Dict[str, Any]
-    lvs: List[LogicalVolumeEntryModel]
+    lvs: List[LogicalVolumeEntryModel] = Field([])
     path: str
     rejected_reasons: List[str]
     sys_api: DeviceSysInfoModel
