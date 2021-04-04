@@ -24,6 +24,7 @@ from typing import (
 from pathlib import Path
 import shlex
 
+import aetcd3
 from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
@@ -306,6 +307,16 @@ class NodeMgr:
         assert welcome.pubkey
         assert welcome.cephconf
         assert welcome.keyring
+        assert welcome.etcd_peer
+
+        my_url: str = \
+            f"{self._state.hostname}=http://{self._state.address}:2380"
+        initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
+        self._spawn_etcd(
+            new=False,
+            token=None,
+            initial_cluster=initial_cluster
+        )
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
         if not authorized_keys.parent.exists():
@@ -378,7 +389,12 @@ class NodeMgr:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
 
-    def _spawn_etcd(self, new: bool, token: Optional[str]) -> None:
+    def _spawn_etcd(
+        self,
+        new: bool,
+        token: Optional[str],
+        initial_cluster: Optional[str] = None
+    ) -> None:
 
         assert self._state.hostname
         assert self._state.address
@@ -389,13 +405,17 @@ class NodeMgr:
 
         client_url: str = f"http://{address}:2379"
         peer_url: str = f"http://{address}:2380"
+
+        if not initial_cluster:
+            initial_cluster = f"{hostname}={peer_url}"
+
         args_dict: Dict[str, str] = {
             "name": hostname,
             "initial-advertise-peer-urls": peer_url,
             "listen-peer-urls": peer_url,
             "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
             "advertise-client-urls": client_url,
-            "initial-cluster": f"{hostname}={peer_url}",
+            "initial-cluster": initial_cluster,
             "initial-cluster-state": "existing",
             "data-dir": f"/var/lib/etcd/{hostname}.etcd"
         }
@@ -725,10 +745,20 @@ class NodeMgr:
 
         logger.debug(f"handle join > pubkey: {pubkey}")
 
+        logger.debug("handle join > connect etcd client")
+        etcd: aetcd3.Etcd3Client = aetcd3.client()
+        peer_url: str = f"http://{msg.address}:2380"
+        logger.debug(f"handle join > add '{peer_url}' to etcd")
+        member = await etcd.add_member([peer_url])
+        assert member is not None
+
+        my_url: str = \
+            f"{self._state.hostname}=http://{self._state.address}:2380"
         welcome = WelcomeMessageModel(
             pubkey=pubkey,
             cephconf=cephconf,
-            keyring=keyring
+            keyring=keyring,
+            etcd_peer=my_url
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")
