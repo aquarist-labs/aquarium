@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 import asyncio
+import multiprocessing
 from enum import Enum
 from logging import Logger
 from uuid import UUID, uuid4
@@ -21,6 +22,7 @@ from typing import (
     Optional,
 )
 from pathlib import Path
+import shlex
 
 from pydantic import BaseModel
 from fastapi import status
@@ -115,6 +117,35 @@ class JoiningNodeModel(BaseModel):
     address: str
 
 
+# We need to rely on "spawn" because otherwise the subprocess' signal
+# handler will play nasty tricks with uvicorn's and fastapi's signal
+# handlers.
+# For future reference,
+# - uvicorn issue: https://github.com/encode/uvicorn/issues/548
+# - python bug report: https://bugs.python.org/issue43064
+# - somewhat of a solution, using "spawn" for multiprocessing:
+# https://github.com/tiangolo/fastapi/issues/1487#issuecomment-657290725
+#
+# And because we need to rely on spawn, which will create a new python
+# interpreter to execute what we are specifying, the function we're passing
+# needs to be pickled. And nested functions, apparently, can't be pickled. Thus,
+# we need to have the functions at the top-level scope.
+#
+def _bootstrap_etcd_process(cmd: str):
+
+    async def _run_etcd():
+        etcd_cmd = shlex.split(cmd)
+        process = await asyncio.create_subprocess_exec(*etcd_cmd)
+        await process.wait()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(_run_etcd())
+    except KeyboardInterrupt:
+        pass
+
+
 class NodeMgr:
 
     _init_stage: NodeInitStage
@@ -134,6 +165,8 @@ class NodeMgr:
         self._joining = {}
         self._bootstrapper = None
 
+        multiprocessing.set_start_method("spawn")
+
         self._node_init()
         assert self._state
 
@@ -148,6 +181,7 @@ class NodeMgr:
         else:
             assert self._state.stage == NodeStageEnum.READY or \
                 self._state.stage == NodeStageEnum.BOOTSTRAPPED
+            self._spawn_etcd(new=False, token=None)
             self._node_start()
 
     def _node_prestart(self, nodeinfo: NodeInfoModel):
@@ -344,6 +378,46 @@ class NodeMgr:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
 
+    def _spawn_etcd(self, new: bool, token: Optional[str]) -> None:
+
+        assert self._state.hostname
+        assert self._state.address
+        hostname = self._state.hostname
+        address = self._state.address
+
+        logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
+
+        client_url: str = f"http://{address}:2379"
+        peer_url: str = f"http://{address}:2380"
+        args_dict: Dict[str, str] = {
+            "name": hostname,
+            "initial-advertise-peer-urls": peer_url,
+            "listen-peer-urls": peer_url,
+            "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
+            "advertise-client-urls": client_url,
+            "initial-cluster": f"{hostname}={peer_url}",
+            "initial-cluster-state": "existing",
+            "data-dir": f"/var/lib/etcd/{hostname}.etcd"
+        }
+
+        if new:
+            assert token
+            args_dict["initial-cluster-token"] = token
+            args_dict["initial-cluster-state"] = "new"
+
+        args = " ".join([f"--{k} {v}" for k, v in args_dict.items()])
+        logger.debug(f"spawn etcd: {args}")
+        etcd_cmd = f"etcd {args}"
+
+        process = multiprocessing.Process(
+            target=_bootstrap_etcd_process,
+            args=(etcd_cmd,)
+        )
+        process.start()
+
+    def _bootstrap_etcd(self, token: str) -> None:
+        self._spawn_etcd(new=True, token=token)
+
     async def _prepare_bootstrap(self) -> None:
         assert self._state
         if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
@@ -352,6 +426,11 @@ class NodeMgr:
             raise NodeCantBootstrapError("node can't be bootstrapped")
         elif self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
+
+        self._token = self._generate_token()
+        self._save_token(should_exist=False)
+        logger.info(f"generated new token: {self._token}")
+        self._bootstrap_etcd(self._token)
 
     async def _start_bootstrap(self) -> None:
         assert self._state
@@ -387,9 +466,6 @@ class NodeMgr:
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
         self._state.role = NodeRoleEnum.LEADER
         self._save_state()
-
-        self._token = self._generate_token()
-        self._save_token(should_exist=False)
 
         logger.debug(f"finished bootstrap: token = {self._token}")
 
