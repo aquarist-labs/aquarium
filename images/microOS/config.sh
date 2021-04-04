@@ -174,7 +174,7 @@ EOF
 fi
 
 if [[ "$kiwi_profiles" == *"Ceph"* ]]; then
-  pip install fastapi uvicorn
+  pip install fastapi uvicorn aetcd3
   baseInsertService aquarium
 fi
 
