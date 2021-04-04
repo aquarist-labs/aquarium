@@ -209,6 +209,13 @@ class NodeMgr:
 
         get_inventory().subscribe(_subscriber, once=True)
 
+    def _generate_token(self) -> str:
+        def gen() -> str:
+            return ''.join(random.choice("0123456789abcdef") for _ in range(4))
+
+        tokenstr = '-'.join(gen() for _ in range(4))
+        return tokenstr
+
     async def join(self, leader_address: str, token: str) -> bool:
         logger.debug(
             f"join > with leader {leader_address}, token: {token}"
@@ -381,14 +388,10 @@ class NodeMgr:
         self._state.role = NodeRoleEnum.LEADER
         self._save_state()
 
-        def gen() -> str:
-            return ''.join(random.choice("0123456789abcdef") for _ in range(4))
-
-        tokenstr = '-'.join(gen() for _ in range(4))
-        self._token = tokenstr
+        self._token = self._generate_token()
         self._save_token(should_exist=False)
 
-        logger.debug(f"finished bootstrap: token = {tokenstr}")
+        logger.debug(f"finished bootstrap: token = {self._token}")
 
         self._load()
         self._node_start()
