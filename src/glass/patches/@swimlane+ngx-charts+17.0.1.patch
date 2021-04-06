@@ -1,0 +1,44 @@
+diff --git a/node_modules/@swimlane/ngx-charts/esm2015/lib/pie-chart/pie-arc.component.js b/node_modules/@swimlane/ngx-charts/esm2015/lib/pie-chart/pie-arc.component.js
+index 1754a9e..ff172c2 100644
+--- a/node_modules/@swimlane/ngx-charts/esm2015/lib/pie-chart/pie-arc.component.js
++++ b/node_modules/@swimlane/ngx-charts/esm2015/lib/pie-chart/pie-arc.component.js
+@@ -19,6 +19,8 @@ export class PieArcComponent {
+         this.dblclick = new EventEmitter();
+         this.initialized = false;
+         this.element = element.nativeElement;
++        this.radialGradientId = 'linearGrad' + id().toString();
++        this.gradientFill = `url(#${this.radialGradientId})`;
+     }
+     ngOnChanges(changes) {
+         this.update();
+@@ -32,8 +34,6 @@ export class PieArcComponent {
+     update() {
+         const calc = this.calculateArc();
+         this.startOpacity = 0.5;
+-        this.radialGradientId = 'linearGrad' + id().toString();
+-        this.gradientFill = `url(#${this.radialGradientId})`;
+         if (this.animate) {
+             if (this.initialized) {
+                 this.updateAnimation();
+diff --git a/node_modules/@swimlane/ngx-charts/fesm2015/swimlane-ngx-charts.js b/node_modules/@swimlane/ngx-charts/fesm2015/swimlane-ngx-charts.js
+index 390841f..6cfad2c 100644
+--- a/node_modules/@swimlane/ngx-charts/fesm2015/swimlane-ngx-charts.js
++++ b/node_modules/@swimlane/ngx-charts/fesm2015/swimlane-ngx-charts.js
+@@ -11311,6 +11311,8 @@ class PieArcComponent {
+         this.dblclick = new EventEmitter();
+         this.initialized = false;
+         this.element = element.nativeElement;
++        this.radialGradientId = 'linearGrad' + id().toString();
++        this.gradientFill = `url(#${this.radialGradientId})`;
+     }
+     ngOnChanges(changes) {
+         this.update();
+@@ -11324,8 +11326,6 @@ class PieArcComponent {
+     update() {
+         const calc = this.calculateArc();
+         this.startOpacity = 0.5;
+-        this.radialGradientId = 'linearGrad' + id().toString();
+-        this.gradientFill = `url(#${this.radialGradientId})`;
+         if (this.animate) {
+             if (this.initialized) {
+                 this.updateAnimation();
