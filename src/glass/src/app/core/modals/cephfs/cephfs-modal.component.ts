@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
+import { translate } from '~/app/i18n.helper';
 import {
   CheckRequirementsReply,
   Constraints,
@@ -79,14 +80,14 @@ export class CephfsModalComponent implements OnInit {
       return;
     }
     const values = this.formGroup.value;
-    this.blockUI.start(TEXT('Please wait, assessing service specifications ...'));
+    this.blockUI.start(translate(TEXT('Please wait, assessing service specifications ...')));
     this.services
       .checkRequirements(values.requiredSpace, values.replicas)
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe({
         next: (result: CheckRequirementsReply) => {
           if (!result.feasible) {
-            this.notification.show(TEXT('Service creation requirements not met.'), {
+            this.notification.show(translate(TEXT('Service creation requirements not met.')), {
               type: 'error'
             });
             return;
@@ -110,14 +111,14 @@ export class CephfsModalComponent implements OnInit {
       if (values.replicas > maxReplicas) {
         this.showWarning = true;
         this.showWarningText.push(
-          TEXT(`Current deployment can only guarantee ${maxReplicas} replicas.`)
+          translate(TEXT(`Current deployment can only guarantee ${maxReplicas} replicas.`))
         );
       }
 
       if (numHosts === 1) {
         this.showWarning = true;
         this.showWarningText.push(
-          TEXT('Current deployment has a single host and can\'t tolerate failures.')
+          translate(TEXT('Current deployment has a single host and can\'t tolerate failures.'))
         );
       }
     }
@@ -125,7 +126,7 @@ export class CephfsModalComponent implements OnInit {
 
   private createService(): void {
     const values = this.formGroup.value;
-    this.blockUI.start(TEXT('Please wait, deploying CephFS service ...'));
+    this.blockUI.start(translate(TEXT('Please wait, deploying CephFS service ...')));
     this.services
       .create(values.name, 'cephfs', values.requiredSpace, values.replicas)
       .pipe(finalize(() => this.blockUI.stop()))
@@ -133,9 +134,9 @@ export class CephfsModalComponent implements OnInit {
         next: (result: CreateServiceReply) => {
           let success = false;
           if (!result.success) {
-            this.notification.show(TEXT('Failed to create service.'), { type: 'error' });
+            this.notification.show(translate(TEXT('Failed to create service.')), { type: 'error' });
           } else {
-            this.notification.show(TEXT('Service successfully created.'));
+            this.notification.show(translate(TEXT('Service successfully created.')));
             success = true;
           }
           this.dialogRef.close(success);

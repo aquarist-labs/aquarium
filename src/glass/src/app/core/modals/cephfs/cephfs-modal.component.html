@@ -25,14 +25,14 @@
            fxLayoutAlign="space-between none"
            fxLayoutGap="16px">
         <mat-form-field fxFlex>
-          <mat-label>Available Capacity</mat-label>
+          <mat-label translate>Available Capacity</mat-label>
           <input matInput
                  type="text"
                  [value]="formGroup.value.availableSpace | bytesToSize"
                  readonly>
         </mat-form-field>
         <mat-form-field fxFlex>
-          <mat-label>Reserved Capacity</mat-label>
+          <mat-label translate>Reserved Capacity</mat-label>
           <input matInput
                  type="text"
                  [value]="formGroup.value.reservedSpace | bytesToSize"
@@ -40,7 +40,7 @@
         </mat-form-field>
         <mat-form-field [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
                         fxFlex>
-          <mat-label>Raw Required Capacity</mat-label>
+          <mat-label translate>Raw Required Capacity</mat-label>
           <input matInput
                  type="text"
                  [value]="formGroup.value.rawRequiredSpace | bytesToSize"
@@ -48,7 +48,7 @@
         </mat-form-field>
       </div>
       <mat-form-field fxFlex>
-        <mat-label>Service Name</mat-label>
+        <mat-label translate>Service Name</mat-label>
         <input matInput
                type="text"
                formControlName="name"
@@ -61,7 +61,7 @@
       </mat-form-field>
       <mat-form-field class="glass-form-field-no-underline glass-form-field-hint"
                       fxFlex>
-        <mat-label>Number Of Replicas</mat-label>
+        <mat-label translate>Number Of Replicas</mat-label>
         <input #replicasInput
                matInput
                type="number"
@@ -86,7 +86,7 @@
         <mat-form-field class="glass-form-field-no-underline"
                         [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
                         fxFlex="80">
-          <mat-label>Estimated Required Capacity</mat-label>
+          <mat-label translate>Estimated Required Capacity</mat-label>
           <input #requiredSpaceInput
                  matInput
                  type="number"
