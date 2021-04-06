@@ -25,6 +25,12 @@ from gravel.controllers.orch.models import (
     CephFSListEntryModel,
     CephOSDPoolEntryModel
 )
+from gravel.controllers.orch.nfs import (
+    NFSBackingStoreEnum,
+    NFSError,
+    NFSExport,
+    NFSService
+)
 from gravel.controllers.gstate import gstate
 from gravel.controllers.resources.devices import (
     DeviceHostModel,
@@ -58,7 +64,7 @@ class NotEnoughSpaceError(ServiceError):
 
 class ServiceTypeEnum(str, Enum):
     CEPHFS = "cephfs"
-    # NFS = "nfs"
+    NFS = "nfs"
     # RBD = "rbd"
     # ISCSI = "iscsi"
     # RGW = "rgw"
@@ -144,6 +150,8 @@ class Services:
 
         if svc.type == ServiceTypeEnum.CEPHFS:
             self._create_cephfs(svc)
+        elif svc.type == ServiceTypeEnum.NFS:
+            self._create_nfs(svc)
         else:
             raise NotImplementedError(f"unknown service type: {svc.type}")
 
@@ -331,6 +339,41 @@ class Services:
             logger.exception(e)
             # do nothing else, the service still works without an authorized
             # client.
+
+    def _create_nfs(self, svc: ServiceModel) -> None:
+        # create a cephfs
+        self._create_cephfs(svc)
+
+        # create an generic NFS service
+        nfs_svc_id = 'gravel'
+        nfs_svc_placement = '*'
+        if nfs_svc_id in NFSService().ls():
+            try:
+                NFSService().update(
+                    nfs_svc_id,
+                    placement=nfs_svc_placement
+                )
+            except NFSError as e:
+                raise ServiceError("unable to update nfs service") from e
+        else:
+            try:
+                NFSService().create(
+                    nfs_svc_id,
+                    placement=nfs_svc_placement
+                )
+            except NFSError as e:
+                raise ServiceError("unable to create nfs service") from e
+
+        # export the root of the created cephfs service
+        try:
+            NFSExport().create(
+                service_id=nfs_svc_id,
+                binding=svc.name,
+                fs_type=NFSBackingStoreEnum.CEPHFS,
+                fs_name=svc.name
+            )
+        except NFSError as e:
+            raise ServiceError("unable to create nfs export") from e
 
     def _save(self) -> None:
         assert gstate.config.options.service_state_path
