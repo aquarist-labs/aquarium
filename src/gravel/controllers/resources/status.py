@@ -95,7 +95,8 @@ class Status(Ticker):
 
     async def _should_tick(self) -> bool:
         nodemgr: NodeMgr = get_node_mgr()
-        return nodemgr.stage >= NodeStageEnum.BOOTSTRAPPED
+        return (nodemgr.stage >= NodeStageEnum.BOOTSTRAPPED and
+                nodemgr.stage != NodeStageEnum.JOINING)
 
     async def probe(self) -> None:
         assert self._mon
