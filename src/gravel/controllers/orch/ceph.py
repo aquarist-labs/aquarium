@@ -234,18 +234,30 @@ class Mon(Ceph):
             logger.exception(e)
             raise NoRulesetError()
 
-    def _set_default_ruleset_config(self, rulesetid: int) -> bool:
+    def config_set(self, who: str, name: str, value: str) -> bool:
         cmd = {
             "prefix": "config set",
-            "who": "global",
-            "name": "osd_pool_default_crush_rule",
-            "value": f"{rulesetid}"
+            "who": who,
+            "name": name,
+            "value": value
         }
         try:
             self.call(cmd)
         except CephCommandError as e:
-            logger.error(f"mon > unable to set default crush rule: {str(e)}")
+            logger.error(
+                f"mon > unable to set config: {name} = {value} on {who}")
             logger.exception(e)
+            return False
+        return True
+
+    def _set_default_ruleset_config(self, rulesetid: int) -> bool:
+        r = self.config_set(
+            "global",
+            "osd_pool_default_crush_rule",
+            str(rulesetid)
+        )
+        if not r:
+            logger.error("mon > unable to set default crush rule")
             return False
         return True
 
@@ -342,22 +354,14 @@ class Mon(Ceph):
             logger.debug(str(e))
 
     def set_allow_pool_size_one(self) -> None:
-        cmd: Dict[str, str] = {
-            "prefix": "config set",
-            "who": "global",
-            "name": "mon_allow_pool_size_one",
-            "value": "true"
-        }
-        self.call(cmd)
+        r = self.config_set("global", "mon_allow_pool_size_one", "true")
+        if not r:
+            logger.error("mon > unable to set allow pool size one")
 
     def disable_warn_on_no_redundancy(self) -> None:
-        cmd: Dict[str, str] = {
-            "prefix": "config set",
-            "who": "global",
-            "name": "mon_warn_on_pool_no_redundancy",
-            "value": "false"
-        }
-        self.call(cmd)
+        r = self.config_set("global", "mon_warn_on_pool_no_redundancy", "false")
+        if not r:
+            logger.error("mon > unable to disable warn on no redundancy")
 
     def get_pools_stats(self) -> List[CephOSDPoolStatsModel]:
         cmd: Dict[str, str] = {
