@@ -510,6 +510,14 @@ class NodeMgr:
         if not res:
             logger.error("unable to set default ruleset")
 
+        res = mon.config_set(
+            "mgr",
+            "mgr/cephadm/manage_etc_ceph_ceph_conf",
+            "true"
+        )
+        if not res:
+            logger.error("unable to enable managed ceph.conf by cephadm")
+
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
         if not self._bootstrapper:
