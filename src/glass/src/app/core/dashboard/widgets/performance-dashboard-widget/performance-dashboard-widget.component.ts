@@ -14,7 +14,7 @@ export class PerformanceDashboardWidgetComponent {
   chartDataWrite: any[] = [];
   chartDataRead: any[] = [];
 
-  constructor(public service: StatusService, private bytesToSizePipe: BytesToSizePipe) {}
+  constructor(public service: StatusService) {}
 
   updateChartData($data: ClientIO) {
     this.chartDataWrite = this.mapServiceRate($data, 'write');
@@ -22,7 +22,12 @@ export class PerformanceDashboardWidgetComponent {
   }
 
   valueFormatting(c: any) {
-    return this.bytesToSizePipe.transform(c) + '/s';
+    // Note, this implementation is by intention, do NOT use code like
+    // 'valueFormatting.bind(this)', otherwise this method is called
+    // over and over again because Angular CD seems to assume something
+    // has been changed.
+    const pipe = new BytesToSizePipe();
+    return pipe.transform(c) + '/s';
   }
 
   loadData(): Observable<ClientIO> {

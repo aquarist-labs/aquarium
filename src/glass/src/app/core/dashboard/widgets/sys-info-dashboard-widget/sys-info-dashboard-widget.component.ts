@@ -39,13 +39,15 @@ export class SysInfoDashboardWidgetComponent {
     domain: ['#ffecb5', '#ffc107', '#ff9e02']
   };
 
-  constructor(
-    private bytesToSizePipe: BytesToSizePipe,
-    private localNodeService: LocalNodeService
-  ) {}
+  constructor(private localNodeService: LocalNodeService) {}
 
   valueFormatting(c: any) {
-    return this.bytesToSizePipe.transform(c);
+    // Note, this implementation is by intention, do NOT use code like
+    // 'valueFormatting.bind(this)', otherwise this method is called
+    // over and over again because Angular CD seems to assume something
+    // has been changed.
+    const pipe = new BytesToSizePipe();
+    return pipe.transform(c);
   }
 
   updateData($data: Inventory) {

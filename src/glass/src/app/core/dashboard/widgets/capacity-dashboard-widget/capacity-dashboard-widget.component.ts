@@ -19,7 +19,7 @@ export class CapacityDashboardWidgetComponent {
     domain: ['#30ba78', '#e0dfdf']
   };
 
-  constructor(private service: ServicesService, private bytesToSizePipe: BytesToSizePipe) {}
+  constructor(private service: ServicesService) {}
 
   updateChartData($data: Constraints) {
     this.chartData = [
@@ -29,7 +29,12 @@ export class CapacityDashboardWidgetComponent {
   }
 
   valueFormatting(c: any) {
-    return this.bytesToSizePipe.transform(c);
+    // Note, this implementation is by intention, do NOT use code like
+    // 'valueFormatting.bind(this)', otherwise this method is called
+    // over and over again because Angular CD seems to assume something
+    // has been changed.
+    const pipe = new BytesToSizePipe();
+    return pipe.transform(c);
   }
 
   loadData(): Observable<Constraints> {
