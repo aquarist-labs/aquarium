@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { GaugeComponent } from '@swimlane/ngx-charts';
 import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 
@@ -11,18 +12,44 @@ import { ClientIO, StatusService } from '~/app/shared/services/api/status.servic
   styleUrls: ['./performance-dashboard-widget.component.scss']
 })
 export class PerformanceDashboardWidgetComponent {
+  @ViewChild('read', { static: true })
+  readChart!: GaugeComponent;
+  @ViewChild('write', { static: true })
+  writeChart!: GaugeComponent;
+
+  sizeUpdated = false;
+
   chartDataWrite: any[] = [];
   chartDataRead: any[] = [];
 
-  constructor(public service: StatusService, private bytesToSizePipe: BytesToSizePipe) {}
+  constructor(public service: StatusService) {}
 
   updateChartData($data: ClientIO) {
     this.chartDataWrite = this.mapServiceRate($data, 'write');
     this.chartDataRead = this.mapServiceRate($data, 'read');
+
+    // This is a somewhat dumb workaround to force the charts to adapt
+    // their size to the parent container. This is caused by the change
+    // detection strategy 'ChangeDetectionStrategy.OnPush' of the chart.
+    // The size of the charts is otherwise rendered with 600x400 pixels
+    // and only updated the second time the data is loaded (which is 15
+    // seconds by default).
+    if (!this.sizeUpdated) {
+      setTimeout(() => {
+        this.readChart.update();
+        this.writeChart.update();
+        this.sizeUpdated = true;
+      });
+    }
   }
 
   valueFormatting(c: any) {
-    return this.bytesToSizePipe.transform(c) + '/s';
+    // Note, this implementation is by intention, do NOT use code like
+    // 'valueFormatting.bind(this)', otherwise this method is called
+    // over and over again because Angular CD seems to assume something
+    // has been changed.
+    const pipe = new BytesToSizePipe();
+    return pipe.transform(c) + '/s';
   }
 
   loadData(): Observable<ClientIO> {

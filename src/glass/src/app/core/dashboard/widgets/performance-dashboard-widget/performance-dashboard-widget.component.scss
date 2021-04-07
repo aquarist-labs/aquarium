@@ -1,3 +1,11 @@
 .glass-performance-dashboard-widget {
   max-height: 200px;
+
+  ngx-charts-gauge {
+    visibility: hidden;
+
+    &.visible {
+      visibility: visible;
+    }
+  }
 }

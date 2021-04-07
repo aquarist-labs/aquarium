@@ -1,5 +1,5 @@
 <glass-widget [loadData]="loadData.bind(this)"
-              title="Performance"
+              title="{{ 'Performance' | translate }}"
               (loadDataEvent)="updateChartData($event)">
   <div class="glass-performance-dashboard-widget"
        fxFlexFill
@@ -9,20 +9,24 @@
          fxLayout="row"
          fxLayoutAlign="center stretch">
       <div fxFlex="50">
-        <ngx-charts-gauge [results]="chartDataRead"
+        <ngx-charts-gauge #read
+                          [ngClass]="{visible: sizeUpdated}"
+                          [results]="chartDataRead"
                           [showAxis]="false"
                           [tooltipDisabled]="false"
                           units="Read"
-                          [valueFormatting]="valueFormatting.bind(this)"
+                          [valueFormatting]="valueFormatting"
                           [animations]="false">
         </ngx-charts-gauge>
       </div>
       <div fxFlex="50">
-        <ngx-charts-gauge [results]="chartDataWrite"
+        <ngx-charts-gauge #write
+                          [ngClass]="{visible: sizeUpdated}"
+                          [results]="chartDataWrite"
                           [showAxis]="false"
                           [tooltipDisabled]="false"
                           units="Write"
-                          [valueFormatting]="valueFormatting.bind(this)"
+                          [valueFormatting]="valueFormatting"
                           [animations]="false">
         </ngx-charts-gauge>
       </div>
