@@ -69,6 +69,7 @@ from gravel.controllers.nodes.messages import (
     MessageTypeEnum,
 )
 from gravel.controllers.orch.orchestrator import Orchestrator
+from gravel.controllers.kv import KV
 
 
 logger: Logger = fastapi_logger
@@ -157,6 +158,7 @@ class NodeMgr:
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
     _bootstrapper: Optional[Bootstrap]
+    _kvstore: Optional[KV]
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
@@ -165,6 +167,7 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._bootstrapper = None
+        self._kvstore = None
 
         multiprocessing.set_start_method("spawn")
 
@@ -188,7 +191,8 @@ class NodeMgr:
             await self._node_start()
 
     async def shutdown(self) -> None:
-        pass
+        if self._kvstore:
+            await self._kvstore.close()
 
     def _node_init(self) -> None:
         statefile: Path = self._get_node_file("node")
@@ -461,6 +465,9 @@ class NodeMgr:
             args=(etcd_cmd,)
         )
         process.start()
+        logger.info(f"started etcd process pid = {process.pid}")
+        self._kvstore = KV()
+        await self._kvstore.ensure_connection()
 
     async def _bootstrap_etcd(self, token: str) -> None:
         await self._spawn_etcd(new=True, token=token)
