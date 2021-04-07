@@ -184,7 +184,7 @@ class NodeMgr:
         else:
             assert self._state.stage == NodeStageEnum.READY or \
                 self._state.stage == NodeStageEnum.BOOTSTRAPPED
-            self._spawn_etcd(new=False, token=None)
+            await self._spawn_etcd(new=False, token=None)
             await self._node_start()
 
     async def shutdown(self) -> None:
@@ -339,7 +339,7 @@ class NodeMgr:
         my_url: str = \
             f"{self._state.hostname}=http://{self._state.address}:2380"
         initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
-        self._spawn_etcd(
+        await self._spawn_etcd(
             new=False,
             token=None,
             initial_cluster=initial_cluster
@@ -416,7 +416,7 @@ class NodeMgr:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
 
-    def _spawn_etcd(
+    async def _spawn_etcd(
         self,
         new: bool,
         token: Optional[str],
@@ -462,8 +462,8 @@ class NodeMgr:
         )
         process.start()
 
-    def _bootstrap_etcd(self, token: str) -> None:
-        self._spawn_etcd(new=True, token=token)
+    async def _bootstrap_etcd(self, token: str) -> None:
+        await self._spawn_etcd(new=True, token=token)
 
     async def _prepare_bootstrap(self) -> None:
         assert self._state
@@ -477,7 +477,7 @@ class NodeMgr:
         self._token = self._generate_token()
         await self._save_token(should_exist=False)
         logger.info(f"generated new token: {self._token}")
-        self._bootstrap_etcd(self._token)
+        await self._bootstrap_etcd(self._token)
 
     async def _start_bootstrap(self) -> None:
         assert self._state
