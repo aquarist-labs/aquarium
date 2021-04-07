@@ -3,12 +3,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
-import { ServicesPageComponent } from '~/app/pages/services-page/services-page.component';
 
-describe('ServicesPageComponent', () => {
-  let component: ServicesPageComponent;
-  let fixture: ComponentFixture<ServicesPageComponent>;
+describe('HostsPageComponent', () => {
+  let component: HostsPageComponent;
+  let fixture: ComponentFixture<HostsPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -22,7 +22,7 @@ describe('ServicesPageComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ServicesPageComponent);
+    fixture = TestBed.createComponent(HostsPageComponent);
     component = fixture.componentInstance;
     component.autoReload = 0;
     fixture.detectChanges();

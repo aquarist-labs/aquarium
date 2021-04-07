@@ -7,6 +7,10 @@ export type JoinNodeRequest = {
   token: string;
 };
 
+export type TokenReply = {
+  token: string;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,5 +24,9 @@ export class NodesService {
    */
   join(request: JoinNodeRequest): Observable<boolean> {
     return this.http.post<boolean>(`${this.url}/join`, request);
+  }
+
+  token(): Observable<TokenReply> {
+    return this.http.get<TokenReply>(`${this.url}/token`);
   }
 }

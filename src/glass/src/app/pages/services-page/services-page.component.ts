@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
@@ -16,9 +16,10 @@ import { DialogService } from '~/app/shared/services/dialog.service';
   templateUrl: './services-page.component.html',
   styleUrls: ['./services-page.component.scss']
 })
-export class ServicesPageComponent implements OnInit {
+export class ServicesPageComponent {
   loading = false;
   firstLoadComplete = false;
+  autoReload = 15000;
   data: ServiceDesc[] = [];
   columns: DatatableColumn[];
 
@@ -26,7 +27,6 @@ export class ServicesPageComponent implements OnInit {
     private service: ServicesService,
     private bytesToSizePipe: BytesToSizePipe,
     private redundancyLevelPipe: RedundancyLevelPipe,
-    private dialog: DialogService,
     private cephfsService: CephfsService,
     private dialogService: DialogService
   ) {
@@ -66,22 +66,19 @@ export class ServicesPageComponent implements OnInit {
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
     ];
-    this.loadData();
   }
-
-  ngOnInit(): void {}
 
   onAddService(type: string): void {
     switch (type) {
       case 'cephfs':
-        this.dialog.openCephfs((res) => {
+        this.dialogService.openCephfs((res) => {
           if (res) {
             this.loadData();
           }
         });
         break;
       case 'nfs':
-        this.dialog.openNfs((res) => {
+        this.dialogService.openNfs((res) => {
           if (res) {
             this.loadData();
           }

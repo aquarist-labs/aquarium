@@ -24,4 +24,10 @@ describe('NodesService', () => {
     const req = httpTesting.expectOne('api/nodes/join');
     expect(req.request.method).toBe('POST');
   });
+
+  it('should call token', () => {
+    service.token().subscribe();
+    const req = httpTesting.expectOne('api/nodes/token');
+    expect(req.request.method).toBe('GET');
+  });
 });

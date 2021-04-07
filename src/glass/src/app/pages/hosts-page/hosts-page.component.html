@@ -1,14 +1,14 @@
-<div class="glass-services-page"
+<div class="glass-hosts-page"
      fxLayout="column">
-  <div class="glass-services-page-actions"
+  <div class="glass-hosts-page-actions"
        fxLayout="row"
        fxLayoutAlign="start center">
     <button mat-flat-button
-            [matMenuTriggerFor]="servicesMenu">
-      <span translate>Add</span>
+            (click)="onShowToken()">
+      <span translate>Authentication Token</span>
     </button>
   </div>
-  <div class="glass-services-page-content">
+  <div class="glass-hosts-page-content">
     <mat-card>
       <mat-progress-bar *ngIf="!firstLoadComplete && loading"
                         mode="indeterminate">
@@ -21,14 +21,3 @@
     </mat-card>
   </div>
 </div>
-
-<mat-menu #servicesMenu="matMenu">
-  <button mat-menu-item
-          (click)="onAddService('cephfs')">
-    <span translate>CephFS Service</span>
-  </button>
-  <button mat-menu-item
-          (click)="onAddService('nfs')">
-    <span translate>NFS Service</span>
-  </button>
-</mat-menu>

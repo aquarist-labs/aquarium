@@ -5,10 +5,12 @@ export type FormFieldConfig = {
   value?: any;
   readonly?: boolean;
   required?: boolean;
+  hint?: string;
 };
 
 export type DeclarativeFormConfig = {
   title: string;
+  subtitle?: string;
   fields: FormFieldConfig[];
   okButtonVisible?: boolean; // Defaults to `true`
   okButtonText?: string; // Defaults to `OK`
