@@ -1,9 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
+import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
+import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { RedundancyLevelPipe } from '~/app/shared/pipes/redundancy-level.pipe';
+import { CephFSAuthorization, CephfsService } from '~/app/shared/services/api/cephfs.service';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
@@ -22,7 +26,9 @@ export class ServicesPageComponent implements OnInit {
     private service: ServicesService,
     private bytesToSizePipe: BytesToSizePipe,
     private redundancyLevelPipe: RedundancyLevelPipe,
-    private dialog: DialogService
+    private dialog: DialogService,
+    private cephfsService: CephfsService,
+    private dialogService: DialogService
   ) {
     this.columns = [
       {
@@ -52,6 +58,12 @@ export class ServicesPageComponent implements OnInit {
         prop: 'replicas',
         pipe: this.redundancyLevelPipe,
         sortable: true
+      },
+      {
+        name: '',
+        prop: '',
+        cellTemplateName: 'actionMenu',
+        cellTemplateConfig: this.onActionMenu.bind(this)
       }
     ];
     this.loadData();
@@ -84,5 +96,45 @@ export class ServicesPageComponent implements OnInit {
       this.data = data;
       this.loading = this.firstLoadComplete = true;
     });
+  }
+
+  onActionMenu(serviceDesc: ServiceDesc): DatatableActionItem[] {
+    const result: DatatableActionItem[] = [];
+    switch (serviceDesc.type) {
+      case 'cephfs':
+        result.push({
+          title: TEXT('Show credentials'),
+          callback: (data: DatatableData) => {
+            this.cephfsService.authorization(data.name).subscribe((auth: CephFSAuthorization) => {
+              this.dialogService.open(DeclarativeFormModalComponent, undefined, {
+                width: '40%',
+                data: {
+                  title: 'Credentials',
+                  fields: [
+                    {
+                      type: 'text',
+                      name: 'entity',
+                      label: TEXT('Entity'),
+                      value: auth.entity,
+                      readonly: true
+                    },
+                    {
+                      type: 'password',
+                      name: 'key',
+                      label: TEXT('Key'),
+                      value: auth.key,
+                      readonly: true
+                    }
+                  ],
+                  okButtonVisible: false,
+                  cancelButtonText: TEXT('Close')
+                }
+              });
+            });
+          }
+        });
+        break;
+    }
+    return result;
   }
 }

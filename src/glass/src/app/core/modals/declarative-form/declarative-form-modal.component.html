@@ -1,0 +1,55 @@
+<h1 mat-dialog-title>{{ config.title }}</h1>
+<mat-dialog-content>
+  <form [formGroup]="formGroup"
+        fxLayout="column"
+        novalidate>
+    <ng-container *ngFor="let field of config.fields">
+      <mat-form-field fxFlex
+                      [formGroup]="formGroup">
+        <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
+        <!-- Password input -->
+        <input *ngIf="field.type === 'password'"
+               matInput
+               type="password"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControlName]="field.name"
+               [readonly]="field.readonly">
+        <mat-icon *ngIf="field.type === 'password'"
+                  matSuffix
+                  mat-ripple
+                  svgIcon="mdi:content-copy"
+                  matTooltip="{{ 'Copy to clipboard' | translate }}"
+                  (click)="onCopyToClipboard(field)">
+        </mat-icon>
+        <!-- Text input -->
+        <input *ngIf="field.type === 'text'"
+               matInput
+               type="text"
+               [formControlName]="field.name"
+               [readonly]="field.readonly">
+        <mat-error *ngIf="formGroup.invalid">
+          <span *ngIf="formGroup.hasError('required', field.name)"
+                translate>
+            This field is required.
+          </span>
+        </mat-error>
+      </mat-form-field>
+    </ng-container>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button *ngIf="config.okButtonVisible"
+          mat-flat-button
+          cdkFocusInitial
+          [class]="config.okButtonClass"
+          (click)="onOK()">
+    {{ config.okButtonText! | translate }}
+  </button>
+  <button *ngIf="config.cancelButtonVisible"
+          mat-flat-button
+          [class]="config.cancelButtonClass"
+          [mat-dialog-close]="config.cancelButtonResult">
+    {{ config.cancelButtonText! | translate }}
+  </button>
+</mat-dialog-actions>

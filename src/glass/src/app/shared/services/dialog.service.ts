@@ -1,6 +1,7 @@
 import { ComponentType } from '@angular/cdk/portal';
 import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import * as _ from 'lodash';
 
 import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
 import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
@@ -9,24 +10,24 @@ import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
   providedIn: 'root'
 })
 export class DialogService {
-  private defaultDialogSettings = { width: '60%' };
-
   constructor(private dialog: MatDialog) {}
 
-  openCephfs(onClose: (result: boolean) => void): void {
+  openCephfs(onClose: (result: any) => void): void {
     this.open(CephfsModalComponent, onClose);
   }
 
-  openNfs(onClose: (result: boolean) => void): void {
+  openNfs(onClose: (result: any) => void): void {
     this.open(NfsModalComponent, onClose);
   }
 
-  open(
-    component: ComponentType<any>,
-    onClose: (result: boolean) => void,
-    config: MatDialogConfig = this.defaultDialogSettings
-  ) {
-    const ref = this.dialog.open(component, config);
-    ref.afterClosed().subscribe({ next: onClose });
+  open(component: ComponentType<any>, onClose?: (result: any) => void, config?: MatDialogConfig) {
+    const ref = this.dialog.open(component, _.defaultsDeep(config, { width: '60%' }));
+    ref.afterClosed().subscribe({
+      next: (result) => {
+        if (_.isFunction(onClose)) {
+          onClose(result);
+        }
+      }
+    });
   }
 }

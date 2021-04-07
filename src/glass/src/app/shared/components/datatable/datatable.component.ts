@@ -5,8 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import * as _ from 'lodash';
 
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
-
-export type DatatableData = Record<string, any>;
+import { DatatableData } from '~/app/shared/models/datatable-data.type';
 
 @Component({
   selector: 'glass-datatable',
@@ -23,6 +22,8 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   checkIconTpl?: TemplateRef<any>;
   @ViewChild('yesNoIconTpl', { static: true })
   yesNoIconTpl?: TemplateRef<any>;
+  @ViewChild('actionMenuTpl', { static: true })
+  actionMenuTpl?: TemplateRef<any>;
 
   @Input()
   get data(): DatatableData[] {
@@ -52,12 +53,21 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.initTemplates();
     if (this.columns) {
-      this.displayedColumns = _.map(this.columns, 'prop');
-      _.forEach(this.columns, (column) => {
+      // Sanitize the columns.
+      _.forEach(this.columns, (column: DatatableColumn) => {
         if (_.isString(column.cellTemplateName)) {
           column.cellTemplate = this.cellTemplates[column.cellTemplateName];
+          switch (column.cellTemplateName) {
+            case 'actionMenu':
+              column.name = '';
+              column.prop = '_action'; // Add a none existing name here.
+              column.sortable = false;
+              break;
+          }
         }
       });
+      // Get the columns to be displayed.
+      this.displayedColumns = _.map(this.columns, 'prop');
     }
   }
 
@@ -71,7 +81,8 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     this.cellTemplates = {
       icon: this.iconTpl!,
       checkIcon: this.checkIconTpl!,
-      yesNoIcon: this.yesNoIconTpl!
+      yesNoIcon: this.yesNoIconTpl!,
+      actionMenu: this.actionMenuTpl!
     };
   }
 

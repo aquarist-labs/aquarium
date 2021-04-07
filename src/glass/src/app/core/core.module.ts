@@ -10,6 +10,7 @@ import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layo
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
 import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
+import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
 import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
@@ -26,6 +27,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     BlankLayoutComponent,
     NavigationBarItemComponent,
     CephfsModalComponent,
+    DeclarativeFormModalComponent,
     NfsModalComponent
   ],
   imports: [

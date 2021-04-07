@@ -59,3 +59,34 @@
             [svgIcon]="column.cellTemplateConfig.name">
   </mat-icon>
 </ng-template>
+
+<ng-template #actionMenuTpl
+             let-column="column"
+             let-row="row">
+  <ng-template [ngTemplateOutlet]="renderActionButton"
+               [ngTemplateOutletContext]="{ row: row, items: column.cellTemplateConfig(row) }">
+  </ng-template>
+</ng-template>
+
+<ng-template #renderActionButton
+             let-items="items"
+             let-row="row">
+  <button *ngIf="items.length"
+          mat-icon-button
+          [matMenuTriggerFor]="renderActionMenu"
+          [matMenuTriggerData]="{items: items, row: row}">
+    <mat-icon svgIcon="mdi:dots-vertical"></mat-icon>
+  </button>
+</ng-template>
+
+<mat-menu #renderActionMenu="matMenu">
+  <ng-template matMenuContent
+               let-items="items"
+               let-row="row">
+    <button *ngFor="let item of items"
+            mat-menu-item
+            (click)="item.callback(row)">
+      <span>{{ item.title | translate }}</span>
+    </button>
+  </ng-template>
+</mat-menu>
