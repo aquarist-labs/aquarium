@@ -185,6 +185,28 @@ class NodeMgr:
             self._spawn_etcd(new=False, token=None)
             self._node_start()
 
+    def _node_init(self) -> None:
+        statefile: Path = self._get_node_file("node")
+        if not statefile.exists():
+            # other control files must not exist either
+            tokenfile: Path = self._get_node_file("token")
+            assert not tokenfile.exists()
+
+            state = NodeStateModel(
+                uuid=uuid4(),
+                role=NodeRoleEnum.NONE,
+                stage=NodeStageEnum.NONE,
+                address=None,
+                hostname=None
+            )
+            try:
+                statefile.write_text(state.json())
+            except Exception as e:
+                raise NodeError(str(e))
+            assert statefile.exists()
+
+        self._state = NodeStateModel.parse_file(statefile)
+
     def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
         assert self._state.stage == NodeStageEnum.NONE
@@ -605,28 +627,6 @@ class NodeMgr:
         assert confdir.exists()
         assert confdir.is_dir()
         return confdir.joinpath(f"{what}.json")
-
-    def _node_init(self) -> None:
-        statefile: Path = self._get_node_file("node")
-        if not statefile.exists():
-            # other control files must not exist either
-            tokenfile: Path = self._get_node_file("token")
-            assert not tokenfile.exists()
-
-            state = NodeStateModel(
-                uuid=uuid4(),
-                role=NodeRoleEnum.NONE,
-                stage=NodeStageEnum.NONE,
-                address=None,
-                hostname=None
-            )
-            try:
-                statefile.write_text(state.json())
-            except Exception as e:
-                raise NodeError(str(e))
-            assert statefile.exists()
-
-        self._state = NodeStateModel.parse_file(statefile)
 
     def _load(self) -> None:
         self._token = self._load_token()
