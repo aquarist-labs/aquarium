@@ -180,12 +180,12 @@ class NodeMgr:
             self._state.stage == NodeStageEnum.READY
 
         if self._state.stage == NodeStageEnum.NONE:
-            self._wait_inventory()
+            await self._wait_inventory()
         else:
             assert self._state.stage == NodeStageEnum.READY or \
                 self._state.stage == NodeStageEnum.BOOTSTRAPPED
             self._spawn_etcd(new=False, token=None)
-            self._node_start()
+            await self._node_start()
 
     async def shutdown(self) -> None:
         pass
@@ -212,7 +212,7 @@ class NodeMgr:
 
         self._state = NodeStateModel.parse_file(statefile)
 
-    def _node_prestart(self, nodeinfo: NodeInfoModel):
+    async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
         assert self._state.stage == NodeStageEnum.NONE
         assert self._init_stage == NodeInitStage.NONE
@@ -236,9 +236,9 @@ class NodeMgr:
             address = address[:netmask_idx]
 
         self._state.address = address
-        self._save_state()
+        await self._save_state()
 
-    def _node_start(self) -> None:
+    async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
         assert self._state
         assert self._state.stage == NodeStageEnum.READY or \
@@ -247,7 +247,7 @@ class NodeMgr:
 
         logger.info("start node")
 
-        self._load()
+        await self._load()
 
         self._init_stage = NodeInitStage.STARTED
         if self._state.role != NodeRoleEnum.LEADER:
@@ -262,12 +262,12 @@ class NodeMgr:
         self._init_stage = NodeInitStage.STOPPING
         self._incoming_task.cancel()
 
-    def _wait_inventory(self) -> None:
+    async def _wait_inventory(self) -> None:
 
         async def _subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"subscriber > node info: {nodeinfo}")
             assert nodeinfo
-            self._node_prestart(nodeinfo)
+            await self._node_prestart(nodeinfo)
 
         get_inventory().subscribe(_subscriber, once=True)
 
@@ -317,7 +317,7 @@ class NodeMgr:
         await conn.send(msg)
 
         self._state.stage = NodeStageEnum.JOINING
-        self._save_state()
+        await self._save_state()
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
@@ -326,7 +326,7 @@ class NodeMgr:
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
             self._state.stage = NodeStageEnum.NONE
-            self._save_state()
+            await self._save_state()
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -372,12 +372,12 @@ class NodeMgr:
 
         self._state.stage = NodeStageEnum.READY
         self._state.role = NodeRoleEnum.FOLLOWER
-        self._save_state()
+        await self._save_state()
 
         self._token = token
-        self._save_token(should_exist=False)
+        await self._save_token(should_exist=False)
 
-        self._node_start()
+        await self._node_start()
         return True
 
     async def bootstrap(self) -> None:
@@ -475,7 +475,7 @@ class NodeMgr:
             raise NodeNotStartedError()
 
         self._token = self._generate_token()
-        self._save_token(should_exist=False)
+        await self._save_token(should_exist=False)
         logger.info(f"generated new token: {self._token}")
         self._bootstrap_etcd(self._token)
 
@@ -485,7 +485,7 @@ class NodeMgr:
         assert self._state.hostname
         assert self._state.address
         self._state.stage = NodeStageEnum.BOOTSTRAPPING
-        self._save_state()
+        await self._save_state()
 
     async def _finish_bootstrap_error(self, error: str) -> None:
         """
@@ -497,7 +497,7 @@ class NodeMgr:
         assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
 
         self._state.stage = NodeStageEnum.ERROR
-        self._save_state()
+        await self._save_state()
 
     async def _finish_bootstrap(self):
         """
@@ -512,12 +512,12 @@ class NodeMgr:
 
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
         self._state.role = NodeRoleEnum.LEADER
-        self._save_state()
+        await self._save_state()
 
         logger.debug(f"finished bootstrap: token = {self._token}")
 
-        self._load()
-        self._node_start()
+        await self._load()
+        await self._node_start()
 
     async def _finish_bootstrap_config(self) -> None:
         mon: Mon = Mon()
@@ -580,7 +580,7 @@ class NodeMgr:
             return
 
         self._state.stage = NodeStageEnum.READY
-        self._save_state()
+        await self._save_state()
 
     @property
     def inited(self) -> bool:
@@ -633,10 +633,10 @@ class NodeMgr:
         assert confdir.is_dir()
         return confdir.joinpath(f"{what}.json")
 
-    def _load(self) -> None:
-        self._token = self._load_token()
+    async def _load(self) -> None:
+        self._token = await self._load_token()
 
-    def _load_token(self) -> Optional[str]:
+    async def _load_token(self) -> Optional[str]:
         assert self._state
         confdir: Path = gstate.config.confdir
         assert confdir.exists()
@@ -648,7 +648,7 @@ class NodeMgr:
         token = TokenModel.parse_file(tokenfile)
         return token.token
 
-    def _save_token(self, should_exist: bool = True) -> None:
+    async def _save_token(self, should_exist: bool = True) -> None:
         tokenfile: Path = self._get_node_file("token")
 
         # this check could be a single assert, but it's important to know which
@@ -661,7 +661,7 @@ class NodeMgr:
         token: TokenModel = TokenModel(token=self._token)
         tokenfile.write_text(token.json())
 
-    def _save_state(self, should_exist: bool = True) -> None:
+    async def _save_state(self, should_exist: bool = True) -> None:
         statefile: Path = self._get_node_file("node")
 
         # this check could be a single assert, but it's important to know which
