@@ -10,7 +10,7 @@ export type DialogConfig = {
 };
 
 @Component({
-  selector: 'glass-confirmation-dialog',
+  selector: 'glass-dialog',
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.scss']
 })
