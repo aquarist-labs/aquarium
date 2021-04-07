@@ -197,9 +197,6 @@ class NodeMgr:
     def _node_init(self) -> None:
         statefile: Path = self._get_node_file("node")
         if not statefile.exists():
-            # other control files must not exist either
-            tokenfile: Path = self._get_node_file("token")
-            assert not tokenfile.exists()
 
             state = NodeStateModel(
                 uuid=uuid4(),
@@ -379,7 +376,6 @@ class NodeMgr:
         await self._save_state()
 
         self._token = token
-        await self._save_token(should_exist=False)
 
         await self._node_start()
         return True
@@ -482,9 +478,9 @@ class NodeMgr:
             raise NodeNotStartedError()
 
         self._token = self._generate_token()
-        await self._save_token(should_exist=False)
         logger.info(f"generated new token: {self._token}")
         await self._bootstrap_etcd(self._token)
+        await self._save_token()
 
     async def _start_bootstrap(self) -> None:
         assert self._state
@@ -644,29 +640,16 @@ class NodeMgr:
         self._token = await self._load_token()
 
     async def _load_token(self) -> Optional[str]:
-        assert self._state
-        confdir: Path = gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        tokenfile: Path = confdir.joinpath("token.json")
-        if not tokenfile.exists():
-            assert self._state.stage < NodeStageEnum.BOOTSTRAPPED
-            return None
-        token = TokenModel.parse_file(tokenfile)
-        return token.token
+        assert self._kvstore
+        tokenstr = await self._kvstore.get("/nodes/token")
+        assert tokenstr
+        return tokenstr
 
-    async def _save_token(self, should_exist: bool = True) -> None:
-        tokenfile: Path = self._get_node_file("token")
-
-        # this check could be a single assert, but it's important to know which
-        # path failed.
-        if should_exist:
-            assert tokenfile.exists()
-        else:
-            assert not tokenfile.exists()
-
-        token: TokenModel = TokenModel(token=self._token)
-        tokenfile.write_text(token.json())
+    async def _save_token(self) -> None:
+        assert self._token
+        logger.info(f"saving token: {self._token}")
+        assert self._kvstore
+        await self._kvstore.put("/nodes/token", self._token)
 
     async def _save_state(self, should_exist: bool = True) -> None:
         statefile: Path = self._get_node_file("node")
