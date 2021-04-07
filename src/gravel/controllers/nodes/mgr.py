@@ -169,9 +169,11 @@ class NodeMgr:
         multiprocessing.set_start_method("spawn")
 
         self._node_init()
+
+    async def start(self) -> None:
         assert self._state
 
-        logger.debug(f"init > {self._state}")
+        logger.debug(f"start > {self._state}")
 
         assert self._state.stage == NodeStageEnum.NONE or \
             self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
@@ -184,6 +186,9 @@ class NodeMgr:
                 self._state.stage == NodeStageEnum.BOOTSTRAPPED
             self._spawn_etcd(new=False, token=None)
             self._node_start()
+
+    async def shutdown(self) -> None:
+        pass
 
     def _node_init(self) -> None:
         statefile: Path = self._get_node_file("node")
@@ -829,7 +834,17 @@ def get_node_mgr() -> NodeMgr:
     return _nodemgr
 
 
-def init_node_mgr() -> None:
+async def init_node_mgr() -> None:
     global _nodemgr
     assert not _nodemgr
+    logger.info("starting node manager")
     _nodemgr = NodeMgr()
+    await _nodemgr.start()
+
+
+async def shutdown() -> None:
+    global _nodemgr
+    if _nodemgr:
+        logger.info("shutting down node manager")
+        await _nodemgr.shutdown()
+        _nodemgr = None
