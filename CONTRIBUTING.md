@@ -140,7 +140,19 @@ sure they are not merging changes that do not have the needed updates to documen
 
 ## Running Unit Tests
 
-Before submitting your change, you should test it. But since this is not setup yet, we'll forgive you.
+Before submitting your change, you should test it. You can run unit tests with tox:
+
+	cd src
+	tox
+
+## Automated CI Testing
+
+There are GitHub actions configured to run unit tests automatically
+when a pull request is opened. We also have two Jenkins jobs that run
+automatically, to build an Aquarium image and run it on openSUSE
+Tumbleweed and openSUSE Leap. If these tests fail and you need to trigger
+a re-run, add a comment to the PR which says `jenkins run tumbleweed` or
+`jenkins run leap` as needed.
 
 ## Be Respectful
 
