@@ -248,6 +248,7 @@ class NodeMgr:
 
         logger.info("start node")
 
+        await self._obtain_state()
         await self._load()
 
         self._init_stage = NodeInitStage.STARTED
@@ -629,6 +630,17 @@ class NodeMgr:
     @property
     def token(self) -> Optional[str]:
         return self._token
+
+    async def _obtain_state(self) -> None:
+        assert self._kvstore
+
+        def _watcher(key: str, value: str) -> None:
+            if key == "/nodes/token":
+                logger.info(f"got updated token: {value}")
+                self._token = value
+
+        self._token = await self._load_token()
+        await self._kvstore.watch("/nodes/token", _watcher)
 
     def _get_node_file(self, what: str) -> Path:
         confdir: Path = gstate.config.confdir
