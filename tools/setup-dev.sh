@@ -4,6 +4,7 @@ dependencies_opensuse_tumbleweed=(
   "btrfsprogs"
   "git"
   "kpartx"
+  "make"
   "python3"
   "python3-rados"
   "python3-kiwi"
@@ -17,6 +18,7 @@ dependencies_opensuse_tumbleweed=(
 dependencies_debian=(
   "btrfs-progs"
   "git"
+  "make"
   "python3"
   "python3-pip"
   "python3-rados"
@@ -31,6 +33,7 @@ dependencies_debian=(
 dependencies_ubuntu=(
   "btrfs-progs"
   "git"
+  "make"
   "python3"
   "python3-pip"
   "python3-rados"
