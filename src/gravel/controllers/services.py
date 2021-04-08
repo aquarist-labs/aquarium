@@ -69,6 +69,10 @@ class NotEnoughSpaceError(ServiceError):
     pass
 
 
+class NotReadyError(ServiceError):
+    pass
+
+
 class ServiceTypeEnum(str, Enum):
     CEPHFS = "cephfs"
     NFS = "nfs"
@@ -158,6 +162,10 @@ class Services(Ticker):
                size: int,
                replicas: int
                ) -> ServiceModel:
+
+        if not self._is_ready():
+            raise NotReadyError()
+
         if name in self._services:
             raise ServiceExistsError(f"service {name} already exists")
 
@@ -186,6 +194,8 @@ class Services(Ticker):
         return svc
 
     def remove(self, name: str):
+        if not self._is_ready():
+            raise NotReadyError()
         pass
 
     def ls(self) -> List[ServiceModel]:
@@ -291,6 +301,10 @@ class Services(Ticker):
         used for each service, and utilization as a function of the used space
         and the allocated space.
         """
+
+        if not self._is_ready():
+            raise NotReadyError()
+
         storage: Storage = get_storage()
         storage_pools: Dict[int, StoragePoolModel] = storage.usage().pools_by_id
 
@@ -323,6 +337,8 @@ class Services(Ticker):
         return services
 
     def _create_cephfs(self, svc: ServiceModel) -> None:
+        assert self._is_ready()
+
         cephfs = CephFS()
         try:
             cephfs.create(svc.name)
@@ -367,6 +383,8 @@ class Services(Ticker):
             # client.
 
     def _create_nfs(self, svc: ServiceModel) -> None:
+        assert self._is_ready()
+
         # create a cephfs
         self._create_cephfs(svc)
 
@@ -402,6 +420,8 @@ class Services(Ticker):
             raise ServiceError("unable to create nfs export") from e
 
     def _save(self) -> None:
+        assert self._is_ready()
+
         assert gstate.config.options.service_state_path
         path = Path(gstate.config.options.service_state_path)
         path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -409,6 +429,8 @@ class Services(Ticker):
         path.write_text(state.json(indent=2))
 
     def _load(self) -> None:
+        assert self._is_ready()
+
         assert gstate.config.options.service_state_path
         path = Path(gstate.config.options.service_state_path)
         if not path.exists():

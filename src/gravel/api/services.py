@@ -27,6 +27,7 @@ from gravel.controllers.orch.models import CephFSAuthorizationModel
 from gravel.controllers.services import (
     ConstraintsModel,
     NotEnoughSpaceError,
+    NotReadyError,
     ServiceError,
     ServiceModel,
     ServiceRequirementsModel,
@@ -129,6 +130,8 @@ async def create_service(req: CreateRequest) -> CreateResponse:
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
+    except NotReadyError:
+        raise HTTPException(status.HTTP_425_TOO_EARLY)
     return CreateResponse(success=True)
 
 
@@ -144,7 +147,10 @@ async def get_statistics() -> Dict[str, ServiceStorageModel]:
     with the service's space utilization.
     """
     services = get_services_ctrl()
-    return services.get_stats()
+    try:
+        return services.get_stats()
+    except NotReadyError:
+        raise HTTPException(status.HTTP_425_TOO_EARLY)
 
 
 @router.get(
