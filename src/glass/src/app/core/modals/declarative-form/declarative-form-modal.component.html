@@ -1,5 +1,6 @@
 <h1 mat-dialog-title>{{ config.title }}</h1>
-<mat-dialog-content>
+<mat-dialog-content class="mat-typography">
+  <p *ngIf="config?.subtitle">{{ config.subtitle }}</p>
   <form [formGroup]="formGroup"
         fxLayout="column"
         novalidate>
@@ -28,6 +29,9 @@
                type="text"
                [formControlName]="field.name"
                [readonly]="field.readonly">
+        <mat-hint *ngIf="field.hint">
+          <span>{{ field.hint | translate }}</span>
+        </mat-hint>
         <mat-error *ngIf="formGroup.invalid">
           <span *ngIf="formGroup.hasError('required', field.name)"
                 translate>

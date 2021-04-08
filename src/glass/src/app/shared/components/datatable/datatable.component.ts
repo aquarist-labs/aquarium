@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  TemplateRef,
+  ViewChild
+} from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -43,6 +52,15 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @Input()
   hidePageSize = false;
 
+  // The auto-reload time in milliseconds. The load event will be fired
+  // immediately. Set to `0` or `false` to disable this feature.
+  // Defaults to `15000`.
+  @Input()
+  autoReload: number | boolean = 15000;
+
+  @Output()
+  loadData = new EventEmitter();
+
   // Internal
   cellTemplates: Record<string, TemplateRef<any>> = {};
   displayedColumns: string[] = [];
@@ -69,6 +87,13 @@ export class DatatableComponent implements OnInit, AfterViewInit {
       // Get the columns to be displayed.
       this.displayedColumns = _.map(this.columns, 'prop');
     }
+    if (_.isInteger(this.autoReload) && this.autoReload > 0) {
+      const reloadDataFn = () => {
+        this.reloadData();
+        setInterval(reloadDataFn, this.autoReload as number);
+      };
+      reloadDataFn();
+    }
   }
 
   ngAfterViewInit() {
@@ -94,10 +119,14 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     return value;
   }
 
-  sortData(sort: Sort) {
+  sortData(sort: Sort): void {
     if (!sort.active || sort.direction === '') {
       return;
     }
     this.data = _.orderBy(this.data, [sort.active], [sort.direction]);
+  }
+
+  reloadData(): void {
+    this.loadData.emit();
   }
 }
