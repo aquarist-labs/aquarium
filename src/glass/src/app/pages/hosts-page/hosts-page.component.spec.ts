@@ -24,7 +24,6 @@ describe('HostsPageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(HostsPageComponent);
     component = fixture.componentInstance;
-    component.autoReload = 0;
     fixture.detectChanges();
   });
 

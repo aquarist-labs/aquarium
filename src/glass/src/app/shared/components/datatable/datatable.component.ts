@@ -3,6 +3,8 @@ import {
   Component,
   EventEmitter,
   Input,
+  NgZone,
+  OnDestroy,
   OnInit,
   Output,
   TemplateRef,
@@ -12,6 +14,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import * as _ from 'lodash';
+import { Subscription, timer } from 'rxjs';
 
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
@@ -21,7 +24,7 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
   templateUrl: './datatable.component.html',
   styleUrls: ['./datatable.component.scss']
 })
-export class DatatableComponent implements OnInit, AfterViewInit {
+export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator)
   paginator?: MatPaginator;
 
@@ -66,7 +69,9 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = [];
   dataSource = new MatTableDataSource<DatatableData>([]);
 
-  constructor() {}
+  protected subscriptions: Subscription = new Subscription();
+
+  constructor(private ngZone: NgZone) {}
 
   ngOnInit(): void {
     this.initTemplates();
@@ -88,12 +93,18 @@ export class DatatableComponent implements OnInit, AfterViewInit {
       this.displayedColumns = _.map(this.columns, 'prop');
     }
     if (_.isInteger(this.autoReload) && this.autoReload > 0) {
-      const reloadDataFn = () => {
-        this.reloadData();
-        setInterval(reloadDataFn, this.autoReload as number);
-      };
-      reloadDataFn();
+      this.ngZone.runOutsideAngular(() => {
+        this.subscriptions.add(
+          timer(0, this.autoReload as number).subscribe(() => {
+            this.ngZone.run(() => this.reloadData());
+          })
+        );
+      });
     }
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   ngAfterViewInit() {
