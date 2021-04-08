@@ -60,7 +60,8 @@ export class HostsPageComponent {
               type: 'text',
               name: 'token',
               value: res.token,
-              readonly: true
+              readonly: true,
+              hasCopyToClipboardButton: true
             }
           ],
           okButtonVisible: false,

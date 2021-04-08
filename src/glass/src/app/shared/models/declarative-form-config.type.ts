@@ -6,6 +6,9 @@ export type FormFieldConfig = {
   readonly?: boolean;
   required?: boolean;
   hint?: string;
+
+  // text | password
+  hasCopyToClipboardButton?: boolean;
 };
 
 export type DeclarativeFormConfig = {

@@ -28,6 +28,7 @@ export class DeclarativeFormModalComponent {
     private notificationService: NotificationService,
     @Inject(MAT_DIALOG_DATA) data: DeclarativeFormConfig
   ) {
+    // Sanitize the configuration.
     this.config = _.defaultsDeep(data, {
       fields: [],
       okButtonVisible: true,
@@ -35,6 +36,20 @@ export class DeclarativeFormModalComponent {
       cancelButtonVisible: true,
       cancelButtonText: TEXT('Cancel'),
       cancelButtonResult: false
+    });
+    _.forEach(this.config.fields, (field: FormFieldConfig) => {
+      switch (field.type) {
+        case 'password':
+          _.defaultsDeep(field, {
+            hasCopyToClipboardButton: true
+          });
+          break;
+        default:
+          _.defaultsDeep(field, {
+            hasCopyToClipboardButton: false
+          });
+          break;
+      }
     });
     this.formGroup = this.createForm();
   }
