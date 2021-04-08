@@ -591,6 +591,10 @@ class NodeMgr:
         return self._init_stage >= NodeInitStage.PRESTART
 
     @property
+    def started(self) -> bool:
+        return self._init_stage == NodeInitStage.STARTED
+
+    @property
     def stage(self) -> NodeStageEnum:
         assert self._state
         return self._state.stage

@@ -24,7 +24,6 @@ from gravel.controllers.orch.cephfs import (
     CephFSNoAuthorizationError
 )
 from gravel.controllers.orch.models import CephFSAuthorizationModel
-
 from gravel.controllers.services import (
     ConstraintsModel,
     NotEnoughSpaceError,
@@ -33,8 +32,8 @@ from gravel.controllers.services import (
     ServiceRequirementsModel,
     ServiceStorageModel,
     ServiceTypeEnum,
-    Services,
-    UnknownServiceError
+    UnknownServiceError,
+    get_services_ctrl
 )
 
 
@@ -72,13 +71,13 @@ class CreateResponse(BaseModel):
     response_model=ConstraintsModel
 )
 async def get_constraints() -> ConstraintsModel:
-    services = Services()
+    services = get_services_ctrl()
     return services.constraints
 
 
 @router.get("/", response_model=List[ServiceModel])
 async def get_services() -> List[ServiceModel]:
-    services = Services()
+    services = get_services_ctrl()
     return services.ls()
 
 
@@ -86,7 +85,7 @@ async def get_services() -> List[ServiceModel]:
             name="Get service by name",
             response_model=ServiceModel)
 async def get_service(service_name: str) -> ServiceModel:
-    services = Services()
+    services = get_services_ctrl()
     try:
         return services.get(service_name)
     except UnknownServiceError as e:
@@ -108,7 +107,7 @@ async def check_requirements(
             detail="requires positive 'size' and number of 'replicas'"
         )
 
-    services = Services()
+    services = get_services_ctrl()
     feasible, reqs = services.check_requirements(size, replicas)
     return RequirementsResponse(feasible=feasible, requirements=reqs)
 
@@ -116,7 +115,7 @@ async def check_requirements(
 @router.post("/create", response_model=CreateResponse)
 async def create_service(req: CreateRequest) -> CreateResponse:
 
-    services = Services()
+    services = get_services_ctrl()
     try:
         services.create(req.name, req.type, req.size, req.replicas)
     except NotImplementedError as e:
@@ -144,7 +143,7 @@ async def get_statistics() -> Dict[str, ServiceStorageModel]:
     allocated space for said service and how much space is being used, along
     with the service's space utilization.
     """
-    services = Services()
+    services = get_services_ctrl()
     return services.get_stats()
 
 

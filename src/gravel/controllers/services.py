@@ -18,6 +18,10 @@ from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
+from gravel.controllers.nodes.mgr import (
+    NodeMgr,
+    get_node_mgr
+)
 
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
@@ -31,7 +35,10 @@ from gravel.controllers.orch.nfs import (
     NFSExport,
     NFSService
 )
-from gravel.controllers.gstate import gstate
+from gravel.controllers.gstate import (
+    Ticker,
+    gstate
+)
 from gravel.controllers.resources.devices import (
     DeviceHostModel,
     Devices,
@@ -119,13 +126,32 @@ class ServiceStorageModel(BaseModel):
     utilization: float = Field(0, title="Utilization")
 
 
-class Services:
+class Services(Ticker):
 
     _services: Dict[str, ServiceModel]
+    _ready: bool
 
     def __init__(self):
+        super().__init__(
+            "services",
+            gstate.config.options.services.probe_interval
+        )
         self._services = {}
-        self._load()
+        self._ready = False
+
+    def _is_ready(self) -> bool:
+        nodemgr: NodeMgr = get_node_mgr()
+        return nodemgr.started
+
+    async def _should_tick(self) -> bool:
+        return self._is_ready()
+
+    async def _do_tick(self) -> None:
+        assert self._is_ready()
+        if not self._ready:
+            self._load()
+            self._ready = True
+        logger.debug(f"tick {len(self._services)} services")
 
     def create(self, name: str,
                type: ServiceTypeEnum,
@@ -389,3 +415,12 @@ class Services:
             return
         state: StateModel = StateModel.parse_file(path)
         self._services = state.state
+
+
+_services: Services = Services()
+
+
+def get_services_ctrl() -> Services:
+    global _services
+    assert _services
+    return _services
