@@ -16,7 +16,7 @@
                autocapitalize="none"
                [formControlName]="field.name"
                [readonly]="field.readonly">
-        <mat-icon *ngIf="field.type === 'password'"
+        <mat-icon *ngIf="field.hasCopyToClipboardButton"
                   matSuffix
                   mat-ripple
                   svgIcon="mdi:content-copy"
