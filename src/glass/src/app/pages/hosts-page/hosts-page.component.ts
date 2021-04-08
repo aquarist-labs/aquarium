@@ -15,7 +15,6 @@ import { DialogService } from '~/app/shared/services/dialog.service';
 export class HostsPageComponent {
   loading = false;
   firstLoadComplete = false;
-  autoReload = 30000;
   data: Host[] = [];
   columns: DatatableColumn[];
 
