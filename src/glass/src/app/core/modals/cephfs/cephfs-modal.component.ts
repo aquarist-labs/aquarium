@@ -116,6 +116,11 @@ export class CephfsModalComponent implements OnInit {
     const values = this.formGroup.value;
     const rawRequiredSpace = values.requiredSpace * values.replicas;
     this.formGroup.patchValue({ rawRequiredSpace });
+    // Trigger the validators of the following fields.
+    _.forEach(['replicas', 'requiredSpace'], (path: string) => {
+      const control = this.formGroup.get(path);
+      control?.updateValueAndValidity();
+    });
 
     this.showWarning = false;
     this.showWarningText = [];
