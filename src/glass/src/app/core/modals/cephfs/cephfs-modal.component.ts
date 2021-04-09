@@ -22,6 +22,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
+import { GlassValidators } from '~/app/shared/forms/validators';
 import {
   CheckRequirementsReply,
   Constraints,
@@ -55,7 +56,11 @@ export class CephfsModalComponent implements OnInit {
       availableSpace: [0],
       reservedSpace: [0],
       rawRequiredSpace: [0],
-      name: ['', [Validators.required]],
+      name: [
+        '',
+        [Validators.required],
+        [GlassValidators.unique(this.services.exists, this.services)]
+      ],
       replicas: [
         2,
         [Validators.required, Validators.min(1), Validators.max(3), this.budgetValidator(this)]
