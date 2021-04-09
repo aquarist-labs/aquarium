@@ -118,7 +118,7 @@ async def create_service(req: CreateRequest) -> CreateResponse:
 
     services = get_services_ctrl()
     try:
-        services.create(req.name, req.type, req.size, req.replicas)
+        await services.create(req.name, req.type, req.size, req.replicas)
     except NotImplementedError as e:
         raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED,
                             detail=str(e))

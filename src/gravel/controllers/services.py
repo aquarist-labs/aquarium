@@ -12,7 +12,6 @@
 # GNU General Public License for more details.
 
 from enum import Enum
-from pathlib import Path
 from typing import Dict, List, Tuple
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
@@ -153,15 +152,18 @@ class Services(Ticker):
     async def _do_tick(self) -> None:
         assert self._is_ready()
         if not self._ready:
-            self._load()
+            await self._load()
+            await self._set_watchers()
             self._ready = True
         logger.debug(f"tick {len(self._services)} services")
 
-    def create(self, name: str,
-               type: ServiceTypeEnum,
-               size: int,
-               replicas: int
-               ) -> ServiceModel:
+    async def create(
+        self,
+        name: str,
+        type: ServiceTypeEnum,
+        size: int,
+        replicas: int
+    ) -> ServiceModel:
 
         if not self._is_ready():
             raise NotReadyError()
@@ -190,7 +192,7 @@ class Services(Ticker):
             raise NotImplementedError(f"unknown service type: {svc.type}")
 
         self._services[name] = svc
-        self._save()
+        await self._save()
         return svc
 
     def remove(self, name: str):
@@ -419,24 +421,40 @@ class Services(Ticker):
         except NFSError as e:
             raise ServiceError("unable to create nfs export") from e
 
-    def _save(self) -> None:
+    async def _save(self) -> None:
         assert self._is_ready()
 
-        assert gstate.config.options.service_state_path
-        path = Path(gstate.config.options.service_state_path)
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         state = StateModel(state=self._services)
-        path.write_text(state.json(indent=2))
+        statestr = state.json()
 
-    def _load(self) -> None:
+        nodemgr = get_node_mgr()
+        await nodemgr.store.put("/services/state", statestr)
+
+    def _load_state(self, value: str) -> None:
+        assert value
+        state = StateModel.parse_raw(value)
+        self._services = state.state
+
+    async def _load(self) -> None:
         assert self._is_ready()
 
-        assert gstate.config.options.service_state_path
-        path = Path(gstate.config.options.service_state_path)
-        if not path.exists():
+        nodemgr = get_node_mgr()
+        statestr = await nodemgr.store.get("/services/state")
+        if not statestr:
             return
-        state: StateModel = StateModel.parse_file(path)
-        self._services = state.state
+        self._load_state(statestr)
+
+    async def _set_watchers(self) -> None:
+        assert self._is_ready()
+
+        def _cb(key: str, value: str) -> None:
+            if not value:
+                logger.error("someone removed our state!")
+                return
+            self._load_state(value)
+
+        nodemgr = get_node_mgr()
+        await nodemgr.store.watch("/services/state", _cb)
 
 
 _services: Services = Services()
