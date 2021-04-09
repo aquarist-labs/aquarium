@@ -21,10 +21,7 @@ export class ServicesCapacityDashboardWidgetComponent {
   loadData(): Observable<Array<ServiceStorage>> {
     return this.servicesService.stats().pipe(
       map((data: Record<string, ServiceStorage>): ServiceStorage[] => {
-        const result: ServiceStorage[] = [];
-        _.forEach(data, (serviceStorage: ServiceStorage) => {
-          result.push(serviceStorage);
-        });
+        const result: ServiceStorage[] = _.values(data);
         _.orderBy(result, ['utilization'], ['desc']);
         return _.map(_.take(result, 5), (record) => {
           record.utilization = parseFloat(record.utilization.toFixed(2));
