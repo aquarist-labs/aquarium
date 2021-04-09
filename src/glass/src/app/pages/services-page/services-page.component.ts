@@ -172,7 +172,8 @@ export class ServicesPageComponent {
                         name: 'cmdline',
                         value: cmdArgs.join(' '),
                         readonly: true,
-                        hasCopyToClipboardButton: true
+                        hasCopyToClipboardButton: true,
+                        class: 'glass-text-monospaced'
                       }
                     ],
                     okButtonVisible: false,
