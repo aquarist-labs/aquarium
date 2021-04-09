@@ -59,6 +59,10 @@ routines:
         source venv/bin/activate
         ./tools/aqrdev create foo
         ./tools/aqrdev start foo --conservative
+    - name: dump aquarium service log
+      command: |
+        cd aquarium/tests/vagrant/deployments/foo
+        vagrant ssh -c "sudo journalctl -u aquarium"
     - name: check aquarium service is up and running
       command: |
         cd aquarium/tests/vagrant/deployments/foo
