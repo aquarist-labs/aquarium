@@ -25,9 +25,19 @@ export class ServicesDashboardWidgetComponent implements OnInit {
   actions: WidgetAction[] = [
     {
       icon: 'plus-circle-outline',
-      name: TEXT('Add CephFS Share'),
+      name: TEXT('CephFS Service'),
       action: () =>
         this.dialog.openCephfs((res) => {
+          if (res) {
+            this.widget?.reload();
+          }
+        })
+    },
+    {
+      icon: 'plus-circle-outline',
+      name: TEXT('NFS Service'),
+      action: () =>
+        this.dialog.openNfs((res) => {
           if (res) {
             this.widget?.reload();
           }
