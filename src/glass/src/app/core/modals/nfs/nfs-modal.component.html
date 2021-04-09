@@ -60,6 +60,7 @@
         </mat-error>
       </mat-form-field>
       <mat-form-field class="glass-form-field-no-underline glass-form-field-hint"
+                      [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'replicas')}"
                       fxFlex>
         <mat-label translate>Number Of Replicas</mat-label>
         <input #replicasInput
