@@ -61,7 +61,12 @@ export class ServicesDashboardWidgetComponent implements OnInit {
       {
         name: TEXT('Type'),
         prop: 'type',
-        sortable: true
+        sortable: true,
+        cellTemplateName: 'map',
+        cellTemplateConfig: {
+          cephfs: 'CephFS',
+          nfs: 'NFS'
+        }
       },
       {
         name: TEXT('Usable Size'),

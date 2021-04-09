@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { RelativeDatePipe } from './relative-date.pipe';
+import { RelativeDatePipe } from '~/app/shared/pipes/relative-date.pipe';
 
 describe('RelativeDatePipe', () => {
   const pipe = new RelativeDatePipe();

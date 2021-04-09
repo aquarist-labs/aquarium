@@ -10,6 +10,7 @@ import { LanguageButtonComponent } from '~/app/shared/components/language-button
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
 import { TokenInputComponent } from '~/app/shared/components/token-input/token-input.component';
 import { WidgetComponent } from '~/app/shared/components/widget/widget.component';
+import { PipesModule } from '~/app/shared/pipes/pipes.module';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,6 @@ import { WidgetComponent } from '~/app/shared/components/widget/widget.component
     TokenInputComponent,
     WidgetComponent
   ],
-  imports: [CommonModule, FlexLayoutModule, MaterialModule, TranslateModule.forChild()]
+  imports: [CommonModule, FlexLayoutModule, MaterialModule, PipesModule, TranslateModule.forChild()]
 })
 export class ComponentsModule {}

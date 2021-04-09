@@ -3,16 +3,10 @@ import { NgModule } from '@angular/core';
 
 import { MaterialModule } from '~/app/material.modules';
 import { ComponentsModule } from '~/app/shared/components/components.module';
-import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
-
-import { RedundancyLevelPipe } from './pipes/redundancy-level.pipe';
-import { RelativeDatePipe } from './pipes/relative-date.pipe';
+import { PipesModule } from '~/app/shared/pipes/pipes.module';
 
 @NgModule({
-  declarations: [BytesToSizePipe, SortByPipe, RelativeDatePipe, RedundancyLevelPipe],
-  providers: [BytesToSizePipe, SortByPipe, RelativeDatePipe, RedundancyLevelPipe],
-  exports: [BytesToSizePipe, ComponentsModule, SortByPipe, RelativeDatePipe, RedundancyLevelPipe],
-  imports: [CommonModule, ComponentsModule, MaterialModule]
+  exports: [ComponentsModule, PipesModule],
+  imports: [CommonModule, ComponentsModule, MaterialModule, PipesModule]
 })
 export class SharedModule {}
