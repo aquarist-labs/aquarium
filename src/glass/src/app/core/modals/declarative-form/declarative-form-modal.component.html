@@ -14,6 +14,7 @@
                type="password"
                autocorrect="off"
                autocapitalize="none"
+               [class]="field.class"
                [formControlName]="field.name"
                [readonly]="field.readonly">
         <mat-icon *ngIf="field.hasCopyToClipboardButton"
@@ -27,6 +28,7 @@
         <input *ngIf="field.type === 'text'"
                matInput
                type="text"
+               [class]="field.class"
                [formControlName]="field.name"
                [readonly]="field.readonly">
         <mat-hint *ngIf="field.hint">

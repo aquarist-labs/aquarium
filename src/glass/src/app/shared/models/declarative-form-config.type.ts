@@ -6,6 +6,7 @@ export type FormFieldConfig = {
   readonly?: boolean;
   required?: boolean;
   hint?: string;
+  class?: string;
 
   // text | password
   hasCopyToClipboardButton?: boolean;
