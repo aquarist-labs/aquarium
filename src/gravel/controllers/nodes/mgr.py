@@ -635,6 +635,11 @@ class NodeMgr:
     def token(self) -> Optional[str]:
         return self._token
 
+    @property
+    def store(self) -> KV:
+        assert self._kvstore
+        return self._kvstore
+
     async def _obtain_state(self) -> None:
         assert self._kvstore
 
