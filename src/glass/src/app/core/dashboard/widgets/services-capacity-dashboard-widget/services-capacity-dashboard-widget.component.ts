@@ -26,7 +26,10 @@ export class ServicesCapacityDashboardWidgetComponent {
           result.push(serviceStorage);
         });
         _.orderBy(result, ['utilization'], ['desc']);
-        return _.take(result, 5);
+        return _.map(_.take(result, 5), (record) => {
+          record.utilization = parseFloat(record.utilization.toFixed(2));
+          return record;
+        });
       })
     );
   }
