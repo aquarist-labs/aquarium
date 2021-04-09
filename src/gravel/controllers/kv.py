@@ -84,10 +84,12 @@ class KV:
         assert self._client
         await self._client.put(key, value)
 
-    async def get(self, key: str) -> str:
+    async def get(self, key: str) -> Optional[str]:
         """ Get value for provided key """
         assert self._client
         value, _ = await self._client.get(key)
+        if not value:
+            return None
         return value.decode("utf-8")
 
     async def rm(self, key: str) -> None:
