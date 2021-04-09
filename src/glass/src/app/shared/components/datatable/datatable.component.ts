@@ -36,6 +36,8 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
   yesNoIconTpl?: TemplateRef<any>;
   @ViewChild('actionMenuTpl', { static: true })
   actionMenuTpl?: TemplateRef<any>;
+  @ViewChild('mapTpl', { static: true })
+  mapTpl?: TemplateRef<any>;
 
   @Input()
   get data(): DatatableData[] {
@@ -118,7 +120,8 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: this.iconTpl!,
       checkIcon: this.checkIconTpl!,
       yesNoIcon: this.yesNoIconTpl!,
-      actionMenu: this.actionMenuTpl!
+      actionMenu: this.actionMenuTpl!,
+      map: this.mapTpl!
     };
   }
 

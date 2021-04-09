@@ -53,6 +53,12 @@
   </mat-icon>
 </ng-template>
 
+<ng-template #mapTpl
+             let-value="value"
+             let-column="column">
+  <span>{{ value | map:column.cellTemplateConfig }}</span>
+</ng-template>
+
 <ng-template #iconTpl
              let-column="column">
   <mat-icon [ngClass]="column.cellTemplateConfig?.class"

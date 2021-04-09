@@ -1,4 +1,4 @@
-import { SortByPipe } from './sort-by.pipe';
+import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
 
 describe('SortByPipe', () => {
   const pipe = new SortByPipe();
