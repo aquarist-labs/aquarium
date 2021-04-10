@@ -19,4 +19,4 @@ tests/vagrant/deployments/
 .vagrant/
 .idea/
 conf/
-
+*.tar.gz

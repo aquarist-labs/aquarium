@@ -131,63 +131,24 @@ fi
 
 set -xe
 
-glassdir=${srcdir}/glass
-graveldir=${srcdir}/gravel
-
-[[ ! -d "${glassdir}" ]] && \
-  error_exit "missing frontend directory at '${glassdir}"
-
-[[ ! -e "${glassdir}/angular.json" ]] && \
-  error_exit "directory at '${glassdir}' is not an angular application"
-
-[[ ! -d "${graveldir}" ]] && \
-  error_exit "missing backend directory at '${graveldir}"
-
-
-build_glass() {
-  pushd ${glassdir}
-  npm install || exit 1
-  npx ng build --prod --output-hashing=all || exit 1
-  [[ ! -d "${glassdir}/dist" ]] && \
-    error_exit "missing 'dist' directory for frontend"
-  popd
-}
-
-bundle() {
-  local bundledir=${build}/bundle
-  local bundle_usr=${bundledir}/usr/share/aquarium
-  local bundle_unit=${bundledir}/usr/lib/systemd/system
-  local bundle_sbin=${bundledir}/usr/sbin
-
-  mkdir -p ${bundle_usr} ${bundle_unit} ${bundle_sbin} || true
-  build_glass || exit 1
-
-  pushd ${rootdir}
-  git submodule update --init || exit 1
-  popd
-
-  pushd ${srcdir}
-  find ./gravel -iname '*ceph.git*' -prune -false -o -iname '*.py' | \
-    xargs cp --parents --target-directory=${bundle_usr} || exit 1
-  cp --target-directory=${bundle_usr} ./aquarium.py || exit 1
-  cp -R --parents --target-directory=${bundle_usr} glass/dist || exit 1
-
-  cp --target-directory=${bundle_sbin} \
-    ./gravel/ceph.git/src/cephadm/cephadm || exit 1
-  popd
-
-  cp ${rootdir}/systemd/aquarium.service ${bundle_unit} || exit 1
-
-  pushd ${build}
-  tar -C ${bundledir} usr -cf aquarium.tar || exit 1
-  popd
-}
-
-
 mkdir -p ${build}
 
+rm -f ${rootdir}/aquarium*.tar.gz
+make dist
+# At this point, we have a dist tarball (aquarium-$version.tar.gz), which
+# has paths prefixed with aquarium-$version.  When using the tarball inside
+# kiwi though, we need it to have bare /usr/... paths, so it's extracted
+# to the right place, so *sigh*, let's extract the dist tarball and
+# recompress it.  Bonus: this removes the version from the name, so we can
+# just keep using <archive name="aquarium.tar.gz"/> in config.xml
+tmpdir=$(mktemp -d)
+pushd ${tmpdir}
+tar --strip-components=1 -xzf ${rootdir}/aquarium*.tar.gz
+tar -czf ${build}/aquarium.tar.gz .
+popd
+rm -rf ${tmpdir}
+
 cp ${imgdir}/microOS/config.{sh,xml} ${build}/
-bundle || exit 1
 
 mkdir ${build}/{_out,_logs}
 
