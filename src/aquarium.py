@@ -98,6 +98,7 @@ async def on_startup():
 
 @app.on_event("shutdown")  # type: ignore
 async def on_shutdown():
+    logger.info("Aquarium shutdown!")
     await gstate.shutdown()
     await mgr.shutdown()
 
