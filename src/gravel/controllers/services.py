@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
@@ -133,6 +133,7 @@ class Services(Ticker):
 
     _services: Dict[str, ServiceModel]
     _ready: bool
+    _state_watcher_id: Optional[int]
 
     def __init__(self):
         super().__init__(
@@ -141,6 +142,7 @@ class Services(Ticker):
         )
         self._services = {}
         self._ready = False
+        self._state_watcher_id = None
 
     def _is_ready(self) -> bool:
         nodemgr: NodeMgr = get_node_mgr()
@@ -156,6 +158,12 @@ class Services(Ticker):
             await self._set_watchers()
             self._ready = True
         logger.debug(f"tick {len(self._services)} services")
+
+    async def shutdown(self) -> None:
+        logger.info("shutdown services")
+        if self._state_watcher_id:
+            nodemgr = get_node_mgr()
+            await nodemgr.store.cancel_watch(self._state_watcher_id)
 
     async def create(
         self,
@@ -454,7 +462,8 @@ class Services(Ticker):
             self._load_state(value)
 
         nodemgr = get_node_mgr()
-        await nodemgr.store.watch("/services/state", _cb)
+        self._state_watcher_id = \
+            await nodemgr.store.watch("/services/state", _cb)
 
 
 _services: Services = Services()
