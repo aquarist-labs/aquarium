@@ -14,10 +14,9 @@
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from concurrent.futures.thread import ThreadPoolExecutor
 import logging.config
 from logging import Logger
-from typing import Callable, Any, Dict
+from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.config import Config
@@ -108,13 +107,11 @@ class Ticker(ABC):
 
 class GlobalState:
 
-    executor: ThreadPoolExecutor
     config: Config
     is_shutting_down: bool
     tickers: Dict[str, Ticker]
 
     def __init__(self):
-        self.executor = ThreadPoolExecutor()
         self.config = Config()
         self.is_shutting_down = False
         self.tickers = {}
@@ -128,13 +125,6 @@ class GlobalState:
         self.is_shutting_down = True
         logger.info("shutdown!")
         await self.tick_task
-
-    async def run_in_background(self,
-                                func: Callable[[Any, Any], Any],
-                                *args: Any
-                                ):
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(self.executor, func, *args)
 
     async def tick(self) -> None:
         while not self.is_shutting_down:
