@@ -132,7 +132,7 @@ export class ServicesService {
   }
 
   public exists(service_name: string): Observable<boolean> {
-    return this.http.get<ServiceDesc>(`${this.url}/${service_name}`).pipe(
+    return this.http.get<ServiceDesc>(`${this.url}/get/${service_name}`).pipe(
       mapTo(true),
       catchError((error) => {
         error.preventDefault();
