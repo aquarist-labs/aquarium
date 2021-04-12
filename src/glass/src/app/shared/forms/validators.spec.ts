@@ -1,4 +1,6 @@
+import { fakeAsync, tick } from '@angular/core/testing';
 import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { of } from 'rxjs';
 
 import { GlassValidators } from '~/app/shared/forms/validators';
 
@@ -51,5 +53,31 @@ describe('GlassValidators', () => {
       expect(control?.invalid).toBeTruthy();
       expect(control?.errors).toEqual({ hostAddress: true });
     });
+  });
+
+  describe('unique', () => {
+    let control: AbstractControl | null;
+
+    beforeEach(() => {
+      control = formGroup.get('x');
+      control?.setAsyncValidators(GlassValidators.unique((value) => of(value === 'test_value')));
+    });
+
+    it('should not show error for empty input', () => {
+      expect(control?.invalid).toBeFalsy();
+    });
+
+    it('should not show error for unique input', fakeAsync(() => {
+      control?.setValue('test_value_new');
+      tick(500);
+      expect(control?.invalid).toBeFalsy();
+    }));
+
+    it('should show error for input not unique', fakeAsync(() => {
+      control?.setValue('test_value');
+      tick(500);
+      expect(control?.invalid).toBeTruthy();
+      expect(control?.errors).toEqual({ notUnique: true });
+    }));
   });
 });

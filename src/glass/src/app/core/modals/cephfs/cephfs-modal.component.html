@@ -54,8 +54,13 @@
                formControlName="name"
                required>
         <mat-error *ngIf="formGroup.invalid">
-          <span *ngIf="formGroup.hasError('required', 'name')">
+          <span *ngIf="formGroup.hasError('required', 'name')"
+                translate>
             This field is required.
+          </span>
+          <span *ngIf="formGroup.hasError('notUnique', 'name')"
+                translate>
+            The service name already exists.
           </span>
         </mat-error>
       </mat-form-field>

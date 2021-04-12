@@ -33,7 +33,8 @@ from gravel.controllers.services import (
     ServiceRequirementsModel,
     ServiceStorageModel,
     ServiceTypeEnum,
-    Services
+    Services,
+    UnknownServiceError
 )
 
 
@@ -79,6 +80,18 @@ async def get_constraints() -> ConstraintsModel:
 async def get_services() -> List[ServiceModel]:
     services = Services()
     return services.ls()
+
+
+@router.get("/{service_name}",
+            name="Get service by name",
+            response_model=ServiceModel)
+async def get_service(service_name: str) -> ServiceModel:
+    services = Services()
+    try:
+        return services.get(service_name)
+    except UnknownServiceError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=str(e))
 
 
 @router.post("/check-requirements", response_model=RequirementsResponse)

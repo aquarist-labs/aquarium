@@ -1,6 +1,21 @@
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError, mapTo } from 'rxjs/operators';
 
 export interface Reservations {
   reserved: number;
@@ -114,6 +129,16 @@ export class ServicesService {
 
   public list(): Observable<ServiceDesc[]> {
     return this.http.get<ServiceDesc[]>(`${this.url}/`);
+  }
+
+  public exists(service_name: string): Observable<boolean> {
+    return this.http.get<ServiceDesc>(`${this.url}/${service_name}`).pipe(
+      mapTo(true),
+      catchError((error) => {
+        error.preventDefault();
+        return of(false);
+      })
+    );
   }
 
   public stats(): Observable<Record<string, ServiceStorage>> {

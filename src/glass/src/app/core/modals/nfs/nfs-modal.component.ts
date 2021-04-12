@@ -1,3 +1,17 @@
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
@@ -7,6 +21,7 @@ import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
+import { GlassValidators } from '~/app/shared/forms/validators';
 import {
   CheckRequirementsReply,
   Constraints,
@@ -40,7 +55,11 @@ export class NfsModalComponent implements OnInit {
       availableSpace: [0],
       reservedSpace: [0],
       rawRequiredSpace: [0],
-      name: ['', [Validators.required]],
+      name: [
+        '',
+        [Validators.required],
+        [GlassValidators.unique(this.services.exists, this.services)]
+      ],
       replicas: [
         2,
         [Validators.required, Validators.min(1), Validators.max(3), this.budgetValidator(this)]
