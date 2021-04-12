@@ -30,6 +30,7 @@ options:
 
 allowed image types:
   vagrant                   Builds a vagrant image
+  vagrant-virtualbox        Builds a vagrant virtualbox image
   self-install              Builds an image to be run on bare metal.
   live-iso		    Builds an live iso with persistent storage on bare metal.
 EOF
@@ -97,6 +98,7 @@ done
 profile=""
 case ${imgtype} in
   vagrant) profile="Ceph-Vagrant" type="oem";;
+  vagrant-virtualbox) profile="Ceph-Vagrant-VirtualBox" type="oem";;
   self-install) profile="Ceph" type="oem";;
   live-iso) profile="Ceph" type="iso";;
   *)
@@ -144,9 +146,18 @@ make dist
 tmpdir=$(mktemp -d)
 pushd ${tmpdir}
 tar --strip-components=1 -xzf ${rootdir}/aquarium*.tar.gz
+cp -ar ${imgdir}/microOS/root/* ./
 tar -czf ${build}/aquarium.tar.gz .
 popd
 rm -rf ${tmpdir}
+
+tmpdir=$(mktemp -d)
+pushd ${tmpdir}
+cp -ar ${imgdir}/microOS/aquarium_root/* ./
+tar -czf ${build}/aquarium_user.tar.gz .
+popd
+rm -rf ${tmpdir}
+
 
 cp ${imgdir}/microOS/config.{sh,xml} ${build}/
 

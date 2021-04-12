@@ -1,0 +1,9 @@
+This is a ceph Appliance System [Aquarium] OS is base on openSUSE.
+The webservice is running on port 1337
+
+To upgrade your system call:
+
+        zypper refresh
+        zypper dup
+
+Have a lot of fun...
