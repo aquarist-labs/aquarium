@@ -26,17 +26,17 @@ async def test_tickers(gstate):
             return not self.has_ticked
 
     ticker = TestTicker("test")
-    assert "test" in gstate.tickers
+    assert "test" in gstate._tickers
 
     await gstate._do_ticks()  # pyright: reportPrivateUsage=false
     await asyncio.sleep(1)  # let ticker tick
     assert ticker.has_ticked is True
 
     gstate.rm_ticker("test")
-    assert "test" not in gstate.tickers
+    assert "test" not in gstate._tickers
 
     ticker = TestTicker("test")
-    assert "test" in gstate.tickers
+    assert "test" in gstate._tickers
     await gstate.start()
     await asyncio.sleep(1)  # let ticker tick
     await gstate.shutdown()
