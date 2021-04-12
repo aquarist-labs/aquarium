@@ -82,7 +82,7 @@ async def get_services() -> List[ServiceModel]:
     return services.ls()
 
 
-@router.get("/{service_name}",
+@router.get("/get/{service_name}",
             name="Get service by name",
             response_model=ServiceModel)
 async def get_service(service_name: str) -> ServiceModel:

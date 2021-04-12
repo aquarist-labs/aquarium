@@ -30,4 +30,10 @@ describe('ServicesService', () => {
     const req = httpTesting.expectOne('api/services/stats');
     expect(req.request.method).toBe('GET');
   });
+
+  it('should call exists', () => {
+    service.exists('foo').subscribe();
+    const req = httpTesting.expectOne('api/services/get/foo');
+    expect(req.request.method).toBe('GET');
+  });
 });
