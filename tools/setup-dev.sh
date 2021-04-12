@@ -129,7 +129,10 @@ if ! ${skip_install_deps} ; then
   case $osid in
     opensuse-tumbleweed | opensuse-leap)
       echo "=> try installing dependencies"
-      sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || exit 1
+      sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || {
+        echo "Dependency installation failed"
+        exit 1
+      }
       ;;
     debian)
       echo "=> installing nodejs15.x repo to apt source"
@@ -139,7 +142,10 @@ if ! ${skip_install_deps} ; then
       echo "=> installing kiwi repo to apt source"
       sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10 ./'
       echo "=> try installing dependencies"
-      sudo apt-get install -q -y ${dependencies_debian[*]} || exit 1
+      sudo apt-get install -q -y ${dependencies_debian[*]} || {
+        echo "Dependency installation failed"
+        exit 1
+      }
       ;;
     ubuntu)
       echo "=> installing nodejs15.x repo to apt source"
@@ -149,7 +155,10 @@ if ! ${skip_install_deps} ; then
       echo "=> installing kiwi repo to apt source"
       sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.04 ./' -y
       echo "=> try installing dependencies"
-      sudo apt-get install -q -y ${dependencies_ubuntu[*]} || exit 1
+      sudo apt-get install -q -y ${dependencies_ubuntu[*]} ||  {
+        echo "Dependency installation failed"
+        exit 1
+      }
       ;;
     *)
       echo "error: unsupported distribution ($osid)"
@@ -162,8 +171,14 @@ if ! ${skip_install_deps} ; then
 
 fi
 
-if ! python3 --version &>/dev/null ; then
+if ! PY_VER_STR=$(python3 --version) ; then
   echo "error: missing python3"
+  exit 1
+fi
+
+PY_MINOR=$(echo $PY_VER_STR | cut -d. -f2)
+if [ $PY_MINOR -lt 8 ] ; then
+  echo "error: python >= 3.8 is required ($PY_VER_STR installed)"
   exit 1
 fi
 
