@@ -12,12 +12,15 @@
 # GNU General Public License for more details.
 
 from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
+from gravel.controllers.nodes.mgr import (
+    NodeMgr,
+    get_node_mgr
+)
 
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
@@ -31,7 +34,10 @@ from gravel.controllers.orch.nfs import (
     NFSExport,
     NFSService
 )
-from gravel.controllers.gstate import gstate
+from gravel.controllers.gstate import (
+    Ticker,
+    gstate
+)
 from gravel.controllers.resources.devices import (
     DeviceHostModel,
     Devices,
@@ -59,6 +65,10 @@ class ServiceExistsError(ServiceError):
 
 
 class NotEnoughSpaceError(ServiceError):
+    pass
+
+
+class NotReadyError(ServiceError):
     pass
 
 
@@ -119,19 +129,53 @@ class ServiceStorageModel(BaseModel):
     utilization: float = Field(0, title="Utilization")
 
 
-class Services:
+class Services(Ticker):
 
     _services: Dict[str, ServiceModel]
+    _ready: bool
+    _state_watcher_id: Optional[int]
 
     def __init__(self):
+        super().__init__(
+            "services",
+            gstate.config.options.services.probe_interval
+        )
         self._services = {}
-        self._load()
+        self._ready = False
+        self._state_watcher_id = None
 
-    def create(self, name: str,
-               type: ServiceTypeEnum,
-               size: int,
-               replicas: int
-               ) -> ServiceModel:
+    def _is_ready(self) -> bool:
+        nodemgr: NodeMgr = get_node_mgr()
+        return nodemgr.started
+
+    async def _should_tick(self) -> bool:
+        return self._is_ready()
+
+    async def _do_tick(self) -> None:
+        assert self._is_ready()
+        if not self._ready:
+            await self._load()
+            await self._set_watchers()
+            self._ready = True
+        logger.debug(f"tick {len(self._services)} services")
+
+    async def shutdown(self) -> None:
+        logger.info("shutdown services")
+        if self._state_watcher_id:
+            nodemgr = get_node_mgr()
+            await nodemgr.store.cancel_watch(self._state_watcher_id)
+
+    async def create(
+        self,
+        name: str,
+        type: ServiceTypeEnum,
+        size: int,
+        replicas: int
+    ) -> ServiceModel:
+
+        if not self._is_ready():
+            raise NotReadyError()
+
         if name in self._services:
             raise ServiceExistsError(f"service {name} already exists")
 
@@ -156,10 +200,12 @@ class Services:
             raise NotImplementedError(f"unknown service type: {svc.type}")
 
         self._services[name] = svc
-        self._save()
+        await self._save()
         return svc
 
     def remove(self, name: str):
+        if not self._is_ready():
+            raise NotReadyError()
         pass
 
     def ls(self) -> List[ServiceModel]:
@@ -265,6 +311,10 @@ class Services:
         used for each service, and utilization as a function of the used space
         and the allocated space.
         """
+
+        if not self._is_ready():
+            raise NotReadyError()
+
         storage: Storage = get_storage()
         storage_pools: Dict[int, StoragePoolModel] = storage.usage().pools_by_id
 
@@ -297,6 +347,8 @@ class Services:
         return services
 
     def _create_cephfs(self, svc: ServiceModel) -> None:
+        assert self._is_ready()
+
         cephfs = CephFS()
         try:
             cephfs.create(svc.name)
@@ -341,6 +393,8 @@ class Services:
             # client.
 
     def _create_nfs(self, svc: ServiceModel) -> None:
+        assert self._is_ready()
+
         # create a cephfs
         self._create_cephfs(svc)
 
@@ -375,17 +429,47 @@ class Services:
         except NFSError as e:
             raise ServiceError("unable to create nfs export") from e
 
-    def _save(self) -> None:
-        assert gstate.config.options.service_state_path
-        path = Path(gstate.config.options.service_state_path)
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        state = StateModel(state=self._services)
-        path.write_text(state.json(indent=2))
+    async def _save(self) -> None:
+        assert self._is_ready()
 
-    def _load(self) -> None:
-        assert gstate.config.options.service_state_path
-        path = Path(gstate.config.options.service_state_path)
-        if not path.exists():
-            return
-        state: StateModel = StateModel.parse_file(path)
+        state = StateModel(state=self._services)
+        statestr = state.json()
+
+        nodemgr = get_node_mgr()
+        await nodemgr.store.put("/services/state", statestr)
+
+    def _load_state(self, value: str) -> None:
+        assert value
+        state = StateModel.parse_raw(value)
         self._services = state.state
+
+    async def _load(self) -> None:
+        assert self._is_ready()
+
+        nodemgr = get_node_mgr()
+        statestr = await nodemgr.store.get("/services/state")
+        if not statestr:
+            return
+        self._load_state(statestr)
+
+    async def _set_watchers(self) -> None:
+        assert self._is_ready()
+
+        def _cb(key: str, value: str) -> None:
+            if not value:
+                logger.error("someone removed our state!")
+                return
+            self._load_state(value)
+
+        nodemgr = get_node_mgr()
+        self._state_watcher_id = \
+            await nodemgr.store.watch("/services/state", _cb)
+
+
+_services: Services = Services()
+
+
+def get_services_ctrl() -> Services:
+    global _services
+    assert _services
+    return _services

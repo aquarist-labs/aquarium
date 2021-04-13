@@ -608,6 +608,8 @@
         <package name="python3-requests"/>
         <package name="python3-rados"/>
         <package name="python3-websockets"/>
+        <package name="etcd"/>
+        <package name="etcdctl"/>
         <archive name="aquarium.tar.gz"/>
     </packages>
 

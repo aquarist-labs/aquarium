@@ -38,7 +38,8 @@ from gravel.controllers.nodes.mgr import (
 )
 from gravel.controllers.services import (
     ServiceTypeEnum,
-    Services
+    Services,
+    get_services_ctrl
 )
 
 
@@ -121,7 +122,7 @@ class Status(Ticker):
             raise ClientIORateNotAvailableError()
 
         services_rates: List[ServiceIORateModel] = []
-        services: Services = Services()
+        services: Services = get_services_ctrl()
         for service in services.ls():
             svc_name: str = service.name
             svc_type: ServiceTypeEnum = service.type

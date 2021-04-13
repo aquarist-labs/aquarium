@@ -102,6 +102,9 @@ class Ticker(ABC):
         self._is_ticking = False
         self._last_tick = time.monotonic()
 
+    async def shutdown(self) -> None:
+        pass
+
 
 class GlobalState:
 
@@ -140,11 +143,17 @@ class GlobalState:
             await self._do_ticks()
 
         logger.info("tick shutting down")
+        await self._shutdown_tickers()
 
     async def _do_ticks(self) -> None:
         for desc, ticker in self.tickers.items():
             logger.debug(f"tick {desc}")
             asyncio.create_task(ticker.tick())
+
+    async def _shutdown_tickers(self) -> None:
+        for desc, ticker in self.tickers.items():
+            logger.debug(f"shutdown ticker {desc}")
+            await ticker.shutdown()
 
     def add_ticker(self, desc: str, whom: Ticker) -> None:
         if desc not in self.tickers:

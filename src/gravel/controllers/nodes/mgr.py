@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 import asyncio
+import multiprocessing
 from enum import Enum
 from logging import Logger
 from uuid import UUID, uuid4
@@ -21,7 +22,9 @@ from typing import (
     Optional,
 )
 from pathlib import Path
+import shlex
 
+import aetcd3
 from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
@@ -66,6 +69,7 @@ from gravel.controllers.nodes.messages import (
     MessageTypeEnum,
 )
 from gravel.controllers.orch.orchestrator import Orchestrator
+from gravel.controllers.kv import KV
 
 
 logger: Logger = fastapi_logger
@@ -115,6 +119,35 @@ class JoiningNodeModel(BaseModel):
     address: str
 
 
+# We need to rely on "spawn" because otherwise the subprocess' signal
+# handler will play nasty tricks with uvicorn's and fastapi's signal
+# handlers.
+# For future reference,
+# - uvicorn issue: https://github.com/encode/uvicorn/issues/548
+# - python bug report: https://bugs.python.org/issue43064
+# - somewhat of a solution, using "spawn" for multiprocessing:
+# https://github.com/tiangolo/fastapi/issues/1487#issuecomment-657290725
+#
+# And because we need to rely on spawn, which will create a new python
+# interpreter to execute what we are specifying, the function we're passing
+# needs to be pickled. And nested functions, apparently, can't be pickled. Thus,
+# we need to have the functions at the top-level scope.
+#
+def _bootstrap_etcd_process(cmd: str):
+
+    async def _run_etcd():
+        etcd_cmd = shlex.split(cmd)
+        process = await asyncio.create_subprocess_exec(*etcd_cmd)
+        await process.wait()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(_run_etcd())
+    except KeyboardInterrupt:
+        pass
+
+
 class NodeMgr:
 
     _init_stage: NodeInitStage
@@ -125,6 +158,7 @@ class NodeMgr:
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
     _bootstrapper: Optional[Bootstrap]
+    _kvstore: Optional[KV]
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
@@ -133,24 +167,53 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._bootstrapper = None
+        self._kvstore = None
+
+        multiprocessing.set_start_method("spawn")
 
         self._node_init()
+
+    async def start(self) -> None:
         assert self._state
 
-        logger.debug(f"init > {self._state}")
+        logger.debug(f"start > {self._state}")
 
         assert self._state.stage == NodeStageEnum.NONE or \
             self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
             self._state.stage == NodeStageEnum.READY
 
         if self._state.stage == NodeStageEnum.NONE:
-            self._wait_inventory()
+            await self._wait_inventory()
         else:
             assert self._state.stage == NodeStageEnum.READY or \
                 self._state.stage == NodeStageEnum.BOOTSTRAPPED
-            self._node_start()
+            await self._spawn_etcd(new=False, token=None)
+            await self._node_start()
 
-    def _node_prestart(self, nodeinfo: NodeInfoModel):
+    async def shutdown(self) -> None:
+        if self._kvstore:
+            await self._kvstore.close()
+
+    def _node_init(self) -> None:
+        statefile: Path = self._get_node_file("node")
+        if not statefile.exists():
+
+            state = NodeStateModel(
+                uuid=uuid4(),
+                role=NodeRoleEnum.NONE,
+                stage=NodeStageEnum.NONE,
+                address=None,
+                hostname=None
+            )
+            try:
+                statefile.write_text(state.json())
+            except Exception as e:
+                raise NodeError(str(e))
+            assert statefile.exists()
+
+        self._state = NodeStateModel.parse_file(statefile)
+
+    async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
         assert self._state.stage == NodeStageEnum.NONE
         assert self._init_stage == NodeInitStage.NONE
@@ -174,9 +237,9 @@ class NodeMgr:
             address = address[:netmask_idx]
 
         self._state.address = address
-        self._save_state()
+        await self._save_state()
 
-    def _node_start(self) -> None:
+    async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
         assert self._state
         assert self._state.stage == NodeStageEnum.READY or \
@@ -185,7 +248,8 @@ class NodeMgr:
 
         logger.info("start node")
 
-        self._load()
+        await self._obtain_state()
+        await self._load()
 
         self._init_stage = NodeInitStage.STARTED
         if self._state.role != NodeRoleEnum.LEADER:
@@ -200,14 +264,21 @@ class NodeMgr:
         self._init_stage = NodeInitStage.STOPPING
         self._incoming_task.cancel()
 
-    def _wait_inventory(self) -> None:
+    async def _wait_inventory(self) -> None:
 
         async def _subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"subscriber > node info: {nodeinfo}")
             assert nodeinfo
-            self._node_prestart(nodeinfo)
+            await self._node_prestart(nodeinfo)
 
         get_inventory().subscribe(_subscriber, once=True)
+
+    def _generate_token(self) -> str:
+        def gen() -> str:
+            return ''.join(random.choice("0123456789abcdef") for _ in range(4))
+
+        tokenstr = '-'.join(gen() for _ in range(4))
+        return tokenstr
 
     async def join(self, leader_address: str, token: str) -> bool:
         logger.debug(
@@ -248,7 +319,7 @@ class NodeMgr:
         await conn.send(msg)
 
         self._state.stage = NodeStageEnum.JOINING
-        self._save_state()
+        await self._save_state()
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
@@ -257,7 +328,7 @@ class NodeMgr:
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
             self._state.stage = NodeStageEnum.NONE
-            self._save_state()
+            await self._save_state()
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -265,6 +336,16 @@ class NodeMgr:
         assert welcome.pubkey
         assert welcome.cephconf
         assert welcome.keyring
+        assert welcome.etcd_peer
+
+        my_url: str = \
+            f"{self._state.hostname}=http://{self._state.address}:2380"
+        initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
+        await self._spawn_etcd(
+            new=False,
+            token=None,
+            initial_cluster=initial_cluster
+        )
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
         if not authorized_keys.parent.exists():
@@ -293,12 +374,11 @@ class NodeMgr:
 
         self._state.stage = NodeStageEnum.READY
         self._state.role = NodeRoleEnum.FOLLOWER
-        self._save_state()
+        await self._save_state()
 
         self._token = token
-        self._save_token(should_exist=False)
 
-        self._node_start()
+        await self._node_start()
         return True
 
     async def bootstrap(self) -> None:
@@ -337,6 +417,58 @@ class NodeMgr:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
 
+    async def _spawn_etcd(
+        self,
+        new: bool,
+        token: Optional[str],
+        initial_cluster: Optional[str] = None
+    ) -> None:
+
+        assert self._state.hostname
+        assert self._state.address
+        hostname = self._state.hostname
+        address = self._state.address
+
+        logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
+
+        client_url: str = f"http://{address}:2379"
+        peer_url: str = f"http://{address}:2380"
+
+        if not initial_cluster:
+            initial_cluster = f"{hostname}={peer_url}"
+
+        args_dict: Dict[str, str] = {
+            "name": hostname,
+            "initial-advertise-peer-urls": peer_url,
+            "listen-peer-urls": peer_url,
+            "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
+            "advertise-client-urls": client_url,
+            "initial-cluster": initial_cluster,
+            "initial-cluster-state": "existing",
+            "data-dir": f"/var/lib/etcd/{hostname}.etcd"
+        }
+
+        if new:
+            assert token
+            args_dict["initial-cluster-token"] = token
+            args_dict["initial-cluster-state"] = "new"
+
+        args = " ".join([f"--{k} {v}" for k, v in args_dict.items()])
+        logger.debug(f"spawn etcd: {args}")
+        etcd_cmd = f"etcd {args}"
+
+        process = multiprocessing.Process(
+            target=_bootstrap_etcd_process,
+            args=(etcd_cmd,)
+        )
+        process.start()
+        logger.info(f"started etcd process pid = {process.pid}")
+        self._kvstore = KV()
+        await self._kvstore.ensure_connection()
+
+    async def _bootstrap_etcd(self, token: str) -> None:
+        await self._spawn_etcd(new=True, token=token)
+
     async def _prepare_bootstrap(self) -> None:
         assert self._state
         if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
@@ -346,13 +478,18 @@ class NodeMgr:
         elif self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
 
+        self._token = self._generate_token()
+        logger.info(f"generated new token: {self._token}")
+        await self._bootstrap_etcd(self._token)
+        await self._save_token()
+
     async def _start_bootstrap(self) -> None:
         assert self._state
         assert self._state.stage == NodeStageEnum.NONE
         assert self._state.hostname
         assert self._state.address
         self._state.stage = NodeStageEnum.BOOTSTRAPPING
-        self._save_state()
+        await self._save_state()
 
     async def _finish_bootstrap_error(self, error: str) -> None:
         """
@@ -364,7 +501,7 @@ class NodeMgr:
         assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
 
         self._state.stage = NodeStageEnum.ERROR
-        self._save_state()
+        await self._save_state()
 
     async def _finish_bootstrap(self):
         """
@@ -379,19 +516,12 @@ class NodeMgr:
 
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
         self._state.role = NodeRoleEnum.LEADER
-        self._save_state()
+        await self._save_state()
 
-        def gen() -> str:
-            return ''.join(random.choice("0123456789abcdef") for _ in range(4))
+        logger.debug(f"finished bootstrap: token = {self._token}")
 
-        tokenstr = '-'.join(gen() for _ in range(4))
-        self._token = tokenstr
-        self._save_token(should_exist=False)
-
-        logger.debug(f"finished bootstrap: token = {tokenstr}")
-
-        self._load()
-        self._node_start()
+        await self._load()
+        await self._node_start()
 
     async def _finish_bootstrap_config(self) -> None:
         mon: Mon = Mon()
@@ -410,6 +540,14 @@ class NodeMgr:
         res: bool = mon.set_default_ruleset()
         if not res:
             logger.error("unable to set default ruleset")
+
+        res = mon.config_set(
+            "mgr",
+            "mgr/cephadm/manage_etc_ceph_ceph_conf",
+            "true"
+        )
+        if not res:
+            logger.error("unable to enable managed ceph.conf by cephadm")
 
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
@@ -446,11 +584,15 @@ class NodeMgr:
             return
 
         self._state.stage = NodeStageEnum.READY
-        self._save_state()
+        await self._save_state()
 
     @property
     def inited(self) -> bool:
         return self._init_stage >= NodeInitStage.PRESTART
+
+    @property
+    def started(self) -> bool:
+        return self._init_stage == NodeInitStage.STARTED
 
     @property
     def stage(self) -> NodeStageEnum:
@@ -493,63 +635,44 @@ class NodeMgr:
     def token(self) -> Optional[str]:
         return self._token
 
+    @property
+    def store(self) -> KV:
+        assert self._kvstore
+        return self._kvstore
+
+    async def _obtain_state(self) -> None:
+        assert self._kvstore
+
+        def _watcher(key: str, value: str) -> None:
+            if key == "/nodes/token":
+                logger.info(f"got updated token: {value}")
+                self._token = value
+
+        self._token = await self._load_token()
+        await self._kvstore.watch("/nodes/token", _watcher)
+
     def _get_node_file(self, what: str) -> Path:
         confdir: Path = gstate.config.confdir
         assert confdir.exists()
         assert confdir.is_dir()
         return confdir.joinpath(f"{what}.json")
 
-    def _node_init(self) -> None:
-        statefile: Path = self._get_node_file("node")
-        if not statefile.exists():
-            # other control files must not exist either
-            tokenfile: Path = self._get_node_file("token")
-            assert not tokenfile.exists()
+    async def _load(self) -> None:
+        self._token = await self._load_token()
 
-            state = NodeStateModel(
-                uuid=uuid4(),
-                role=NodeRoleEnum.NONE,
-                stage=NodeStageEnum.NONE,
-                address=None,
-                hostname=None
-            )
-            try:
-                statefile.write_text(state.json())
-            except Exception as e:
-                raise NodeError(str(e))
-            assert statefile.exists()
+    async def _load_token(self) -> Optional[str]:
+        assert self._kvstore
+        tokenstr = await self._kvstore.get("/nodes/token")
+        assert tokenstr
+        return tokenstr
 
-        self._state = NodeStateModel.parse_file(statefile)
+    async def _save_token(self) -> None:
+        assert self._token
+        logger.info(f"saving token: {self._token}")
+        assert self._kvstore
+        await self._kvstore.put("/nodes/token", self._token)
 
-    def _load(self) -> None:
-        self._token = self._load_token()
-
-    def _load_token(self) -> Optional[str]:
-        assert self._state
-        confdir: Path = gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        tokenfile: Path = confdir.joinpath("token.json")
-        if not tokenfile.exists():
-            assert self._state.stage < NodeStageEnum.BOOTSTRAPPED
-            return None
-        token = TokenModel.parse_file(tokenfile)
-        return token.token
-
-    def _save_token(self, should_exist: bool = True) -> None:
-        tokenfile: Path = self._get_node_file("token")
-
-        # this check could be a single assert, but it's important to know which
-        # path failed.
-        if should_exist:
-            assert tokenfile.exists()
-        else:
-            assert not tokenfile.exists()
-
-        token: TokenModel = TokenModel(token=self._token)
-        tokenfile.write_text(token.json())
-
-    def _save_state(self, should_exist: bool = True) -> None:
+    async def _save_state(self, should_exist: bool = True) -> None:
         statefile: Path = self._get_node_file("node")
 
         # this check could be a single assert, but it's important to know which
@@ -646,10 +769,20 @@ class NodeMgr:
 
         logger.debug(f"handle join > pubkey: {pubkey}")
 
+        logger.debug("handle join > connect etcd client")
+        etcd: aetcd3.Etcd3Client = aetcd3.client()
+        peer_url: str = f"http://{msg.address}:2380"
+        logger.debug(f"handle join > add '{peer_url}' to etcd")
+        member = await etcd.add_member([peer_url])
+        assert member is not None
+
+        my_url: str = \
+            f"{self._state.hostname}=http://{self._state.address}:2380"
         welcome = WelcomeMessageModel(
             pubkey=pubkey,
             cephconf=cephconf,
-            keyring=keyring
+            keyring=keyring,
+            etcd_peer=my_url
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")
@@ -712,7 +845,17 @@ def get_node_mgr() -> NodeMgr:
     return _nodemgr
 
 
-def init_node_mgr() -> None:
+async def init_node_mgr() -> None:
     global _nodemgr
     assert not _nodemgr
+    logger.info("starting node manager")
     _nodemgr = NodeMgr()
+    await _nodemgr.start()
+
+
+async def shutdown() -> None:
+    global _nodemgr
+    if _nodemgr:
+        logger.info("shutting down node manager")
+        await _nodemgr.shutdown()
+        _nodemgr = None

@@ -44,6 +44,10 @@ class StatusOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Status Probe Interval")
 
 
+class ServicesOptionsModel(BaseModel):
+    probe_interval: float = Field(1.0, title="Services Probe Interval")
+
+
 class OptionsModel(BaseModel):
     service_state_path: Path = Field(Path(config_dir).joinpath("storage.json"),
                                      title="Path to Service State file")
@@ -51,6 +55,7 @@ class OptionsModel(BaseModel):
     storage: StorageOptionsModel = Field(StorageOptionsModel())
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
+    services: ServicesOptionsModel = Field(ServicesOptionsModel())
 
 
 class ConfigModel(BaseModel):

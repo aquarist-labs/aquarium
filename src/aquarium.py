@@ -89,7 +89,7 @@ async def on_startup():
     logger.info("Aquarium startup!")
 
     # init node mgr
-    mgr.init_node_mgr()
+    await mgr.init_node_mgr()
 
     # create a task simply so we don't hold up the startup
     asyncio.create_task(gstate.start())
@@ -98,7 +98,9 @@ async def on_startup():
 
 @app.on_event("shutdown")  # type: ignore
 async def on_shutdown():
+    logger.info("Aquarium shutdown!")
     await gstate.shutdown()
+    await mgr.shutdown()
 
 
 api.include_router(local.router)
