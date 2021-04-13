@@ -162,8 +162,7 @@ class Services(Ticker):
     async def shutdown(self) -> None:
         logger.info("shutdown services")
         if self._state_watcher_id:
-            nodemgr = get_node_mgr()
-            await nodemgr.store.cancel_watch(self._state_watcher_id)
+            await gstate.store.cancel_watch(self._state_watcher_id)
 
     async def create(
         self,
@@ -435,8 +434,7 @@ class Services(Ticker):
         state = StateModel(state=self._services)
         statestr = state.json()
 
-        nodemgr = get_node_mgr()
-        await nodemgr.store.put("/services/state", statestr)
+        await gstate.store.put("/services/state", statestr)
 
     def _load_state(self, value: str) -> None:
         assert value
@@ -446,8 +444,7 @@ class Services(Ticker):
     async def _load(self) -> None:
         assert self._is_ready()
 
-        nodemgr = get_node_mgr()
-        statestr = await nodemgr.store.get("/services/state")
+        statestr = await gstate.store.get("/services/state")
         if not statestr:
             return
         self._load_state(statestr)
@@ -461,9 +458,8 @@ class Services(Ticker):
                 return
             self._load_state(value)
 
-        nodemgr = get_node_mgr()
         self._state_watcher_id = \
-            await nodemgr.store.watch("/services/state", _cb)
+            await gstate.store.watch("/services/state", _cb)
 
 
 _services: Services = Services()

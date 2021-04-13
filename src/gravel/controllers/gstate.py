@@ -20,6 +20,7 @@ from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.config import Config
+from gravel.controllers.kv import KV
 
 
 logger: Logger = fastapi_logger
@@ -110,11 +111,13 @@ class GlobalState:
     _config: Config
     _is_shutting_down: bool
     _tickers: Dict[str, Ticker]
+    _kvstore: KV
 
     def __init__(self):
         self._config = Config()
         self._is_shutting_down = False
         self._tickers = {}
+        self._kvstore = KV()
 
     async def start(self) -> None:
         if self._is_shutting_down:
@@ -153,9 +156,16 @@ class GlobalState:
         if desc in self._tickers:
             del self._tickers[desc]
 
+    async def init_store(self) -> None:
+        await self._kvstore.ensure_connection()
+
     @property
     def config(self) -> Config:
         return self._config
+
+    @property
+    def store(self) -> KV:
+        return self._kvstore
 
 
 gstate: GlobalState = GlobalState()
