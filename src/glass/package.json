@@ -11,10 +11,11 @@
     "lint:eslint": "ng lint",
     "lint:html": "htmllint src/app/**/*.html && html-linter --config html-linter.config.json",
     "lint": "run-p -csl --aggregate-output lint:*",
-    "fix:prettier": "prettier --write \"{src,e2e}/**/*.{ts,scss}\"",
+    "fix:prettier": "prettier --write \"{src,cypress}/**/*.{ts,scss}\"",
     "fix:eslint": "npm run lint:eslint -- --fix",
     "fix": "run-p -csl --aggregate-output fix:*",
-    "e2e": "ng e2e",
+    "e2e": "start-test 4242 'cypress open'",
+    "e2e:ci": "start-test 4242 'cypress run -b chrome --headless'",
     "i18n": "npm run i18n:extract && npm run i18n:pull && npm run i18n:convert",
     "i18n:extract": "ngx-translate-extract --input src --output src/assets/i18n/aquarium.pot --sort --format pot --clean",
     "i18n:pull": "python3 -m venv venv; . venv/bin/activate; pip install transifex-client; tx --root=. pull --all --force",
@@ -100,8 +101,9 @@
     "patch-package": "^6.4.7",
     "po2json": "^0.4.5",
     "prettier": "^2.3.0",
-    "protractor": "7.0.0",
     "ts-node": "9.1.1",
-    "typescript": "~4.2.4"
+    "typescript": "~4.2.4",
+    "cypress": "^7.1.0",
+    "start-server-and-test": "^1.12.1"
   }
 }
