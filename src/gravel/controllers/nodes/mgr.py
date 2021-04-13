@@ -69,7 +69,6 @@ from gravel.controllers.nodes.messages import (
     MessageTypeEnum,
 )
 from gravel.controllers.orch.orchestrator import Orchestrator
-from gravel.controllers.kv import KV
 
 
 logger: Logger = fastapi_logger
@@ -158,7 +157,6 @@ class NodeMgr:
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
     _bootstrapper: Optional[Bootstrap]
-    _kvstore: Optional[KV]
 
     def __init__(self):
         self._init_stage = NodeInitStage.NONE
@@ -167,7 +165,6 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._bootstrapper = None
-        self._kvstore = None
 
         multiprocessing.set_start_method("spawn")
 
@@ -191,8 +188,7 @@ class NodeMgr:
             await self._node_start()
 
     async def shutdown(self) -> None:
-        if self._kvstore:
-            await self._kvstore.close()
+        pass
 
     def _node_init(self) -> None:
         statefile: Path = self._get_node_file("node")
@@ -463,8 +459,7 @@ class NodeMgr:
         )
         process.start()
         logger.info(f"started etcd process pid = {process.pid}")
-        self._kvstore = KV()
-        await self._kvstore.ensure_connection()
+        await gstate.init_store()
 
     async def _bootstrap_etcd(self, token: str) -> None:
         await self._spawn_etcd(new=True, token=token)
@@ -635,13 +630,7 @@ class NodeMgr:
     def token(self) -> Optional[str]:
         return self._token
 
-    @property
-    def store(self) -> KV:
-        assert self._kvstore
-        return self._kvstore
-
     async def _obtain_state(self) -> None:
-        assert self._kvstore
 
         def _watcher(key: str, value: str) -> None:
             if key == "/nodes/token":
@@ -649,7 +638,7 @@ class NodeMgr:
                 self._token = value
 
         self._token = await self._load_token()
-        await self._kvstore.watch("/nodes/token", _watcher)
+        await gstate.store.watch("/nodes/token", _watcher)
 
     def _get_node_file(self, what: str) -> Path:
         confdir: Path = gstate.config.confdir
@@ -661,16 +650,14 @@ class NodeMgr:
         self._token = await self._load_token()
 
     async def _load_token(self) -> Optional[str]:
-        assert self._kvstore
-        tokenstr = await self._kvstore.get("/nodes/token")
+        tokenstr = await gstate.store.get("/nodes/token")
         assert tokenstr
         return tokenstr
 
     async def _save_token(self) -> None:
         assert self._token
         logger.info(f"saving token: {self._token}")
-        assert self._kvstore
-        await self._kvstore.put("/nodes/token", self._token)
+        await gstate.store.put("/nodes/token", self._token)
 
     async def _save_state(self, should_exist: bool = True) -> None:
         statefile: Path = self._get_node_file("node")

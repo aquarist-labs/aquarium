@@ -40,7 +40,25 @@ def mock_ceph_modules():
     })
 
 
+def mock_aetcd_modules():
+    class MockAetcd3Error(Exception):
+        def __init__(self, message: str, errno: Optional[int] = None):
+            super().__init__(message)
+            self.errno = errno
+
+        def __str__(self):
+            msg = super().__str__()
+            if self.errno is None:
+                return msg
+            return f"[errno {self.errno}] {msg}"
+
+    sys.modules.update({
+        'aetcd3.etcdrpc': mock.MagicMock(Error=MockAetcd3Error, OSError=MockAetcd3Error)
+    })
+
+
 mock_ceph_modules()
+mock_aetcd_modules()
 
 
 @pytest.fixture(params=['default_ceph.conf'])
@@ -81,6 +99,7 @@ def get_data_contents(fs: fake_filesystem.FakeFilesystem):
 @pytest.fixture()
 def gstate(mocker: MockerFixture):
     mocker.patch('gravel.controllers.config.Config')
+    mocker.patch('gravel.controllers.kv.KV')
     from gravel.controllers.gstate import gstate as _gstate
     yield _gstate
 

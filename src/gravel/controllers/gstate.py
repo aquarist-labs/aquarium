@@ -14,13 +14,13 @@
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from concurrent.futures.thread import ThreadPoolExecutor
 import logging.config
 from logging import Logger
-from typing import Callable, Any, Dict
+from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.config import Config
+from gravel.controllers.kv import KV
 
 
 logger: Logger = fastapi_logger
@@ -108,36 +108,29 @@ class Ticker(ABC):
 
 class GlobalState:
 
-    executor: ThreadPoolExecutor
-    config: Config
-    is_shutting_down: bool
-    tickers: Dict[str, Ticker]
+    _config: Config
+    _is_shutting_down: bool
+    _tickers: Dict[str, Ticker]
+    _kvstore: KV
 
     def __init__(self):
-        self.executor = ThreadPoolExecutor()
-        self.config = Config()
-        self.is_shutting_down = False
-        self.tickers = {}
+        self._config = Config()
+        self._is_shutting_down = False
+        self._tickers = {}
+        self._kvstore = KV()
 
     async def start(self) -> None:
-        if self.is_shutting_down:
+        if self._is_shutting_down:
             return
         self.tick_task = asyncio.create_task(self.tick())
 
     async def shutdown(self) -> None:
-        self.is_shutting_down = True
+        self._is_shutting_down = True
         logger.info("shutdown!")
         await self.tick_task
 
-    async def run_in_background(self,
-                                func: Callable[[Any, Any], Any],
-                                *args: Any
-                                ):
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(self.executor, func, *args)
-
     async def tick(self) -> None:
-        while not self.is_shutting_down:
+        while not self._is_shutting_down:
             logger.debug("tick")
             await asyncio.sleep(1)
             await self._do_ticks()
@@ -146,22 +139,33 @@ class GlobalState:
         await self._shutdown_tickers()
 
     async def _do_ticks(self) -> None:
-        for desc, ticker in self.tickers.items():
+        for desc, ticker in self._tickers.items():
             logger.debug(f"tick {desc}")
             asyncio.create_task(ticker.tick())
 
     async def _shutdown_tickers(self) -> None:
-        for desc, ticker in self.tickers.items():
+        for desc, ticker in self._tickers.items():
             logger.debug(f"shutdown ticker {desc}")
             await ticker.shutdown()
 
     def add_ticker(self, desc: str, whom: Ticker) -> None:
-        if desc not in self.tickers:
-            self.tickers[desc] = whom
+        if desc not in self._tickers:
+            self._tickers[desc] = whom
 
     def rm_ticker(self, desc: str) -> None:
-        if desc in self.tickers:
-            del self.tickers[desc]
+        if desc in self._tickers:
+            del self._tickers[desc]
+
+    async def init_store(self) -> None:
+        await self._kvstore.ensure_connection()
+
+    @property
+    def config(self) -> Config:
+        return self._config
+
+    @property
+    def store(self) -> KV:
+        return self._kvstore
 
 
 gstate: GlobalState = GlobalState()
