@@ -45,6 +45,21 @@ dependencies_ubuntu=(
   "libvirt-daemon"
 )
 
+dependencies_build_python_leap=(
+  "gcc"
+  "automake"
+  "bzip2"
+  "libbz2-devel"
+  "xz"
+  "xz-devel"
+  "openssl-devel"
+  "ncurses-devel"
+  "readline-devel"
+  "zlib-devel"
+  "libffi-devel"
+  "sqlite3-devel"
+)
+
 usage() {
   cat << EOF
 usage: $(basename $0) [options]
@@ -52,13 +67,15 @@ usage: $(basename $0) [options]
 options:
   --show-dependencies     Show required dependencies.
   --skip-install-deps     Skip installing dependencies.
+  --pyenv-python          Use pyenv python version, e.g. 3.8.9
+
   -h|--help               This message.
 EOF
 }
 
 yes_no() {
     while true; do
-        read -p "$1? " yn
+        read -p "$1 (y/n)? " yn
         case $yn in
             [Yy]* ) return 0; break;;
             [Nn]* ) return 1; break;;
@@ -67,8 +84,30 @@ yes_no() {
     done
 }
 
+if [ "$(id -u)" -eq 0 ]; then
+	echo error: please do not run this script as root
+	exit 1
+fi
+
+osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
+
 skip_install_deps=false
 show_dependencies=false
+
+pyenv_python=""
+pyenv_python_default=3.8.9
+pyenv_url="https://github.com/pyenv/pyenv.git"
+
+export PYENV_ROOT=${PYENV_ROOT:-"$HOME/.pyenv"}
+export PATH=$PYENV_ROOT/bin:$PATH
+
+case $osid in
+    opensuse-leap)
+      pyenv_python="$pyenv_python_default"
+      ;;
+    *)
+      ;;
+esac
 
 while [[ $# -gt 0 ]]; do
 
@@ -78,6 +117,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-install-deps)
       skip_install_deps=true
+      ;;
+    --pyenv-python)
+      pyenv_python=$2
+      shift 1
       ;;
     -h|--help)
       usage
@@ -91,14 +134,6 @@ while [[ $# -gt 0 ]]; do
   esac
   shift 1
 done
-
-if [ "$(id -u)" -eq 0 ]; then
-	echo error: please do not run this script as root
-	exit 1
-fi
-
-osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
-
 
 
 if ${show_dependencies} ; then
@@ -133,6 +168,15 @@ if ! ${skip_install_deps} ; then
         echo "Dependency installation failed"
         exit 1
       }
+      if [ -n "$pyenv_python" ] ; then
+        if [[ "$osid" == "opensuse-leap" ]] ; then
+          echo "=> try installing dependencies for building python because --pyenv-python requested"
+          sudo zypper --non-interactive install ${dependencies_build_python_leap[*]} || {
+            echo "Dependency installation failed"
+            exit 1
+          }
+        fi
+      fi
       ;;
     debian)
       echo "=> installing nodejs15.x repo to apt source"
@@ -171,7 +215,37 @@ if ! ${skip_install_deps} ; then
 
 fi
 
-if ! PY_VER_STR=$(python3 --version) ; then
+if [ -n "$pyenv_python" ] ; then
+  if [ -d $PYENV_ROOT ] ; then
+    echo "WARNING: Found previously installed pyenv by [$PYENV_ROOT]" > /dev/stderr
+    if yes_no "Cleanup and reinstall from [$pyenv_url]" ; then
+      rm -rf $PYENV_ROOT
+    fi
+  fi
+
+  if [ ! -d $PYENV_ROOT ] ; then
+    mkdir -p $PYENV_ROOT
+    git clone $pyenv_url $PYENV_ROOT
+    (cd $PYENV_ROOT && src/configure && make -C src)
+  fi
+
+  if $PYENV_ROOT/bin/pyenv versions --bare | grep -s "^${pyenv_python}$" ; then
+    echo "Python version $pyenv_python is already installed in pyenv by $PYENV_ROOT" > /dev/stderr
+  else
+    echo "No required python version $pyenv_python installed in pyenv by $PYENV_ROOT" > /dev/stderr
+    echo Available python versions for the pyenv: > /dev/stderr
+    $PYENV_ROOT/bin/pyenv install --list | grep -sE '(3.8|3.9)'
+    $PYENV_ROOT/bin/pyenv install $pyenv_python
+  fi
+  $PYENV_ROOT/bin/pyenv local $pyenv_python
+fi
+
+PYTHON="python3"
+if [ -n "$pyenv_python" ] ; then
+  PYTHON="$PYENV_ROOT/bin/pyenv exec python"
+fi
+
+if ! PY_VER_STR=$($PYTHON --version) ; then
   echo "error: missing python3"
   exit 1
 fi
@@ -208,10 +282,11 @@ if [ -d venv ] ; then
     echo
 fi
 
+
 # we need system site packages because librados python bindings appear to only
 # be available as a package. It might be a good idea to compile it from the
 # ceph repo we keep as a submodule, but it might be overkill at the moment?
-python3 -m venv --system-site-packages venv || exit 1
+$PYTHON -m venv --system-site-packages venv || exit 1
 
 source venv/bin/activate
 pip install -r src/requirements.txt -U || exit 1
