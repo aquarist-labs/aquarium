@@ -704,6 +704,9 @@
         <!-- This requires openssl, and so avoids that zypper picks libressl here -->
         <package name="mokutil"/>
 
+        <!-- Needed for pip install from git repo -->
+        <package name="git"/>
+
         <package name="filesystem"/>
         <package name="glibc-locale-base"/>
         <!-- So that https repos work for image package downloads -->
