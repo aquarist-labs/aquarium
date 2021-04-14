@@ -12,13 +12,15 @@
 # GNU General Public License for more details.
 
 import os
-from typing import Any, Generator, Optional
+from typing import Optional
 import pytest
 import sys
 from unittest import mock
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from _pytest.fixtures import SubRequest
 from pytest_mock import MockerFixture
+
+from gravel.controllers.gstate import GlobalState
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -97,21 +99,19 @@ def get_data_contents(fs: fake_filesystem.FakeFilesystem):
 
 
 @pytest.fixture()
-def gstate(mocker: MockerFixture):
-    mocker.patch('gravel.controllers.config.Config')
-    mocker.patch('gravel.controllers.kv.KV')
-    from gravel.controllers.gstate import gstate as _gstate
-    yield _gstate
+def gstate(fs):
+    return GlobalState()
 
 
 @pytest.fixture()
-def services(gstate: Generator[Any, None, None], mocker: MockerFixture):
+def services(gstate: GlobalState, mocker: MockerFixture):
     class MockStorage(mocker.MagicMock):  # type: ignore
         available = 2000
     mocker.patch('gravel.controllers.resources.storage', MockStorage)
     mocker.patch('gravel.controllers.services.Services._save')
     mocker.patch('gravel.controllers.services.Services._load')
     mocker.patch('gravel.controllers.services.Services._create_service')
-    from gravel.controllers.services import Services
-    services = Services()
-    yield services
+
+    # from gravel.controllers.services import Services
+    # services = Services(0.1, gstate, nodemgr)
+    # yield services

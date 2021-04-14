@@ -13,13 +13,12 @@
 
 from logging import Logger
 from typing import Optional
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic.main import BaseModel
 
 from gravel.controllers.nodes.conn import IncomingConnection
-from gravel.controllers.nodes.mgr import get_node_mgr
 
 
 logger: Logger = fastapi_logger
@@ -39,7 +38,7 @@ class TokenReplyModel(BaseModel):
 
 
 @router.post("/join")
-async def node_join(req: NodeJoinRequestModel):
+async def node_join(req: NodeJoinRequestModel, request: Request):
     logger.debug(f"api > join {req.address} with {req.token}")
     if not req.address or not req.token:
         raise HTTPException(
@@ -47,12 +46,12 @@ async def node_join(req: NodeJoinRequestModel):
             detail="leader address and token are required"
         )
 
-    return await get_node_mgr().join(req.address, req.token)
+    return await request.app.state.nodemgr.join(req.address, req.token)
 
 
 @router.get("/token", response_model=TokenReplyModel)
-async def nodes_get_token():
-    nodemgr = get_node_mgr()
+async def nodes_get_token(request: Request):
+    nodemgr = request.app.state.nodemgr
     token: Optional[str] = nodemgr.token
     return TokenReplyModel(
         token=(token if token is not None else "")

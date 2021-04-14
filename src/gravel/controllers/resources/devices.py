@@ -22,13 +22,9 @@ from pydantic import (
     BaseModel
 )
 
-from gravel.controllers.gstate import (
-    Ticker,
-    gstate
-)
+from gravel.controllers.gstate import Ticker
 from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    get_node_mgr
+    NodeMgr
 )
 from gravel.controllers.orch.ceph import Mon
 from gravel.cephadm.models import VolumeDeviceModel
@@ -70,18 +66,15 @@ class Devices(Ticker):
     _osds_per_host: Dict[str, List[int]] = {}
     _osd_entries: Dict[int, DeviceModel] = {}
 
-    def __init__(self):
-        super().__init__(
-            "devices",
-            gstate.config.options.devices.probe_interval
-        )
+    def __init__(self, probe_interval: float, nodemgr: NodeMgr):
+        super().__init__(probe_interval)
+        self.nodemgr = nodemgr
 
     async def _do_tick(self) -> None:
         await self.probe()
 
     async def _should_tick(self) -> bool:
-        nodemgr: NodeMgr = get_node_mgr()
-        return (nodemgr.bootstrapped or nodemgr.ready)
+        return (self.nodemgr.bootstrapped or self.nodemgr.ready)
 
     async def probe(self) -> None:
 
@@ -177,11 +170,3 @@ class Devices(Ticker):
             devs_per_host[host] = host_entry
 
         return devs_per_host
-
-
-_devices = Devices()
-
-
-def get_devices() -> Devices:
-    global _devices
-    return _devices

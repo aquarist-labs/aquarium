@@ -15,7 +15,7 @@ from logging import Logger
 from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from pydantic import BaseModel
 from pydantic.fields import Field
 from gravel.controllers.orch.cephfs import (
@@ -33,8 +33,7 @@ from gravel.controllers.services import (
     ServiceRequirementsModel,
     ServiceStorageModel,
     ServiceTypeEnum,
-    UnknownServiceError,
-    get_services_ctrl
+    UnknownServiceError
 )
 
 
@@ -71,22 +70,22 @@ class CreateResponse(BaseModel):
     name="Obtain service constraints",
     response_model=ConstraintsModel
 )
-async def get_constraints() -> ConstraintsModel:
-    services = get_services_ctrl()
+async def get_constraints(request: Request) -> ConstraintsModel:
+    services = request.app.state.gstate.services
     return services.constraints
 
 
 @router.get("/", response_model=List[ServiceModel])
-async def get_services() -> List[ServiceModel]:
-    services = get_services_ctrl()
+async def get_services(request: Request) -> List[ServiceModel]:
+    services = request.app.state.gstate.services
     return services.ls()
 
 
 @router.get("/get/{service_name}",
             name="Get service by name",
             response_model=ServiceModel)
-async def get_service(service_name: str) -> ServiceModel:
-    services = get_services_ctrl()
+async def get_service(service_name: str, request: Request) -> ServiceModel:
+    services = request.app.state.gstate.services
     try:
         return services.get(service_name)
     except UnknownServiceError as e:
@@ -96,7 +95,8 @@ async def get_service(service_name: str) -> ServiceModel:
 
 @router.post("/check-requirements", response_model=RequirementsResponse)
 async def check_requirements(
-    requirements: RequirementsRequest
+    requirements: RequirementsRequest,
+    request: Request
 ) -> RequirementsResponse:
 
     size: int = requirements.size
@@ -108,15 +108,18 @@ async def check_requirements(
             detail="requires positive 'size' and number of 'replicas'"
         )
 
-    services = get_services_ctrl()
+    services = request.app.state.gstate.services
     feasible, reqs = services.check_requirements(size, replicas)
     return RequirementsResponse(feasible=feasible, requirements=reqs)
 
 
 @router.post("/create", response_model=CreateResponse)
-async def create_service(req: CreateRequest) -> CreateResponse:
+async def create_service(
+    req: CreateRequest,
+    request: Request
+) -> CreateResponse:
 
-    services = get_services_ctrl()
+    services = request.app.state.gstate.services
     try:
         await services.create(req.name, req.type, req.size, req.replicas)
     except NotImplementedError as e:
@@ -140,13 +143,13 @@ async def create_service(req: CreateRequest) -> CreateResponse:
     name="Obtain services statistics",
     response_model=Dict[str, ServiceStorageModel]
 )
-async def get_statistics() -> Dict[str, ServiceStorageModel]:
+async def get_statistics(request: Request) -> Dict[str, ServiceStorageModel]:
     """
     Returns a dictionary of service names to a dictionary containing the
     allocated space for said service and how much space is being used, along
     with the service's space utilization.
     """
-    services = get_services_ctrl()
+    services = request.app.state.gstate.services
     try:
         return services.get_stats()
     except NotReadyError:
