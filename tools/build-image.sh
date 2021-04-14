@@ -129,7 +129,7 @@ if [[ -e "${build}" ]]; then
   error_exit "build with name '${build_name}' already exists (use --clean if you want to remove it)"
 fi
 
-set -xe
+set -x
 
 mkdir -p ${build}
 
@@ -160,7 +160,7 @@ case $osid in
       system build --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
-    exit $?
+    [ $? -eq 0 ] || error_exit "Kiwi build failed"
     ;;
   debian | ubuntu)
     (set -o pipefail
@@ -168,11 +168,10 @@ case $osid in
       system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
-    exit $?
+    [ $? -eq 0 ] || error_exit "Kiwi build failed"
     ;;
   *)
-    echo "error: unsupported distribution ($osid) kiwi-ng may not work"
-    exit 1
+    error_exit "unsupported distribution ($osid) kiwi-ng may not work"
       ;;
 esac
 
