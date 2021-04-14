@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import * as _ from 'lodash';
-import { EMPTY, Observable, Subscription } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { EMPTY, Observable, Subscription, timer } from 'rxjs';
+import { catchError, finalize, take } from 'rxjs/operators';
 
 export type WidgetAction = {
   icon: string;
@@ -31,7 +31,8 @@ export class WidgetComponent implements OnInit, OnDestroy {
   data?: any;
 
   private loadingWithoutError = true;
-  private refreshDataSubscription?: Subscription;
+  private loadDataSubscription?: Subscription;
+  private timerSubscription?: Subscription;
 
   private readonly reloadTime = 15000;
 
@@ -40,7 +41,8 @@ export class WidgetComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.refreshDataSubscription?.unsubscribe();
+    this.loadDataSubscription?.unsubscribe();
+    this.timerSubscription?.unsubscribe();
   }
 
   reload(): void {
@@ -49,7 +51,7 @@ export class WidgetComponent implements OnInit, OnDestroy {
     }
     this.loading = true;
     this.loadingWithoutError = true;
-    this.refreshDataSubscription = this.loadData()
+    this.loadDataSubscription = this.loadData()
       .pipe(
         // @ts-ignore
         catchError((err) => {
@@ -62,14 +64,14 @@ export class WidgetComponent implements OnInit, OnDestroy {
         finalize(() => {
           this.error = !this.loadingWithoutError;
           this.firstLoadComplete = this.loadingWithoutError;
-          this.refreshDataSubscription?.unsubscribe();
           if (this.reloadTime > 0) {
-            setTimeout(() => {
-              this.reload();
-            }, this.reloadTime);
+            this.timerSubscription = timer(this.reloadTime)
+              .pipe(take(1))
+              .subscribe(() => this.reload());
           }
           this.loading = false;
-        })
+        }),
+        take(1)
       )
       .subscribe((data) => {
         this.data = data;
