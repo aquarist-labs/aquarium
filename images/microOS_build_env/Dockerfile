@@ -1,4 +1,4 @@
-FROM registry.opensuse.org/opensuse/leap:15.2
+FROM registry.opensuse.org/opensuse/tumbleweed:latest
 MAINTAINER Volker Theile <vtheile@suse.com>
 
 RUN zypper ref && zypper --non-interactive install zsh git \
