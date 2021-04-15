@@ -12,6 +12,7 @@ import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.
 import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
 import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
+import { BreadcrumbsComponent } from '~/app/core/navigation-bar/breadcrumbs/breadcrumbs.component';
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
@@ -28,7 +29,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     NavigationBarItemComponent,
     CephfsModalComponent,
     DeclarativeFormModalComponent,
-    NfsModalComponent
+    NfsModalComponent,
+    BreadcrumbsComponent
   ],
   imports: [
     BlockUIModule.forRoot(),

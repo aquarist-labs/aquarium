@@ -1,5 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '~/app/core/core.module';
@@ -11,7 +12,7 @@ describe('TopBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, HttpClientTestingModule, TranslateModule.forRoot()]
+      imports: [CoreModule, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 

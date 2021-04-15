@@ -1,0 +1,10 @@
+<ol class="breadcrumb"
+    fxLayout="row"
+    fxLayoutAlign="start center">
+  <li *ngFor="let breadcrumb of breadcrumbs; let last = last"
+      [ngClass]="{ 'active': last }">
+    <a *ngIf="!last"
+       [routerLink]="breadcrumb.path">{{ breadcrumb.label }}</a>
+    <span *ngIf="last">{{ breadcrumb.label }}</span>
+  </li>
+</ol>
