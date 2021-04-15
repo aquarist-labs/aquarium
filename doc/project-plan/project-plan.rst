@@ -109,4 +109,4 @@ Milestones
      -
          - Announce Aquarist Labs publicly
          - See :ref:`aquarium-public-release-plan` for more details
-     - April 17, 2021
+     - April 30, 2021
