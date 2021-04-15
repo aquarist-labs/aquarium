@@ -60,6 +60,27 @@ dependencies_build_python_leap=(
   "sqlite3-devel"
 )
 
+dependencies_build_python_deb=(
+  "make"
+  "build-essential"
+  "libssl-dev"
+  "zlib1g-dev"
+  "libbz2-dev"
+  "libreadline-dev"
+  "libsqlite3-dev"
+  "wget"
+  "curl"
+  "llvm"
+  "libncurses5-dev"
+  "xz-utils"
+  "tk-dev"
+  "libxml2-dev"
+  "libxmlsec1-dev"
+  "libffi-dev"
+  "liblzma-dev"
+)
+
+
 usage() {
   cat << EOF
 usage: $(basename $0) [options]
@@ -190,6 +211,13 @@ if ! ${skip_install_deps} ; then
         echo "Dependency installation failed"
         exit 1
       }
+      if [ -n "$pyenv_python" ] ; then
+        echo "=> try installing dependencies for building python because --pyenv-python requested"
+        sudo apt-get install -q -y --no-install-recommends ${dependencies_build_python_deb[*]} || {
+          echo "Dependency installation failed"
+          exit 1
+        }
+      fi
       ;;
     ubuntu)
       echo "=> installing nodejs15.x repo to apt source"
@@ -203,6 +231,13 @@ if ! ${skip_install_deps} ; then
         echo "Dependency installation failed"
         exit 1
       }
+      if [ -n "$pyenv_python" ] ; then
+        echo "=> try installing dependencies for building python because --pyenv-python requested"
+        sudo apt-get install -q -y --no-install-recommends ${dependencies_build_python_deb[*]} || {
+          echo "Dependency installation failed"
+          exit 1
+        }
+      fi
       ;;
     *)
       echo "error: unsupported distribution ($osid)"
