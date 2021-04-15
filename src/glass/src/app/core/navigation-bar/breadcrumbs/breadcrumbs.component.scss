@@ -1,0 +1,32 @@
+@import 'styles.scss';
+
+.breadcrumb {
+  list-style: none;
+  font-size: 1rem;
+  padding: 0;
+  margin: 0;
+
+  & > li {
+    display: inline-block;
+    position: relative;
+    transform: skewX(-15deg);
+    background-color: white;
+    margin-left: 0.5rem;
+    padding: 0 0.5rem;
+
+    &.active {
+      background-color: $eos-bc-cerulean-900;
+      color: white;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    &:not(.active):hover {
+      background-color: $eos-bc-pine-500;
+      color: white;
+    }
+  }
+}

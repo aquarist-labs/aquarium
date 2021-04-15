@@ -14,6 +14,7 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layout.component';
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
@@ -37,9 +38,19 @@ const routes: Routes = [
     component: MainLayoutComponent,
     canActivateChild: [StatusRouteGuardService],
     children: [
-      { path: 'dashboard', component: DashboardPageComponent },
-      { path: 'services', component: ServicesPageComponent },
-      { path: 'hosts', component: HostsPageComponent }
+      {
+        path: 'dashboard',
+        data: { breadcrumb: TEXT('Dashboard') },
+        children: [
+          { path: '', component: DashboardPageComponent },
+          {
+            path: 'services',
+            component: ServicesPageComponent,
+            data: { breadcrumb: TEXT('Services') }
+          },
+          { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } }
+        ]
+      }
     ]
   },
   {
