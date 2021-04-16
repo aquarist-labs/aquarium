@@ -12,7 +12,7 @@ options:
   -d|--debug          Enable debug logging to stdout
   -c|--config PATH    Set config directory to PATH
   -n|--new            Run as new deployment; blows config path if it exists
-  --with-system-deps  Run with system dependencies, not a virtualenv
+  --use-venv          Run inside a python virtualenv
   -h|--help           This message
 
 EOF
@@ -22,7 +22,7 @@ is_debug=false
 has_config=false
 config_path=""
 is_new=false
-with_systemdeps=false
+with_systemdeps=true
 port=1337
 
 while [[ $# -gt 0 ]]; do
@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
     -c|--config) has_config=true ; config_path=$2 ; shift 1 ;;
     -n|--new) is_new=true ;;
     -p|--port) port=$2 ; shift 1 ;;
-    --with-system-deps) with_systemdeps=true ;;
+    --use-venv) with_systemdeps=false ;;
     -h|--help) usage ; exit 0 ;;
     *)
       echo "error: unknown option '${1}'"
