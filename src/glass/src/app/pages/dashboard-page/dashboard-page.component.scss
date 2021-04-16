@@ -1,3 +1,31 @@
 .glass-dashboard-page-content {
+  box-sizing: border-box;
+  column-count: 1;
+  column-gap: 12px;
   margin: 24px;
+
+  .widget {
+    box-sizing: inherit;
+    display: inline-block;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  .glass-dashboard-page-content {
+    column-count: 2;
+  }
+}
+
+@media only screen and (min-width: 1280px) {
+  .glass-dashboard-page-content {
+    column-count: 3;
+  }
+}
+
+@media only screen and (min-width: 1920px) {
+  .glass-dashboard-page-content {
+    column-count: 4;
+  }
 }

@@ -7,9 +7,7 @@
       <mat-icon svgIcon="mdi:cog"></mat-icon>
     </button>
   </mat-toolbar>
-  <div class="glass-dashboard-page-content"
-       gdGap="24px"
-       gdColumns="repeat(auto-fit, minmax(400px, 1fr))">
+  <div class="glass-dashboard-page-content">
     <div *ngFor="let widget of enabledWidgets"
          class="widget">
       <ng-container [ngSwitch]="widget.id">
