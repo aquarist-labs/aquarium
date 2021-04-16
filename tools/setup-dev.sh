@@ -6,7 +6,6 @@ dependencies_opensuse_tumbleweed=(
   "kpartx"
   "make"
   "python3"
-  "python3-rados"
   "python3-kiwi"
   "nodejs-common"
   "npm"
@@ -21,7 +20,6 @@ dependencies_debian=(
   "make"
   "python3"
   "python3-pip"
-  "python3-rados"
   "python3-kiwi"
   "python3-kiwi-boxed-plugin"
   "python3-venv"
@@ -36,7 +34,6 @@ dependencies_ubuntu=(
   "make"
   "python3"
   "python3-pip"
-  "python3-rados"
   "python3-kiwi"
   "python3-kiwi-boxed-plugin"
   "python3-venv"
@@ -291,11 +288,6 @@ if [ $PY_MINOR -lt 8 ] ; then
   exit 1
 fi
 
-if ! ( echo "import rados" | python3 &>/dev/null ); then
-  echo "error: missing rados python bindings"
-  exit 1
-fi
-
 if ! npm --version &>/dev/null ; then
   echo "error: missing npm"
   exit 1
@@ -318,9 +310,11 @@ if [ -d venv ] ; then
 fi
 
 
-# we need system site packages because librados python bindings appear to only
-# be available as a package. It might be a good idea to compile it from the
-# ceph repo we keep as a submodule, but it might be overkill at the moment?
+# We need system site packages because librados python bindings are only
+# available as a package, they're not on pypi (and Tim thinks they probably
+# never will be). Setting --system-site-packages here means the venv will
+# work properly if someone uses it inside the image, where we need to be
+# able to fall back to system packages to get librados.
 $PYTHON -m venv --system-site-packages venv || exit 1
 
 source venv/bin/activate
