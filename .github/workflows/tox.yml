@@ -1,11 +1,11 @@
-name: tox 
+name: "gravel tests" 
 
 on:
   - push
   - pull_request
 
 jobs:
-  build:
+  tox:
     runs-on: ubuntu-latest
     strategy:
       matrix:
