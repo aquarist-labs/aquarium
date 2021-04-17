@@ -409,6 +409,9 @@ def cmd_create(
     image: Optional[str],
     force: bool
 ) -> None:
+    """
+    Create a new deployment
+    """
     logger.debug(f"create: ctx = {ctx}, name: {name}, box: {box}, img: {image}")
 
     avail_images = _list_images()
@@ -485,6 +488,9 @@ def cmd_create(
 @click.argument("name", required=True, type=str)
 @pass_appctx
 def cmd_remove(ctx: AppCtx, name: str) -> None:
+    """
+    Remove a deployment; doesn't remove the deployment's box
+    """
     logger.debug(f"remove => name: {name}, ctx: {ctx}")
     click.secho(f"Removing deployment '{name}'", fg="cyan")
     _remove(name)
@@ -725,7 +731,9 @@ def _cmd_try_vagrant_deployment(name: str) -> None:
 @click.option("--conservative", flag_value=True)
 @pass_appctx
 def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
-
+    """
+    Start a deployment
+    """
     _cmd_try_vagrant_deployment(name)
 
     try:
@@ -760,6 +768,9 @@ def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
 @click.argument("name", required=True, type=str)
 @pass_appctx
 def cmd_stop(ctx: AppCtx, name: str) -> None:
+    """
+    Stop deployment; destroys running machines
+    """
 
     _cmd_try_vagrant_deployment(name)
 
@@ -794,7 +805,7 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
 @pass_appctx
 def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
     """
-    Obtain a shell to a given deployment, to a specific node if specified
+    Obtain a shell for a deployment; can specify node
     """
 
     _cmd_try_vagrant_deployment(name)
