@@ -761,17 +761,23 @@ class NodeMgr:
         peer_url: str = f"http://{msg.address}:2380"
         logger.debug(f"handle join > add '{peer_url}' to etcd")
         member, nodes = await etcd.add_member([peer_url])
+        await etcd.close()
         assert member is not None
         assert nodes is not None
         assert len(nodes) > 0
 
-        my_url: str = \
-            f"{self._state.hostname}=http://{self._state.address}:2380"
+        member_urls: str = ",".join([
+            f"{m.name}={m.peer_urls[0]}" for m in nodes if (
+                len(m.peer_urls) > 0 and len(m.name) > 0
+            )
+        ])
+        logger.debug(f"{member_urls=}, member: {member.name}={member.peer_urls[0]}")
+
         welcome = WelcomeMessageModel(
             pubkey=pubkey,
             cephconf=cephconf,
             keyring=keyring,
-            etcd_peer=my_url
+            etcd_peer=member_urls
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")
