@@ -497,15 +497,6 @@ def cmd_remove(ctx: AppCtx, name: str) -> None:
     click.secho("Removed.", fg="green")
 
 
-#
-# list images and boxes
-#
-@app.group("list")
-def cmd_list() -> None:
-    logger.debug("list")
-    pass
-
-
 def print_entry(name: str) -> None:
     """ Print an entry in the format '* NAME', with pretty colors """
     print("{} {}".format(
@@ -518,26 +509,21 @@ def print_json(what: Any) -> None:
     print(json.dumps(what))
 
 
-@cmd_list.command("images")
+#
+# box-related commands
+#
+@app.group("box")
+def cmd_box() -> None:
+    """
+    Box related commands
+    """
+    logger.debug("box")
+    pass
+
+
+@cmd_box.command("list")
 @pass_appctx
-def cmd_list_images(ctx: AppCtx) -> None:
-    logger.debug("list images")
-    images = _list_images()
-    if len(images) == 0:
-        click.secho("No images found", fg="cyan")
-        return
-
-    if ctx.json:
-        print_json(images)
-        return
-
-    for image in images:
-        print_entry(image)
-
-
-@cmd_list.command("boxes")
-@pass_appctx
-def cmd_list_boxes(ctx: AppCtx) -> None:
+def cmd_box_list(ctx: AppCtx) -> None:
     logger.debug("list boxes")
     boxes = _list_boxes()
     if len(boxes) == 0:
@@ -552,54 +538,30 @@ def cmd_list_boxes(ctx: AppCtx) -> None:
         print_entry(boxname)
 
 
-@cmd_list.command("deployments")
+@app.group("image")
+def cmd_images() -> None:
+    """
+    Image related commands
+    """
+    logger.debug("image")
+    pass
+
+
+@cmd_images.command("list")
 @pass_appctx
-def cmd_list_deployments(ctx: AppCtx) -> None:
-    """ List existing deployments. """
-    logger.debug("list deployments")
-    deployments_lst = _list_deployments()
-    if len(deployments_lst) == 0:
-        click.secho("No deployments found", fg="cyan")
+def cmd_images_list(ctx: AppCtx) -> None:
+    logger.debug("list images")
+    images = _list_images()
+    if len(images) == 0:
+        click.secho("No images found", fg="cyan")
         return
 
-    deployments_path = _find_deployments_path()
-    assert deployments_path.exists()
-
-    deployments: List[DeploymentModel] = []
-    for entry in deployments_lst:
-        deployment = deployments_path.joinpath(entry)
-        assert deployment.exists()
-
-        created_on = ""
-        createdon_path = deployment.joinpath("created_on")
-        if createdon_path.exists():
-            created_on = createdon_path.read_text()
-
-        deployments.append(
-            DeploymentModel(name=entry, created_on=created_on)
-        )
-
-    json_lst: List[Dict[str, Any]] = []
-    for deployment in deployments:
-
-        if ctx.json:
-            json_lst.append(
-                {"name": deployment.name, "created_on": deployment.created_on}
-            )
-            continue
-
-        createdon_str = ""
-        if deployment.created_on:
-            created_on = dt.fromisoformat(deployment.created_on)
-            createdon_str = f"(created on: {deployment.created_on})"
-
-        print("{} {} {}".format(
-            click.style("*", fg="cyan"),
-            click.style(deployment.name, fg="white", bold=True),
-            click.style(createdon_str, fg="white")
-        ))
     if ctx.json:
-        print(json.dumps(json_lst))
+        print_json(images)
+        return
+
+    for image in images:
+        print_entry(image)
 
 
 def _parse_vagrant(raw: str) -> Dict[str, List[Tuple[str, str]]]:
@@ -881,6 +843,58 @@ def cmd_status(ctx: AppCtx, name: Optional[str]) -> None:
                 click.style(f"{node}:", fg="white"),
                 click.style(node_state, fg=color)
             ))
+
+
+@app.command("list")
+@pass_appctx
+def cmd_list(ctx: AppCtx) -> None:
+    """
+    List existing deployments
+    """
+    logger.debug("list deployments")
+    deployments_lst = _list_deployments()
+    if len(deployments_lst) == 0:
+        click.secho("No deployments found", fg="cyan")
+        return
+
+    deployments_path = _find_deployments_path()
+    assert deployments_path.exists()
+
+    deployments: List[DeploymentModel] = []
+    for entry in deployments_lst:
+        deployment = deployments_path.joinpath(entry)
+        assert deployment.exists()
+
+        created_on = ""
+        createdon_path = deployment.joinpath("created_on")
+        if createdon_path.exists():
+            created_on = createdon_path.read_text()
+
+        deployments.append(
+            DeploymentModel(name=entry, created_on=created_on)
+        )
+
+    json_lst: List[Dict[str, Any]] = []
+    for deployment in deployments:
+
+        if ctx.json:
+            json_lst.append(
+                {"name": deployment.name, "created_on": deployment.created_on}
+            )
+            continue
+
+        createdon_str = ""
+        if deployment.created_on:
+            created_on = dt.fromisoformat(deployment.created_on)
+            createdon_str = f"(created on: {deployment.created_on})"
+
+        print("{} {} {}".format(
+            click.style("*", fg="cyan"),
+            click.style(deployment.name, fg="white", bold=True),
+            click.style(createdon_str, fg="white")
+        ))
+    if ctx.json:
+        print(json.dumps(json_lst))
 
 
 if __name__ == "__main__":
