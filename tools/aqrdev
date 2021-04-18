@@ -431,6 +431,10 @@ def cmd_create(
             box = "aquarium"
         elif "aquarium" in avail_images:
             image = "aquarium"
+        elif name in avail_boxes:
+            box = name
+        elif name in avail_images:
+            image = name
         else:
             click.secho("Unable to find default box 'aquarium'", fg="red")
             sys.exit(errno.ENOENT)
