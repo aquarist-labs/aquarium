@@ -23,6 +23,7 @@ import logging
 import subprocess
 import shlex
 import shutil
+import random
 from click.decorators import make_pass_decorator
 from pathlib import Path
 from datetime import datetime as dt
@@ -377,7 +378,13 @@ def _remove(name: str) -> None:
     shutil.rmtree(deployment)
 
 
-def _create(name: str, box: str) -> None:
+def _create(
+    name: str,
+    box: str,
+    num_nodes: int,
+    num_disks: int,
+    num_nics: int
+) -> None:
     """ Create a new deployment, based on provided box. """
     rootdir = _find_root()
     assert rootdir.exists()
@@ -386,12 +393,6 @@ def _create(name: str, box: str) -> None:
     if not deployment_path.exists():
         deployment_path.mkdir()
     assert deployment_path.exists()
-
-    template_path = deployment_path.parent.joinpath("templates")
-    assert template_path.exists()
-
-    template = template_path.joinpath("Vagrantfile.tmpl")
-    assert template.exists()
 
     deployments = _list_deployments()
     boxes = _list_boxes()
@@ -412,9 +413,11 @@ def _create(name: str, box: str) -> None:
         )
         raise BaseError(f"error creating deployment: {str(e)}")
 
-    logger.debug(f"reading template from '{template_path}'")
-    template_text = template.read_text()
-    vagrantfile_text = template_text.format(BOXNAME=box, ROOTDIR=rootdir)
+    logger.debug(f"generate template, {num_nodes=}, {num_disks=}, {num_nics=}'")
+    vagrantfile_text = _gen_vagrantfile(
+        box, rootdir, False,
+        num_nodes, num_disks, num_nics
+    )
 
     vagrantfile = new_deployment.joinpath("Vagrantfile")
     logger.debug(f"writing vagrantfile at '{vagrantfile}'")
@@ -431,6 +434,74 @@ def _create(name: str, box: str) -> None:
     metafile.write_text(meta.json())
 
 
+def _gen_vagrantfile(
+    boxname: str,
+    rootdir: Path,
+    without_nfs: bool,
+    nodes: int,
+    disks: int,
+    nics: int
+) -> str:
+
+    without_nfs_str: str = "true" if without_nfs else "false"
+
+    template: str = \
+        f"""
+# -*- mode: ruby -*-
+# vim: set ft=ruby
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "{boxname}"
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_nfs_str}
+
+        """
+
+    host_port = 1337
+    for nid in range(1, nodes+1):
+
+        node_networks: str = ""
+        for _ in range(0, nics-1):
+            node_networks += \
+                """
+        node.vm.network :private_network, :type => "dhcp"
+                """
+
+        node_storage: str = ""
+        for _ in range(disks):
+            serial = "".join(random.choice("0123456789") for _ in range(8))
+            node_storage += \
+                f"""
+            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}"
+                """
+
+        is_primary_str = "true" if nid == 1 else "false"
+        node_str: str = \
+            f"""
+    config.vm.define :"node{nid}", primary: {is_primary_str} do |node|
+        node.vm.hostname = "node{nid}"
+        node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
+        {node_networks}
+
+        node.vm.provider "libvirt" do |lv|
+            lv.memory = 4096
+            lv.cpus = 1
+            {node_storage}
+        end
+    end
+            """
+
+        template += node_str
+        host_port += 1
+
+    template += \
+        """
+end
+        """
+
+    return template
+
+
 #
 # create and remove setups
 #
@@ -438,6 +509,9 @@ def _create(name: str, box: str) -> None:
 @click.option("-b", "--box", type=str, required=False)
 @click.option("-i", "--image", type=str, required=False)
 @click.option("-f", "--force", flag_value=True)
+@click.option("--num-nodes", required=False, type=int)
+@click.option("--num-disks", required=False, type=int)
+@click.option("--num-nics", required=False, type=int)
 @click.argument("name", required=True, type=str)
 @pass_appctx
 def cmd_create(
@@ -445,12 +519,19 @@ def cmd_create(
     name: str,
     box: Optional[str],
     image: Optional[str],
-    force: bool
+    force: bool,
+    num_nodes: Optional[int],
+    num_disks: Optional[int],
+    num_nics: Optional[int]
 ) -> None:
     """
     Create a new deployment
     """
     logger.debug(f"create: ctx = {ctx}, name: {name}, box: {box}, img: {image}")
+
+    num_disks = num_disks if num_disks is not None else 4
+    num_nics = num_nics if num_nics is not None else 1
+    num_nodes = num_nodes if num_nodes is not None else 2
 
     avail_images = _list_images()
     avail_boxes = _list_boxes()
@@ -521,7 +602,7 @@ def cmd_create(
         click.secho(f"Removed deployment '{name}'")
 
     try:
-        _create(name, box)
+        _create(name, box, num_nodes, num_disks, num_nics)
     except Exception as e:
         click.secho(
             f"Error creating deployment '{name}' from box '{box}': {str(e)}",
