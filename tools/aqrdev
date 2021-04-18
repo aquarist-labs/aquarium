@@ -855,7 +855,7 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
 
         if ctx.json:
             json_lst.append(
-                {"name": deployment.name, "created_on": deployment.created_on}
+                json.loads(deployment.json())
             )
             continue
 
