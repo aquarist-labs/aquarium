@@ -620,6 +620,17 @@ def cmd_remove(ctx: AppCtx, name: str) -> None:
     Remove a deployment; doesn't remove the deployment's box
     """
     logger.debug(f"remove => name: {name}, ctx: {ctx}")
+
+    must_stop: bool = False
+    state: List[Tuple[str, str]] = _get_deployment_state(name)
+    for node, node_state in state:
+        if node_state == "running":
+            click.secho(f"node '{node}' is still running", fg="red")
+            must_stop = True
+    if must_stop:
+        click.secho("Please stop the deployment before removing", fg="yellow")
+        sys.exit(errno.EBUSY)
+
     click.secho(f"Removing deployment '{name}'", fg="cyan")
     _remove(name)
     click.secho("Removed.", fg="green")
