@@ -897,10 +897,21 @@ def cmd_box() -> None:
 
 
 @cmd_box.command("list")
+@click.option("-v", "--verbose", flag_value=True)
 @pass_appctx
-def cmd_box_list(ctx: AppCtx) -> None:
+def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
     logger.debug("list boxes")
     boxes = _list_boxes()
+    deployments = _get_deployments()
+    deployment_per_box: Dict[str, List[DeploymentModel]] = {}
+
+    for deployment in deployments:
+        box = deployment.box
+        if box and box in boxes:
+            if box not in deployment_per_box:
+                deployment_per_box[box] = []
+            deployment_per_box[box].append(deployment)
+
     if len(boxes) == 0:
         click.secho("No boxes found", fg="cyan")
         return
@@ -909,8 +920,25 @@ def cmd_box_list(ctx: AppCtx) -> None:
         print_json(boxes)
         return
 
+    headerchr = chr(0x25cf)
     for boxname in boxes:
-        print_entry(boxname)
+        num_deployments = 0 if boxname not in deployment_per_box \
+                            else len(deployment_per_box[boxname])
+        click.secho("{} {} ({} deployments)".format(
+            click.style(headerchr, fg="cyan", bold=True),
+            click.style(boxname, fg="white", bold=True),
+            num_deployments
+        ))
+
+        if verbose and num_deployments > 0:
+            lst = deployment_per_box[boxname]
+            while len(lst) > 0:
+                dep = lst.pop(0)
+                prefix = chr(0x251c) if len(lst) > 0 else chr(0x2514)
+                click.secho("{} {}".format(
+                    click.style(prefix, fg="cyan", bold=True),
+                    click.style(dep.name, fg="white")
+                ))
 
 
 #
