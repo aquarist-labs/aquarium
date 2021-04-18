@@ -85,7 +85,8 @@ class DeploymentStatusError(BaseError):
 
 class DeploymentModel(BaseModel):
     name: str
-    created_on: str
+    created_on: dt
+    box: Optional[str]
 
 
 class AppCtx:
@@ -389,8 +390,14 @@ def _create(name: str, box: str) -> None:
     vagrantfile.write_text(vagrantfile_text)
 
     now = dt.now()
-    datefile = new_deployment.joinpath("created_on")
-    datefile.write_text(now.isoformat())
+    metafile = new_deployment.joinpath("meta.json")
+    assert not metafile.exists()
+    meta = DeploymentModel(
+        name=name,
+        created_on=now,
+        box=box
+    )
+    metafile.write_text(meta.json())
 
 
 #
@@ -819,13 +826,18 @@ def cmd_list(ctx: AppCtx) -> None:
         deployment = deployments_path.joinpath(entry)
         assert deployment.exists()
 
-        created_on = ""
+        metafile = deployment.joinpath("meta.json")
+        if metafile.exists():
+            deployments.append(DeploymentModel.parse_file(metafile))
+            continue
+
+        created_on_str: str = ""
         createdon_path = deployment.joinpath("created_on")
         if createdon_path.exists():
-            created_on = createdon_path.read_text()
+            created_on_str = createdon_path.read_text()
 
         deployments.append(
-            DeploymentModel(name=entry, created_on=created_on)
+            DeploymentModel(name=entry, created_on=created_on_str, box=None)
         )
 
     json_lst: List[Dict[str, Any]] = []
@@ -839,7 +851,6 @@ def cmd_list(ctx: AppCtx) -> None:
 
         createdon_str = ""
         if deployment.created_on:
-            created_on = dt.fromisoformat(deployment.created_on)
             createdon_str = f"(created on: {deployment.created_on})"
 
         print("{} {} {}".format(
