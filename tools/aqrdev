@@ -509,61 +509,6 @@ def print_json(what: Any) -> None:
     print(json.dumps(what))
 
 
-#
-# box-related commands
-#
-@app.group("box")
-def cmd_box() -> None:
-    """
-    Box related commands
-    """
-    logger.debug("box")
-    pass
-
-
-@cmd_box.command("list")
-@pass_appctx
-def cmd_box_list(ctx: AppCtx) -> None:
-    logger.debug("list boxes")
-    boxes = _list_boxes()
-    if len(boxes) == 0:
-        click.secho("No boxes found", fg="cyan")
-        return
-
-    if ctx.json:
-        print_json(boxes)
-        return
-
-    for boxname in boxes:
-        print_entry(boxname)
-
-
-@app.group("image")
-def cmd_images() -> None:
-    """
-    Image related commands
-    """
-    logger.debug("image")
-    pass
-
-
-@cmd_images.command("list")
-@pass_appctx
-def cmd_images_list(ctx: AppCtx) -> None:
-    logger.debug("list images")
-    images = _list_images()
-    if len(images) == 0:
-        click.secho("No images found", fg="cyan")
-        return
-
-    if ctx.json:
-        print_json(images)
-        return
-
-    for image in images:
-        print_entry(image)
-
-
 def _parse_vagrant(raw: str) -> Dict[str, List[Tuple[str, str]]]:
 
     result: Dict[str, List[Tuple[str, str]]] = {}
@@ -895,6 +840,64 @@ def cmd_list(ctx: AppCtx) -> None:
         ))
     if ctx.json:
         print(json.dumps(json_lst))
+
+
+#
+# box-related commands
+#
+@app.group("box")
+def cmd_box() -> None:
+    """
+    Box related commands
+    """
+    logger.debug("box")
+    pass
+
+
+@cmd_box.command("list")
+@pass_appctx
+def cmd_box_list(ctx: AppCtx) -> None:
+    logger.debug("list boxes")
+    boxes = _list_boxes()
+    if len(boxes) == 0:
+        click.secho("No boxes found", fg="cyan")
+        return
+
+    if ctx.json:
+        print_json(boxes)
+        return
+
+    for boxname in boxes:
+        print_entry(boxname)
+
+
+#
+# image related commands
+#
+@app.group("image")
+def cmd_images() -> None:
+    """
+    Image related commands
+    """
+    logger.debug("image")
+    pass
+
+
+@cmd_images.command("list")
+@pass_appctx
+def cmd_images_list(ctx: AppCtx) -> None:
+    logger.debug("list images")
+    images = _list_images()
+    if len(images) == 0:
+        click.secho("No images found", fg="cyan")
+        return
+
+    if ctx.json:
+        print_json(images)
+        return
+
+    for image in images:
+        print_entry(image)
 
 
 if __name__ == "__main__":
