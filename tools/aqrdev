@@ -268,6 +268,37 @@ def _list_deployments() -> List[str]:
     return setups
 
 
+def _get_deployment_meta(name: str) -> DeploymentModel:
+    """ Obtain a given deployment's metadata """
+    deployments_path = _find_deployments_path()
+    deployment = deployments_path.joinpath(name)
+    assert deployment.exists()
+
+    metafile = deployment.joinpath("meta.json")
+    if metafile.exists():
+        return DeploymentModel.parse_file(metafile)
+
+    created_on_str: str = ""
+    createdon_path = deployment.joinpath("created_on")
+    if createdon_path.exists():
+        created_on_str = createdon_path.read_text()
+
+    return DeploymentModel(
+        name=name,
+        created_on=created_on_str,
+        box=None
+    )
+
+
+def _get_deployments() -> List[DeploymentModel]:
+    """ Obtain deployment metadata for all known deployments """
+    deployments_lst = _list_deployments()
+    deployments: List[DeploymentModel] = []
+    for entry in deployments_lst:
+        deployments.append(_get_deployment_meta(entry))
+    return deployments
+
+
 def _import_image(imgname: str) -> None:
     """ Import an image as a vagrant box with the same name. """
     avail_boxes = _list_boxes()
@@ -814,32 +845,10 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
     List existing deployments
     """
     logger.debug("list deployments")
-    deployments_lst = _list_deployments()
-    if len(deployments_lst) == 0:
+    deployments: List[DeploymentModel] = _get_deployments()
+    if len(deployments) == 0:
         click.secho("No deployments found", fg="cyan")
         return
-
-    deployments_path = _find_deployments_path()
-    assert deployments_path.exists()
-
-    deployments: List[DeploymentModel] = []
-    for entry in deployments_lst:
-        deployment = deployments_path.joinpath(entry)
-        assert deployment.exists()
-
-        metafile = deployment.joinpath("meta.json")
-        if metafile.exists():
-            deployments.append(DeploymentModel.parse_file(metafile))
-            continue
-
-        created_on_str: str = ""
-        createdon_path = deployment.joinpath("created_on")
-        if createdon_path.exists():
-            created_on_str = createdon_path.read_text()
-
-        deployments.append(
-            DeploymentModel(name=entry, created_on=created_on_str, box=None)
-        )
 
     json_lst: List[Dict[str, Any]] = []
     for deployment in deployments:
