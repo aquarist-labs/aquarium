@@ -462,6 +462,9 @@ def cmd_create(
         except ImageNotFoundError as e:
             click.secho(f"Error importing image '{image}': {e.message}")
             sys.exit(1)
+        except BoxAlreadyExistsError:
+            click.secho("Box already exists, reusing.", fg="green")
+            box = image
     elif box and image:
         click.secho("Please provide only one of '--box' or '--image'", fg="red")
         sys.exit(errno.EINVAL)
