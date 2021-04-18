@@ -490,7 +490,6 @@ def cmd_create(
             fg="red"
         )
         raise e
-        sys.exit(1)
     click.secho("success!", fg="green")
 
 
