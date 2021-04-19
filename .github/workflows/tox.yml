@@ -1,15 +1,15 @@
-name: tox 
+name: "gravel tests" 
 
 on:
   - push
   - pull_request
 
 jobs:
-  build:
+  tox:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3]
+        python-version: [3.8]
 
     steps:
     - uses: actions/checkout@v2

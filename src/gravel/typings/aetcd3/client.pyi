@@ -206,7 +206,12 @@ class Etcd3Client:
 
     def lock(self, name: str, ttl: int = ...) -> Lock: ...
 
-    async def add_member(self, urls: List[str]) -> Member: ...
+    async def add_member(
+        self,
+        urls: List[str]
+    ) -> Tuple[Member, List[Member]]:
+        ...
+
     async def remove_member(self, member_id: int) -> None: ...
 
     async def update_member(

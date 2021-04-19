@@ -74,12 +74,6 @@ from gravel.controllers.orch.orchestrator import Orchestrator
 logger: Logger = fastapi_logger
 
 
-class NodeRoleEnum(int, Enum):
-    NONE = 0
-    LEADER = 1
-    FOLLOWER = 2
-
-
 class NodeStageEnum(int, Enum):
     NONE = 0
     BOOTSTRAPPING = 1
@@ -99,7 +93,6 @@ class NodeInitStage(int, Enum):
 
 class NodeStateModel(BaseModel):
     uuid: UUID
-    role: NodeRoleEnum
     stage: NodeStageEnum
     address: Optional[str]
     hostname: Optional[str]
@@ -196,7 +189,6 @@ class NodeMgr:
 
             state = NodeStateModel(
                 uuid=uuid4(),
-                role=NodeRoleEnum.NONE,
                 stage=NodeStageEnum.NONE,
                 address=None,
                 hostname=None
@@ -240,7 +232,6 @@ class NodeMgr:
         assert self._state
         assert self._state.stage == NodeStageEnum.READY or \
             self._state.stage == NodeStageEnum.BOOTSTRAPPED
-        assert self._state.role != NodeRoleEnum.NONE
 
         logger.info("start node")
 
@@ -248,8 +239,6 @@ class NodeMgr:
         await self._load()
 
         self._init_stage = NodeInitStage.STARTED
-        if self._state.role != NodeRoleEnum.LEADER:
-            return
 
         logger.info("start leader node")
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
@@ -299,7 +288,6 @@ class NodeMgr:
         elif self._state.stage == NodeStageEnum.READY:
             raise NodeHasJoinedError()
         assert self._state.stage == NodeStageEnum.NONE
-        assert self._state.role == NodeRoleEnum.NONE
 
         uri: str = f"ws://{leader_address}/api/nodes/ws"
         conn = await self._connmgr.connect(uri)
@@ -369,7 +357,6 @@ class NodeMgr:
         await conn.close()
 
         self._state.stage = NodeStageEnum.READY
-        self._state.role = NodeRoleEnum.FOLLOWER
         await self._save_state()
 
         self._token = token
@@ -510,7 +497,6 @@ class NodeMgr:
         await self._finish_bootstrap_config()
 
         self._state.stage = NodeStageEnum.BOOTSTRAPPED
-        self._state.role = NodeRoleEnum.LEADER
         await self._save_state()
 
         logger.debug(f"finished bootstrap: token = {self._token}")
@@ -760,16 +746,24 @@ class NodeMgr:
         etcd: aetcd3.Etcd3Client = aetcd3.client()
         peer_url: str = f"http://{msg.address}:2380"
         logger.debug(f"handle join > add '{peer_url}' to etcd")
-        member = await etcd.add_member([peer_url])
+        member, nodes = await etcd.add_member([peer_url])
+        await etcd.close()
         assert member is not None
+        assert nodes is not None
+        assert len(nodes) > 0
 
-        my_url: str = \
-            f"{self._state.hostname}=http://{self._state.address}:2380"
+        member_urls: str = ",".join([
+            f"{m.name}={m.peer_urls[0]}" for m in nodes if (
+                len(m.peer_urls) > 0 and len(m.name) > 0
+            )
+        ])
+        logger.debug(f"{member_urls=}, member: {member.name}={member.peer_urls[0]}")
+
         welcome = WelcomeMessageModel(
             pubkey=pubkey,
             cephconf=cephconf,
             keyring=keyring,
-            etcd_peer=my_url
+            etcd_peer=member_urls
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")

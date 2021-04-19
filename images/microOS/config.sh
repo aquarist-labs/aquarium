@@ -175,7 +175,7 @@ fi
 
 if [[ "$kiwi_profiles" == *"Ceph"* ]]; then
   pip install fastapi uvicorn \
-    git+https://github.com/aquarist-labs/aetcd3/@7b68cdd9c8b436b0b0a49dab9984174670ca1e30
+    git+https://github.com/aquarist-labs/aetcd3/@edf633045ce61c7bbac4d4a6ca15b14f8acfe9cd
   baseInsertService aquarium
 fi
 
