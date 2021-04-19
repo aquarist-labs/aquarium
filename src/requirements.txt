@@ -7,4 +7,4 @@ starlette==0.13.6
 uvicorn==0.13.3
 pip
 websockets==8.1
-git+https://github.com/jecluis/aetcd3/@wip-aquarium#egg=aetcd3
+git+https://github.com/aquarist-labs/aetcd3/@7b68cdd9c8b436b0b0a49dab9984174670ca1e30
