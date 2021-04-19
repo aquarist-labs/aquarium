@@ -413,7 +413,10 @@ def _create(
         )
         raise BaseError(f"error creating deployment: {str(e)}")
 
-    logger.debug(f"generate template, {num_nodes=}, {num_disks=}, {num_nics=}'")
+    logger.debug(
+        f"generate template, nodes={num_nodes}, disks={num_disks}, "
+        f"nics={num_nics}'"
+    )
     vagrantfile_text = _gen_vagrantfile(
         box, rootdir, False,
         num_nodes, num_disks, num_nics
