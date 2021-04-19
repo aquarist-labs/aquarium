@@ -72,7 +72,13 @@ export class DeclarativeFormModalComponent {
 
   onCopyToClipboard(field: FormFieldConfig): void {
     const text = this.formGroup.get(field.name)?.value;
-    try {
+    const messages = {
+      success: TEXT('Copied text to the clipboard successfully.'),
+      error: TEXT('Failed to copy text to the clipboard.'),
+      denied: TEXT('Permission denied to write data to the clipboard.')
+    };
+    // Try to use Clipboard API.
+    if (navigator.clipboard) {
       if (
         this.platform.FIREFOX ||
         this.platform.TRIDENT ||
@@ -81,25 +87,49 @@ export class DeclarativeFormModalComponent {
       ) {
         // Various browsers do not support the `Permissions API`.
         // https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API#Browser_compatibility
-        navigator.clipboard.writeText(text).then(() => {
-          this.notificationService.show(TEXT('Copied text to the clipboard successfully.'));
-        });
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            this.notificationService.show(messages.success);
+          })
+          .catch(() =>
+            this.notificationService.show(messages.error, {
+              type: 'error'
+            })
+          );
       } else {
         // Checking if we have the clipboard-write permission
         navigator.permissions
           .query({ name: 'clipboard-write' as PermissionName })
           .then((ps: PermissionStatus) => {
             if (_.includes(['granted', 'prompt'], ps.state)) {
-              navigator.clipboard.writeText(text).then(() => {
-                this.notificationService.show(TEXT('Copied text to the clipboard successfully.'));
+              navigator.clipboard
+                .writeText(text)
+                .then(() => {
+                  this.notificationService.show(messages.success);
+                })
+                .catch(() =>
+                  this.notificationService.show(messages.error, {
+                    type: 'error'
+                  })
+                );
+            } else if ('denied' === ps.state) {
+              this.notificationService.show(messages.denied, {
+                type: 'error'
               });
             }
           });
       }
-      // eslint-disable-next-line no-shadow
-    } catch (_) {
-      this.notificationService.show(TEXT('Failed to copy text to the clipboard.'), {
-        type: 'error'
+    } else {
+      // Fallback
+      const element = document.createElement('textarea');
+      element.value = text;
+      document.body.appendChild(element);
+      element.select();
+      const success = document.execCommand('copy');
+      document.body.removeChild(element);
+      this.notificationService.show(messages[success ? 'success' : 'error'], {
+        type: success ? 'info' : 'error'
       });
     }
   }
