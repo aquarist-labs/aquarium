@@ -1,8 +1,8 @@
 #!/bin/bash
 
 SCRIPT_NAME=$(basename ${BASH_SOURCE[0]})
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-VENV_DIR=${SCRIPT_DIR}/venv
+AQUARIUM_DIR=${AQUARIUM_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." ; echo $PWD)}
+VENV_DIR=${AQUARIUM_DIR}/venv
 
 usage() {
   cat <<EOF
@@ -64,10 +64,10 @@ fi
 
 if ! $with_systemdeps ; then
   source ${VENV_DIR}/bin/activate || exit $?
-  pip install -r ${SCRIPT_DIR}/src/requirements.txt || exit $?
+  pip install -r ${AQUARIUM_DIR}/src/requirements.txt || exit $?
 fi
 
-pushd ${SCRIPT_DIR}/src &>/dev/null
+pushd ${AQUARIUM_DIR}/src &>/dev/null
 
 $is_debug && export AQUARIUM_DEBUG=1
 $has_config && export AQUARIUM_CONFIG_DIR=${config_path}
