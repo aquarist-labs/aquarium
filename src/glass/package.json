@@ -52,6 +52,7 @@
     "@mdi/angular-material": "5.9.55",
     "@ngx-translate/core": "^13.0.0",
     "@swimlane/ngx-charts": "^17.0.1",
+    "angular-gridster2": "^11.1.5",
     "dayjs": "^1.10.4",
     "lodash": "^4.17.21",
     "ng-block-ui": "3.0.2",

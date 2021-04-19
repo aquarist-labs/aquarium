@@ -1,4 +1,5 @@
-<div fxLayout="column">
+<div class="glass-dashboard-page"
+     fxLayout="column">
   <mat-toolbar fxLayout="row"
                fxLayoutAlign="end center">
     <button mat-icon-button
@@ -7,10 +8,10 @@
       <mat-icon svgIcon="mdi:cog"></mat-icon>
     </button>
   </mat-toolbar>
-  <div class="glass-dashboard-page-content">
-    <div *ngFor="let widget of enabledWidgets"
-         class="widget">
-      <ng-container [ngSwitch]="widget.id">
+  <gridster [options]="gridsterConfig">
+    <gridster-item *ngFor="let item of gridsterItems"
+                   [item]="item">
+      <ng-container [ngSwitch]="item.type">
         <ng-template [ngSwitchCase]="'performance'">
           <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
         </ng-template>
@@ -36,8 +37,8 @@
           <glass-services-capacity-dashboard-widget></glass-services-capacity-dashboard-widget>
         </ng-template>
       </ng-container>
-    </div>
-  </div>
+    </gridster-item>
+  </gridster>
 </div>
 
 <mat-menu #widgetsMenu="matMenu">
