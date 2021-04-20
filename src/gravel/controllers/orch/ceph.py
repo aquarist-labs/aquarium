@@ -22,7 +22,8 @@ from typing import (
     Dict,
     Any,
     List,
-    Optional
+    Optional,
+    Union,
 )
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
@@ -261,14 +262,14 @@ class Mon(Ceph):
         assert poolname
         assert var
         assert value
-        cmd: Dict[str, str] = {
+        cmd: Dict[str, Union[str, bool]] = {
             "prefix": "osd pool set",
             "pool": poolname,
             "var": var,
             "val": value
         }
         if really:
-            cmd["yes_i_really_mean_it"] = "true"
+            cmd["yes_i_really_mean_it"] = True
 
         try:
             self.call(cmd)
