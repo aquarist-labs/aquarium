@@ -7,4 +7,28 @@
   <glass-breadcrumbs></glass-breadcrumbs>
   <span fxFlex></span>
   <glass-language-button></glass-language-button>
+  <button mat-icon-button
+          matTooltip="{{ 'Help' | translate }}"
+          [matMenuTriggerFor]="helpMenu">
+    <mat-icon svgIcon="mdi:help"></mat-icon>
+  </button>
 </mat-toolbar>
+
+<mat-menu #helpMenu="matMenu">
+  <a href="https://aquarist-labs.github.io/"
+     target="_blank"
+     class="glass-text-no-decoration">
+    <button mat-menu-item>
+      <mat-icon svgIcon="mdi:web"></mat-icon>
+      <span translate>Website</span>
+    </button>
+  </a>
+  <a href="https://github.com/aquarist-labs/forum/discussions/"
+     target="_blank"
+     class="glass-text-no-decoration">
+    <button mat-menu-item>
+      <mat-icon svgIcon="mdi:forum"></mat-icon>
+      <span translate>Discussions</span>
+    </button>
+  </a>
+</mat-menu>
