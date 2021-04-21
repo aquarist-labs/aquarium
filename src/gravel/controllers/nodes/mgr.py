@@ -19,6 +19,7 @@ from uuid import UUID, uuid4
 import random
 from typing import (
     Dict,
+    List,
     Optional,
 )
 from pathlib import Path
@@ -124,11 +125,10 @@ class JoiningNodeModel(BaseModel):
 # needs to be pickled. And nested functions, apparently, can't be pickled. Thus,
 # we need to have the functions at the top-level scope.
 #
-def _bootstrap_etcd_process(cmd: str):
+def _bootstrap_etcd_process(cmd: List[str]):
 
     async def _run_etcd():
-        etcd_cmd = shlex.split(cmd)
-        process = await asyncio.create_subprocess_exec(*etcd_cmd)
+        process = await asyncio.create_subprocess_exec(*cmd)
         await process.wait()
 
     loop = asyncio.new_event_loop()
@@ -414,7 +414,7 @@ class NodeMgr:
 
         logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
 
-        def _get_etcd_args() -> str:
+        def _get_etcd_args() -> List[str]:
             client_url: str = f"http://{address}:2379"
             peer_url: str = f"http://{address}:2380"
 
@@ -422,27 +422,28 @@ class NodeMgr:
             if not initial_cluster:
                 initial_cluster = f"{hostname}={peer_url}"
 
-            args_dict: Dict[str, str] = {
-                "name": hostname,
-                "initial-advertise-peer-urls": peer_url,
-                "listen-peer-urls": peer_url,
-                "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
-                "advertise-client-urls": client_url,
-                "initial-cluster": initial_cluster,
-                "initial-cluster-state": "existing",
-                "data-dir": f"/var/lib/etcd/{hostname}.etcd"
-            }
+            args: List[str] = [
+                "--name", hostname,
+                "--initial-advertise-peer-urls", peer_url,
+                "--listen-peer-urls", peer_url,
+                "--listen-client-urls", f"{client_url},http://127.0.0.1:2379",
+                "--advertise-client-urls", client_url,
+                "--initial-cluster", initial_cluster,
+                "--data-dir", f"/var/lib/etcd/{hostname}.etcd"
+            ]
 
             if new:
                 assert token
-                args_dict["initial-cluster-token"] = token
-                args_dict["initial-cluster-state"] = "new"
+                args += ["--initial-cluster-state", "new"]
+                args += ["--initial-cluster-token", token]
+            else:
+                args += ["--initial-cluster-state", "existing"]
 
-            return " ".join([f"--{k} {v}" for k, v in args_dict.items()])
+            return args
 
-        etcd_cmd = "etcd " + _get_etcd_args()
+        etcd_cmd = ["etcd"] + _get_etcd_args()
 
-        logger.debug(f"spawn etcd: {etcd_cmd}")
+        logger.debug("spawn etcd: " + shlex.join(etcd_cmd))
         process = multiprocessing.Process(
             target=_bootstrap_etcd_process,
             args=(etcd_cmd,)
