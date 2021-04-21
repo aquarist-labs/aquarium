@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { GridsterModule } from 'angular-gridster2';
 
 import { CoreModule } from '~/app/core/core.module';
 import { MaterialModule } from '~/app/material.modules';
@@ -35,6 +36,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     CommonModule,
     CoreModule,
     FlexLayoutModule,
+    GridsterModule,
     MaterialModule,
     RouterModule,
     SharedModule,

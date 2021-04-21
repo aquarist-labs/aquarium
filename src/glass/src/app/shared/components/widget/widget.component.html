@@ -1,4 +1,5 @@
 <mat-card class="glass-dashboard-widget"
+          fxFlexFill
           [ngClass]="{'error': error}">
   <mat-card-title-group fxLayout="row"
                         fxLayoutAlign="space-between center">
@@ -17,15 +18,13 @@
     <mat-progress-bar mode="indeterminate">
     </mat-progress-bar>
   </div>
-  <mat-card-content>
-    <ng-container *ngIf="!error && firstLoadComplete">
-      <ng-content></ng-content>
-    </ng-container>
-    <div *ngIf="error && !loading"
-         fxLayout="row"
-         fxLayoutAlign="center center">
-      <mat-icon svgIcon="mdi:lan-disconnect"></mat-icon>
-    </div>
+  <mat-card-content *ngIf="!error && firstLoadComplete">
+    <ng-content></ng-content>
+  </mat-card-content>
+  <mat-card-content *ngIf="error && !loading"
+                    fxLayout="column"
+                    fxLayoutAlign="center center">
+    <mat-icon svgIcon="mdi:lan-disconnect"></mat-icon>
   </mat-card-content>
 </mat-card>
 <mat-menu #menu="matMenu">
