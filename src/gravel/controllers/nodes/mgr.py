@@ -414,37 +414,41 @@ class NodeMgr:
 
         logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
 
-        client_url: str = f"http://{address}:2379"
-        peer_url: str = f"http://{address}:2380"
+        def _get_etcd_args() -> str:
+            client_url: str = f"http://{address}:2379"
+            peer_url: str = f"http://{address}:2380"
 
-        if not initial_cluster:
-            initial_cluster = f"{hostname}={peer_url}"
+            nonlocal initial_cluster
+            if not initial_cluster:
+                initial_cluster = f"{hostname}={peer_url}"
 
-        args_dict: Dict[str, str] = {
-            "name": hostname,
-            "initial-advertise-peer-urls": peer_url,
-            "listen-peer-urls": peer_url,
-            "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
-            "advertise-client-urls": client_url,
-            "initial-cluster": initial_cluster,
-            "initial-cluster-state": "existing",
-            "data-dir": f"/var/lib/etcd/{hostname}.etcd"
-        }
+            args_dict: Dict[str, str] = {
+                "name": hostname,
+                "initial-advertise-peer-urls": peer_url,
+                "listen-peer-urls": peer_url,
+                "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
+                "advertise-client-urls": client_url,
+                "initial-cluster": initial_cluster,
+                "initial-cluster-state": "existing",
+                "data-dir": f"/var/lib/etcd/{hostname}.etcd"
+            }
 
-        if new:
-            assert token
-            args_dict["initial-cluster-token"] = token
-            args_dict["initial-cluster-state"] = "new"
+            if new:
+                assert token
+                args_dict["initial-cluster-token"] = token
+                args_dict["initial-cluster-state"] = "new"
 
-        args = " ".join([f"--{k} {v}" for k, v in args_dict.items()])
-        logger.debug(f"spawn etcd: {args}")
-        etcd_cmd = f"etcd {args}"
+            return " ".join([f"--{k} {v}" for k, v in args_dict.items()])
 
+        etcd_cmd = "etcd " + _get_etcd_args()
+
+        logger.debug(f"spawn etcd: {etcd_cmd}")
         process = multiprocessing.Process(
             target=_bootstrap_etcd_process,
             args=(etcd_cmd,)
         )
         process.start()
+
         logger.info(f"started etcd process pid = {process.pid}")
         await self.gstate.init_store()
 
