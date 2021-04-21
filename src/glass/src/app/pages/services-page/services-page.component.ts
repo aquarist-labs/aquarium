@@ -10,7 +10,7 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { RedundancyLevelPipe } from '~/app/shared/pipes/redundancy-level.pipe';
 import { CephFSAuthorization, CephfsService } from '~/app/shared/services/api/cephfs.service';
-import { LocalNodeService } from '~/app/shared/services/api/local.service';
+import { Inventory, LocalNodeService } from '~/app/shared/services/api/local.service';
 import { ServiceDesc, ServicesService } from '~/app/shared/services/api/services.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
@@ -146,15 +146,9 @@ export class ServicesPageComponent {
                 auth: this.cephfsService.authorization(data.name),
                 inventory: this.localNodeService.inventory()
               }).subscribe((res) => {
-                // Get the IP address.
-                const physicalIfs = _.values(_.filter(res.inventory.nics, ['iftype', 'physical']));
-                let ipAddr = _.get(_.first(physicalIfs), 'ipv4_address', '<IPADDR>') as string;
-                if (ipAddr.indexOf('/')) {
-                  ipAddr = ipAddr.slice(0, ipAddr.indexOf('/'));
-                }
+                const ipAddr = this.getIpAddrFromInventory(res.inventory);
                 const secret = res.auth.key;
                 const name = res.auth.entity.replace('client.', '');
-                // Get the command line arguments.
                 const cmdArgs: Array<string> = [
                   'mount',
                   '-t',
@@ -162,35 +156,73 @@ export class ServicesPageComponent {
                   '-o',
                   `secret=${secret},name=${name}`,
                   `${ipAddr}:/`,
-                  '<DIRNAME>'
+                  '<MOUNTPOINT>'
                 ];
-                this.dialogService.open(DeclarativeFormModalComponent, undefined, {
-                  width: '60%',
-                  data: {
-                    title: 'Mount command',
-                    subtitle: TEXT(
-                      'Use the following command line to mount the CephFS file system.'
-                    ),
-                    fields: [
-                      {
-                        type: 'text',
-                        name: 'cmdline',
-                        value: cmdArgs.join(' '),
-                        readonly: true,
-                        hasCopyToClipboardButton: true,
-                        class: 'glass-text-monospaced'
-                      }
-                    ],
-                    okButtonVisible: false,
-                    cancelButtonText: TEXT('Close')
-                  }
-                });
+                this.showMountCmdDialog(cmdArgs);
               });
             }
           }
         );
         break;
+      case 'nfs':
+        result.push({
+          title: TEXT('Show mount command'),
+          callback: (data: DatatableData) => {
+            forkJoin({
+              auth: this.cephfsService.authorization(data.name),
+              inventory: this.localNodeService.inventory()
+            }).subscribe((res) => {
+              const ipAddr = this.getIpAddrFromInventory(res.inventory);
+              const cmdArgs: Array<string> = [
+                'mount',
+                '-t',
+                'nfs',
+                `${ipAddr}:/${data.name}`,
+                '<MOUNTPOINT>'
+              ];
+              this.showMountCmdDialog(cmdArgs);
+            });
+          }
+        });
     }
     return result;
+  }
+
+  /**
+   * Helper method to get the IP address from the inventory. If not
+   * found, `<IPADDR>` will be returned instead.
+   *
+   * @param inventory The node's inventory.
+   * @private
+   */
+  private getIpAddrFromInventory(inventory: Inventory): string {
+    const physicalIfs = _.values(_.filter(inventory.nics, ['iftype', 'physical']));
+    let ipAddr = _.get(_.first(physicalIfs), 'ipv4_address', '<IPADDR>') as string;
+    if (ipAddr.indexOf('/')) {
+      ipAddr = ipAddr.slice(0, ipAddr.indexOf('/'));
+    }
+    return ipAddr;
+  }
+
+  private showMountCmdDialog(cmdArgs: Array<string>): void {
+    this.dialogService.open(DeclarativeFormModalComponent, undefined, {
+      width: '60%',
+      data: {
+        title: TEXT('Mount command'),
+        subtitle: TEXT('Use the following command line to mount the file system.'),
+        fields: [
+          {
+            type: 'text',
+            name: 'cmdline',
+            value: cmdArgs.join(' '),
+            readonly: true,
+            hasCopyToClipboardButton: true,
+            class: 'glass-text-monospaced'
+          }
+        ],
+        okButtonVisible: false,
+        cancelButtonText: TEXT('Close')
+      }
+    });
   }
 }
