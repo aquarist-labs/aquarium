@@ -412,6 +412,10 @@ class NodeMgr:
         hostname = self._state.hostname
         address = self._state.address
 
+        data_dir: Path = Path("/var/lib/etcd")
+        if not data_dir.exists():
+            data_dir.mkdir(0o700)
+
         logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
 
         def _get_etcd_args() -> List[str]:
@@ -429,7 +433,7 @@ class NodeMgr:
                 "--listen-client-urls", f"{client_url},http://127.0.0.1:2379",
                 "--advertise-client-urls", client_url,
                 "--initial-cluster", initial_cluster,
-                "--data-dir", f"/var/lib/etcd/{hostname}.etcd"
+                "--data-dir", str(data_dir),
             ]
 
             if new:
@@ -441,12 +445,26 @@ class NodeMgr:
 
             return args
 
-        etcd_cmd = ["etcd"] + _get_etcd_args()
+        def _get_container_cmd():
+            registry = "quay.io/coreos/etcd"
+            version = "latest"
 
-        logger.debug("spawn etcd: " + shlex.join(etcd_cmd))
+            return [
+                'podman', 'run',
+                '--rm',
+                '--net=host',
+                '--entrypoint', '/usr/local/bin/etcd',
+                '-v', f'{data_dir}:{data_dir}',
+                '--name', f'etcd.{hostname}',
+                f'{registry}:{version}',
+            ] + _get_etcd_args()
+
+        cmd = _get_container_cmd()
+
+        logger.debug("spawn etcd: " + shlex.join(cmd))
         process = multiprocessing.Process(
             target=_bootstrap_etcd_process,
-            args=(etcd_cmd,)
+            args=(cmd,)
         )
         process.start()
 
