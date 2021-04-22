@@ -76,23 +76,12 @@ export class ServicesPageComponent {
     ];
   }
 
-  onAddService(type: string): void {
-    switch (type) {
-      case 'cephfs':
-        this.dialogService.openCephfs((res) => {
-          if (res) {
-            this.loadData();
-          }
-        });
-        break;
-      case 'nfs':
-        this.dialogService.openNfs((res) => {
-          if (res) {
-            this.loadData();
-          }
-        });
-        break;
-    }
+  onAddService(): void {
+    this.dialogService.openFileService((res) => {
+      if (res) {
+        this.loadData();
+      }
+    });
   }
 
   loadData(): void {

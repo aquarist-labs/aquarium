@@ -158,20 +158,12 @@ export class DeploymentPageComponent implements OnInit {
       );
   }
 
-  public openNfsDialog(): void {
-    this.dialog.openNfs((result) => {
+  public openFileServiceDialog(type: string): void {
+    this.dialog.openFileService((result) => {
       if (result) {
-        this.updateServicesLists(['nfs']);
+        this.updateServicesLists([type]);
       }
-    });
-  }
-
-  public openCephfsDialog(): void {
-    this.dialog.openCephfs((result) => {
-      if (result) {
-        this.updateServicesLists(['cephfs']);
-      }
-    });
+    }, type);
   }
 
   public markDeploymentFinished(): void {

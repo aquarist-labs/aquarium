@@ -1,15 +1,16 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '~/app/core/core.module';
-import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
 
-describe('CephfsModalComponent', () => {
-  let component: CephfsModalComponent;
-  let fixture: ComponentFixture<CephfsModalComponent>;
+import { FileServiceModalComponent } from './file-service-modal.component';
+
+describe('FileServiceModalComponent', () => {
+  let component: FileServiceModalComponent;
+  let fixture: ComponentFixture<FileServiceModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -23,13 +24,17 @@ describe('CephfsModalComponent', () => {
         {
           provide: MatDialogRef,
           useValue: {}
+        },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {}
         }
       ]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CephfsModalComponent);
+    fixture = TestBed.createComponent(FileServiceModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

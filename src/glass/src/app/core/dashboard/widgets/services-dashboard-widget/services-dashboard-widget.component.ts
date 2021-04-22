@@ -27,21 +27,21 @@ export class ServicesDashboardWidgetComponent implements OnInit {
       icon: 'plus-circle-outline',
       name: TEXT('CephFS Service'),
       action: () =>
-        this.dialog.openCephfs((res) => {
+        this.dialog.openFileService((res) => {
           if (res) {
             this.widget?.reload();
           }
-        })
+        }, 'cephfs')
     },
     {
       icon: 'plus-circle-outline',
       name: TEXT('NFS Service'),
       action: () =>
-        this.dialog.openNfs((res) => {
+        this.dialog.openFileService((res) => {
           if (res) {
             this.widget?.reload();
           }
-        })
+        }, 'nfs')
     }
   ];
 

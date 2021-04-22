@@ -12,9 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSliderChange } from '@angular/material/slider';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
@@ -32,26 +32,43 @@ import {
 import { NotificationService } from '~/app/shared/services/notification.service';
 
 @Component({
-  selector: 'glass-cephfs-modal',
-  templateUrl: './cephfs-modal.component.html',
-  styleUrls: ['./cephfs-modal.component.scss']
+  selector: 'glass-file-service-modal',
+  templateUrl: './file-service-modal.component.html',
+  styleUrls: ['./file-service-modal.component.scss']
 })
-export class CephfsModalComponent implements OnInit {
+export class FileServiceModalComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
   public formGroup: FormGroup;
   public showWarning = false;
   public showWarningText: string[] = [];
+  public types = [
+    {
+      id: 'cephfs',
+      text: 'CephFS'
+    },
+    {
+      id: 'nfs',
+      text: 'NFS'
+    }
+  ];
+  public type: string | undefined = undefined;
+  public title = 'File Service';
 
   private constraints: Constraints | undefined = undefined;
 
-  public constructor(
-    private dialogRef: MatDialogRef<CephfsModalComponent>,
+  constructor(
+    private dialogRef: MatDialogRef<FileServiceModalComponent>,
     private services: ServicesService,
     private formBuilder: FormBuilder,
-    private notification: NotificationService
+    private notification: NotificationService,
+    @Inject(MAT_DIALOG_DATA) config: any
   ) {
+    if (config && ('type' in config)) {
+      this.type = config.type;
+      this.title = _.filter(this.types, ['id', config.type])[0].text;
+    }
     this.formGroup = this.formBuilder.group({
       availableSpace: [0],
       reservedSpace: [0],
@@ -61,6 +78,13 @@ export class CephfsModalComponent implements OnInit {
         [Validators.required],
         [GlassValidators.unique(this.services.exists, this.services)]
       ],
+      type: [
+        {
+          value: this.type,
+          disabled: !!this.type
+        },
+        [Validators.required]
+      ],
       replicas: [
         2,
         [Validators.required, Validators.min(1), Validators.max(3), this.budgetValidator(this)]
@@ -69,7 +93,7 @@ export class CephfsModalComponent implements OnInit {
     });
   }
 
-  public ngOnInit(): void {
+  ngOnInit(): void {
     this.services.getConstraints().subscribe({
       next: (constraints: Constraints) => {
         this.formGroup.patchValue({
@@ -150,9 +174,10 @@ export class CephfsModalComponent implements OnInit {
 
   private createService(): void {
     const values = this.formGroup.value;
-    this.blockUI.start(translate(TEXT('Please wait, deploying CephFS service ...')));
+    const type = values.type || this.type;
+    this.blockUI.start(translate(TEXT('Please wait, deploying service ...')));
     this.services
-      .create(values.name, 'cephfs', values.requiredSpace, values.replicas)
+      .create(values.name, type , values.requiredSpace, values.replicas)
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe({
         next: (result: CreateServiceReply) => {

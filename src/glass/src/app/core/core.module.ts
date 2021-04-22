@@ -9,9 +9,8 @@ import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layout.component';
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
-import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
-import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
+import { FileServiceModalComponent } from '~/app/core/modals/file-service/file-service-modal.component';
 import { BreadcrumbsComponent } from '~/app/core/navigation-bar/breadcrumbs/breadcrumbs.component';
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
@@ -27,10 +26,9 @@ import { SharedModule } from '~/app/shared/shared.module';
     InstallerLayoutComponent,
     BlankLayoutComponent,
     NavigationBarItemComponent,
-    CephfsModalComponent,
     DeclarativeFormModalComponent,
-    NfsModalComponent,
-    BreadcrumbsComponent
+    BreadcrumbsComponent,
+    FileServiceModalComponent
   ],
   imports: [
     BlockUIModule.forRoot(),

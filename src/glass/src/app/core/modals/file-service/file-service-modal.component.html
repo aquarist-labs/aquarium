@@ -1,4 +1,4 @@
-<div class="glass-cephfs-modal">
+<div class="glass-fileservice-modal">
   <mat-card *ngIf="showWarning"
             class="warning">
     <mat-card-content fxLayout="row">
@@ -13,7 +13,10 @@
       </div>
     </mat-card-content>
   </mat-card>
-  <h1 mat-dialog-title>CephFS</h1>
+  <h1 mat-dialog-title
+      translate>
+    {{ title }}
+  </h1>
   <mat-dialog-content fxLayout="column"
                       fxLayoutAlign="none">
     <form [formGroup]="formGroup"
@@ -61,6 +64,22 @@
           <span *ngIf="formGroup.hasError('notUnique', 'name')"
                 translate>
             The service name already exists.
+          </span>
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex>
+        <mat-label translate>Service Type</mat-label>
+        <mat-select formControlName="type"
+                    required>
+          <mat-option *ngFor="let type of types"
+                      [value]="type.id">
+            {{ type.text }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="formGroup.invalid">
+          <span *ngIf="formGroup.hasError('required', 'serviceType')"
+                translate>
+            This field is required.
           </span>
         </mat-error>
       </mat-form-field>
