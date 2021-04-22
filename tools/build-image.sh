@@ -146,14 +146,14 @@ make dist
 tmpdir=$(mktemp -d)
 pushd ${tmpdir}
 tar --strip-components=1 -xzf ${rootdir}/aquarium*.tar.gz
-cp -ar ${imgdir}/microOS/root/* ./
+sudo cp -r ${imgdir}/microOS/root/* ./
 tar -czf ${build}/aquarium.tar.gz .
 popd
 rm -rf ${tmpdir}
 
 tmpdir=$(mktemp -d)
 pushd ${tmpdir}
-cp -ar ${imgdir}/microOS/aquarium_root/* ./
+sudo cp -r ${imgdir}/microOS/aquarium_root/* ./
 tar -czf ${build}/aquarium_user.tar.gz .
 popd
 rm -rf ${tmpdir}

@@ -94,7 +94,7 @@
             firmware="uefi"
             initrd_system="dracut"
             installiso="true"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0"
             devicepersistency="by-uuid"
         >
             <oemconfig>
@@ -178,6 +178,7 @@
         <package name="grep"/>
         <package name="gzip"/>
         <package name="gawk"/>
+        <package name="issue-generator"/>
 
         <!-- Vagrant sudo-->
         <package name="sudo"/>

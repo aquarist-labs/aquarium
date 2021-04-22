@@ -40,6 +40,7 @@ suseSetupProduct
 #--------------------------------------
 suseInsertService sshd
 suseInsertService aquarium
+suseInsertService update_motd
 
 #======================================
 # Specify default systemd target
