@@ -15,7 +15,6 @@ import os
 from typing import Optional
 import pytest
 import sys
-from unittest import mock
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from _pytest.fixtures import SubRequest
 from pytest_mock import MockerFixture
@@ -25,7 +24,7 @@ from gravel.controllers.gstate import GlobalState
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
-def mock_ceph_modules():
+def mock_ceph_modules(mocker):
     class MockRadosError(Exception):
         def __init__(self, message: str, errno: Optional[int] = None):
             super(MockRadosError, self).__init__(message)
@@ -38,11 +37,11 @@ def mock_ceph_modules():
             return '[errno {0}] {1}'.format(self.errno, msg)
 
     sys.modules.update({
-        'rados': mock.MagicMock(Error=MockRadosError, OSError=MockRadosError),
+        'rados': mocker.MagicMock(Error=MockRadosError, OSError=MockRadosError),
     })
 
 
-def mock_aetcd_modules():
+def mock_aetcd_modules(mocker):
     class MockAetcd3Error(Exception):
         def __init__(self, message: str, errno: Optional[int] = None):
             super().__init__(message)
@@ -55,12 +54,8 @@ def mock_aetcd_modules():
             return f"[errno {self.errno}] {msg}"
 
     sys.modules.update({
-        'aetcd3.etcdrpc': mock.MagicMock(Error=MockAetcd3Error, OSError=MockAetcd3Error)
+        'aetcd3.etcdrpc': mocker.MagicMock(Error=MockAetcd3Error, OSError=MockAetcd3Error)
     })
-
-
-mock_ceph_modules()
-mock_aetcd_modules()
 
 
 @pytest.fixture(params=['default_ceph.conf'])
@@ -99,19 +94,66 @@ def get_data_contents(fs: fake_filesystem.FakeFilesystem):
 
 
 @pytest.fixture()
-def gstate(fs):
-    return GlobalState()
+@pytest.mark.asyncio
+async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
+    mock_ceph_modules(mocker)
+    mock_aetcd_modules(mocker)
+
+    from gravel.controllers.nodes.mgr import NodeMgr
+    from gravel.controllers.resources.inventory import Inventory
+    from gravel.controllers.resources.devices import Devices
+    from gravel.controllers.resources.status import Status
+    from gravel.controllers.resources.storage import Storage
+    from gravel.controllers.services import Services, ServiceModel
+
+    class FakeServices(Services):
+        async def _save(self):
+            pass
+
+        async def _load(self):
+            pass
+
+        def _create_cephfs(self, svc: ServiceModel):
+            pass
+
+        def _create_nfs(self, svc: ServiceModel):
+            pass
+
+        def _is_ready(self):
+            return True
+
+    class FakeStorage(Storage):  # type: ignore
+        available = 2000
+        total = 2000
+
+    gstate: GlobalState = GlobalState()
+
+    # init node mgr
+    nodemgr: NodeMgr = NodeMgr(gstate)
+
+    devices: Devices = Devices(gstate.config.options.devices.probe_interval, nodemgr)
+    gstate.add_devices(devices)
+
+    status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
+    gstate.add_status(status)
+
+    inventory: Inventory = Inventory(gstate.config.options.inventory.probe_interval)
+    gstate.add_inventory(inventory)
+
+    storage: Storage = FakeStorage(gstate.config.options.storage.probe_interval, nodemgr)
+    gstate.add_storage(storage)
+
+    services: Services = FakeServices(
+        gstate.config.options.services.probe_interval, gstate, nodemgr)
+    gstate.add_services(services)
+
+    await nodemgr.start()
+    await gstate.start()
+
+    return gstate
 
 
 @pytest.fixture()
-def services(gstate: GlobalState, mocker: MockerFixture):
-    class MockStorage(mocker.MagicMock):  # type: ignore
-        available = 2000
-    mocker.patch('gravel.controllers.resources.storage', MockStorage)
-    mocker.patch('gravel.controllers.services.Services._save')
-    mocker.patch('gravel.controllers.services.Services._load')
-    mocker.patch('gravel.controllers.services.Services._create_service')
-
-    # from gravel.controllers.services import Services
-    # services = Services(0.1, gstate, nodemgr)
-    # yield services
+@pytest.mark.asyncio
+async def services(gstate: GlobalState):
+    return gstate.services
