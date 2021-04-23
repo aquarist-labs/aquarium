@@ -14,7 +14,7 @@
 from logging import Logger
 from typing import Optional
 from pathlib import Path
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -24,8 +24,7 @@ from gravel.controllers.resources.status import (
     CephStatusNotAvailableError,
     ClientIORateNotAvailableError,
     OverallClientIORateModel,
-    Status,
-    get_status_ctrl
+    Status
 )
 
 
@@ -42,9 +41,9 @@ class StatusModel(BaseModel):
 
 
 @router.get("/", response_model=StatusModel)
-async def get_status() -> StatusModel:
+async def get_status(request: Request) -> StatusModel:
 
-    status_ctrl: Status = get_status_ctrl()
+    status_ctrl: Status = request.app.state.gstate.status
     cluster: Optional[CephStatusModel] = None
 
     try:
@@ -73,7 +72,7 @@ async def get_logs() -> str:
     name="Obtain Client I/O rates for the cluster and individual services",
     response_model=OverallClientIORateModel
 )
-async def get_client_io_rates() -> OverallClientIORateModel:
+async def get_client_io_rates(request: Request) -> OverallClientIORateModel:
     """
     Obtain the cluster's overal IO rates, and service-specific IO rates.
 
@@ -84,7 +83,7 @@ async def get_client_io_rates() -> OverallClientIORateModel:
     This information is obtained periodically.
     """
 
-    status_ctrl: Status = get_status_ctrl()
+    status_ctrl: Status = request.app.state.gstate.status
     try:
         rates = status_ctrl.client_io_rate
         return rates

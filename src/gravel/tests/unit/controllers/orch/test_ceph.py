@@ -19,13 +19,16 @@ from typing import Any, Callable, Dict, Generator
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from pytest_mock import MockerFixture
 
-from gravel.controllers.orch.ceph import Mgr, Mon
+from gravel.tests.conftest import mock_ceph_modules
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 TEST_DIR = os.path.join(os.path.dirname(__file__), '../../../')
 
 
-def test_ceph_conf(fs: fake_filesystem.FakeFilesystem):
+def test_ceph_conf(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
+    mock_ceph_modules(mocker)
+    from gravel.controllers.orch.ceph import Mgr, Mon
+
     # default location
     fs.add_real_file(  # pyright: reportUnknownMemberType=false
         os.path.join(TEST_DIR, 'data/default_ceph.conf'),
@@ -55,6 +58,7 @@ def test_mon_df(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str]
 ):
+    from gravel.controllers.orch.ceph import Mon
     mon = Mon()
     mon.call = mocker.MagicMock(
         return_value=json.loads(get_data_contents(DATA_DIR, 'mon_df_raw.json'))
@@ -69,6 +73,7 @@ def test_get_osdmap(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str]
 ):
+    from gravel.controllers.orch.ceph import Mon
     mon = Mon()
     mon.call = mocker.MagicMock(
         return_value=json.loads(
@@ -83,6 +88,7 @@ def test_get_pools(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str]
 ):
+    from gravel.controllers.orch.ceph import Mon
     mon = Mon()
     mon.call = mocker.MagicMock(
         return_value=json.loads(
@@ -96,6 +102,8 @@ def test_set_pool_size(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture
 ):
+    from gravel.controllers.orch.ceph import Mon
+
     def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
         assert "prefix" in args
         assert "pool" in args

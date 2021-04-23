@@ -24,7 +24,7 @@ from pydantic import (
 
 from gravel.controllers.gstate import (
     Ticker,
-    gstate
+    GlobalState
 )
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import (
@@ -33,13 +33,11 @@ from gravel.controllers.orch.models import (
 )
 from gravel.controllers.nodes.mgr import (
     NodeMgr,
-    NodeStageEnum,
-    get_node_mgr
+    NodeStageEnum
 )
 from gravel.controllers.services import (
     ServiceTypeEnum,
-    Services,
-    get_services_ctrl
+    Services
 )
 
 
@@ -78,11 +76,10 @@ class Status(Ticker):
     _latest_cluster: Optional[CephStatusModel]
     _latest_pools_stats: Dict[int, CephOSDPoolStatsModel]
 
-    def __init__(self):
-        super().__init__(
-            "status",
-            gstate.config.options.status.probe_interval
-        )
+    def __init__(self, probe_interval: float, gstate: GlobalState, nodemgr: NodeMgr):
+        super().__init__(probe_interval)
+        self.gstate = gstate
+        self.nodemgr = nodemgr
         self._mon = None
         self._latest_cluster = None
         self._latest_pools_stats = {}
@@ -95,9 +92,8 @@ class Status(Ticker):
         await self.probe()
 
     async def _should_tick(self) -> bool:
-        nodemgr: NodeMgr = get_node_mgr()
-        return (nodemgr.stage >= NodeStageEnum.BOOTSTRAPPED and
-                nodemgr.stage != NodeStageEnum.JOINING)
+        return (self.nodemgr.stage >= NodeStageEnum.BOOTSTRAPPED and
+                self.nodemgr.stage != NodeStageEnum.JOINING)
 
     async def probe(self) -> None:
         assert self._mon
@@ -122,7 +118,7 @@ class Status(Ticker):
             raise ClientIORateNotAvailableError()
 
         services_rates: List[ServiceIORateModel] = []
-        services: Services = get_services_ctrl()
+        services: Services = self.gstate.services
         for service in services.ls():
             svc_name: str = service.name
             svc_type: ServiceTypeEnum = service.type
@@ -155,11 +151,3 @@ class Status(Ticker):
             cluster=cluster_rates,
             services=services_rates
         )
-
-
-_status = Status()
-
-
-def get_status_ctrl() -> Status:
-    global _status
-    return _status

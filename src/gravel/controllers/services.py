@@ -18,8 +18,7 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
 from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    get_node_mgr
+    NodeMgr
 )
 
 from gravel.controllers.orch.ceph import Mon
@@ -36,16 +35,14 @@ from gravel.controllers.orch.nfs import (
 )
 from gravel.controllers.gstate import (
     Ticker,
-    gstate
+    GlobalState
 )
 from gravel.controllers.resources.devices import (
     DeviceHostModel,
-    Devices,
-    get_devices
+    Devices
 )
 from gravel.controllers.resources.storage import (
-    Storage, StoragePoolModel,
-    get_storage
+    Storage, StoragePoolModel
 )
 
 
@@ -135,18 +132,16 @@ class Services(Ticker):
     _ready: bool
     _state_watcher_id: Optional[int]
 
-    def __init__(self):
-        super().__init__(
-            "services",
-            gstate.config.options.services.probe_interval
-        )
+    def __init__(self, probe_interval: float, gstate: GlobalState, nodemgr: NodeMgr):
+        super().__init__(probe_interval)
+        self.gstate = gstate
+        self.nodemgr = nodemgr
         self._services = {}
         self._ready = False
         self._state_watcher_id = None
 
     def _is_ready(self) -> bool:
-        nodemgr: NodeMgr = get_node_mgr()
-        return nodemgr.started
+        return self.nodemgr.started
 
     async def _should_tick(self) -> bool:
         return self._is_ready()
@@ -162,7 +157,7 @@ class Services(Ticker):
     async def shutdown(self) -> None:
         logger.info("shutdown services")
         if self._state_watcher_id:
-            await gstate.store.cancel_watch(self._state_watcher_id)
+            await self.gstate.store.cancel_watch(self._state_watcher_id)
 
     async def create(
         self,
@@ -226,7 +221,7 @@ class Services(Ticker):
 
     @property
     def available_space(self) -> int:
-        storage: Storage = get_storage()
+        storage: Storage = self.gstate.storage
         total_storage: int = storage.total
         return (total_storage - self.total_raw_reservation)
 
@@ -244,7 +239,7 @@ class Services(Ticker):
         Calculate constraints for service deployment. These are generic and not
         tied to any particular service's requirements.
         """
-        devices_ctrl: Devices = get_devices()
+        devices_ctrl: Devices = self.gstate.devices
         devs_per_host: Dict[str, DeviceHostModel] = \
             devices_ctrl.devices_per_host
 
@@ -314,7 +309,7 @@ class Services(Ticker):
         if not self._is_ready():
             raise NotReadyError()
 
-        storage: Storage = get_storage()
+        storage: Storage = self.gstate.storage
         storage_pools: Dict[int, StoragePoolModel] = storage.usage().pools_by_id
 
         services: Dict[str, ServiceStorageModel] = {}
@@ -434,7 +429,7 @@ class Services(Ticker):
         state = StateModel(state=self._services)
         statestr = state.json()
 
-        await gstate.store.put("/services/state", statestr)
+        await self.gstate.store.put("/services/state", statestr)
 
     def _load_state(self, value: str) -> None:
         assert value
@@ -444,7 +439,7 @@ class Services(Ticker):
     async def _load(self) -> None:
         assert self._is_ready()
 
-        statestr = await gstate.store.get("/services/state")
+        statestr = await self.gstate.store.get("/services/state")
         if not statestr:
             return
         self._load_state(statestr)
@@ -459,13 +454,4 @@ class Services(Ticker):
             self._load_state(value)
 
         self._state_watcher_id = \
-            await gstate.store.watch("/services/state", _cb)
-
-
-_services: Services = Services()
-
-
-def get_services_ctrl() -> Services:
-    global _services
-    assert _services
-    return _services
+            await self.gstate.store.watch("/services/state", _cb)

@@ -13,7 +13,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import asyncio
 import logging
 import logging.config
 import os
@@ -21,8 +20,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger as fastapi_logger
 
-from gravel.controllers.gstate import gstate, setup_logging
-from gravel.controllers.nodes import mgr
+from gravel.controllers.gstate import GlobalState, setup_logging
+from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.resources.inventory import Inventory
+from gravel.controllers.resources.devices import Devices
+from gravel.controllers.resources.status import Status
+from gravel.controllers.resources.storage import Storage
+from gravel.controllers.services import Services
 
 from gravel.api import (
     bootstrap,
@@ -88,19 +92,41 @@ async def on_startup():
     setup_logging(lvl)
     logger.info("Aquarium startup!")
 
-    # init node mgr
-    await mgr.init_node_mgr()
+    gstate: GlobalState = GlobalState()
 
-    # create a task simply so we don't hold up the startup
-    asyncio.create_task(gstate.start())
-    pass
+    # init node mgr
+    logger.info("starting node manager")
+    nodemgr: NodeMgr = NodeMgr(gstate)
+
+    devices: Devices = Devices(gstate.config.options.devices.probe_interval, nodemgr)
+    gstate.add_devices(devices)
+
+    status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
+    gstate.add_status(status)
+
+    inventory: Inventory = Inventory(gstate.config.options.inventory.probe_interval)
+    gstate.add_inventory(inventory)
+
+    storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr)
+    gstate.add_storage(storage)
+
+    services: Services = Services(gstate.config.options.services.probe_interval, gstate, nodemgr)
+    gstate.add_services(services)
+
+    await nodemgr.start()
+    await gstate.start()
+
+    # Add instances into FastAPI's state:
+    app.state.gstate = gstate
+    app.state.nodemgr = nodemgr
 
 
 @app.on_event("shutdown")  # type: ignore
 async def on_shutdown():
     logger.info("Aquarium shutdown!")
-    await gstate.shutdown()
-    await mgr.shutdown()
+    await app.state.gstate.shutdown()
+    logger.info("shutting down node manager")
+    await app.state.nodemgr.shutdown()
 
 
 api.include_router(local.router)

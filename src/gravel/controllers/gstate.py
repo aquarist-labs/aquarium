@@ -11,6 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 import asyncio
 import time
 from abc import ABC, abstractmethod
@@ -22,6 +24,13 @@ from fastapi.logger import logger as fastapi_logger
 from gravel.controllers.config import Config
 from gravel.controllers.kv import KV
 
+import typing
+if typing.TYPE_CHECKING:
+    from gravel.controllers.resources.inventory import Inventory
+    from gravel.controllers.resources.devices import Devices
+    from gravel.controllers.resources.status import Status
+    from gravel.controllers.resources.storage import Storage
+    from gravel.controllers.services import Services
 
 logger: Logger = fastapi_logger
 
@@ -74,11 +83,10 @@ def setup_logging(console_level: str) -> None:
 
 class Ticker(ABC):
 
-    def __init__(self, name: str, tick_interval: float):
+    def __init__(self, probe_interval: float):
         self._last_tick: float = 0
-        self._tick_interval: float = tick_interval
+        self._tick_interval: float = probe_interval
         self._is_ticking: bool = False
-        gstate.add_ticker(name, self)
 
     @abstractmethod
     async def _do_tick(self) -> None:
@@ -112,12 +120,37 @@ class GlobalState:
     _is_shutting_down: bool
     _tickers: Dict[str, Ticker]
     _kvstore: KV
+    devices: Devices
+    status: Status
+    inventory: Inventory
+    storage: Storage
+    services: Services
 
     def __init__(self):
         self._config = Config()
         self._is_shutting_down = False
         self._tickers = {}
         self._kvstore = KV()
+
+    def add_devices(self, devices: Devices):
+        self.devices = devices
+        self.add_ticker('devices', devices)
+
+    def add_status(self, status: Status):
+        self.status = status
+        self.add_ticker('status', status)
+
+    def add_inventory(self, inventory: Inventory):
+        self.inventory = inventory
+        self.add_ticker('inventory', inventory)
+
+    def add_storage(self, storage: Storage):
+        self.storage = storage
+        self.add_ticker('storage', storage)
+
+    def add_services(self, services: Services):
+        self.services = services
+        self.add_ticker('services', services)
 
     async def start(self) -> None:
         if self._is_shutting_down:
@@ -156,6 +189,9 @@ class GlobalState:
         if desc in self._tickers:
             del self._tickers[desc]
 
+    def get_ticker(self, desc: str) -> Ticker:
+        return self._tickers[desc]
+
     async def init_store(self) -> None:
         await self._kvstore.ensure_connection()
 
@@ -166,6 +202,3 @@ class GlobalState:
     @property
     def store(self) -> KV:
         return self._kvstore
-
-
-gstate: GlobalState = GlobalState()
