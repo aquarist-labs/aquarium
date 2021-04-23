@@ -149,6 +149,7 @@
         <package name="etcd"/>
         <package name="etcdctl"/>
         <archive name="aquarium.tar.gz"/>
+        <archive name="root.tar.gz"/>
     </packages>
 
     <packages type="image" profiles="Vagrant-x86_64">
