@@ -146,17 +146,19 @@ make dist
 tmpdir=$(mktemp -d)
 pushd ${tmpdir}
 tar --strip-components=1 -xzf ${rootdir}/aquarium*.tar.gz
-sudo cp -r ${imgdir}/microOS/root/* ./
-tar -czf ${build}/aquarium.tar.gz .
+tar --owner root --group root -czf ${build}/aquarium.tar.gz .
 popd
 rm -rf ${tmpdir}
 
-tmpdir=$(mktemp -d)
-pushd ${tmpdir}
-sudo cp -r ${imgdir}/microOS/aquarium_root/* ./
-tar -czf ${build}/aquarium_user.tar.gz .
+# Extra files needed in system root
+pushd ${imgdir}/microOS/root
+tar --owner root --group root -czf ${build}/root.tar.gz .
 popd
-rm -rf ${tmpdir}
+
+# Extra files needed in system root for live image
+pushd ${imgdir}/microOS/aquarium_root
+tar --owner root --group root -czf ${build}/aquarium_user.tar.gz .
+popd
 
 
 cp ${imgdir}/microOS/config.{sh,xml} ${build}/
