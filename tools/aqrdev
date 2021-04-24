@@ -457,6 +457,7 @@ Vagrant.configure("2") do |config|
     config.vm.box = "{boxname}"
     config.vm.synced_folder ".", "/vagrant", disabled: true
     config.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_nfs_str}
+    config.vm.guest = "suse"
 
         """
 

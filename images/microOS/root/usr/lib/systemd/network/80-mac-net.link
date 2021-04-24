@@ -1,5 +1,0 @@
-[Link]
-NamePolicy=mac
-MACAddressPolicy=persistent
-[Match]
-OriginalName=*
