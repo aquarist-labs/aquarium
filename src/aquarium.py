@@ -117,16 +117,16 @@ async def on_startup():
     await gstate.start()
 
     # Add instances into FastAPI's state:
-    app.state.gstate = gstate
-    app.state.nodemgr = nodemgr
+    api.state.gstate = gstate
+    api.state.nodemgr = nodemgr
 
 
 @app.on_event("shutdown")  # type: ignore
 async def on_shutdown():
     logger.info("Aquarium shutdown!")
-    await app.state.gstate.shutdown()
+    await api.state.gstate.shutdown()
     logger.info("shutting down node manager")
-    await app.state.nodemgr.shutdown()
+    await api.state.nodemgr.shutdown()
 
 
 api.include_router(local.router)
