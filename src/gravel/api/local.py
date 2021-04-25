@@ -15,7 +15,7 @@ from logging import Logger
 from typing import List
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from pydantic import (
     BaseModel,
     Field
@@ -26,11 +26,9 @@ from gravel.cephadm.models import (
     NodeInfoModel,
     VolumeDeviceModel
 )
-from gravel.controllers.resources import inventory
 from gravel.controllers.nodes.mgr import (
     NodeStageEnum,
-    NodeMgr,
-    get_node_mgr
+    NodeMgr
 )
 
 
@@ -52,14 +50,15 @@ class NodeStatusReplyModel(BaseModel):
     name="Obtain local volumes",
     response_model=List[VolumeDeviceModel]
 )
-async def get_volumes() -> List[VolumeDeviceModel]:
+async def get_volumes(request: Request) -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
 
     This information is obtained via `cephadm`, periodically, and may not be
     100% up to date between calls to this endpoint.
     """
-    latest = inventory.get_inventory().latest
+    inventory = request.app.state.gstate.inventory
+    latest = inventory.latest
     if not latest:
         raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
                             detail="Volume list not yet available")
@@ -91,7 +90,7 @@ async def get_node_info() -> NodeInfoModel:
     name="Obtain local node inventory",
     response_model=NodeInfoModel
 )
-async def get_inventory() -> NodeInfoModel:
+async def get_inventory(request: Request) -> NodeInfoModel:
     """
     Obtain this node's inventory.
 
@@ -105,7 +104,8 @@ async def get_inventory() -> NodeInfoModel:
     information is required, and the caller does not have constraints waiting
     for a return, `/local/nodeinfo` should be used.
     """
-    latest = inventory.get_inventory().latest
+    inventory = request.app.state.gstate.inventory
+    latest = inventory.latest
     if not latest:
         raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
                             detail="Inventory not available")
@@ -117,7 +117,7 @@ async def get_inventory() -> NodeInfoModel:
     name="Obtain local node's status",
     response_model=NodeStatusReplyModel
 )
-async def get_status() -> NodeStatusReplyModel:
+async def get_status(request: Request) -> NodeStatusReplyModel:
     """
     Obtain this node's current status.
 
@@ -125,7 +125,7 @@ async def get_status() -> NodeStatusReplyModel:
     as well as the node's deployment stage.
     """
 
-    nodemgr: NodeMgr = get_node_mgr()
+    nodemgr: NodeMgr = request.app.state.nodemgr
 
     return NodeStatusReplyModel(
         inited=nodemgr.inited,

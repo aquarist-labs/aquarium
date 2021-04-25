@@ -15,7 +15,7 @@ from logging import Logger
 from typing import Optional
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from gravel.controllers.nodes.bootstrap import (
@@ -23,7 +23,6 @@ from gravel.controllers.nodes.bootstrap import (
     BootstrapStage
 )
 from gravel.controllers.nodes.mgr import (
-    get_node_mgr,
     NodeMgr
 )
 from gravel.controllers.nodes.errors import (
@@ -61,7 +60,7 @@ class StatusReplyModel(BaseModel):
 
 
 @router.post("/start", response_model=StartReplyModel)
-async def start_bootstrap() -> StartReplyModel:
+async def start_bootstrap(request: Request) -> StartReplyModel:
     """
     Start bootstrapping this node. A minimal Ceph cluster will be deployed on
     the node, and a token, required for other nodes to join, will be generated.
@@ -74,7 +73,7 @@ async def start_bootstrap() -> StartReplyModel:
     error = BootstrapErrorModel()
 
     try:
-        await get_node_mgr().bootstrap()
+        await request.app.state.nodemgr.bootstrap()
     except NodeCantBootstrapError as e:
         logger.error(f"[API] can't bootstrap: {e.message}")
         success = False
@@ -103,7 +102,7 @@ async def start_bootstrap() -> StartReplyModel:
 
 
 @router.get("/status", response_model=StatusReplyModel)
-async def get_status() -> StatusReplyModel:
+async def get_status(request: Request) -> StatusReplyModel:
     """
     Get bootstrapping status from this node.
 
@@ -113,21 +112,21 @@ async def get_status() -> StatusReplyModel:
 
     This information does not survive Aquarium restarts.
     """
-    stage: BootstrapStage = get_node_mgr().bootstrapper_stage
-    percent: int = get_node_mgr().bootstrapper_progress
+    stage: BootstrapStage = request.app.state.nodemgr.bootstrapper_stage
+    percent: int = request.app.state.nodemgr.bootstrapper_progress
     return StatusReplyModel(
         stage=stage,
         progress=percent,
         error=BootstrapErrorModel(
-            code=get_node_mgr().bootstrapper_error_code,
-            message=get_node_mgr().bootstrapper_error_msg
+            code=request.app.state.nodemgr.bootstrapper_error_code,
+            message=request.app.state.nodemgr.bootstrapper_error_msg
         )
     )
 
 
 @router.post("/finished", response_model=bool)
-async def finish_bootstrap() -> bool:
-    nodemgr: NodeMgr = get_node_mgr()
+async def finish_bootstrap(request: Request) -> bool:
+    nodemgr: NodeMgr = request.app.state.nodemgr
     try:
         await nodemgr.finish_deployment()
     except NodeNotBootstrappedError:

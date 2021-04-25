@@ -16,11 +16,10 @@ from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 from pydantic.fields import Field
 from pydantic.main import BaseModel
-from gravel.controllers.gstate import gstate, Ticker
+from gravel.controllers.gstate import Ticker
 from gravel.controllers.nodes.mgr import (
     NodeMgr,
-    NodeStageEnum,
-    get_node_mgr
+    NodeStageEnum
 )
 from gravel.controllers.orch.ceph import Mon
 
@@ -61,19 +60,16 @@ class StorageModel(BaseModel):
 
 class Storage(Ticker):
 
-    def __init__(self):
-        super().__init__(
-            "storage",
-            gstate.config.options.storage.probe_interval
-        )
+    def __init__(self, probe_interval: float, nodemgr: NodeMgr):
+        super().__init__(probe_interval)
+        self.nodemgr = nodemgr
         self._state: StorageModel = StorageModel()
 
     async def _do_tick(self) -> None:
         await self._update()
 
     async def _should_tick(self) -> bool:
-        nodemgr: NodeMgr = get_node_mgr()
-        stage = nodemgr.stage
+        stage = self.nodemgr.stage
         if stage != NodeStageEnum.BOOTSTRAPPED and \
            stage != NodeStageEnum.READY:
             logger.debug(
@@ -127,11 +123,3 @@ class Storage(Ticker):
             by_name[p.name] = pool
         self._state.pools_by_name = by_name
         self._state.pools_by_id = by_id
-
-
-_storage = Storage()
-
-
-def get_storage() -> Storage:
-    global _storage
-    return _storage

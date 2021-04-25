@@ -29,7 +29,7 @@ from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
-from gravel.controllers.gstate import gstate
+from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import (
     Bootstrap,
     BootstrapError,
@@ -40,7 +40,6 @@ from gravel.controllers.orch.ceph import (
     CephCommandError,
     Mon
 )
-from gravel.controllers.resources.inventory import get_inventory
 
 from gravel.controllers.nodes.errors import (
     NodeCantJoinError,
@@ -151,13 +150,14 @@ class NodeMgr:
     _joining: Dict[str, JoiningNodeModel]
     _bootstrapper: Optional[Bootstrap]
 
-    def __init__(self):
+    def __init__(self, gstate: GlobalState):
         self._init_stage = NodeInitStage.NONE
         self._shutting_down = False
         self._connmgr = get_conn_mgr()
         self._token = None
         self._joining = {}
         self._bootstrapper = None
+        self.gstate = gstate
 
         multiprocessing.set_start_method("spawn")
 
@@ -256,7 +256,7 @@ class NodeMgr:
             assert nodeinfo
             await self._node_prestart(nodeinfo)
 
-        get_inventory().subscribe(_subscriber, once=True)
+        self.gstate.inventory.subscribe(_subscriber, once=True)
 
     def _generate_token(self) -> str:
         def gen() -> str:
@@ -446,7 +446,7 @@ class NodeMgr:
         )
         process.start()
         logger.info(f"started etcd process pid = {process.pid}")
-        await gstate.init_store()
+        await self.gstate.init_store()
 
     async def _bootstrap_etcd(self, token: str) -> None:
         await self._spawn_etcd(new=True, token=token)
@@ -624,10 +624,10 @@ class NodeMgr:
                 self._token = value
 
         self._token = await self._load_token()
-        await gstate.store.watch("/nodes/token", _watcher)
+        await self.gstate.store.watch("/nodes/token", _watcher)
 
     def _get_node_file(self, what: str) -> Path:
-        confdir: Path = gstate.config.confdir
+        confdir: Path = self.gstate.config.confdir
         assert confdir.exists()
         assert confdir.is_dir()
         return confdir.joinpath(f"{what}.json")
@@ -636,14 +636,14 @@ class NodeMgr:
         self._token = await self._load_token()
 
     async def _load_token(self) -> Optional[str]:
-        tokenstr = await gstate.store.get("/nodes/token")
+        tokenstr = await self.gstate.store.get("/nodes/token")
         assert tokenstr
         return tokenstr
 
     async def _save_token(self) -> None:
         assert self._token
         logger.info(f"saving token: {self._token}")
-        await gstate.store.put("/nodes/token", self._token)
+        await self.gstate.store.put("/nodes/token", self._token)
 
     async def _save_state(self, should_exist: bool = True) -> None:
         statefile: Path = self._get_node_file("node")
@@ -815,28 +815,3 @@ class NodeMgr:
         if not mon.set_replicated_ruleset():
             logger.error(
                 "handle ready to add > unable to set replicated ruleset")
-
-
-_nodemgr: Optional[NodeMgr] = None
-
-
-def get_node_mgr() -> NodeMgr:
-    global _nodemgr
-    assert _nodemgr
-    return _nodemgr
-
-
-async def init_node_mgr() -> None:
-    global _nodemgr
-    assert not _nodemgr
-    logger.info("starting node manager")
-    _nodemgr = NodeMgr()
-    await _nodemgr.start()
-
-
-async def shutdown() -> None:
-    global _nodemgr
-    if _nodemgr:
-        logger.info("shutting down node manager")
-        await _nodemgr.shutdown()
-        _nodemgr = None

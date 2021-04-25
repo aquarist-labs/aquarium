@@ -22,7 +22,7 @@ from typing import (
 from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
 from gravel.cephadm.models import NodeInfoModel
-from gravel.controllers.gstate import gstate, Ticker
+from gravel.controllers.gstate import Ticker
 from gravel.cephadm.cephadm import Cephadm
 
 
@@ -39,11 +39,8 @@ class Inventory(Ticker):
     _latest: Optional[NodeInfoModel]
     _subscribers: List[Subscriber]
 
-    def __init__(self):
-        super().__init__(
-            "inventory",
-            gstate.config.options.inventory.probe_interval
-        )
+    def __init__(self, probe_interval: float):
+        super().__init__(probe_interval)
         self._latest = None
         self._subscribers = []
 
@@ -81,11 +78,3 @@ class Inventory(Ticker):
             await subscriber.cb(self._latest)  # type: ignore
             if subscriber.once:
                 self._subscribers.remove(subscriber)
-
-
-_inventory = Inventory()
-
-
-def get_inventory() -> Inventory:
-    global _inventory
-    return _inventory
