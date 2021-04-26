@@ -48,6 +48,12 @@ class ServicesOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Services Probe Interval")
 
 
+class EtcdOptionsModel(BaseModel):
+    registry: str = Field("quay.io/coreos/etcd", title="Container Image Registry")
+    version: str = Field("latest", title="Container Version Label")
+    data_dir: str = Field("/var/lib/etcd", title="Etcd Data Dir")
+
+
 class OptionsModel(BaseModel):
     service_state_path: Path = Field(Path(config_dir).joinpath("storage.json"),
                                      title="Path to Service State file")
@@ -56,6 +62,7 @@ class OptionsModel(BaseModel):
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
     services: ServicesOptionsModel = Field(ServicesOptionsModel())
+    etcd: EtcdOptionsModel = Field(EtcdOptionsModel())
 
 
 class ConfigModel(BaseModel):

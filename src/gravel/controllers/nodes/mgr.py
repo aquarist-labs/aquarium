@@ -412,7 +412,7 @@ class NodeMgr:
         hostname = self._state.hostname
         address = self._state.address
 
-        data_dir: Path = Path("/var/lib/etcd")
+        data_dir: Path = Path(self.gstate.config.options.etcd.data_dir)
         if not data_dir.exists():
             data_dir.mkdir(0o700)
 
@@ -446,8 +446,8 @@ class NodeMgr:
             return args
 
         def _get_container_cmd():
-            registry = "quay.io/coreos/etcd"
-            version = "latest"
+            registry = self.gstate.config.options.etcd.registry
+            version = self.gstate.config.options.etcd.version
 
             return [
                 'podman', 'run',
