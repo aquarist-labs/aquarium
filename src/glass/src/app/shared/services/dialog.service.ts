@@ -3,8 +3,7 @@ import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import * as _ from 'lodash';
 
-import { CephfsModalComponent } from '~/app/core/modals/cephfs/cephfs-modal.component';
-import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
+import { FileServiceModalComponent } from '~/app/core/modals/file-service/file-service-modal.component';
 
 @Injectable({
   providedIn: 'root'
@@ -12,16 +11,23 @@ import { NfsModalComponent } from '~/app/core/modals/nfs/nfs-modal.component';
 export class DialogService {
   constructor(private dialog: MatDialog) {}
 
-  openCephfs(onClose: (result: any) => void): void {
-    this.open(CephfsModalComponent, onClose);
-  }
-
-  openNfs(onClose: (result: any) => void): void {
-    this.open(NfsModalComponent, onClose);
+  openFileService(onClose: (result: any) => void, type?: string): void {
+    let config;
+    if (type) {
+      config = new MatDialogConfig();
+      config.data = { type };
+    }
+    this.open(FileServiceModalComponent, onClose, config);
   }
 
   open(component: ComponentType<any>, onClose?: (result: any) => void, config?: MatDialogConfig) {
-    const ref = this.dialog.open(component, _.defaultsDeep(config, { width: '60%' }));
+    if (config) {
+      config.width = '60%';
+    } else {
+      config = { width: '60%' };
+    }
+
+    const ref = this.dialog.open(component, config);
     ref.afterClosed().subscribe({
       next: (result) => {
         if (_.isFunction(onClose)) {
