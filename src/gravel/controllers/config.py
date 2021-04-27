@@ -14,9 +14,11 @@
 import os
 from logging import Logger
 from pathlib import Path
+from typing import Type, TypeVar
 from pydantic import BaseModel, Field
 from fastapi.logger import logger as fastapi_logger
 
+from . import utils
 
 logger: Logger = fastapi_logger
 
@@ -101,3 +103,11 @@ class Config:
     @property
     def confdir(self) -> Path:
         return self._confdir
+
+    T = TypeVar('T')
+
+    def read_model(self, name: str, model: Type[T]) -> T:
+        return utils.read_model(self.confdir, name, model)
+
+    def write_model(self, name: str, value: BaseModel) -> None:
+        utils.write_model(self.confdir, name, value)

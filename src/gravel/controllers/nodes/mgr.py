@@ -184,22 +184,21 @@ class NodeMgr:
         pass
 
     def _node_init(self) -> None:
-        statefile: Path = self._get_node_file("node")
-        if not statefile.exists():
-
-            state = NodeStateModel(
+        try:
+            self._state = self.gstate.config.read_model("node", NodeStateModel)
+        except FileNotFoundError:
+            self._state = NodeStateModel(
                 uuid=uuid4(),
                 stage=NodeStageEnum.NONE,
                 address=None,
                 hostname=None
             )
             try:
-                statefile.write_text(state.json())
+                self.gstate.config.write_model("node", self._state)
             except Exception as e:
                 raise NodeError(str(e))
-            assert statefile.exists()
-
-        self._state = NodeStateModel.parse_file(statefile)
+        except Exception as e:
+            raise NodeError(str(e))
 
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
@@ -649,12 +648,6 @@ class NodeMgr:
         self._token = await self._load_token()
         await self.gstate.store.watch("/nodes/token", _watcher)
 
-    def _get_node_file(self, what: str) -> Path:
-        confdir: Path = self.gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        return confdir.joinpath(f"{what}.json")
-
     async def _load(self) -> None:
         self._token = await self._load_token()
 
@@ -668,17 +661,11 @@ class NodeMgr:
         logger.info(f"saving token: {self._token}")
         await self.gstate.store.put("/nodes/token", self._token)
 
-    async def _save_state(self, should_exist: bool = True) -> None:
-        statefile: Path = self._get_node_file("node")
-
-        # this check could be a single assert, but it's important to know which
-        # path failed.
-        if should_exist:
-            assert statefile.exists()
-        else:
-            assert not statefile.exists()
-
-        statefile.write_text(self._state.json())
+    async def _save_state(self) -> None:
+        try:
+            self.gstate.config.write_model("node", self._state)
+        except Exception as e:
+            raise NodeError(str(e))
 
     def _get_hostname(self) -> str:
         return ""
