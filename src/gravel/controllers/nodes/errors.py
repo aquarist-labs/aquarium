@@ -56,3 +56,7 @@ class NodeCantDeployError(NodeError):
 
 class NodeNetworkAddressNotAvailable(NodeError):
     pass
+
+
+class NodeChronyRestartError(NodeError):
+    pass
