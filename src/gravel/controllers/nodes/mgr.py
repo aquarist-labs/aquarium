@@ -102,10 +102,6 @@ class TokenModel(BaseModel):
     token: str
 
 
-class AquariumUUIDModel(BaseModel):
-    aqarium_uuid: UUID
-
-
 class JoiningNodeModel(BaseModel):
     hostname: str
     address: str
