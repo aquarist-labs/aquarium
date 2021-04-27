@@ -187,13 +187,11 @@ if ! ${skip_install_deps} ; then
         exit 1
       }
       if [ -n "$pyenv_python" ] ; then
-        if [[ "$osid" == "opensuse-leap" ]] ; then
-          echo "=> try installing dependencies for building python because --pyenv-python requested"
-          sudo zypper --non-interactive install ${dependencies_build_python_leap[*]} || {
-            echo "Dependency installation failed"
-            exit 1
-          }
-        fi
+        echo "=> try installing dependencies for building python because --pyenv-python requested"
+        sudo zypper --non-interactive install ${dependencies_build_python_leap[*]} || {
+          echo "Dependency installation failed"
+          exit 1
+      }
       fi
       ;;
     debian)
