@@ -11,17 +11,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import Optional
+from gravel.controllers.errors import GravelError
 
 
-class NodeError(Exception):
-    def __init__(self, msg: Optional[str] = ""):
-        super().__init__()
-        self._msg = msg
-
-    @property
-    def message(self) -> str:
-        return self._msg if self._msg else "node error"
+class NodeError(GravelError):
+    pass
 
 
 class NodeNotStartedError(NodeError):
