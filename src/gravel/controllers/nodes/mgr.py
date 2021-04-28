@@ -19,11 +19,9 @@ from uuid import UUID, uuid4
 import random
 from typing import (
     Dict,
-    List,
     Optional,
 )
 from pathlib import Path
-import shlex
 
 import aetcd3
 from pydantic import BaseModel
@@ -71,6 +69,7 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel,
     MessageTypeEnum,
 )
+from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -98,34 +97,6 @@ class TokenModel(BaseModel):
 class JoiningNodeModel(BaseModel):
     hostname: str
     address: str
-
-
-# We need to rely on "spawn" because otherwise the subprocess' signal
-# handler will play nasty tricks with uvicorn's and fastapi's signal
-# handlers.
-# For future reference,
-# - uvicorn issue: https://github.com/encode/uvicorn/issues/548
-# - python bug report: https://bugs.python.org/issue43064
-# - somewhat of a solution, using "spawn" for multiprocessing:
-# https://github.com/tiangolo/fastapi/issues/1487#issuecomment-657290725
-#
-# And because we need to rely on spawn, which will create a new python
-# interpreter to execute what we are specifying, the function we're passing
-# needs to be pickled. And nested functions, apparently, can't be pickled. Thus,
-# we need to have the functions at the top-level scope.
-#
-def _bootstrap_etcd_process(cmd: List[str]):
-
-    async def _run_etcd():
-        process = await asyncio.create_subprocess_exec(*cmd)
-        await process.wait()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        loop.run_until_complete(_run_etcd())
-    except KeyboardInterrupt:
-        pass
 
 
 class NodeMgr:
@@ -169,7 +140,15 @@ class NodeMgr:
             await self._wait_inventory()
         else:
             assert self._deployment.ready or self._deployment.deployed
-            await self._spawn_etcd(new=False, token=None)
+            assert self._state.hostname
+            assert self._state.address
+            await spawn_etcd(
+                self.gstate,
+                new=False,
+                token=None,
+                hostname=self._state.hostname,
+                address=self._state.address
+            )
             await self._node_start()
 
     async def shutdown(self) -> None:
@@ -312,9 +291,12 @@ class NodeMgr:
         my_url: str = \
             f"{self._state.hostname}=http://{self._state.address}:2380"
         initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
-        await self._spawn_etcd(
+        await spawn_etcd(
+            self.gstate,
             new=False,
             token=None,
+            hostname=self._state.hostname,
+            address=self._state.address,
             initial_cluster=initial_cluster
         )
 
@@ -385,79 +367,16 @@ class NodeMgr:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
 
-    async def _spawn_etcd(
-        self,
-        new: bool,
-        token: Optional[str],
-        initial_cluster: Optional[str] = None
-    ) -> None:
-
+    async def _bootstrap_etcd(self, token: str) -> None:
         assert self._state.hostname
         assert self._state.address
-        hostname = self._state.hostname
-        address = self._state.address
-
-        data_dir: Path = Path(self.gstate.config.options.etcd.data_dir)
-        if not data_dir.exists():
-            data_dir.mkdir(0o700)
-
-        logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
-
-        def _get_etcd_args() -> List[str]:
-            client_url: str = f"http://{address}:2379"
-            peer_url: str = f"http://{address}:2380"
-
-            nonlocal initial_cluster
-            if not initial_cluster:
-                initial_cluster = f"{hostname}={peer_url}"
-
-            args: List[str] = [
-                "--name", hostname,
-                "--initial-advertise-peer-urls", peer_url,
-                "--listen-peer-urls", peer_url,
-                "--listen-client-urls", f"{client_url},http://127.0.0.1:2379",
-                "--advertise-client-urls", client_url,
-                "--initial-cluster", initial_cluster,
-                "--data-dir", str(data_dir),
-            ]
-
-            if new:
-                assert token
-                args += ["--initial-cluster-state", "new"]
-                args += ["--initial-cluster-token", token]
-            else:
-                args += ["--initial-cluster-state", "existing"]
-
-            return args
-
-        def _get_container_cmd():
-            registry = self.gstate.config.options.etcd.registry
-            version = self.gstate.config.options.etcd.version
-
-            return [
-                'podman', 'run',
-                '--rm',
-                '--net=host',
-                '--entrypoint', '/usr/local/bin/etcd',
-                '-v', f'{data_dir}:{data_dir}',
-                '--name', f'etcd.{hostname}',
-                f'{registry}:{version}',
-            ] + _get_etcd_args()
-
-        cmd = _get_container_cmd()
-
-        logger.debug("spawn etcd: " + shlex.join(cmd))
-        process = multiprocessing.Process(
-            target=_bootstrap_etcd_process,
-            args=(cmd,)
+        await spawn_etcd(
+            self.gstate,
+            new=True,
+            token=token,
+            hostname=self._state.hostname,
+            address=self._state.address
         )
-        process.start()
-
-        logger.info(f"started etcd process pid = {process.pid}")
-        await self.gstate.init_store()
-
-    async def _bootstrap_etcd(self, token: str) -> None:
-        await self._spawn_etcd(new=True, token=token)
 
     async def _prepare_bootstrap(self) -> None:
         assert self._state
