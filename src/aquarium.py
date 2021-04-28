@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # project aquarium's backend
 # Copyright (C) 2021 SUSE, LLC.
@@ -158,3 +158,6 @@ def app_factory():
 
     return aquarium_app
 
+
+if __name__ == "__main__":
+    uvicorn.run("aquarium:app_factory", host="0.0.0.0", port=1337, factory=True)
