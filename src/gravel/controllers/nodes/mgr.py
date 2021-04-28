@@ -37,6 +37,9 @@ from gravel.controllers.nodes.bootstrap import (
     BootstrapErrorEnum,
     BootstrapStage
 )
+from gravel.controllers.nodes.deployment import (
+    DeploymentState
+)
 from gravel.controllers.orch.ceph import (
     CephCommandError,
     Mon
@@ -74,15 +77,6 @@ from gravel.controllers.orch.orchestrator import Orchestrator
 logger: Logger = fastapi_logger
 
 
-class NodeStageEnum(int, Enum):
-    NONE = 0
-    BOOTSTRAPPING = 1
-    BOOTSTRAPPED = 2
-    JOINING = 3
-    READY = 4
-    ERROR = 5
-
-
 class NodeInitStage(int, Enum):
     NONE = 0
     PRESTART = 1
@@ -93,7 +87,6 @@ class NodeInitStage(int, Enum):
 
 class NodeStateModel(BaseModel):
     uuid: UUID
-    stage: NodeStageEnum
     address: Optional[str]
     hostname: Optional[str]
 
@@ -145,6 +138,9 @@ class NodeMgr:
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
     _bootstrapper: Optional[Bootstrap]
+    _deployment: DeploymentState
+
+    gstate: GlobalState
 
     def __init__(self, gstate: GlobalState):
         self._init_stage = NodeInitStage.NONE
@@ -153,6 +149,8 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._bootstrapper = None
+        self._deployment = DeploymentState(gstate)
+
         self.gstate = gstate
 
         multiprocessing.set_start_method("spawn")
@@ -164,15 +162,13 @@ class NodeMgr:
 
         logger.debug(f"start > {self._state}")
 
-        assert self._state.stage == NodeStageEnum.NONE or \
-            self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
-            self._state.stage == NodeStageEnum.READY
+        if not self._deployment.can_start():
+            raise NodeError("unable to start unstartable node")
 
-        if self._state.stage == NodeStageEnum.NONE:
+        if self._deployment.nostage:
             await self._wait_inventory()
         else:
-            assert self._state.stage == NodeStageEnum.READY or \
-                self._state.stage == NodeStageEnum.BOOTSTRAPPED
+            assert self._deployment.ready or self._deployment.deployed
             await self._spawn_etcd(new=False, token=None)
             await self._node_start()
 
@@ -185,7 +181,6 @@ class NodeMgr:
         except FileNotFoundError:
             self._state = NodeStateModel(
                 uuid=uuid4(),
-                stage=NodeStageEnum.NONE,
                 address=None,
                 hostname=None
             )
@@ -198,7 +193,7 @@ class NodeMgr:
 
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
-        assert self._state.stage == NodeStageEnum.NONE
+        assert self._deployment.nostage
         assert self._init_stage == NodeInitStage.NONE
 
         self._init_stage = NodeInitStage.PRESTART
@@ -225,8 +220,7 @@ class NodeMgr:
     async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
         assert self._state
-        assert self._state.stage == NodeStageEnum.READY or \
-            self._state.stage == NodeStageEnum.BOOTSTRAPPED
+        assert self._deployment.ready or self._deployment.deployed
 
         logger.info("start node")
 
@@ -274,15 +268,15 @@ class NodeMgr:
         assert self._state.hostname
         assert self._state.address
 
-        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
+        if self._deployment.bootstrapping:
             raise NodeBootstrappingError()
-        elif self._state.stage == NodeStageEnum.BOOTSTRAPPED:
+        elif self._deployment.deployed:
             raise NodeHasBeenDeployedError()
-        elif self._state.stage == NodeStageEnum.JOINING:
+        elif self._deployment.joining:
             raise NodeAlreadyJoiningError()
-        elif self._state.stage == NodeStageEnum.READY:
+        elif self._deployment.ready:
             raise NodeHasJoinedError()
-        assert self._state.stage == NodeStageEnum.NONE
+        assert self._deployment.nostage
 
         uri: str = f"ws://{leader_address}/api/nodes/ws"
         conn = await self._connmgr.connect(uri)
@@ -297,8 +291,7 @@ class NodeMgr:
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
 
-        self._state.stage = NodeStageEnum.JOINING
-        await self._save_state()
+        self._deployment.mark_join()
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
@@ -306,8 +299,7 @@ class NodeMgr:
             errmsg = ErrorMessageModel.parse_obj(reply.data)
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
-            self._state.stage = NodeStageEnum.NONE
-            await self._save_state()
+            self._deployment.mark_error()
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -351,9 +343,7 @@ class NodeMgr:
         )
         await conn.close()
 
-        self._state.stage = NodeStageEnum.READY
-        await self._save_state()
-
+        self._deployment.mark_ready()
         self._token = token
 
         await self._node_start()
@@ -362,7 +352,7 @@ class NodeMgr:
     async def bootstrap(self) -> None:
 
         assert self._state
-        if self._state.stage == NodeStageEnum.ERROR:
+        if self._deployment.error:
             raise NodeCantBootstrapError("node is in error state")
 
         try:
@@ -471,9 +461,9 @@ class NodeMgr:
 
     async def _prepare_bootstrap(self) -> None:
         assert self._state
-        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
+        if self._deployment.bootstrapping:
             raise NodeCantBootstrapError("node bootstrapping")
-        elif self._state.stage > NodeStageEnum.NONE:
+        elif not self._deployment.nostage:
             raise NodeCantBootstrapError("node can't be bootstrapped")
         elif self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
@@ -485,11 +475,10 @@ class NodeMgr:
 
     async def _start_bootstrap(self) -> None:
         assert self._state
-        assert self._state.stage == NodeStageEnum.NONE
+        assert self._deployment.nostage
         assert self._state.hostname
         assert self._state.address
-        self._state.stage = NodeStageEnum.BOOTSTRAPPING
-        await self._save_state()
+        self._deployment.mark_bootstrap()
 
     async def _finish_bootstrap_error(self, error: str) -> None:
         """
@@ -497,26 +486,20 @@ class NodeMgr:
         exceptions, but we can easily lock down the node by setting state to
         error.
         """
-        assert self._state
-        assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
-
-        self._state.stage = NodeStageEnum.ERROR
-        await self._save_state()
+        assert self._deployment.bootstrapping
+        self._deployment.mark_error()
 
     async def _finish_bootstrap(self):
         """
         Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
-        assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
+        assert self._deployment.bootstrapping
 
         logger.info("finishing bootstrap")
-
         await self._finish_bootstrap_config()
 
-        self._state.stage = NodeStageEnum.BOOTSTRAPPED
-        await self._save_state()
-
+        self._deployment.mark_deployed()
         logger.debug(f"finished bootstrap: token = {self._token}")
 
         await self._load()
@@ -575,15 +558,18 @@ class NodeMgr:
     async def finish_deployment(self) -> None:
         assert self._state
 
-        if self._state.stage < NodeStageEnum.BOOTSTRAPPED:
-            raise NodeNotBootstrappedError()
-        elif self._state.stage == NodeStageEnum.JOINING:
-            raise NodeAlreadyJoiningError()
-        elif self._state.stage == NodeStageEnum.READY:
+        if self._deployment.ready:
             return
+        elif self._deployment.joining:
+            raise NodeAlreadyJoiningError()
+        elif not self._deployment.deployed:
+            raise NodeNotBootstrappedError()
 
-        self._state.stage = NodeStageEnum.READY
-        await self._save_state()
+        self._deployment.mark_ready()
+
+    @property
+    def deployment_state(self) -> DeploymentState:
+        return self._deployment
 
     @property
     def inited(self) -> bool:
@@ -594,33 +580,10 @@ class NodeMgr:
         return self._init_stage == NodeInitStage.STARTED
 
     @property
-    def stage(self) -> NodeStageEnum:
-        assert self._state
-        return self._state.stage
-
-    @property
     def address(self) -> str:
         assert self._state
         assert self._state.address
         return self._state.address
-
-    @property
-    def bootstrapping(self) -> bool:
-        if not self._state:
-            return False
-        return self._state.stage == NodeStageEnum.BOOTSTRAPPING
-
-    @property
-    def bootstrapped(self) -> bool:
-        if not self._state:
-            return False
-        return self._state.stage == NodeStageEnum.BOOTSTRAPPED
-
-    @property
-    def ready(self) -> bool:
-        if not self._state:
-            return False
-        return self._state.stage == NodeStageEnum.READY
 
     @property
     def connmgr(self) -> ConnMgr:

@@ -26,10 +26,8 @@ from gravel.cephadm.models import (
     NodeInfoModel,
     VolumeDeviceModel
 )
-from gravel.controllers.nodes.mgr import (
-    NodeStageEnum,
-    NodeMgr
-)
+from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.nodes.deployment import NodeStageEnum
 
 
 logger: Logger = fastapi_logger
@@ -129,5 +127,5 @@ async def get_status(request: Request) -> NodeStatusReplyModel:
 
     return NodeStatusReplyModel(
         inited=nodemgr.inited,
-        node_stage=nodemgr.stage
+        node_stage=nodemgr.deployment_state.stage
     )
