@@ -7,12 +7,10 @@ import { GridsterModule } from 'angular-gridster2';
 
 import { CoreModule } from '~/app/core/core.module';
 import { MaterialModule } from '~/app/material.modules';
-import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
-import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
-import { InstallConfigPageComponent } from '~/app/pages/install-config-page/install-config-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
+import { InstallWizardModule } from '~/app/pages/install-wizard-page/install-wizard.module';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { RegisterPageComponent } from '~/app/pages/register-page/register-page.component';
 import { ServicesPageComponent } from '~/app/pages/services-page/services-page.component';
@@ -21,15 +19,12 @@ import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
   declarations: [
-    BootstrapPageComponent,
     DashboardPageComponent,
-    DeploymentPageComponent,
     InstallModePageComponent,
     WelcomePageComponent,
     NotFoundPageComponent,
     RegisterPageComponent,
     ServicesPageComponent,
-    InstallConfigPageComponent,
     HostsPageComponent
   ],
   imports: [
@@ -40,7 +35,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     MaterialModule,
     RouterModule,
     SharedModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    InstallWizardModule
   ]
 })
 export class PagesModule {}

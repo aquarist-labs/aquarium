@@ -65,7 +65,7 @@ export class FileServiceModalComponent implements OnInit {
     private notification: NotificationService,
     @Inject(MAT_DIALOG_DATA) config: any
   ) {
-    if (config && ('type' in config)) {
+    if (config && 'type' in config) {
       this.type = config.type;
       this.title = _.filter(this.types, ['id', config.type])[0].text;
     }
@@ -177,7 +177,7 @@ export class FileServiceModalComponent implements OnInit {
     const type = values.type || this.type;
     this.blockUI.start(translate(TEXT('Please wait, deploying service ...')));
     this.services
-      .create(values.name, type , values.requiredSpace, values.replicas)
+      .create(values.name, type, values.requiredSpace, values.replicas)
       .pipe(finalize(() => this.blockUI.stop()))
       .subscribe({
         next: (result: CreateServiceReply) => {

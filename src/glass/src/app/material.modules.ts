@@ -71,5 +71,9 @@ export class MaterialModule {
       'mdi',
       domSanitizer.bypassSecurityTrustResourceUrl('./assets/mdi.svg')
     );
+    matIconRegistry.addSvgIcon(
+      'aquarium-logo',
+      domSanitizer.bypassSecurityTrustResourceUrl('./assets/images/aquarium-logo.svg')
+    );
   }
 }
