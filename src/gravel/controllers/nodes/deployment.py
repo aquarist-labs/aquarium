@@ -13,10 +13,34 @@
 
 
 from enum import Enum
+from logging import Logger
+from pathlib import Path
+from uuid import UUID
 from pydantic import BaseModel, Field
+from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.nodes.conn import ConnMgr
+
+from gravel.controllers.nodes.errors import (
+    NodeAlreadyJoiningError,
+    NodeBootstrappingError,
+    NodeHasBeenDeployedError,
+    NodeHasJoinedError
+)
+from gravel.controllers.nodes.messages import (
+    ErrorMessageModel,
+    JoinMessageModel,
+    MessageModel,
+    MessageTypeEnum,
+    ReadyToAddMessageModel,
+    WelcomeMessageModel
+)
+from gravel.controllers.nodes.etcd import spawn_etcd
+
+
+logger: Logger = fastapi_logger
 
 
 class NodeStageEnum(int, Enum):
@@ -124,3 +148,120 @@ class DeploymentState:
         assert not self.error
         self._stage = NodeStageEnum.READY
         self._save_stage()
+
+
+class NodeDeployment:
+
+    _state: DeploymentState
+    _gstate: GlobalState
+    _connmgr: ConnMgr
+
+    def __init__(
+        self,
+        gstate: GlobalState,
+        connmgr: ConnMgr
+    ):
+        self._gstate = gstate
+        self._connmgr = connmgr
+        self._state = DeploymentState(gstate)
+
+    @property
+    def state(self) -> DeploymentState:
+        return self._state
+
+    async def join(
+        self,
+        leader_address: str,
+        token: str,
+        uuid: UUID,
+        hostname: str,
+        address: str
+    ) -> bool:
+        logger.debug(
+            f"join > with leader {leader_address}, token: {token}"
+        )
+
+        assert self._state
+        assert hostname
+        assert address
+
+        if self._state.bootstrapping:
+            raise NodeBootstrappingError()
+        elif self._state.deployed:
+            raise NodeHasBeenDeployedError()
+        elif self._state.joining:
+            raise NodeAlreadyJoiningError()
+        elif self._state.ready:
+            raise NodeHasJoinedError()
+        assert self._state.nostage
+
+        uri: str = f"ws://{leader_address}/api/nodes/ws"
+        conn = await self._connmgr.connect(uri)
+        logger.debug(f"join > conn: {conn}")
+
+        joinmsg = JoinMessageModel(
+            uuid=uuid,
+            hostname=hostname,
+            address=address,
+            token=token
+        )
+        msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
+        await conn.send(msg)
+
+        self._state.mark_join()
+
+        reply: MessageModel = await conn.receive()
+        logger.debug(f"join > recv: {reply}")
+        if reply.type == MessageTypeEnum.ERROR:
+            errmsg = ErrorMessageModel.parse_obj(reply.data)
+            logger.error(f"join > error: {errmsg.what}")
+            await conn.close()
+            self._state.mark_error()
+            return False
+
+        assert reply.type == MessageTypeEnum.WELCOME
+        welcome = WelcomeMessageModel.parse_obj(reply.data)
+        assert welcome.pubkey
+        assert welcome.cephconf
+        assert welcome.keyring
+        assert welcome.etcd_peer
+
+        my_url: str = \
+            f"{hostname}=http://{address}:2380"
+        initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
+        await spawn_etcd(
+            self._gstate,
+            new=False,
+            token=None,
+            hostname=hostname,
+            address=address,
+            initial_cluster=initial_cluster
+        )
+
+        authorized_keys: Path = Path("/root/.ssh/authorized_keys")
+        if not authorized_keys.parent.exists():
+            authorized_keys.parent.mkdir(0o700)
+        with authorized_keys.open("a") as fd:
+            fd.writelines([welcome.pubkey])
+            logger.debug(f"join > wrote pubkey to {authorized_keys}")
+
+        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
+        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
+        if not cephconf_path.parent.exists():
+            cephconf_path.parent.mkdir(0o755)
+        cephconf_path.write_text(welcome.cephconf)
+        keyring_path.write_text(welcome.keyring)
+        keyring_path.chmod(0o600)
+        cephconf_path.chmod(0o644)
+
+        readymsg = ReadyToAddMessageModel()
+        await conn.send(
+            MessageModel(
+                type=MessageTypeEnum.READY_TO_ADD,
+                data=readymsg
+            )
+        )
+        await conn.close()
+
+        self._state.mark_ready()
+        return True

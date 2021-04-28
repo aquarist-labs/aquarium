@@ -36,7 +36,8 @@ from gravel.controllers.nodes.bootstrap import (
     BootstrapStage
 )
 from gravel.controllers.nodes.deployment import (
-    DeploymentState
+    DeploymentState,
+    NodeDeployment
 )
 from gravel.controllers.orch.ceph import (
     CephCommandError,
@@ -49,11 +50,8 @@ from gravel.controllers.nodes.errors import (
     NodeNotBootstrappedError,
     NodeNotStartedError,
     NodeShuttingDownError,
-    NodeBootstrappingError,
-    NodeHasBeenDeployedError,
     NodeAlreadyJoiningError,
     NodeCantBootstrapError,
-    NodeHasJoinedError,
     NodeError
 )
 from gravel.controllers.nodes.conn import (
@@ -109,7 +107,7 @@ class NodeMgr:
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
     _bootstrapper: Optional[Bootstrap]
-    _deployment: DeploymentState
+    _deployment: NodeDeployment
 
     gstate: GlobalState
 
@@ -120,7 +118,7 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._bootstrapper = None
-        self._deployment = DeploymentState(gstate)
+        self._deployment = NodeDeployment(gstate, self._connmgr)
 
         self.gstate = gstate
 
@@ -133,13 +131,13 @@ class NodeMgr:
 
         logger.debug(f"start > {self._state}")
 
-        if not self._deployment.can_start():
+        if not self.deployment_state.can_start():
             raise NodeError("unable to start unstartable node")
 
-        if self._deployment.nostage:
+        if self.deployment_state.nostage:
             await self._wait_inventory()
         else:
-            assert self._deployment.ready or self._deployment.deployed
+            assert self.deployment_state.ready or self.deployment_state.deployed
             assert self._state.hostname
             assert self._state.address
             await spawn_etcd(
@@ -172,7 +170,7 @@ class NodeMgr:
 
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
-        assert self._deployment.nostage
+        assert self.deployment_state.nostage
         assert self._init_stage == NodeInitStage.NONE
 
         self._init_stage = NodeInitStage.PRESTART
@@ -199,7 +197,7 @@ class NodeMgr:
     async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
         assert self._state
-        assert self._deployment.ready or self._deployment.deployed
+        assert self.deployment_state.ready or self.deployment_state.deployed
 
         logger.info("start node")
 
@@ -247,94 +245,30 @@ class NodeMgr:
         assert self._state.hostname
         assert self._state.address
 
-        if self._deployment.bootstrapping:
-            raise NodeBootstrappingError()
-        elif self._deployment.deployed:
-            raise NodeHasBeenDeployedError()
-        elif self._deployment.joining:
-            raise NodeAlreadyJoiningError()
-        elif self._deployment.ready:
-            raise NodeHasJoinedError()
-        assert self._deployment.nostage
-
-        uri: str = f"ws://{leader_address}/api/nodes/ws"
-        conn = await self._connmgr.connect(uri)
-        logger.debug(f"join > conn: {conn}")
-
-        joinmsg = JoinMessageModel(
-            uuid=self._state.uuid,
-            hostname=self._state.hostname,
-            address=self._state.address,
-            token=token
-        )
-        msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
-        await conn.send(msg)
-
-        self._deployment.mark_join()
-
-        reply: MessageModel = await conn.receive()
-        logger.debug(f"join > recv: {reply}")
-        if reply.type == MessageTypeEnum.ERROR:
-            errmsg = ErrorMessageModel.parse_obj(reply.data)
-            logger.error(f"join > error: {errmsg.what}")
-            await conn.close()
-            self._deployment.mark_error()
-            return False
-
-        assert reply.type == MessageTypeEnum.WELCOME
-        welcome = WelcomeMessageModel.parse_obj(reply.data)
-        assert welcome.pubkey
-        assert welcome.cephconf
-        assert welcome.keyring
-        assert welcome.etcd_peer
-
-        my_url: str = \
-            f"{self._state.hostname}=http://{self._state.address}:2380"
-        initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
-        await spawn_etcd(
-            self.gstate,
-            new=False,
-            token=None,
-            hostname=self._state.hostname,
-            address=self._state.address,
-            initial_cluster=initial_cluster
-        )
-
-        authorized_keys: Path = Path("/root/.ssh/authorized_keys")
-        if not authorized_keys.parent.exists():
-            authorized_keys.parent.mkdir(0o700)
-        with authorized_keys.open("a") as fd:
-            fd.writelines([welcome.pubkey])
-            logger.debug(f"join > wrote pubkey to {authorized_keys}")
-
-        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
-        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
-        if not cephconf_path.parent.exists():
-            cephconf_path.parent.mkdir(0o755)
-        cephconf_path.write_text(welcome.cephconf)
-        keyring_path.write_text(welcome.keyring)
-        keyring_path.chmod(0o600)
-        cephconf_path.chmod(0o644)
-
-        readymsg = ReadyToAddMessageModel()
-        await conn.send(
-            MessageModel(
-                type=MessageTypeEnum.READY_TO_ADD,
-                data=readymsg
+        try:
+            res: bool = await self._deployment.join(
+                leader_address,
+                token,
+                self._state.uuid,
+                self._state.hostname,
+                self._state.address
             )
-        )
-        await conn.close()
 
-        self._deployment.mark_ready()
+            if not res:
+                return False
+
+        except Exception as e:
+            # propagate exceptions
+            raise e
+
         self._token = token
-
         await self._node_start()
         return True
 
     async def bootstrap(self) -> None:
 
         assert self._state
-        if self._deployment.error:
+        if self.deployment_state.error:
             raise NodeCantBootstrapError("node is in error state")
 
         try:
@@ -380,9 +314,9 @@ class NodeMgr:
 
     async def _prepare_bootstrap(self) -> None:
         assert self._state
-        if self._deployment.bootstrapping:
+        if self.deployment_state.bootstrapping:
             raise NodeCantBootstrapError("node bootstrapping")
-        elif not self._deployment.nostage:
+        elif not self.deployment_state.nostage:
             raise NodeCantBootstrapError("node can't be bootstrapped")
         elif self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
@@ -394,10 +328,10 @@ class NodeMgr:
 
     async def _start_bootstrap(self) -> None:
         assert self._state
-        assert self._deployment.nostage
+        assert self.deployment_state.nostage
         assert self._state.hostname
         assert self._state.address
-        self._deployment.mark_bootstrap()
+        self.deployment_state.mark_bootstrap()
 
     async def _finish_bootstrap_error(self, error: str) -> None:
         """
@@ -405,20 +339,20 @@ class NodeMgr:
         exceptions, but we can easily lock down the node by setting state to
         error.
         """
-        assert self._deployment.bootstrapping
-        self._deployment.mark_error()
+        assert self.deployment_state.bootstrapping
+        self.deployment_state.mark_error()
 
     async def _finish_bootstrap(self):
         """
         Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
-        assert self._deployment.bootstrapping
+        assert self.deployment_state.bootstrapping
 
         logger.info("finishing bootstrap")
         await self._finish_bootstrap_config()
 
-        self._deployment.mark_deployed()
+        self.deployment_state.mark_deployed()
         logger.debug(f"finished bootstrap: token = {self._token}")
 
         await self._load()
@@ -477,18 +411,18 @@ class NodeMgr:
     async def finish_deployment(self) -> None:
         assert self._state
 
-        if self._deployment.ready:
+        if self.deployment_state.ready:
             return
-        elif self._deployment.joining:
+        elif self.deployment_state.joining:
             raise NodeAlreadyJoiningError()
-        elif not self._deployment.deployed:
+        elif not self.deployment_state.deployed:
             raise NodeNotBootstrappedError()
 
-        self._deployment.mark_ready()
+        self.deployment_state.mark_ready()
 
     @property
     def deployment_state(self) -> DeploymentState:
-        return self._deployment
+        return self._deployment.state
 
     @property
     def inited(self) -> bool:
