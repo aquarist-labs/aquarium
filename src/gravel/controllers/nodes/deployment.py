@@ -15,17 +15,28 @@
 from enum import Enum
 from logging import Logger
 from pathlib import Path
+from typing import (
+    Awaitable,
+    Callable,
+    Optional
+)
 from uuid import UUID
 from pydantic import BaseModel, Field
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.nodes.bootstrap import (
+    Bootstrap,
+    BootstrapError
+)
 from gravel.controllers.nodes.conn import ConnMgr
 
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeBootstrappingError,
+    NodeCantBootstrapError,
+    NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError
 )
@@ -54,6 +65,12 @@ class NodeStageEnum(int, Enum):
 
 class DeploymentModel(BaseModel):
     stage: NodeStageEnum = Field(NodeStageEnum.NONE)
+
+
+class DeploymentBootstrapConfig(BaseModel):
+    hostname: str
+    address: str
+    token: str
 
 
 class DeploymentError(GravelError):
@@ -155,6 +172,7 @@ class NodeDeployment:
     _state: DeploymentState
     _gstate: GlobalState
     _connmgr: ConnMgr
+    _bootstrapper: Optional[Bootstrap]
 
     def __init__(
         self,
@@ -164,10 +182,15 @@ class NodeDeployment:
         self._gstate = gstate
         self._connmgr = connmgr
         self._state = DeploymentState(gstate)
+        self._bootstrapper = None
 
     @property
     def state(self) -> DeploymentState:
         return self._state
+
+    @property
+    def bootstrapper(self) -> Optional[Bootstrap]:
+        return self._bootstrapper
 
     async def join(
         self,
@@ -265,3 +288,79 @@ class NodeDeployment:
 
         self._state.mark_ready()
         return True
+
+    async def bootstrap(
+        self,
+        config: DeploymentBootstrapConfig,
+        finisher: Callable[[bool, Optional[str]], Awaitable[None]]
+    ) -> None:
+
+        assert config.hostname
+        assert config.address
+        assert config.token
+
+        hostname = config.hostname
+        address = config.address
+        token = config.token
+
+        if self._state.error:
+            raise NodeCantBootstrapError("node is in error state")
+
+        try:
+            await self._prepare_bootstrap(hostname, address, token)
+        except NodeError as e:
+            logger.error(f"bootstrap prepare error: {e.message}")
+            raise e
+
+        assert not self._bootstrapper
+        await self._start_bootstrap()
+        self._bootstrapper = Bootstrap()
+
+        async def finish_bootstrap_cb(
+            success: bool,
+            error: Optional[str]
+        ) -> None:
+            if not success:
+                logger.error(f"bootstrap finish error: {error}")
+                assert self._state.bootstrapping
+                self._state.mark_error()
+
+            await finisher(success, error)
+
+        try:
+            await self._bootstrapper.bootstrap(
+                address, finish_bootstrap_cb
+            )
+        except BootstrapError as e:
+            logger.error(f"bootstrap error: {e.message}")
+            raise NodeCantBootstrapError(e.message)
+
+    async def _prepare_bootstrap(
+        self,
+        hostname: str,
+        address: str,
+        token: str
+    ) -> None:
+        assert self._state
+        if self._state.bootstrapping:
+            raise NodeCantBootstrapError("node bootstrapping")
+        elif not self._state.nostage:
+            raise NodeCantBootstrapError("node can't be bootstrapped")
+
+        await spawn_etcd(
+            self._gstate,
+            new=True,
+            token=token,
+            hostname=hostname,
+            address=address
+        )
+
+    async def _start_bootstrap(self) -> None:
+        assert self._state
+        assert self._state.nostage
+        self._state.mark_bootstrap()
+
+    def finish_bootstrap(self) -> None:
+        assert self.state.bootstrapping
+        logger.info("finishing bootstrap")
+        self._state.mark_deployed()
