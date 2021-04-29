@@ -358,7 +358,7 @@ class NodeDeployment:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
 
-    def finish_bootstrap(self) -> None:
+    def finish_deployment(self) -> None:
         assert self.state.bootstrapping
         logger.info("finishing bootstrap")
         self._state.mark_deployed()

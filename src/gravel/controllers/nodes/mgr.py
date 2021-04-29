@@ -294,9 +294,9 @@ class NodeMgr:
 
         logger.info("finish bootstrap config")
         await self._finish_bootstrap_config()
-        self._deployment.finish_bootstrap()
+        self._deployment.finish_deployment()
 
-        logger.debug(f"finished bootstrap: token = {self._token}")
+        logger.debug(f"finished deployment: token = {self._token}")
         await self._load()
         await self._node_start()
 
