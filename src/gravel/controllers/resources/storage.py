@@ -18,8 +18,7 @@ from pydantic.fields import Field
 from pydantic.main import BaseModel
 from gravel.controllers.gstate import Ticker
 from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    NodeStageEnum
+    NodeMgr
 )
 from gravel.controllers.orch.ceph import Mon
 
@@ -69,12 +68,11 @@ class Storage(Ticker):
         await self._update()
 
     async def _should_tick(self) -> bool:
-        stage = self.nodemgr.stage
-        if stage != NodeStageEnum.BOOTSTRAPPED and \
-           stage != NodeStageEnum.READY:
-            logger.debug(
-                f"not ticking, not bootstrapped (current={stage})"
-            )
+        if not (
+            self.nodemgr.deployment_state.deployed or
+            self.nodemgr.deployment_state.ready
+        ):
+            logger.debug("not ticking, not bootstrapped")
             return False
         return True
 

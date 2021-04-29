@@ -32,8 +32,7 @@ from gravel.controllers.orch.models import (
     CephStatusModel
 )
 from gravel.controllers.nodes.mgr import (
-    NodeMgr,
-    NodeStageEnum
+    NodeMgr
 )
 from gravel.controllers.services import (
     ServiceTypeEnum,
@@ -92,8 +91,10 @@ class Status(Ticker):
         await self.probe()
 
     async def _should_tick(self) -> bool:
-        return (self.nodemgr.stage >= NodeStageEnum.BOOTSTRAPPED and
-                self.nodemgr.stage != NodeStageEnum.JOINING)
+        return (
+            self.nodemgr.deployment_state.deployed or
+            self.nodemgr.deployment_state.ready
+        )
 
     async def probe(self) -> None:
         assert self._mon

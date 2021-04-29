@@ -19,11 +19,9 @@ from uuid import UUID, uuid4
 import random
 from typing import (
     Dict,
-    List,
     Optional,
 )
 from pathlib import Path
-import shlex
 
 import aetcd3
 from pydantic import BaseModel
@@ -32,10 +30,13 @@ from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import (
-    Bootstrap,
-    BootstrapError,
     BootstrapErrorEnum,
     BootstrapStage
+)
+from gravel.controllers.nodes.deployment import (
+    DeploymentBootstrapConfig,
+    DeploymentState,
+    NodeDeployment
 )
 from gravel.controllers.orch.ceph import (
     CephCommandError,
@@ -48,11 +49,8 @@ from gravel.controllers.nodes.errors import (
     NodeNotBootstrappedError,
     NodeNotStartedError,
     NodeShuttingDownError,
-    NodeBootstrappingError,
-    NodeHasBeenDeployedError,
     NodeAlreadyJoiningError,
     NodeCantBootstrapError,
-    NodeHasJoinedError,
     NodeError
 )
 from gravel.controllers.nodes.conn import (
@@ -68,19 +66,11 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel,
     MessageTypeEnum,
 )
+from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
-
-
-class NodeStageEnum(int, Enum):
-    NONE = 0
-    BOOTSTRAPPING = 1
-    BOOTSTRAPPED = 2
-    JOINING = 3
-    READY = 4
-    ERROR = 5
 
 
 class NodeInitStage(int, Enum):
@@ -93,7 +83,6 @@ class NodeInitStage(int, Enum):
 
 class NodeStateModel(BaseModel):
     uuid: UUID
-    stage: NodeStageEnum
     address: Optional[str]
     hostname: Optional[str]
 
@@ -102,41 +91,9 @@ class TokenModel(BaseModel):
     token: str
 
 
-class AquariumUUIDModel(BaseModel):
-    aqarium_uuid: UUID
-
-
 class JoiningNodeModel(BaseModel):
     hostname: str
     address: str
-
-
-# We need to rely on "spawn" because otherwise the subprocess' signal
-# handler will play nasty tricks with uvicorn's and fastapi's signal
-# handlers.
-# For future reference,
-# - uvicorn issue: https://github.com/encode/uvicorn/issues/548
-# - python bug report: https://bugs.python.org/issue43064
-# - somewhat of a solution, using "spawn" for multiprocessing:
-# https://github.com/tiangolo/fastapi/issues/1487#issuecomment-657290725
-#
-# And because we need to rely on spawn, which will create a new python
-# interpreter to execute what we are specifying, the function we're passing
-# needs to be pickled. And nested functions, apparently, can't be pickled. Thus,
-# we need to have the functions at the top-level scope.
-#
-def _bootstrap_etcd_process(cmd: List[str]):
-
-    async def _run_etcd():
-        process = await asyncio.create_subprocess_exec(*cmd)
-        await process.wait()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        loop.run_until_complete(_run_etcd())
-    except KeyboardInterrupt:
-        pass
 
 
 class NodeMgr:
@@ -148,7 +105,9 @@ class NodeMgr:
     _state: NodeStateModel
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
-    _bootstrapper: Optional[Bootstrap]
+    _deployment: NodeDeployment
+
+    gstate: GlobalState
 
     def __init__(self, gstate: GlobalState):
         self._init_stage = NodeInitStage.NONE
@@ -156,7 +115,8 @@ class NodeMgr:
         self._connmgr = get_conn_mgr()
         self._token = None
         self._joining = {}
-        self._bootstrapper = None
+        self._deployment = NodeDeployment(gstate, self._connmgr)
+
         self.gstate = gstate
 
         multiprocessing.set_start_method("spawn")
@@ -168,42 +128,46 @@ class NodeMgr:
 
         logger.debug(f"start > {self._state}")
 
-        assert self._state.stage == NodeStageEnum.NONE or \
-            self._state.stage == NodeStageEnum.BOOTSTRAPPED or \
-            self._state.stage == NodeStageEnum.READY
+        if not self.deployment_state.can_start():
+            raise NodeError("unable to start unstartable node")
 
-        if self._state.stage == NodeStageEnum.NONE:
+        if self.deployment_state.nostage:
             await self._wait_inventory()
         else:
-            assert self._state.stage == NodeStageEnum.READY or \
-                self._state.stage == NodeStageEnum.BOOTSTRAPPED
-            await self._spawn_etcd(new=False, token=None)
+            assert self.deployment_state.ready or self.deployment_state.deployed
+            assert self._state.hostname
+            assert self._state.address
+            await spawn_etcd(
+                self.gstate,
+                new=False,
+                token=None,
+                hostname=self._state.hostname,
+                address=self._state.address
+            )
             await self._node_start()
 
     async def shutdown(self) -> None:
         pass
 
     def _node_init(self) -> None:
-        statefile: Path = self._get_node_file("node")
-        if not statefile.exists():
-
-            state = NodeStateModel(
+        try:
+            self._state = self.gstate.config.read_model("node", NodeStateModel)
+        except FileNotFoundError:
+            self._state = NodeStateModel(
                 uuid=uuid4(),
-                stage=NodeStageEnum.NONE,
                 address=None,
                 hostname=None
             )
             try:
-                statefile.write_text(state.json())
+                self.gstate.config.write_model("node", self._state)
             except Exception as e:
                 raise NodeError(str(e))
-            assert statefile.exists()
-
-        self._state = NodeStateModel.parse_file(statefile)
+        except Exception as e:
+            raise NodeError(str(e))
 
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
-        assert self._state.stage == NodeStageEnum.NONE
+        assert self.deployment_state.nostage
         assert self._init_stage == NodeInitStage.NONE
 
         self._init_stage = NodeInitStage.PRESTART
@@ -230,8 +194,7 @@ class NodeMgr:
     async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
         assert self._state
-        assert self._state.stage == NodeStageEnum.READY or \
-            self._state.stage == NodeStageEnum.BOOTSTRAPPED
+        assert self.deployment_state.ready or self.deployment_state.deployed
 
         logger.info("start node")
 
@@ -279,251 +242,61 @@ class NodeMgr:
         assert self._state.hostname
         assert self._state.address
 
-        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
-            raise NodeBootstrappingError()
-        elif self._state.stage == NodeStageEnum.BOOTSTRAPPED:
-            raise NodeHasBeenDeployedError()
-        elif self._state.stage == NodeStageEnum.JOINING:
-            raise NodeAlreadyJoiningError()
-        elif self._state.stage == NodeStageEnum.READY:
-            raise NodeHasJoinedError()
-        assert self._state.stage == NodeStageEnum.NONE
-
-        uri: str = f"ws://{leader_address}/api/nodes/ws"
-        conn = await self._connmgr.connect(uri)
-        logger.debug(f"join > conn: {conn}")
-
-        joinmsg = JoinMessageModel(
-            uuid=self._state.uuid,
-            hostname=self._state.hostname,
-            address=self._state.address,
-            token=token
-        )
-        msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
-        await conn.send(msg)
-
-        self._state.stage = NodeStageEnum.JOINING
-        await self._save_state()
-
-        reply: MessageModel = await conn.receive()
-        logger.debug(f"join > recv: {reply}")
-        if reply.type == MessageTypeEnum.ERROR:
-            errmsg = ErrorMessageModel.parse_obj(reply.data)
-            logger.error(f"join > error: {errmsg.what}")
-            await conn.close()
-            self._state.stage = NodeStageEnum.NONE
-            await self._save_state()
-            return False
-
-        assert reply.type == MessageTypeEnum.WELCOME
-        welcome = WelcomeMessageModel.parse_obj(reply.data)
-        assert welcome.pubkey
-        assert welcome.cephconf
-        assert welcome.keyring
-        assert welcome.etcd_peer
-
-        my_url: str = \
-            f"{self._state.hostname}=http://{self._state.address}:2380"
-        initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
-        await self._spawn_etcd(
-            new=False,
-            token=None,
-            initial_cluster=initial_cluster
-        )
-
-        authorized_keys: Path = Path("/root/.ssh/authorized_keys")
-        if not authorized_keys.parent.exists():
-            authorized_keys.parent.mkdir(0o700)
-        with authorized_keys.open("a") as fd:
-            fd.writelines([welcome.pubkey])
-            logger.debug(f"join > wrote pubkey to {authorized_keys}")
-
-        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
-        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
-        if not cephconf_path.parent.exists():
-            cephconf_path.parent.mkdir(0o755)
-        cephconf_path.write_text(welcome.cephconf)
-        keyring_path.write_text(welcome.keyring)
-        keyring_path.chmod(0o600)
-        cephconf_path.chmod(0o644)
-
-        readymsg = ReadyToAddMessageModel()
-        await conn.send(
-            MessageModel(
-                type=MessageTypeEnum.READY_TO_ADD,
-                data=readymsg
+        try:
+            res: bool = await self._deployment.join(
+                leader_address,
+                token,
+                self._state.uuid,
+                self._state.hostname,
+                self._state.address
             )
-        )
-        await conn.close()
 
-        self._state.stage = NodeStageEnum.READY
-        await self._save_state()
+            if not res:
+                return False
+
+        except Exception as e:
+            # propagate exceptions
+            raise e
 
         self._token = token
-
         await self._node_start()
         return True
 
     async def bootstrap(self) -> None:
 
         assert self._state
-        if self._state.stage == NodeStageEnum.ERROR:
-            raise NodeCantBootstrapError("node is in error state")
-
-        try:
-            await self._prepare_bootstrap()
-        except NodeError as e:
-            logger.error(f"bootstrap prepare error: {e.message}")
-            raise e
-
-        assert not self._bootstrapper
-        await self._start_bootstrap()
-        self._bootstrapper = Bootstrap()
-
-        async def finish_bootstrap_cb(
-            success: bool,
-            error: Optional[str]
-        ) -> None:
-            if not success:
-                error = error if error else "unknown error"
-                logger.error(f"bootstrap finish error: {error}")
-                await self._finish_bootstrap_error(error)
-                return
-
-            await self._finish_bootstrap()
-
-        try:
-            await self._bootstrapper.bootstrap(
-                self.address, finish_bootstrap_cb
-            )
-        except BootstrapError as e:
-            logger.error(f"bootstrap error: {e.message}")
-            raise NodeCantBootstrapError(e.message)
-
-    async def _spawn_etcd(
-        self,
-        new: bool,
-        token: Optional[str],
-        initial_cluster: Optional[str] = None
-    ) -> None:
-
-        assert self._state.hostname
-        assert self._state.address
-        hostname = self._state.hostname
-        address = self._state.address
-
-        data_dir: Path = Path(self.gstate.config.options.etcd.data_dir)
-        if not data_dir.exists():
-            data_dir.mkdir(0o700)
-
-        logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
-
-        def _get_etcd_args() -> List[str]:
-            client_url: str = f"http://{address}:2379"
-            peer_url: str = f"http://{address}:2380"
-
-            nonlocal initial_cluster
-            if not initial_cluster:
-                initial_cluster = f"{hostname}={peer_url}"
-
-            args: List[str] = [
-                "--name", hostname,
-                "--initial-advertise-peer-urls", peer_url,
-                "--listen-peer-urls", peer_url,
-                "--listen-client-urls", f"{client_url},http://127.0.0.1:2379",
-                "--advertise-client-urls", client_url,
-                "--initial-cluster", initial_cluster,
-                "--data-dir", str(data_dir),
-            ]
-
-            if new:
-                assert token
-                args += ["--initial-cluster-state", "new"]
-                args += ["--initial-cluster-token", token]
-            else:
-                args += ["--initial-cluster-state", "existing"]
-
-            return args
-
-        def _get_container_cmd():
-            registry = self.gstate.config.options.etcd.registry
-            version = self.gstate.config.options.etcd.version
-
-            return [
-                'podman', 'run',
-                '--rm',
-                '--net=host',
-                '--entrypoint', '/usr/local/bin/etcd',
-                '-v', f'{data_dir}:{data_dir}',
-                '--name', f'etcd.{hostname}',
-                f'{registry}:{version}',
-            ] + _get_etcd_args()
-
-        cmd = _get_container_cmd()
-
-        logger.debug("spawn etcd: " + shlex.join(cmd))
-        process = multiprocessing.Process(
-            target=_bootstrap_etcd_process,
-            args=(cmd,)
-        )
-        process.start()
-
-        logger.info(f"started etcd process pid = {process.pid}")
-        await self.gstate.init_store()
-
-    async def _bootstrap_etcd(self, token: str) -> None:
-        await self._spawn_etcd(new=True, token=token)
-
-    async def _prepare_bootstrap(self) -> None:
-        assert self._state
-        if self._state.stage == NodeStageEnum.BOOTSTRAPPING:
-            raise NodeCantBootstrapError("node bootstrapping")
-        elif self._state.stage > NodeStageEnum.NONE:
-            raise NodeCantBootstrapError("node can't be bootstrapped")
-        elif self._init_stage < NodeInitStage.PRESTART:
+        if self._init_stage < NodeInitStage.PRESTART:
             raise NodeNotStartedError()
 
-        self._token = self._generate_token()
-        logger.info(f"generated new token: {self._token}")
-        await self._bootstrap_etcd(self._token)
-        await self._save_token()
+        if self.deployment_state.error:
+            raise NodeCantBootstrapError("node is in error state")
 
-    async def _start_bootstrap(self) -> None:
-        assert self._state
-        assert self._state.stage == NodeStageEnum.NONE
+        self._token = self._generate_token()
+
         assert self._state.hostname
         assert self._state.address
-        self._state.stage = NodeStageEnum.BOOTSTRAPPING
-        await self._save_state()
+        logger.info("bootstrap node")
+        await self._deployment.bootstrap(
+            DeploymentBootstrapConfig(
+                hostname=self._state.hostname,
+                address=self._state.address,
+                token=self._token
+            ),
+            self._finish_bootstrap
+        )
+        await self._save_token()
 
-    async def _finish_bootstrap_error(self, error: str) -> None:
-        """
-        Called asynchronously, we don't benefit anyone by throwing
-        exceptions, but we can easily lock down the node by setting state to
-        error.
-        """
-        assert self._state
-        assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
-
-        self._state.stage = NodeStageEnum.ERROR
-        await self._save_state()
-
-    async def _finish_bootstrap(self):
+    async def _finish_bootstrap(self, success: bool, error: Optional[str]):
         """
         Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
-        assert self._state.stage == NodeStageEnum.BOOTSTRAPPING
 
-        logger.info("finishing bootstrap")
-
+        logger.info("finish bootstrap config")
         await self._finish_bootstrap_config()
+        self._deployment.finish_deployment()
 
-        self._state.stage = NodeStageEnum.BOOTSTRAPPED
-        await self._save_state()
-
-        logger.debug(f"finished bootstrap: token = {self._token}")
-
+        logger.debug(f"finished deployment: token = {self._token}")
         await self._load()
         await self._node_start()
 
@@ -555,40 +328,43 @@ class NodeMgr:
 
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
-        if not self._bootstrapper:
+        if not self._deployment.bootstrapper:
             return BootstrapStage.NONE
-        return self._bootstrapper.stage
+        return self._deployment.bootstrapper.stage
 
     @property
     def bootstrapper_progress(self) -> int:
-        if not self._bootstrapper:
+        if not self._deployment.bootstrapper:
             return 0
-        return self._bootstrapper.progress
+        return self._deployment.bootstrapper.progress
 
     @property
     def bootstrapper_error_code(self) -> BootstrapErrorEnum:
-        if not self._bootstrapper:
+        if not self._deployment.bootstrapper:
             return BootstrapErrorEnum.NONE
-        return self._bootstrapper.error_code
+        return self._deployment.bootstrapper.error_code
 
     @property
     def bootstrapper_error_msg(self) -> str:
-        if not self._bootstrapper:
+        if not self._deployment.bootstrapper:
             return ""
-        return self._bootstrapper.error_msg
+        return self._deployment.bootstrapper.error_msg
 
     async def finish_deployment(self) -> None:
         assert self._state
 
-        if self._state.stage < NodeStageEnum.BOOTSTRAPPED:
-            raise NodeNotBootstrappedError()
-        elif self._state.stage == NodeStageEnum.JOINING:
-            raise NodeAlreadyJoiningError()
-        elif self._state.stage == NodeStageEnum.READY:
+        if self.deployment_state.ready:
             return
+        elif self.deployment_state.joining:
+            raise NodeAlreadyJoiningError()
+        elif not self.deployment_state.deployed:
+            raise NodeNotBootstrappedError()
 
-        self._state.stage = NodeStageEnum.READY
-        await self._save_state()
+        self.deployment_state.mark_ready()
+
+    @property
+    def deployment_state(self) -> DeploymentState:
+        return self._deployment.state
 
     @property
     def inited(self) -> bool:
@@ -599,33 +375,10 @@ class NodeMgr:
         return self._init_stage == NodeInitStage.STARTED
 
     @property
-    def stage(self) -> NodeStageEnum:
-        assert self._state
-        return self._state.stage
-
-    @property
     def address(self) -> str:
         assert self._state
         assert self._state.address
         return self._state.address
-
-    @property
-    def bootstrapping(self) -> bool:
-        if not self._state:
-            return False
-        return self._state.stage == NodeStageEnum.BOOTSTRAPPING
-
-    @property
-    def bootstrapped(self) -> bool:
-        if not self._state:
-            return False
-        return self._state.stage == NodeStageEnum.BOOTSTRAPPED
-
-    @property
-    def ready(self) -> bool:
-        if not self._state:
-            return False
-        return self._state.stage == NodeStageEnum.READY
 
     @property
     def connmgr(self) -> ConnMgr:
@@ -649,12 +402,6 @@ class NodeMgr:
         self._token = await self._load_token()
         await self.gstate.store.watch("/nodes/token", _watcher)
 
-    def _get_node_file(self, what: str) -> Path:
-        confdir: Path = self.gstate.config.confdir
-        assert confdir.exists()
-        assert confdir.is_dir()
-        return confdir.joinpath(f"{what}.json")
-
     async def _load(self) -> None:
         self._token = await self._load_token()
 
@@ -668,17 +415,11 @@ class NodeMgr:
         logger.info(f"saving token: {self._token}")
         await self.gstate.store.put("/nodes/token", self._token)
 
-    async def _save_state(self, should_exist: bool = True) -> None:
-        statefile: Path = self._get_node_file("node")
-
-        # this check could be a single assert, but it's important to know which
-        # path failed.
-        if should_exist:
-            assert statefile.exists()
-        else:
-            assert not statefile.exists()
-
-        statefile.write_text(self._state.json())
+    async def _save_state(self) -> None:
+        try:
+            self.gstate.config.write_model("node", self._state)
+        except Exception as e:
+            raise NodeError(str(e))
 
     def _get_hostname(self) -> str:
         return ""

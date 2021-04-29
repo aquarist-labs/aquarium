@@ -89,6 +89,7 @@ async def start_bootstrap(request: Request) -> StartReplyModel:
             message=e.message
         )
     except Exception as e:
+        logger.exception(e)
         logger.error(f"[API] unknown error on bootstrap: {str(e)}")
         success = False
         error = BootstrapErrorModel(
