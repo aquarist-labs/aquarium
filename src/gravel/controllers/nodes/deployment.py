@@ -306,15 +306,29 @@ class NodeDeployment:
         if self._state.error:
             raise NodeCantBootstrapError("node is in error state")
 
-        try:
-            await self._prepare_bootstrap(hostname, address, token)
-        except NodeError as e:
-            logger.error(f"bootstrap prepare error: {e.message}")
-            raise e
+        async def _prepare(
+            hostname: str,
+            address: str,
+            token: str
+        ) -> None:
+            assert self._state
+            if self._state.bootstrapping:
+                raise NodeCantBootstrapError("node bootstrapping")
+            elif not self._state.nostage:
+                raise NodeCantBootstrapError("node can't be bootstrapped")
 
-        assert not self._bootstrapper
-        await self._start_bootstrap()
-        self._bootstrapper = Bootstrap()
+            await spawn_etcd(
+                self._gstate,
+                new=True,
+                token=token,
+                hostname=hostname,
+                address=address
+            )
+
+        async def _start() -> None:
+            assert self._state
+            assert self._state.nostage
+            self._state.mark_bootstrap()
 
         async def finish_bootstrap_cb(
             success: bool,
@@ -324,8 +338,17 @@ class NodeDeployment:
                 logger.error(f"bootstrap finish error: {error}")
                 assert self._state.bootstrapping
                 self._state.mark_error()
-
             await finisher(success, error)
+
+        try:
+            await _prepare(hostname, address, token)
+        except NodeError as e:
+            logger.error(f"bootstrap prepare error: {e.message}")
+            raise e
+
+        assert not self._bootstrapper
+        await _start()
+        self._bootstrapper = Bootstrap()
 
         try:
             await self._bootstrapper.bootstrap(
@@ -334,31 +357,6 @@ class NodeDeployment:
         except BootstrapError as e:
             logger.error(f"bootstrap error: {e.message}")
             raise NodeCantBootstrapError(e.message)
-
-    async def _prepare_bootstrap(
-        self,
-        hostname: str,
-        address: str,
-        token: str
-    ) -> None:
-        assert self._state
-        if self._state.bootstrapping:
-            raise NodeCantBootstrapError("node bootstrapping")
-        elif not self._state.nostage:
-            raise NodeCantBootstrapError("node can't be bootstrapped")
-
-        await spawn_etcd(
-            self._gstate,
-            new=True,
-            token=token,
-            hostname=hostname,
-            address=address
-        )
-
-    async def _start_bootstrap(self) -> None:
-        assert self._state
-        assert self._state.nostage
-        self._state.mark_bootstrap()
 
     def finish_bootstrap(self) -> None:
         assert self.state.bootstrapping
