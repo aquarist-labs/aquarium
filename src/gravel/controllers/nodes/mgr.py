@@ -19,6 +19,7 @@ from uuid import UUID, uuid4
 import random
 from typing import (
     Dict,
+    List,
     Optional,
 )
 from pathlib import Path
@@ -124,11 +125,10 @@ class JoiningNodeModel(BaseModel):
 # needs to be pickled. And nested functions, apparently, can't be pickled. Thus,
 # we need to have the functions at the top-level scope.
 #
-def _bootstrap_etcd_process(cmd: str):
+def _bootstrap_etcd_process(cmd: List[str]):
 
     async def _run_etcd():
-        etcd_cmd = shlex.split(cmd)
-        process = await asyncio.create_subprocess_exec(*etcd_cmd)
+        process = await asyncio.create_subprocess_exec(*cmd)
         await process.wait()
 
     loop = asyncio.new_event_loop()
@@ -412,39 +412,62 @@ class NodeMgr:
         hostname = self._state.hostname
         address = self._state.address
 
+        data_dir: Path = Path(self.gstate.config.options.etcd.data_dir)
+        if not data_dir.exists():
+            data_dir.mkdir(0o700)
+
         logger.info(f"starting etcd, hostname: {hostname}, addr: {address}")
 
-        client_url: str = f"http://{address}:2379"
-        peer_url: str = f"http://{address}:2380"
+        def _get_etcd_args() -> List[str]:
+            client_url: str = f"http://{address}:2379"
+            peer_url: str = f"http://{address}:2380"
 
-        if not initial_cluster:
-            initial_cluster = f"{hostname}={peer_url}"
+            nonlocal initial_cluster
+            if not initial_cluster:
+                initial_cluster = f"{hostname}={peer_url}"
 
-        args_dict: Dict[str, str] = {
-            "name": hostname,
-            "initial-advertise-peer-urls": peer_url,
-            "listen-peer-urls": peer_url,
-            "listen-client-urls": f"{client_url},http://127.0.0.1:2379",
-            "advertise-client-urls": client_url,
-            "initial-cluster": initial_cluster,
-            "initial-cluster-state": "existing",
-            "data-dir": f"/var/lib/etcd/{hostname}.etcd"
-        }
+            args: List[str] = [
+                "--name", hostname,
+                "--initial-advertise-peer-urls", peer_url,
+                "--listen-peer-urls", peer_url,
+                "--listen-client-urls", f"{client_url},http://127.0.0.1:2379",
+                "--advertise-client-urls", client_url,
+                "--initial-cluster", initial_cluster,
+                "--data-dir", str(data_dir),
+            ]
 
-        if new:
-            assert token
-            args_dict["initial-cluster-token"] = token
-            args_dict["initial-cluster-state"] = "new"
+            if new:
+                assert token
+                args += ["--initial-cluster-state", "new"]
+                args += ["--initial-cluster-token", token]
+            else:
+                args += ["--initial-cluster-state", "existing"]
 
-        args = " ".join([f"--{k} {v}" for k, v in args_dict.items()])
-        logger.debug(f"spawn etcd: {args}")
-        etcd_cmd = f"etcd {args}"
+            return args
 
+        def _get_container_cmd():
+            registry = self.gstate.config.options.etcd.registry
+            version = self.gstate.config.options.etcd.version
+
+            return [
+                'podman', 'run',
+                '--rm',
+                '--net=host',
+                '--entrypoint', '/usr/local/bin/etcd',
+                '-v', f'{data_dir}:{data_dir}',
+                '--name', f'etcd.{hostname}',
+                f'{registry}:{version}',
+            ] + _get_etcd_args()
+
+        cmd = _get_container_cmd()
+
+        logger.debug("spawn etcd: " + shlex.join(cmd))
         process = multiprocessing.Process(
             target=_bootstrap_etcd_process,
-            args=(etcd_cmd,)
+            args=(cmd,)
         )
         process.start()
+
         logger.info(f"started etcd process pid = {process.pid}")
         await self.gstate.init_store()
 

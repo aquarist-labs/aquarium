@@ -146,7 +146,6 @@
         <package name="python38-requests"/>
         <package name="python3-rados"/>
         <package name="python38-websockets"/>
-        <package name="etcd"/>
         <package name="etcdctl"/>
         <archive name="aquarium.tar.gz"/>
         <archive name="root.tar.gz"/>
