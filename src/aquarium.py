@@ -112,7 +112,8 @@ def app_factory():
         storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr)
         gstate.add_storage(storage)
 
-        services: Services = Services(gstate.config.options.services.probe_interval, gstate, nodemgr)
+        services: Services = Services(
+            gstate.config.options.services.probe_interval, gstate, nodemgr)
         gstate.add_services(services)
 
         await nodemgr.start()
@@ -150,9 +151,13 @@ def app_factory():
         name="api"
     )
     # mounting root "/" must be the last thing, so it does not override "/api".
+    static_dir = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'glass/dist/'
+    )
     aquarium_app.mount(
         "/",
-        StaticFiles(directory="./glass/dist/", html=True),
+        StaticFiles(directory=static_dir, html=True),
         name="static"
     )
 
