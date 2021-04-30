@@ -16,6 +16,8 @@ from logging import Logger
 from pathlib import Path
 from typing import Type, TypeVar
 from pydantic import BaseModel, Field
+from typing import Optional
+
 from fastapi.logger import logger as fastapi_logger
 
 from . import utils
@@ -23,11 +25,13 @@ from . import utils
 logger: Logger = fastapi_logger
 
 
-_env_prefix = "AQUARIUM_"
-_env_config_dir = "CONFIG_DIR"
-_config_dir_env = os.getenv(f"{_env_prefix}{_env_config_dir}")
+def _get_default_confdir() -> str:
+    _env_prefix = "AQUARIUM_"
+    _env_config_dir = "CONFIG_DIR"
+    _config_dir_env = os.getenv(f"{_env_prefix}{_env_config_dir}")
 
-config_dir: str = _config_dir_env if _config_dir_env else '/etc/aquarium'
+    config_dir: str = _config_dir_env if _config_dir_env else '/etc/aquarium'
+    return config_dir
 
 
 class InventoryOptionsModel(BaseModel):
@@ -57,7 +61,7 @@ class EtcdOptionsModel(BaseModel):
 
 
 class OptionsModel(BaseModel):
-    service_state_path: Path = Field(Path(config_dir).joinpath("storage.json"),
+    service_state_path: Path = Field(Path(_get_default_confdir()).joinpath("storage.json"),
                                      title="Path to Service State file")
     inventory: InventoryOptionsModel = Field(InventoryOptionsModel())
     storage: StorageOptionsModel = Field(StorageOptionsModel())
@@ -75,7 +79,9 @@ class ConfigModel(BaseModel):
 
 class Config:
 
-    def __init__(self, path: str = config_dir):
+    def __init__(self, path: Optional[str] = None):
+        if not path:
+            path = _get_default_confdir()
         self._confdir = Path(path)
         self.confpath = self._confdir.joinpath(Path("config.json"))
         logger.debug(f'Aquarium config dir: {self._confdir}')
