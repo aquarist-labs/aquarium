@@ -11,11 +11,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 from json.decoder import JSONDecodeError
 from pydantic.tools import parse_obj_as
-import rados
 import json
-from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import (
     Callable,
@@ -27,6 +27,8 @@ from typing import (
 )
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
+import sys
+
 from gravel.controllers.orch.models import (
     CephDFModel,
     CephOSDDFModel,
@@ -34,6 +36,11 @@ from gravel.controllers.orch.models import (
     CephOSDPoolEntryModel, CephOSDPoolStatsModel,
     CephStatusModel
 )
+
+try:
+    import rados
+except ModuleNotFoundError:
+    pass
 
 
 logger: Logger = fastapi_logger
@@ -72,11 +79,17 @@ class NoRulesetError(CephError):
     pass
 
 
-class Ceph(ABC):
+class MissingSystemDependency(Exception):
+    pass
+
+
+class Ceph:
 
     cluster: rados.Rados
 
     def __init__(self, conf_file: str = CEPH_CONF_FILE):
+        if 'rados' not in sys.modules:
+            raise MissingSystemDependency("python3-rados module not found")
 
         path = Path(conf_file)
         if not path.exists():
@@ -154,27 +167,25 @@ class Ceph(ABC):
     def mgr(self, cmd: Dict[str, Any]) -> Any:
         return self._cmd(self.cluster.mgr_command, cmd)
 
-    @abstractmethod
-    def call(self, cmd: Dict[str, Any]) -> Any:
-        raise NotImplementedError("method 'call' has not been implemented")
 
-
-class Mgr(Ceph):
+class Mgr:
+    ceph: Ceph
 
     def __init__(self, conf_file: str = CEPH_CONF_FILE):
-        super().__init__(conf_file=conf_file)
+        self.ceph = Ceph(conf_file)
 
     def call(self, cmd: Dict[str, Any]) -> Any:
-        return self.mgr(cmd)
+        return self.ceph.mgr(cmd)
 
 
-class Mon(Ceph):
+class Mon:
+    ceph: Ceph
 
     def __init__(self, conf_file: str = CEPH_CONF_FILE):
-        super().__init__(conf_file=conf_file)
+        self.ceph = Ceph(conf_file)
 
     def call(self, cmd: Dict[str, Any]) -> Any:
-        return self.mon(cmd)
+        return self.ceph.mon(cmd)
 
     @property
     def status(self) -> CephStatusModel:
