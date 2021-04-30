@@ -88,33 +88,37 @@ class Ceph:
     cluster: rados.Rados
 
     def __init__(self, conf_file: str = CEPH_CONF_FILE):
+        self.conf_file = conf_file
+        path = Path(self.conf_file)
+        if not path.exists():
+            raise FileNotFoundError(self.conf_file)
+        self._is_connected = False
+
+    def connect(self):
         if 'rados' not in sys.modules:
             raise MissingSystemDependency("python3-rados module not found")
 
-        path = Path(conf_file)
-        if not path.exists():
-            raise FileNotFoundError(conf_file)
+        if not self.is_connected():
+            self.cluster = rados.Rados(conffile=self.conf_file)
+            if not self.cluster:
+                raise CephError("error creating cluster handle")
 
-        self.cluster = rados.Rados(conffile=conf_file)
-        if not self.cluster:
-            raise CephError("error creating cluster handle")
+            # apparently we can't rely on argument "timeout" because it's not really
+            # supported by the C API, and thus the python bindings simply expose it
+            # until some day when it's supposed to be dropped.
+            # This is mighty annoying because we can, technically, get stuck here
+            # forever.
+            try:
+                self.cluster.connect()
+            except Exception as e:
+                raise CephError(str(e)) from e
 
-        # apparently we can't rely on argument "timeout" because it's not really
-        # supported by the C API, and thus the python bindings simply expose it
-        # until some day when it's supposed to be dropped.
-        # This is mighty annoying because we can, technically, get stuck here
-        # forever.
-        try:
-            self.cluster.connect()
-        except Exception as e:
-            raise CephError(str(e)) from e
+            try:
+                self.cluster.require_state("connected")
+            except rados.RadosStateError as e:
+                raise CephError(str(e)) from e
 
-        try:
-            self.cluster.require_state("connected")
-        except rados.RadosStateError as e:
-            raise CephError(str(e)) from e
-
-        self._is_connected = True
+            self._is_connected = True
 
     def __del__(self):
         if hasattr(self, 'cluster') and self.cluster:
@@ -139,6 +143,7 @@ class Ceph:
     def _cmd(self, func: Callable[[str, bytes], Any],
              cmd: Dict[str, Any]
              ) -> Any:
+        self.connect()
         self.assert_is_ready()
         cmdstr: str = json.dumps(cmd)
 
@@ -171,8 +176,8 @@ class Ceph:
 class Mgr:
     ceph: Ceph
 
-    def __init__(self, conf_file: str = CEPH_CONF_FILE):
-        self.ceph = Ceph(conf_file)
+    def __init__(self, ceph: Ceph):
+        self.ceph = ceph
 
     def call(self, cmd: Dict[str, Any]) -> Any:
         return self.ceph.mgr(cmd)
@@ -181,8 +186,8 @@ class Mgr:
 class Mon:
     ceph: Ceph
 
-    def __init__(self, conf_file: str = CEPH_CONF_FILE):
-        self.ceph = Ceph(conf_file)
+    def __init__(self, ceph: Ceph):
+        self.ceph = ceph
 
     def call(self, cmd: Dict[str, Any]) -> Any:
         return self.ceph.mon(cmd)

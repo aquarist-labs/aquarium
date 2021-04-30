@@ -361,7 +361,7 @@ class NodeMgr:
         await self._node_start()
 
     async def _finish_bootstrap_config(self) -> None:
-        mon: Mon = Mon()
+        mon: Mon = self.gstate.ceph_mon
         try:
             mon.set_allow_pool_size_one()
         except CephCommandError as e:
@@ -555,7 +555,7 @@ class NodeMgr:
             )
             return
 
-        orch = Orchestrator()
+        orch = Orchestrator(self.gstate.ceph_mgr)
         pubkey: str = orch.get_public_key()
 
         cephconf_path: Path = Path("/etc/ceph/ceph.conf")
@@ -633,13 +633,13 @@ class NodeMgr:
         node: JoiningNodeModel = self._joining[address]
         logger.info("handle ready to add > "
                     f"hostname: {node.hostname}, address: {node.address}")
-        orch = Orchestrator()
+        orch = Orchestrator(self.gstate.ceph_mgr)
         if not orch.host_add(node.hostname, node.address):
             logger.error("handle ready > failed adding host to orch")
 
         # reset default crush ruleset, and adjust pools to use a multi-node
         # ruleset, spreading replicas across hosts rather than osds.
-        mon = Mon()
+        mon = self.gstate.ceph_mon
         if not mon.set_replicated_ruleset():
             logger.error(
                 "handle ready to add > unable to set replicated ruleset")
