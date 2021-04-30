@@ -121,7 +121,21 @@ class NodeMgr:
 
         multiprocessing.set_start_method("spawn")
 
-        self._node_init()
+        # attempt reading our node state from disk; create one if not found.
+        try:
+            self._state = self.gstate.config.read_model("node", NodeStateModel)
+        except FileNotFoundError:
+            self._state = NodeStateModel(
+                uuid=uuid4(),
+                address=None,
+                hostname=None
+            )
+            try:
+                self.gstate.config.write_model("node", self._state)
+            except Exception as e:
+                raise NodeError(str(e))
+        except Exception as e:
+            raise NodeError(str(e))
 
     async def start(self) -> None:
         assert self._state
@@ -148,22 +162,6 @@ class NodeMgr:
 
     async def shutdown(self) -> None:
         pass
-
-    def _node_init(self) -> None:
-        try:
-            self._state = self.gstate.config.read_model("node", NodeStateModel)
-        except FileNotFoundError:
-            self._state = NodeStateModel(
-                uuid=uuid4(),
-                address=None,
-                hostname=None
-            )
-            try:
-                self.gstate.config.write_model("node", self._state)
-            except Exception as e:
-                raise NodeError(str(e))
-        except Exception as e:
-            raise NodeError(str(e))
 
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
