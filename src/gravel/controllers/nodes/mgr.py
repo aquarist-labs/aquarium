@@ -324,6 +324,18 @@ class NodeMgr:
         if not res:
             logger.error("unable to enable managed ceph.conf by cephadm")
 
+    async def finish_deployment(self) -> None:
+        assert self._state
+
+        if self.deployment_state.ready:
+            return
+        elif self.deployment_state.joining:
+            raise NodeAlreadyJoiningError()
+        elif not self.deployment_state.deployed:
+            raise NodeNotBootstrappedError()
+
+        self.deployment_state.mark_ready()
+
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
         if not self._deployment.bootstrapper:
@@ -347,18 +359,6 @@ class NodeMgr:
         if not self._deployment.bootstrapper:
             return ""
         return self._deployment.bootstrapper.error_msg
-
-    async def finish_deployment(self) -> None:
-        assert self._state
-
-        if self.deployment_state.ready:
-            return
-        elif self.deployment_state.joining:
-            raise NodeAlreadyJoiningError()
-        elif not self.deployment_state.deployed:
-            raise NodeNotBootstrappedError()
-
-        self.deployment_state.mark_ready()
 
     @property
     def deployment_state(self) -> DeploymentState:
