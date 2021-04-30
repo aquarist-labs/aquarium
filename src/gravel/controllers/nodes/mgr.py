@@ -73,12 +73,17 @@ from gravel.controllers.orch.orchestrator import Orchestrator
 logger: Logger = fastapi_logger
 
 
+# none       aquarium is running
+# prestart   aquarium is prestarting, obtains images, inventory
+# available  ready to be deployed
+# started    has been deployed, ready to be used
 class NodeInitStage(int, Enum):
     NONE = 0
     PRESTART = 1
-    STARTED = 2
-    STOPPING = 3
-    STOPPED = 4
+    AVAILABLE = 2
+    STARTED = 3
+    STOPPING = 4
+    STOPPED = 5
 
 
 class NodeStateModel(BaseModel):
@@ -367,6 +372,10 @@ class NodeMgr:
     @property
     def inited(self) -> bool:
         return self._init_stage >= NodeInitStage.PRESTART
+
+    @property
+    def available(self) -> bool:
+        return self._init_stage >= NodeInitStage.AVAILABLE
 
     @property
     def started(self) -> bool:
