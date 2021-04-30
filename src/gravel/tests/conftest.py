@@ -105,6 +105,18 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     from gravel.controllers.resources.status import Status
     from gravel.controllers.resources.storage import Storage
     from gravel.controllers.services import Services, ServiceModel
+    from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
+    from gravel.controllers.orch.cephfs import CephFS
+
+    class FakeCeph(Ceph):
+        def __init__(self, conf_file: str = '/etc/ceph/ceph.conf'):
+            self.conf_file = conf_file
+            self._is_connected = False
+
+        def connect(self):
+            if not self.is_connected():
+                self.cluster = mocker.Mock()
+                self._is_connected = True
 
     class FakeServices(Services):
         async def _save(self):
@@ -131,7 +143,22 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     # init node mgr
     nodemgr: NodeMgr = NodeMgr(gstate)
 
-    devices: Devices = Devices(gstate.config.options.devices.probe_interval, nodemgr)
+    # Set up Ceph connections
+    ceph: Ceph = FakeCeph()
+    ceph_mgr: Mgr = Mgr(ceph)
+    gstate.add_ceph_mgr(ceph_mgr)
+    ceph_mon: Mon = Mon(ceph)
+    gstate.add_ceph_mon(ceph_mon)
+    cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
+    gstate.add_cephfs(cephfs)
+
+    # Set up all of the tickers
+    devices: Devices = Devices(
+        gstate.config.options.devices.probe_interval,
+        nodemgr,
+        ceph_mgr,
+        ceph_mon
+    )
     gstate.add_devices(devices)
 
     status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
@@ -143,17 +170,26 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     )
     gstate.add_inventory(inventory)
 
-    storage: Storage = FakeStorage(gstate.config.options.storage.probe_interval, nodemgr)
+    storage: Storage = FakeStorage(
+        gstate.config.options.storage.probe_interval,
+        nodemgr,
+        ceph_mon
+    )
     gstate.add_storage(storage)
 
     services: Services = FakeServices(
         gstate.config.options.services.probe_interval, gstate, nodemgr)
     gstate.add_services(services)
 
+    print("Running nodemgr start")
     await nodemgr.start()
     await gstate.start()
 
-    return gstate
+    yield gstate
+
+    print("Shutdown gstate & nodemgr")
+    await gstate.shutdown()
+    await nodemgr.shutdown()
 
 
 @pytest.fixture()

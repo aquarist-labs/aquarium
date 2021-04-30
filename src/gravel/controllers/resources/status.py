@@ -79,15 +79,11 @@ class Status(Ticker):
         super().__init__(probe_interval)
         self.gstate = gstate
         self.nodemgr = nodemgr
-        self._mon = None
+        self._mon = gstate.ceph_mon
         self._latest_cluster = None
         self._latest_pools_stats = {}
 
     async def _do_tick(self) -> None:
-
-        if not self._mon:
-            self._mon = Mon()
-
         await self.probe()
 
     async def _should_tick(self) -> bool:

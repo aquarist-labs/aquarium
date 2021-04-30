@@ -27,15 +27,14 @@ TEST_DIR = os.path.join(os.path.dirname(__file__), '../../../')
 
 def test_ceph_conf(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     mock_ceph_modules(mocker)
-    from gravel.controllers.orch.ceph import Mgr, Mon
+    from gravel.controllers.orch.ceph import Ceph
 
     # default location
     fs.add_real_file(  # pyright: reportUnknownMemberType=false
         os.path.join(TEST_DIR, 'data/default_ceph.conf'),
         target_path='/etc/ceph/ceph.conf'
     )
-    Mgr()
-    Mon()
+    Ceph()
 
     # custom location
     conf_file = '/foo/bar/baz.conf'
@@ -43,14 +42,12 @@ def test_ceph_conf(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
         os.path.join(TEST_DIR, 'data/default_ceph.conf'),
         target_path=conf_file
     )
-    Mgr(conf_file=conf_file)
-    Mon(conf_file=conf_file)
+    Ceph(conf_file=conf_file)
 
     # invalid location
     conf_file = "missing.conf"
     with pytest.raises(FileNotFoundError, match=conf_file):
-        Mgr(conf_file=conf_file)
-        Mon(conf_file=conf_file)
+        Ceph(conf_file=conf_file)
 
 
 def test_mon_df(
@@ -58,8 +55,9 @@ def test_mon_df(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str]
 ):
-    from gravel.controllers.orch.ceph import Mon
-    mon = Mon()
+    from gravel.controllers.orch.ceph import Ceph, Mon
+    ceph = Ceph()
+    mon = Mon(ceph)
     mon.call = mocker.MagicMock(
         return_value=json.loads(get_data_contents(DATA_DIR, 'mon_df_raw.json'))
     )
@@ -73,8 +71,9 @@ def test_get_osdmap(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str]
 ):
-    from gravel.controllers.orch.ceph import Mon
-    mon = Mon()
+    from gravel.controllers.orch.ceph import Ceph, Mon
+    ceph = Ceph()
+    mon = Mon(ceph)
     mon.call = mocker.MagicMock(
         return_value=json.loads(
             get_data_contents(DATA_DIR, 'mon_osdmap_raw.json'))
@@ -88,8 +87,9 @@ def test_get_pools(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str]
 ):
-    from gravel.controllers.orch.ceph import Mon
-    mon = Mon()
+    from gravel.controllers.orch.ceph import Ceph, Mon
+    ceph = Ceph()
+    mon = Mon(ceph)
     mon.call = mocker.MagicMock(
         return_value=json.loads(
             get_data_contents(DATA_DIR, 'mon_osdmap_raw.json'))
@@ -102,7 +102,7 @@ def test_set_pool_size(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture
 ):
-    from gravel.controllers.orch.ceph import Mon
+    from gravel.controllers.orch.ceph import Ceph, Mon
 
     def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
         assert "prefix" in args
@@ -123,5 +123,6 @@ def test_set_pool_size(
     mocker.patch.object(
         Mon, "call", new=argscheck  # type:ignore
     )
-    mon = Mon()
+    ceph = Ceph()
+    mon = Mon(ceph)
     mon.set_pool_size("foobar", 2)

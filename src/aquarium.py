@@ -23,6 +23,8 @@ import uvicorn
 
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
+from gravel.controllers.orch.cephfs import CephFS
 from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.devices import Devices
 from gravel.controllers.resources.status import Status
@@ -97,7 +99,22 @@ def app_factory():
         logger.info("starting node manager")
         nodemgr: NodeMgr = NodeMgr(gstate)
 
-        devices: Devices = Devices(gstate.config.options.devices.probe_interval, nodemgr)
+        # Set up Ceph connections
+        ceph: Ceph = Ceph()
+        ceph_mgr: Mgr = Mgr(ceph)
+        gstate.add_ceph_mgr(ceph_mgr)
+        ceph_mon: Mon = Mon(ceph)
+        gstate.add_ceph_mon(ceph_mon)
+        cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
+        gstate.add_cephfs(cephfs)
+
+        # Set up all of the tickers
+        devices: Devices = Devices(
+            gstate.config.options.devices.probe_interval,
+            nodemgr,
+            ceph_mgr,
+            ceph_mon
+        )
         gstate.add_devices(devices)
 
         status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
@@ -109,7 +126,7 @@ def app_factory():
         )
         gstate.add_inventory(inventory)
 
-        storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr)
+        storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr, ceph_mon)
         gstate.add_storage(storage)
 
         services: Services = Services(

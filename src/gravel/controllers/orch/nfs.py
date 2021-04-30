@@ -57,8 +57,8 @@ class NFSError(Exception):
 class NFS:
     mgr: Mgr
 
-    def __init__(self):
-        self.mgr = Mgr()
+    def __init__(self, ceph_mgr: Mgr):
+        self.mgr = ceph_mgr
 
     def _call(self, cmd: Dict[str, Any]) -> Any:
         try:

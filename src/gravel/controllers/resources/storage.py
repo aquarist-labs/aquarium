@@ -59,9 +59,10 @@ class StorageModel(BaseModel):
 
 class Storage(Ticker):
 
-    def __init__(self, probe_interval: float, nodemgr: NodeMgr):
+    def __init__(self, probe_interval: float, nodemgr: NodeMgr, ceph_mon: Mon):
         super().__init__(probe_interval)
-        self.nodemgr = nodemgr
+        self.nodemgr: NodeMgr = nodemgr
+        self.ceph_mon: Mon = ceph_mon
         self._state: StorageModel = StorageModel()
 
     async def _do_tick(self) -> None:
@@ -90,7 +91,7 @@ class Storage(Ticker):
 
     async def _update(self) -> None:
         try:
-            mon = Mon()
+            mon = self.ceph_mon
             df = mon.df()
         except Exception as e:
             raise StorageError("error obtaining info from cluster") from e

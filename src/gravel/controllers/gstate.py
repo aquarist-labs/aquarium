@@ -23,6 +23,8 @@ from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.config import Config
 from gravel.controllers.kv import KV
+from gravel.controllers.orch.ceph import Mgr, Mon
+from gravel.controllers.orch.cephfs import CephFS
 
 import typing
 if typing.TYPE_CHECKING:
@@ -128,12 +130,24 @@ class GlobalState:
     inventory: Inventory
     storage: Storage
     services: Services
+    cephfs: CephFS
+    ceph_mgr: Mgr
+    ceph_mon: Mon
 
     def __init__(self):
         self._config = Config()
         self._is_shutting_down = False
         self._tickers = {}
         self._kvstore = KV()
+
+    def add_cephfs(self, cephfs: CephFS):
+        self.cephfs = cephfs
+
+    def add_ceph_mgr(self, mgr: Mgr):
+        self.mgr = mgr
+
+    def add_ceph_mon(self, ceph_mon: Mon):
+        self.ceph_mon = ceph_mon
 
     def add_devices(self, devices: Devices):
         self.devices = devices

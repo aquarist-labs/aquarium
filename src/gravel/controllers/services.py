@@ -21,8 +21,7 @@ from gravel.controllers.nodes.mgr import (
     NodeMgr
 )
 
-from gravel.controllers.orch.ceph import Mon
-from gravel.controllers.orch.cephfs import CephFS, CephFSError
+from gravel.controllers.orch.cephfs import CephFSError
 from gravel.controllers.orch.models import (
     CephFSListEntryModel,
     CephOSDPoolEntryModel
@@ -343,7 +342,9 @@ class Services(Ticker):
     def _create_cephfs(self, svc: ServiceModel) -> None:
         assert self._is_ready()
 
-        cephfs = CephFS()
+        cephfs = self.gstate.cephfs
+        assert cephfs
+
         try:
             cephfs.create(svc.name)
         except CephFSError as e:
@@ -355,7 +356,7 @@ class Services(Ticker):
             raise ServiceError("unable to list cephfs filesystems") from e
         assert fs.name == svc.name
 
-        mon = Mon()
+        mon = self.gstate.ceph_mon
         pools: List[CephOSDPoolEntryModel] = mon.get_pools()
 
         def get_pool(name: str) -> CephOSDPoolEntryModel:
@@ -395,9 +396,9 @@ class Services(Ticker):
         # create an generic NFS service
         nfs_svc_id = 'gravel'
         nfs_svc_placement = '*'
-        if nfs_svc_id in NFSService().ls():
+        if nfs_svc_id in NFSService(self.gstate.ceph_mgr).ls():
             try:
-                NFSService().update(
+                NFSService(self.gstate.ceph_mgr).update(
                     nfs_svc_id,
                     placement=nfs_svc_placement
                 )
@@ -405,7 +406,7 @@ class Services(Ticker):
                 raise ServiceError("unable to update nfs service") from e
         else:
             try:
-                NFSService().create(
+                NFSService(self.gstate.ceph_mgr).create(
                     nfs_svc_id,
                     placement=nfs_svc_placement
                 )
@@ -414,7 +415,7 @@ class Services(Ticker):
 
         # export the root of the created cephfs service
         try:
-            NFSExport().create(
+            NFSExport(self.gstate.ceph_mgr).create(
                 service_id=nfs_svc_id,
                 binding=svc.name,
                 fs_type=NFSBackingStoreEnum.CEPHFS,
