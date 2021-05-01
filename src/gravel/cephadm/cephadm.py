@@ -17,6 +17,7 @@ import os
 import json
 import shlex
 from io import StringIO
+import time
 from typing import (
     Callable,
     List,
@@ -193,3 +194,13 @@ class Cephadm:
             ),
             disks=inventory
         )
+
+    async def pull_images(self) -> None:
+        logger.debug("fetching ceph container image")
+        time_begin: int = int(time.monotonic())
+        _, stderr, rc = await self.call("pull")
+        if rc != 0:
+            raise CephadmError(stderr)
+        time_end: int = int(time.monotonic())
+        time_diff: int = time_end - time_begin
+        logger.debug(f"pulled ceph container images: took {time_diff} sec")

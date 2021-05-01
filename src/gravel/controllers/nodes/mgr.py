@@ -27,6 +27,7 @@ import aetcd3
 from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
+from gravel.cephadm.cephadm import Cephadm, CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import (
@@ -66,7 +67,7 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel,
     MessageTypeEnum,
 )
-from gravel.controllers.nodes.etcd import spawn_etcd
+from gravel.controllers.nodes.etcd import ContainerFetchError, etcd_pull_image, spawn_etcd
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -201,8 +202,20 @@ class NodeMgr:
 
     async def _node_prepare(self) -> None:
 
-        async def _obtain_images() -> None:
-            pass
+        async def _obtain_images() -> bool:
+            cephadm = Cephadm()
+            try:
+                await asyncio.gather(
+                    cephadm.pull_images(),
+                    etcd_pull_image(self.gstate)
+                )
+            except ContainerFetchError as e:
+                logger.error(f"unable to fetch containers: {e.message}")
+                return False
+            except CephadmError as e:
+                logger.error(f"unable to fetch ceph containers: {str(e)}")
+                return False
+            return True
 
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
@@ -210,7 +223,9 @@ class NodeMgr:
             await self._node_prestart(nodeinfo)
 
         async def _task() -> None:
-            await _obtain_images()
+            if not await _obtain_images():
+                # xxx: find way to shutdown here?
+                return
             self.gstate.inventory.subscribe(_inventory_subscriber, once=True)
 
         self._init_stage = NodeInitStage.PREPARE

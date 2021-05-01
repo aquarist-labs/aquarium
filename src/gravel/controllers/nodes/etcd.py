@@ -20,6 +20,11 @@ from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.errors import GravelError
+
+
+class ContainerFetchError(GravelError):
+    pass
 
 
 logger: Logger = fastapi_logger
@@ -123,3 +128,28 @@ async def spawn_etcd(
 
     logger.info(f"started etcd process pid = {process.pid}")
     await gstate.init_store()
+
+
+async def etcd_pull_image(gstate: GlobalState) -> None:
+    registry = gstate.config.options.etcd.registry
+    version = gstate.config.options.etcd.version
+
+    logger.debug(f"fetching etcd image from {registry}:{version}")
+
+    cmd = shlex.split(f"podman pull {registry}:{version}")
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    try:
+        # wait for 5 minutes
+        retcode = await asyncio.wait_for(process.wait(), 300)
+        if retcode != 0:
+            stderr = "unknown error"
+            if process.stderr:
+                stderr = (await process.stderr.read()).decode("utf-8")
+            raise ContainerFetchError(stderr)
+    except TimeoutError:
+        raise ContainerFetchError("timed out")
