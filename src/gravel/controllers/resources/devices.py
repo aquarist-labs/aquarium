@@ -77,7 +77,7 @@ class Devices(Ticker):
         return (
             self.nodemgr.deployment_state.deployed or
             self.nodemgr.deployment_state.ready
-        )
+        ) and self.nodemgr.started
 
     async def probe(self) -> None:
 

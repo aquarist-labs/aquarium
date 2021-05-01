@@ -73,13 +73,43 @@ from gravel.controllers.orch.orchestrator import Orchestrator
 logger: Logger = fastapi_logger
 
 
+#
+# INIT STATE MACHINE
+# ------------------
+#
+# __init__() - reads / inits on-disk state    [stage: none]
+#
+# start()                                     [stage: none]
+#     - if deployment_stage == NONE: _node_prestart()
+#     - else: _node_start()
+#
+# _node_prepare()                            [state: none]
+#     stage = PREPARE
+#     obtain images
+#     obtain inventory
+#     _prestart()
+#
+# _node_prestart()                            [state: prepare]
+#     populate inventory, hostname, addresses
+#     stage = AVAILABLE
+#
+# _node_start()                               [state: none || available]
+#     obtain etcd state
+#     load state
+#     start connmgr
+#     stage = STARTED
+#
+# via bootstrap || join:                      [state: available]
+#     _node_start()
+#
 # none       aquarium is running
 # prestart   aquarium is prestarting, obtains images, inventory
 # available  ready to be deployed
 # started    has been deployed, ready to be used
+#
 class NodeInitStage(int, Enum):
     NONE = 0
-    PRESTART = 1
+    PREPARE = 1
     AVAILABLE = 2
     STARTED = 3
     STOPPING = 4
@@ -144,14 +174,15 @@ class NodeMgr:
 
     async def start(self) -> None:
         assert self._state
-
         logger.debug(f"start > {self._state}")
 
         if not self.deployment_state.can_start():
             raise NodeError("unable to start unstartable node")
 
+        assert self._init_stage == NodeInitStage.NONE
+
         if self.deployment_state.nostage:
-            await self._wait_inventory()
+            await self._node_prepare()
         else:
             assert self.deployment_state.ready or self.deployment_state.deployed
             assert self._state.hostname
@@ -168,12 +199,28 @@ class NodeMgr:
     async def shutdown(self) -> None:
         pass
 
+    async def _node_prepare(self) -> None:
+
+        async def _obtain_images() -> None:
+            pass
+
+        async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
+            logger.debug(f"inventory subscriber > node info: {nodeinfo}")
+            assert nodeinfo
+            await self._node_prestart(nodeinfo)
+
+        async def _task() -> None:
+            await _obtain_images()
+            self.gstate.inventory.subscribe(_inventory_subscriber, once=True)
+
+        self._init_stage = NodeInitStage.PREPARE
+        asyncio.create_task(_task())
+
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
         assert self.deployment_state.nostage
-        assert self._init_stage == NodeInitStage.NONE
+        assert self._init_stage == NodeInitStage.PREPARE
 
-        self._init_stage = NodeInitStage.PRESTART
         self._state.hostname = nodeinfo.hostname
 
         address: Optional[str] = None
@@ -193,6 +240,7 @@ class NodeMgr:
 
         self._state.address = address
         await self._save_state()
+        self._init_stage = NodeInitStage.AVAILABLE
 
     async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
@@ -215,15 +263,6 @@ class NodeMgr:
         self._init_stage = NodeInitStage.STOPPING
         self._incoming_task.cancel()
 
-    async def _wait_inventory(self) -> None:
-
-        async def _subscriber(nodeinfo: NodeInfoModel) -> None:
-            logger.debug(f"subscriber > node info: {nodeinfo}")
-            assert nodeinfo
-            await self._node_prestart(nodeinfo)
-
-        self.gstate.inventory.subscribe(_subscriber, once=True)
-
     def _generate_token(self) -> str:
         def gen() -> str:
             return ''.join(random.choice("0123456789abcdef") for _ in range(4))
@@ -236,9 +275,9 @@ class NodeMgr:
             f"join > with leader {leader_address}, token: {token}"
         )
 
-        if self._init_stage == NodeInitStage.NONE:
+        if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
-        elif self._init_stage > NodeInitStage.PRESTART:
+        elif self._init_stage > NodeInitStage.AVAILABLE:
             raise NodeCantJoinError()
 
         assert self._state
@@ -268,7 +307,7 @@ class NodeMgr:
     async def bootstrap(self) -> None:
 
         assert self._state
-        if self._init_stage < NodeInitStage.PRESTART:
+        if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
 
         if self.deployment_state.error:
@@ -371,7 +410,7 @@ class NodeMgr:
 
     @property
     def inited(self) -> bool:
-        return self._init_stage >= NodeInitStage.PRESTART
+        return self._init_stage >= NodeInitStage.PREPARE
 
     @property
     def available(self) -> bool:

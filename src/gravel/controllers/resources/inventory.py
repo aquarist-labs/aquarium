@@ -24,6 +24,7 @@ from pydantic.main import BaseModel
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import Ticker
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.nodes.mgr import NodeMgr
 
 
 logger: Logger = fastapi_logger
@@ -38,17 +39,19 @@ class Inventory(Ticker):
 
     _latest: Optional[NodeInfoModel]
     _subscribers: List[Subscriber]
+    _nodemgr: NodeMgr
 
-    def __init__(self, probe_interval: float):
+    def __init__(self, probe_interval: float, nodemgr: NodeMgr):
         super().__init__(probe_interval)
         self._latest = None
         self._subscribers = []
+        self._nodemgr = nodemgr
 
     async def _do_tick(self) -> None:
         await self.probe()
 
     async def _should_tick(self) -> bool:
-        return True
+        return self._nodemgr.inited
 
     async def probe(self) -> None:
         cephadm: Cephadm = Cephadm()

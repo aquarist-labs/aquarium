@@ -104,7 +104,10 @@ async def on_startup():
     status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
     gstate.add_status(status)
 
-    inventory: Inventory = Inventory(gstate.config.options.inventory.probe_interval)
+    inventory: Inventory = Inventory(
+        gstate.config.options.inventory.probe_interval,
+        nodemgr
+    )
     gstate.add_inventory(inventory)
 
     storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr)
