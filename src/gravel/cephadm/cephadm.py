@@ -15,6 +15,7 @@ import asyncio
 from logging import Logger
 import os
 import json
+import shlex
 from io import StringIO
 from typing import (
     Callable,
@@ -61,7 +62,7 @@ class Cephadm:
                    outcb: Optional[Callable[[str], None]] = None
                    ) -> Tuple[str, str, int]:
 
-        cmdlst: List[str] = f"{self.cephadm} {cmd}".split()
+        cmdlst: List[str] = shlex.split(f"{self.cephadm} {cmd}")
 
         process = await asyncio.create_subprocess_exec(
             *cmdlst,
@@ -125,7 +126,8 @@ class Cephadm:
                 if m in t:
                     percentcb(p)
 
-        cmd = f"bootstrap --skip-prepare-host --mon-ip {addr}"
+        cmd = f"bootstrap --skip-prepare-host --mon-ip {addr} " \
+              "--skip-dashboard --skip-monitoring-stack"
         return await self.call(cmd, outcb_handler)
 
     async def gather_facts(self) -> HostFactsModel:
