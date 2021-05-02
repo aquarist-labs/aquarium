@@ -161,7 +161,9 @@ tar --owner root --group root -czf ${build}/aquarium_user.tar.gz .
 popd
 
 
-cp ${imgdir}/microOS/config.{sh,xml} ${build}/
+cp ${imgdir}/microOS/config.{sh,xml} \
+   ${imgdir}/microOS/disk.sh \
+   ${build}/
 
 mkdir ${build}/{_out,_logs}
 
