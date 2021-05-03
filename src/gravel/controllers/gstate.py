@@ -113,6 +113,9 @@ class Ticker(ABC):
     async def shutdown(self) -> None:
         pass
 
+    def set_tick_interval(self, new_interval: float) -> None:
+        self._tick_interval = new_interval
+
 
 class GlobalState:
 
