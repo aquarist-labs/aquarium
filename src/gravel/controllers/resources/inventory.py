@@ -81,11 +81,16 @@ class Inventory(Ticker):
     def latest(self) -> Optional[NodeInfoModel]:
         return self._latest
 
-    def subscribe(
+    async def subscribe(
         self,
         cb: Callable[[NodeInfoModel], Awaitable[None]],
         once: bool
     ) -> None:
+        # if we have available state, call back immediately.
+        if self._latest:
+            await cb(self._latest)  # type: ignore
+            if once:
+                return
         self._subscribers.append(Subscriber(cb=cb, once=once))
 
     async def _publish(self) -> None:
