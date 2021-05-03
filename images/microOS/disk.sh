@@ -37,11 +37,13 @@ mount -t tmpfs none /dev/shm
 mount -t proc none /proc
 mount -t tmpfs none /run
 
-/usr/bin/podman pull quay.io/coreos/etcd:latest
+# setting "--events-backend none" means podman doesn't try
+# (and fail) to log a "system refresh" event to the journal
+/usr/bin/podman --events-backend none pull quay.io/coreos/etcd:latest
 # we don't get to use cephadm directly because it will
 # try running a container inside the chroot, and that
 # fails with a bang.
-/usr/bin/podman pull docker.io/ceph/ceph:v16
+/usr/bin/podman --events-backend none pull docker.io/ceph/ceph:v16
 
 # cleanup
 umount /run
