@@ -1,0 +1,66 @@
+<mat-accordion class="service-panel-align">
+  <mat-expansion-panel expanded="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title translate>NFS</mat-panel-title>
+      <mat-panel-description>
+        {{ 'Configure NFS service' | translate }}
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <div *ngIf="nfsList.length === 0">
+      <span translate>No NFS services configured</span>
+    </div>
+
+    <div *ngIf="nfsList.length > 0"
+         fxLayout="column"
+         fxLayoutAlign="start start">
+      <div *ngFor="let service of nfsList"
+           fxLayout="row"
+           fxLayoutAlign="start center">
+        <mat-icon svgIcon="mdi:nas"></mat-icon>
+        &nbsp;
+        <span>{{ service.name }} ({{ service.reservation | bytesToSize }})</span>
+      </div>
+    </div>
+
+    <mat-action-row>
+      <button mat-button
+              class="glass-color-theme-accent"
+              (click)="openFileServiceDialog('nfs')">
+        <span translate>Add</span>
+      </button>
+    </mat-action-row>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title translate>CephFS</mat-panel-title>
+      <mat-panel-description>
+        {{ 'Configure CephFS service' | translate }}
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <div *ngIf="cephfsList.length === 0">
+      <span translate>No CephFS services configured</span>
+    </div>
+
+    <div *ngIf="cephfsList.length > 0"
+         fxLayout="column"
+         fxLayoutAlign="start start">
+      <div *ngFor="let service of cephfsList"
+           fxLayout="row"
+           fxLayoutAlign="start center">
+        <mat-icon svgIcon="mdi:nas"></mat-icon>
+        &nbsp;
+        <span>{{ service.name }} ({{ service.reservation | bytesToSize }})</span>
+      </div>
+    </div>
+
+    <mat-action-row>
+      <button mat-button
+              class="glass-color-theme-accent"
+              (click)="openFileServiceDialog('cephfs')">
+        <span translate>Add</span>
+      </button>
+    </mat-action-row>
+  </mat-expansion-panel>
+</mat-accordion>

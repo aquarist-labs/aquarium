@@ -4,19 +4,19 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
+import { InstallWizardPageComponent } from '~/app/pages/install-wizard-page/install-wizard-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
 
-describe('DeploymentPageComponent', () => {
-  let component: DeploymentPageComponent;
-  let fixture: ComponentFixture<DeploymentPageComponent>;
+describe('InstallWizardPageComponent', () => {
+  let component: InstallWizardPageComponent;
+  let fixture: ComponentFixture<InstallWizardPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        PagesModule,
         NoopAnimationsModule,
+        PagesModule,
         RouterTestingModule,
         TranslateModule.forRoot()
       ]
@@ -24,7 +24,7 @@ describe('DeploymentPageComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DeploymentPageComponent);
+    fixture = TestBed.createComponent(InstallWizardPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

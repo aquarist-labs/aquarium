@@ -80,8 +80,8 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
     };
     return (
       stageAndUrl(StatusStageEnum.none, ['/installer']) ||
-      stageAndUrl(StatusStageEnum.bootstrapping, ['/installer/create/bootstrap']) ||
-      stageAndUrl(StatusStageEnum.bootstrapped, ['/installer/create/deployment', '/dashboard']) ||
+      stageAndUrl(StatusStageEnum.bootstrapping, ['/installer/create/wizard']) ||
+      stageAndUrl(StatusStageEnum.bootstrapped, ['/installer/create/wizard', '/dashboard']) ||
       stageAndUrl(StatusStageEnum.joining, ['/installer/join/register']) ||
       stageAndUrl(StatusStageEnum.ready, ['/dashboard', '/hosts', '/services'])
     );

@@ -32,13 +32,30 @@
         margin-left: unset;
       }
 
-      .mat-form-field .mat-form-field-wrapper {
-        .mat-form-field-infix .mat-form-field-label,
+      .mat-form-field {
+        .mat-input-element {
+          caret-color: $glass-color-accent;
+        }
+        .mat-form-field-label,
         .mat-hint {
           color: $glass-color-white;
         }
         .mat-form-field-underline {
           background-color: $glass-color-white;
+        }
+        .mat-form-field-ripple {
+          background-color: $glass-color-accent;
+        }
+        &.mat-form-field-invalid {
+          .mat-input-element {
+            caret-color: $glass-color-error;
+          }
+          .mat-form-field-label {
+            color: $glass-color-error;
+          }
+          .mat-form-field-ripple {
+            background-color: $glass-color-error;
+          }
         }
       }
 

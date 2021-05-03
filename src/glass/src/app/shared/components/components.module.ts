@@ -5,6 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { MaterialModule } from '~/app/material.modules';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
+import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { LanguageButtonComponent } from '~/app/shared/components/language-button/language-button.component';
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
@@ -19,7 +20,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DatatableComponent,
     LanguageButtonComponent,
     TokenInputComponent,
-    WidgetComponent
+    WidgetComponent,
+    DeclarativeFormComponent
   ],
   exports: [
     SubmitButtonComponent,
@@ -27,7 +29,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DatatableComponent,
     LanguageButtonComponent,
     TokenInputComponent,
-    WidgetComponent
+    WidgetComponent,
+    DeclarativeFormComponent
   ],
   imports: [CommonModule, FlexLayoutModule, MaterialModule, PipesModule, TranslateModule.forChild()]
 })

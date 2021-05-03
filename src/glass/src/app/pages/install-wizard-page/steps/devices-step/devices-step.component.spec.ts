@@ -1,31 +1,28 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { DevicesStepComponent } from '~/app/pages/install-wizard-page/steps/devices-step/devices-step.component';
 import { PagesModule } from '~/app/pages/pages.module';
 
-import { InstallConfigPageComponent } from './install-config-page.component';
-
-describe('InstallConfigPageComponent', () => {
-  let component: InstallConfigPageComponent;
-  let fixture: ComponentFixture<InstallConfigPageComponent>;
+describe('DevicesStepComponent', () => {
+  let component: DevicesStepComponent;
+  let fixture: ComponentFixture<DevicesStepComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        PagesModule,
         NoopAnimationsModule,
-        RouterTestingModule,
+        PagesModule,
         TranslateModule.forRoot()
       ]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(InstallConfigPageComponent);
+    fixture = TestBed.createComponent(DevicesStepComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

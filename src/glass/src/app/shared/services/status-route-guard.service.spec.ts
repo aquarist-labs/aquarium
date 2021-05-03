@@ -71,20 +71,20 @@ describe('StatusRouteGuardService', () => {
   });
 
   it('should not redirect [bootstrapping]', (done) => {
-    expectRouting('/installer/create/bootstrap', StatusStageEnum.bootstrapping, true, done);
+    expectRouting('/installer/create/wizard', StatusStageEnum.bootstrapping, true, done);
   });
 
   it('should redirect [bootstrapping]', (done) => {
     expectRouting(
       '/installer/welcome',
       StatusStageEnum.bootstrapping,
-      urlTree('/installer/create/bootstrap'),
+      urlTree('/installer/create/wizard'),
       done
     );
   });
 
   it('should not redirect [bootstrapped]', (done) => {
-    expectRouting('/installer/create/deployment', StatusStageEnum.bootstrapped, true, done);
+    expectRouting('/installer/create/wizard', StatusStageEnum.bootstrapped, true, done);
   });
 
   it('should not redirect [bootstrapped] on dashboard', (done) => {
@@ -95,7 +95,7 @@ describe('StatusRouteGuardService', () => {
     expectRouting(
       '/installer/welcome',
       StatusStageEnum.bootstrapped,
-      urlTree('/installer/create/deployment'),
+      urlTree('/installer/create/wizard'),
       done
     );
   });
@@ -113,7 +113,7 @@ describe('StatusRouteGuardService', () => {
   });
 
   it('should not redirect [none,3]', (done) => {
-    expectRouting('/installer/create/bootstrap', StatusStageEnum.none, true, done);
+    expectRouting('/installer/create/wizard', StatusStageEnum.none, true, done);
   });
 
   it('should redirect [none]', (done) => {

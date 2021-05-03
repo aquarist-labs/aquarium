@@ -19,12 +19,10 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layout.component';
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
-import { BootstrapPageComponent } from '~/app/pages/bootstrap-page/bootstrap-page.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
-import { DeploymentPageComponent } from '~/app/pages/deployment-page/deployment-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
-import { InstallConfigPageComponent } from '~/app/pages/install-config-page/install-config-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
+import { InstallWizardPageComponent } from '~/app/pages/install-wizard-page/install-wizard-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { RegisterPageComponent } from '~/app/pages/register-page/register-page.component';
 import { ServicesPageComponent } from '~/app/pages/services-page/services-page.component';
@@ -63,18 +61,11 @@ const routes: Routes = [
       { path: 'welcome', component: WelcomePageComponent },
       {
         path: 'create',
-        children: [
-          { path: 'config', component: InstallConfigPageComponent },
-          { path: 'bootstrap', component: BootstrapPageComponent },
-          { path: 'deployment', component: DeploymentPageComponent }
-        ]
+        children: [{ path: 'wizard', component: InstallWizardPageComponent }]
       },
       {
         path: 'join',
-        children: [
-          { path: 'register', component: RegisterPageComponent },
-          { path: 'deployment', component: DeploymentPageComponent }
-        ]
+        children: [{ path: 'register', component: RegisterPageComponent }]
       }
     ]
   },

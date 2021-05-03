@@ -8,6 +8,11 @@ $glass-light-theme: mat-light-theme(
   mat-palette($eos-cerulean-palette),
   mat-palette($eos-red-palette)
 );
+$glass-light-theme-inverse: mat-light-theme(
+  mat-palette($eos-cerulean-palette),
+  mat-palette($eos-green-palette),
+  mat-palette($eos-red-palette)
+);
 
 @include angular-material-theme($glass-light-theme);
 
@@ -15,6 +20,7 @@ $glass-color-primary: mat-color(map-get($glass-light-theme, primary));
 $glass-color-primary-complementary: white;
 $glass-color-accent: mat-color(map-get($glass-light-theme, accent));
 $glass-color-accent-complementary: white;
+$glass-color-error: mat-color(map-get($glass-light-theme, warn));
 
 .glass-color-theme-primary {
   color: $glass-color-primary-complementary;
@@ -31,7 +37,7 @@ $glass-color-accent-complementary: white;
 .glass-color-theme-error,
 .glass-color-theme-danger {
   color: $glass-color-white;
-  background-color: $eos-bc-red-500;
+  background-color: $glass-color-error;
 }
 .glass-color-theme-ok {
   color: $glass-color-white;
@@ -61,7 +67,7 @@ $glass-color-accent-complementary: white;
 }
 .glass-color-red,
 .glass-color-error {
-  color: $eos-bc-red-500;
+  color: $glass-color-error;
 }
 
 .glass-text-pre-wrap {

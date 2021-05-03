@@ -1,0 +1,45 @@
+<form *ngIf="formGroup && config"
+      [formGroup]="formGroup"
+      fxLayout="column"
+      novalidate>
+  <ng-container *ngFor="let field of config.fields">
+    <mat-form-field fxFlex
+                    [formGroup]="formGroup">
+      <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
+      <!-- Password input -->
+      <input *ngIf="field.type === 'password'"
+             matInput
+             type="password"
+             autocorrect="off"
+             autocapitalize="none"
+             [class]="field.class"
+             [formControlName]="field.name"
+             [readonly]="field.readonly"
+             [required]="field.required!">
+      <mat-icon *ngIf="field.hasCopyToClipboardButton"
+                matSuffix
+                mat-ripple
+                svgIcon="mdi:content-copy"
+                matTooltip="{{ 'Copy to clipboard' | translate }}"
+                (click)="onCopyToClipboard(field)">
+      </mat-icon>
+      <!-- Text input -->
+      <input *ngIf="field.type === 'text'"
+             matInput
+             type="text"
+             [class]="field.class"
+             [formControlName]="field.name"
+             [readonly]="field.readonly"
+             [required]="field.required!">
+      <mat-hint *ngIf="field.hint">
+        <span>{{ field.hint | translate }}</span>
+      </mat-hint>
+      <mat-error *ngIf="formGroup.invalid">
+        <span *ngIf="formGroup.hasError('required', field.name)"
+              translate>
+          This field is required.
+        </span>
+      </mat-error>
+    </mat-form-field>
+  </ng-container>
+</form>
