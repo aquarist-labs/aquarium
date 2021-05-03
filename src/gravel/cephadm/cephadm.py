@@ -15,7 +15,9 @@ import asyncio
 from logging import Logger
 import os
 import json
+import shlex
 from io import StringIO
+import time
 from typing import (
     Callable,
     List,
@@ -61,7 +63,7 @@ class Cephadm:
                    outcb: Optional[Callable[[str], None]] = None
                    ) -> Tuple[str, str, int]:
 
-        cmdlst: List[str] = f"{self.cephadm} {cmd}".split()
+        cmdlst: List[str] = shlex.split(f"{self.cephadm} {cmd}")
 
         process = await asyncio.create_subprocess_exec(
             *cmdlst,
@@ -125,7 +127,8 @@ class Cephadm:
                 if m in t:
                     percentcb(p)
 
-        cmd = f"bootstrap --skip-prepare-host --mon-ip {addr}"
+        cmd = f"bootstrap --skip-prepare-host --mon-ip {addr} " \
+              "--skip-dashboard --skip-monitoring-stack"
         return await self.call(cmd, outcb_handler)
 
     async def gather_facts(self) -> HostFactsModel:
@@ -191,3 +194,13 @@ class Cephadm:
             ),
             disks=inventory
         )
+
+    async def pull_images(self) -> None:
+        logger.debug("fetching ceph container image")
+        time_begin: int = int(time.monotonic())
+        _, stderr, rc = await self.call("pull")
+        if rc != 0:
+            raise CephadmError(stderr)
+        time_end: int = int(time.monotonic())
+        time_diff: int = time_end - time_begin
+        logger.debug(f"pulled ceph container images: took {time_diff} sec")

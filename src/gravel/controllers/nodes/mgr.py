@@ -27,6 +27,7 @@ import aetcd3
 from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
+from gravel.cephadm.cephadm import Cephadm, CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import (
@@ -66,19 +67,54 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel,
     MessageTypeEnum,
 )
-from gravel.controllers.nodes.etcd import spawn_etcd
+from gravel.controllers.nodes.etcd import ContainerFetchError, etcd_pull_image, spawn_etcd
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
 
 
+#
+# INIT STATE MACHINE
+# ------------------
+#
+# __init__() - reads / inits on-disk state    [stage: none]
+#
+# start()                                     [stage: none]
+#     - if deployment_stage == NONE: _node_prestart()
+#     - else: _node_start()
+#
+# _node_prepare()                            [state: none]
+#     stage = PREPARE
+#     obtain images
+#     obtain inventory
+#     _prestart()
+#
+# _node_prestart()                            [state: prepare]
+#     populate inventory, hostname, addresses
+#     stage = AVAILABLE
+#
+# _node_start()                               [state: none || available]
+#     obtain etcd state
+#     load state
+#     start connmgr
+#     stage = STARTED
+#
+# via bootstrap || join:                      [state: available]
+#     _node_start()
+#
+# none       aquarium is running
+# prestart   aquarium is prestarting, obtains images, inventory
+# available  ready to be deployed
+# started    has been deployed, ready to be used
+#
 class NodeInitStage(int, Enum):
     NONE = 0
-    PRESTART = 1
-    STARTED = 2
-    STOPPING = 3
-    STOPPED = 4
+    PREPARE = 1
+    AVAILABLE = 2
+    STARTED = 3
+    STOPPING = 4
+    STOPPED = 5
 
 
 class NodeStateModel(BaseModel):
@@ -121,18 +157,33 @@ class NodeMgr:
 
         multiprocessing.set_start_method("spawn")
 
-        self._node_init()
+        # attempt reading our node state from disk; create one if not found.
+        try:
+            self._state = self.gstate.config.read_model("node", NodeStateModel)
+        except FileNotFoundError:
+            self._state = NodeStateModel(
+                uuid=uuid4(),
+                address=None,
+                hostname=None
+            )
+            try:
+                self.gstate.config.write_model("node", self._state)
+            except Exception as e:
+                raise NodeError(str(e))
+        except Exception as e:
+            raise NodeError(str(e))
 
     async def start(self) -> None:
         assert self._state
-
         logger.debug(f"start > {self._state}")
 
         if not self.deployment_state.can_start():
             raise NodeError("unable to start unstartable node")
 
+        assert self._init_stage == NodeInitStage.NONE
+
         if self.deployment_state.nostage:
-            await self._wait_inventory()
+            await self._node_prepare()
         else:
             assert self.deployment_state.ready or self.deployment_state.deployed
             assert self._state.hostname
@@ -149,28 +200,42 @@ class NodeMgr:
     async def shutdown(self) -> None:
         pass
 
-    def _node_init(self) -> None:
-        try:
-            self._state = self.gstate.config.read_model("node", NodeStateModel)
-        except FileNotFoundError:
-            self._state = NodeStateModel(
-                uuid=uuid4(),
-                address=None,
-                hostname=None
-            )
+    async def _node_prepare(self) -> None:
+
+        async def _obtain_images() -> bool:
+            cephadm = Cephadm()
             try:
-                self.gstate.config.write_model("node", self._state)
-            except Exception as e:
-                raise NodeError(str(e))
-        except Exception as e:
-            raise NodeError(str(e))
+                await asyncio.gather(
+                    cephadm.pull_images(),
+                    etcd_pull_image(self.gstate)
+                )
+            except ContainerFetchError as e:
+                logger.error(f"unable to fetch containers: {e.message}")
+                return False
+            except CephadmError as e:
+                logger.error(f"unable to fetch ceph containers: {str(e)}")
+                return False
+            return True
+
+        async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
+            logger.debug(f"inventory subscriber > node info: {nodeinfo}")
+            assert nodeinfo
+            await self._node_prestart(nodeinfo)
+
+        async def _task() -> None:
+            if not await _obtain_images():
+                # xxx: find way to shutdown here?
+                return
+            self.gstate.inventory.subscribe(_inventory_subscriber, once=True)
+
+        self._init_stage = NodeInitStage.PREPARE
+        asyncio.create_task(_task())
 
     async def _node_prestart(self, nodeinfo: NodeInfoModel):
         """ sets hostname and addresses; allows bootstrap, join. """
         assert self.deployment_state.nostage
-        assert self._init_stage == NodeInitStage.NONE
+        assert self._init_stage == NodeInitStage.PREPARE
 
-        self._init_stage = NodeInitStage.PRESTART
         self._state.hostname = nodeinfo.hostname
 
         address: Optional[str] = None
@@ -190,6 +255,7 @@ class NodeMgr:
 
         self._state.address = address
         await self._save_state()
+        self._init_stage = NodeInitStage.AVAILABLE
 
     async def _node_start(self) -> None:
         """ node is ready to accept incoming messages, if leader """
@@ -212,15 +278,6 @@ class NodeMgr:
         self._init_stage = NodeInitStage.STOPPING
         self._incoming_task.cancel()
 
-    async def _wait_inventory(self) -> None:
-
-        async def _subscriber(nodeinfo: NodeInfoModel) -> None:
-            logger.debug(f"subscriber > node info: {nodeinfo}")
-            assert nodeinfo
-            await self._node_prestart(nodeinfo)
-
-        self.gstate.inventory.subscribe(_subscriber, once=True)
-
     def _generate_token(self) -> str:
         def gen() -> str:
             return ''.join(random.choice("0123456789abcdef") for _ in range(4))
@@ -233,9 +290,9 @@ class NodeMgr:
             f"join > with leader {leader_address}, token: {token}"
         )
 
-        if self._init_stage == NodeInitStage.NONE:
+        if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
-        elif self._init_stage > NodeInitStage.PRESTART:
+        elif self._init_stage > NodeInitStage.AVAILABLE:
             raise NodeCantJoinError()
 
         assert self._state
@@ -265,7 +322,7 @@ class NodeMgr:
     async def bootstrap(self) -> None:
 
         assert self._state
-        if self._init_stage < NodeInitStage.PRESTART:
+        if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
 
         if self.deployment_state.error:
@@ -326,6 +383,18 @@ class NodeMgr:
         if not res:
             logger.error("unable to enable managed ceph.conf by cephadm")
 
+    async def finish_deployment(self) -> None:
+        assert self._state
+
+        if self.deployment_state.ready:
+            return
+        elif self.deployment_state.joining:
+            raise NodeAlreadyJoiningError()
+        elif not self.deployment_state.deployed:
+            raise NodeNotBootstrappedError()
+
+        self.deployment_state.mark_ready()
+
     @property
     def bootstrapper_stage(self) -> BootstrapStage:
         if not self._deployment.bootstrapper:
@@ -350,25 +419,17 @@ class NodeMgr:
             return ""
         return self._deployment.bootstrapper.error_msg
 
-    async def finish_deployment(self) -> None:
-        assert self._state
-
-        if self.deployment_state.ready:
-            return
-        elif self.deployment_state.joining:
-            raise NodeAlreadyJoiningError()
-        elif not self.deployment_state.deployed:
-            raise NodeNotBootstrappedError()
-
-        self.deployment_state.mark_ready()
-
     @property
     def deployment_state(self) -> DeploymentState:
         return self._deployment.state
 
     @property
     def inited(self) -> bool:
-        return self._init_stage >= NodeInitStage.PRESTART
+        return self._init_stage >= NodeInitStage.PREPARE
+
+    @property
+    def available(self) -> bool:
+        return self._init_stage >= NodeInitStage.AVAILABLE
 
     @property
     def started(self) -> bool:

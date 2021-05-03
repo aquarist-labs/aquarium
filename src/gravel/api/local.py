@@ -126,6 +126,6 @@ async def get_status(request: Request) -> NodeStatusReplyModel:
     nodemgr: NodeMgr = request.app.state.nodemgr
 
     return NodeStatusReplyModel(
-        inited=nodemgr.inited,
+        inited=nodemgr.available,
         node_stage=nodemgr.deployment_state.stage
     )
