@@ -14,6 +14,7 @@
  */
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
+import { Router } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { forkJoin } from 'rxjs';
@@ -67,7 +68,8 @@ export class InstallWizardPageComponent implements OnInit {
     private localNodeService: LocalNodeService,
     private notificationService: NotificationService,
     private orchService: OrchService,
-    private pollService: PollService
+    private pollService: PollService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -170,6 +172,16 @@ export class InstallWizardPageComponent implements OnInit {
         }
       }
     );
+  }
+
+  finishDeployment(): void {
+    this.blockUI.start(translate(TEXT("Finishing deployment ...")));
+    this.bootstrapService.markFinished().subscribe({
+      next: () => {
+        this.blockUI.stop();
+        this.router.navigate(["/dashboard"]);
+      }
+    });
   }
 
   private handleError(err: any): void {
