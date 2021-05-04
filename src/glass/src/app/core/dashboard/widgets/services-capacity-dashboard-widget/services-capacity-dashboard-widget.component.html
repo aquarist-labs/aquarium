@@ -4,7 +4,12 @@
   <div class="glass-services-capacity-dashboard-widget"
        fxLayout="row"
        fxLayoutAlign="start start">
-    <ngx-charts-bar-horizontal [scheme]="colorScheme"
+    <div *ngIf="chartData.length === 0"
+         class="glass-services-capacity-dashboard-widget-no-services">
+      <p translate>No services deployed yet.</p>
+    </div>
+    <ngx-charts-bar-horizontal *ngIf="chartData.length > 0"
+                               [scheme]="colorScheme"
                                [results]="chartData"
                                [animations]="false"
                                [legend]="true"
