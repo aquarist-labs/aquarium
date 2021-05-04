@@ -26,6 +26,10 @@ from typing import (
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
 
+from asgi_lifespan import LifespanManager
+import httpx
+import logging
+
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -173,7 +177,7 @@ class FakeKV(KV):
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def aquarium_startup(fs: fake_filesystem.FakeFilesystem, get_data_contents, mocker):
+async def aquarium_startup(mocker):
     async def startup(aquarium_app, aquarium_api):
         from gravel.cephadm.cephadm import Cephadm
         from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
@@ -239,9 +243,9 @@ async def aquarium_startup(fs: fake_filesystem.FakeFilesystem, get_data_contents
                 if cmd == 'pull':
                     return '', '', 0
                 elif cmd == 'gather-facts':
-                    return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
+                    return get_data_contents_raw(DATA_DIR, 'gather_facts_real.json'), "", 0
                 elif cmd == 'ceph-volume inventory --format=json':
-                    return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
+                    return get_data_contents_raw(DATA_DIR, 'inventory_real.json'), "", 0
                 else:
                     print(cmd)
                     print(outcb)
@@ -362,3 +366,22 @@ async def gstate(aquarium_startup, aquarium_shutdown):
 @pytest.mark.asyncio
 async def services(gstate):
     return gstate.services
+
+
+@pytest.fixture()
+def app(caplog, aquarium_startup, aquarium_shutdown):
+    caplog.set_level(logging.DEBUG)
+    import aquarium
+    return aquarium.app_factory(startup_method=aquarium_startup, shutdown_method=aquarium_shutdown)
+
+
+@pytest.fixture
+async def app_lifespan(app):
+    async with LifespanManager(app):
+        yield app
+
+
+@pytest.fixture
+async def async_client(app_lifespan):
+    async with httpx.AsyncClient(app=app_lifespan, base_url="http://aquarium") as client:
+        yield client
