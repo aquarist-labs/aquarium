@@ -12,12 +12,12 @@
 # GNU General Public License for more details.
 
 import os
+from types import SimpleNamespace
 from typing import Optional
 import pytest
 import sys
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from _pytest.fixtures import SubRequest
-from pytest_mock import MockerFixture
 from typing import (
     Callable,
     Tuple
@@ -173,170 +173,192 @@ class FakeKV(KV):
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def gstate(fs: fake_filesystem.FakeFilesystem, get_data_contents, mocker: MockerFixture):
-    from gravel.cephadm.cephadm import Cephadm
-    from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
-    from gravel.controllers.resources.inventory import Inventory
-    from gravel.controllers.resources.devices import Devices
-    from gravel.controllers.resources.status import Status
-    from gravel.controllers.resources.storage import Storage
-    from gravel.controllers.services import Services, ServiceModel
-    from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
-    from gravel.controllers.orch.cephfs import CephFS
-    from gravel.controllers.nodes.deployment import NodeDeployment, NodeCantBootstrapError
-    from fastapi.logger import logger as fastapi_logger
+async def aquarium_startup(fs: fake_filesystem.FakeFilesystem, get_data_contents, mocker):
+    async def startup(aquarium_app, aquarium_api):
+        from gravel.cephadm.cephadm import Cephadm
+        from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
+        from gravel.controllers.resources.inventory import Inventory
+        from gravel.controllers.resources.devices import Devices
+        from gravel.controllers.resources.status import Status
+        from gravel.controllers.resources.storage import Storage
+        from gravel.controllers.services import Services, ServiceModel
+        from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
+        from gravel.controllers.orch.cephfs import CephFS
+        from gravel.controllers.nodes.deployment import NodeDeployment, NodeCantBootstrapError
+        from fastapi.logger import logger as fastapi_logger
 
-    logger = fastapi_logger
+        logger = fastapi_logger
 
-    class FakeNodeDeployment(NodeDeployment):
-        async def _prepare_etcd(
-            self,
-            hostname: str,
-            address: str,
-            token: str
-        ) -> None:
-            assert self._state
-            if self._state.bootstrapping:
-                raise NodeCantBootstrapError("node bootstrapping")
-            elif not self._state.nostage:
-                raise NodeCantBootstrapError("node can't be bootstrapped")
+        class FakeNodeDeployment(NodeDeployment):
+            async def _prepare_etcd(
+                self,
+                hostname: str,
+                address: str,
+                token: str
+            ) -> None:
+                assert self._state
+                if self._state.bootstrapping:
+                    raise NodeCantBootstrapError("node bootstrapping")
+                elif not self._state.nostage:
+                    raise NodeCantBootstrapError("node can't be bootstrapped")
 
-            # We don't need to spawn etcd, just allow gstate to init store
-            self._gstate.init_store()
-
-    class FakeNodeMgr(NodeMgr):
-        def __init__(self, gstate: GlobalState):
-            super().__init__(gstate)
-            self._deployment = FakeNodeDeployment(gstate, self._connmgr)
-
-        async def start(self) -> None:
-            assert self._state
-            logger.debug(f"start > {self._state}")
-
-            if not self.deployment_state.can_start():
-                raise NodeError("unable to start unstartable node")
-
-            assert self._init_stage == NodeInitStage.NONE
-
-            if self.deployment_state.nostage:
-                await self._node_prepare()
-            else:
-                assert self.deployment_state.ready or self.deployment_state.deployed
-                assert self._state.hostname
-                assert self._state.address
                 # We don't need to spawn etcd, just allow gstate to init store
-                self.gstate.init_store()
+                self._gstate.init_store()
 
-        async def _obtain_images(self) -> bool:
-            return True
+        class FakeNodeMgr(NodeMgr):
+            def __init__(self, gstate: GlobalState):
+                super().__init__(gstate)
+                self._deployment = FakeNodeDeployment(gstate, self._connmgr)
 
-    class FakeCephadm(Cephadm):
-        async def call(self, cmd: str,
-                       outcb: Optional[Callable[[str], None]] = None
-                       ) -> Tuple[str, str, int]:
-            # Implement expected calls to cephadm with testable responses
-            if cmd == 'pull':
-                return '', '', 0
-            elif cmd == 'gather-facts':
-                return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
-            elif cmd == 'ceph-volume inventory --format=json':
-                return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
-            else:
-                print(cmd)
-                print(outcb)
-                raise Exception("Tests should not get here")
+            async def start(self) -> None:
+                assert self._state
+                logger.debug(f"start > {self._state}")
 
-    class FakeCeph(Ceph):
-        def __init__(self, conf_file: str = '/etc/ceph/ceph.conf'):
-            self.conf_file = conf_file
-            self._is_connected = False
+                if not self.deployment_state.can_start():
+                    raise NodeError("unable to start unstartable node")
 
-        def connect(self):
-            if not self.is_connected():
-                self.cluster = mocker.Mock()
-                self._is_connected = True
+                assert self._init_stage == NodeInitStage.NONE
 
-    class FakeServices(Services):
-        async def _save(self):
-            pass
+                if self.deployment_state.nostage:
+                    await self._node_prepare()
+                else:
+                    assert self.deployment_state.ready or self.deployment_state.deployed
+                    assert self._state.hostname
+                    assert self._state.address
+                    # We don't need to spawn etcd, just allow gstate to init store
+                    self.gstate.init_store()
 
-        async def _load(self):
-            pass
+            async def _obtain_images(self) -> bool:
+                return True
 
-        def _create_cephfs(self, svc: ServiceModel):
-            pass
+        class FakeCephadm(Cephadm):
+            async def call(self, cmd: str,
+                           outcb: Optional[Callable[[str], None]] = None
+                           ) -> Tuple[str, str, int]:
+                # Implement expected calls to cephadm with testable responses
+                if cmd == 'pull':
+                    return '', '', 0
+                elif cmd == 'gather-facts':
+                    return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
+                elif cmd == 'ceph-volume inventory --format=json':
+                    return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
+                else:
+                    print(cmd)
+                    print(outcb)
+                    raise Exception("Tests should not get here")
 
-        def _create_nfs(self, svc: ServiceModel):
-            pass
+        class FakeCeph(Ceph):
+            def __init__(self, conf_file: str = '/etc/ceph/ceph.conf'):
+                self.conf_file = conf_file
+                self._is_connected = False
 
-        def _is_ready(self):
-            return True
+            def connect(self):
+                if not self.is_connected():
+                    self.cluster = mocker.Mock()
+                    self._is_connected = True
 
-    class FakeStorage(Storage):  # type: ignore
-        available = 2000
-        total = 2000
+        class FakeServices(Services):
+            async def _save(self):
+                pass
 
-    gstate: GlobalState = GlobalState()
-    gstate._kvstore = FakeKV()
+            async def _load(self):
+                pass
 
-    # init node mgr
-    nodemgr: NodeMgr = FakeNodeMgr(gstate)
+            def _create_cephfs(self, svc: ServiceModel):
+                pass
 
-    # Prep cephadm
-    cephadm: Cephadm = FakeCephadm()
-    gstate.add_cephadm(cephadm)
+            def _create_nfs(self, svc: ServiceModel):
+                pass
 
-    # Set up Ceph connections
-    ceph: Ceph = FakeCeph()
-    ceph_mgr: Mgr = Mgr(ceph)
-    gstate.add_ceph_mgr(ceph_mgr)
-    ceph_mon: Mon = Mon(ceph)
-    gstate.add_ceph_mon(ceph_mon)
-    cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
-    gstate.add_cephfs(cephfs)
+            def _is_ready(self):
+                return True
 
-    # Set up all of the tickers
-    devices: Devices = Devices(
-        gstate.config.options.devices.probe_interval,
-        nodemgr,
-        ceph_mgr,
-        ceph_mon
-    )
-    gstate.add_devices(devices)
+        class FakeStorage(Storage):  # type: ignore
+            available = 2000
+            total = 2000
 
-    status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
-    gstate.add_status(status)
+        gstate: GlobalState = GlobalState()
+        gstate._kvstore = FakeKV()
 
-    inventory: Inventory = Inventory(
-        gstate.config.options.inventory.probe_interval,
-        nodemgr,
-        gstate
-    )
-    gstate.add_inventory(inventory)
+        # init node mgr
+        nodemgr: NodeMgr = FakeNodeMgr(gstate)
 
-    storage: Storage = FakeStorage(
-        gstate.config.options.storage.probe_interval,
-        nodemgr,
-        ceph_mon
-    )
-    gstate.add_storage(storage)
+        # Prep cephadm
+        cephadm: Cephadm = FakeCephadm()
+        gstate.add_cephadm(cephadm)
 
-    services: Services = FakeServices(
-        gstate.config.options.services.probe_interval, gstate, nodemgr)
-    gstate.add_services(services)
+        # Set up Ceph connections
+        ceph: Ceph = FakeCeph()
+        ceph_mgr: Mgr = Mgr(ceph)
+        gstate.add_ceph_mgr(ceph_mgr)
+        ceph_mon: Mon = Mon(ceph)
+        gstate.add_ceph_mon(ceph_mon)
+        cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
+        gstate.add_cephfs(cephfs)
 
-    print("Running nodemgr start")
-    await nodemgr.start()
-    await gstate.start()
+        # Set up all of the tickers
+        devices: Devices = Devices(
+            gstate.config.options.devices.probe_interval,
+            nodemgr,
+            ceph_mgr,
+            ceph_mon
+        )
+        gstate.add_devices(devices)
 
-    yield gstate
+        status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
+        gstate.add_status(status)
 
-    print("Shutdown gstate & nodemgr")
-    await gstate.shutdown()
-    await nodemgr.shutdown()
+        inventory: Inventory = Inventory(
+            gstate.config.options.inventory.probe_interval,
+            nodemgr,
+            gstate
+        )
+        gstate.add_inventory(inventory)
+
+        storage: Storage = FakeStorage(
+            gstate.config.options.storage.probe_interval,
+            nodemgr,
+            ceph_mon
+        )
+        gstate.add_storage(storage)
+
+        services: Services = FakeServices(
+            gstate.config.options.services.probe_interval, gstate, nodemgr)
+        gstate.add_services(services)
+
+        await nodemgr.start()
+        await gstate.start()
+
+        # Add instances into FastAPI's state:
+        aquarium_api.state.gstate = gstate
+        aquarium_api.state.nodemgr = nodemgr
+    yield startup
 
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def services(gstate: GlobalState):
+async def aquarium_shutdown():
+    async def shutdown(aquarium_app, aquarium_api):
+        print("Shutdown gstate & nodemgr")
+        await aquarium_api.state.gstate.shutdown()
+        await aquarium_api.state.nodemgr.shutdown()
+    yield shutdown
+
+
+@pytest.fixture()
+@pytest.mark.asyncio
+async def gstate(aquarium_startup, aquarium_shutdown):
+    class FakeFastAPI:
+        state = SimpleNamespace()
+
+    aquarium_app = FakeFastAPI()
+    aquarium_api = FakeFastAPI()
+    await aquarium_startup(aquarium_app, aquarium_api)
+    yield aquarium_api.state.gstate
+    await aquarium_shutdown(aquarium_app, aquarium_api)
+
+
+@pytest.fixture()
+@pytest.mark.asyncio
+async def services(gstate):
     return gstate.services
