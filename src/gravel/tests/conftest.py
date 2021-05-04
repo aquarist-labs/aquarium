@@ -372,7 +372,10 @@ async def services(gstate):
 def app(caplog, aquarium_startup, aquarium_shutdown):
     caplog.set_level(logging.DEBUG)
     import aquarium
-    return aquarium.app_factory(startup_method=aquarium_startup, shutdown_method=aquarium_shutdown)
+    return aquarium.aquarium_factory(
+        startup_method=aquarium_startup,
+        shutdown_method=aquarium_shutdown
+    )
 
 
 @pytest.fixture
