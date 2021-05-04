@@ -12,7 +12,6 @@
 # GNU General Public License for more details.
 
 import asyncio
-import multiprocessing
 from enum import Enum
 from logging import Logger
 from uuid import UUID, uuid4
@@ -154,8 +153,6 @@ class NodeMgr:
         self._deployment = NodeDeployment(gstate, self._connmgr)
 
         self.gstate = gstate
-
-        multiprocessing.set_start_method("spawn")
 
         # attempt reading our node state from disk; create one if not found.
         try:
