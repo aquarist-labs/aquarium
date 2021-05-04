@@ -172,6 +172,23 @@ export class InstallWizardPageComponent implements OnInit {
     );
   }
 
+  finishDeployment(): void {
+    this.context.stepperVisible = false;
+    this.blockUI.start(translate(TEXT(`Please wait, finishing deployment ...`)));
+    this.bootstrapService.markFinished().subscribe(
+      (success: boolean) => {
+        this.blockUI.stop();
+        this.context.stepperVisible = true;
+        if (success) {
+          this.stepper!.next();
+        } else {
+          this.handleError(TEXT('Unable to finish deployment.'));
+        }
+      },
+      (err) => this.handleError(err)
+    );
+  }
+
   private handleError(err: any): void {
     this.context.stepperVisible = true;
     this.blockUI.stop();
