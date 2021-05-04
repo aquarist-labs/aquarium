@@ -19,7 +19,7 @@ describe('NodesService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call start', () => {
+  it('should call join', () => {
     service.join({ addr: 'foo', token: 'ABCD-0123-5A6B-98FE' }).subscribe();
     const req = httpTesting.expectOne('api/nodes/join');
     expect(req.request.method).toBe('POST');
@@ -28,6 +28,18 @@ describe('NodesService', () => {
   it('should call token', () => {
     service.token().subscribe();
     const req = httpTesting.expectOne('api/nodes/token');
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should call start', () => {
+    service.bootstrapStart().subscribe();
+    const req = httpTesting.expectOne('api/nodes/bootstrap/start');
+    expect(req.request.method).toBe('POST');
+  });
+
+  it('should call status', () => {
+    service.bootstrapStatus().subscribe();
+    const req = httpTesting.expectOne('api/nodes/bootstrap/status');
     expect(req.request.method).toBe('GET');
   });
 });
