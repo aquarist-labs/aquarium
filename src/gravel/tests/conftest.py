@@ -177,7 +177,7 @@ class FakeKV(KV):
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def aquarium_startup(mocker):
+async def aquarium_startup(get_data_contents, mocker):
     async def startup(aquarium_app, aquarium_api):
         from gravel.cephadm.cephadm import Cephadm
         from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
@@ -243,9 +243,9 @@ async def aquarium_startup(mocker):
                 if cmd == 'pull':
                     return '', '', 0
                 elif cmd == 'gather-facts':
-                    return get_data_contents_raw(DATA_DIR, 'gather_facts_real.json'), "", 0
+                    return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
                 elif cmd == 'ceph-volume inventory --format=json':
-                    return get_data_contents_raw(DATA_DIR, 'inventory_real.json'), "", 0
+                    return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
                 else:
                     print(cmd)
                     print(outcb)
