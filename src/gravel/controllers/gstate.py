@@ -21,6 +21,7 @@ from logging import Logger
 from typing import Dict
 from fastapi.logger import logger as fastapi_logger
 
+from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.config import Config
 from gravel.controllers.kv import KV
 from gravel.controllers.orch.ceph import Mgr, Mon
@@ -130,6 +131,7 @@ class GlobalState:
     inventory: Inventory
     storage: Storage
     services: Services
+    cephadm: Cephadm
     cephfs: CephFS
     ceph_mgr: Mgr
     ceph_mon: Mon
@@ -142,6 +144,9 @@ class GlobalState:
 
     def add_cephfs(self, cephfs: CephFS):
         self.cephfs = cephfs
+
+    def add_cephadm(self, cephadm: Cephadm):
+        self.cephadm = cephadm
 
     def add_ceph_mgr(self, mgr: Mgr):
         self.mgr = mgr

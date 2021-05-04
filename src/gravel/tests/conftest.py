@@ -19,6 +19,7 @@ from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from _pytest.fixtures import SubRequest
 from pytest_mock import MockerFixture
 
+from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -143,6 +144,10 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     # init node mgr
     nodemgr: NodeMgr = NodeMgr(gstate)
 
+    # Prep cephadm
+    cephadm: Cephadm = Cephadm()
+    gstate.add_cephadm(cephadm)
+
     # Set up Ceph connections
     ceph: Ceph = FakeCeph()
     ceph_mgr: Mgr = Mgr(ceph)
@@ -166,7 +171,8 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
 
     inventory: Inventory = Inventory(
         gstate.config.options.inventory.probe_interval,
-        nodemgr
+        nodemgr,
+        gstate
     )
     gstate.add_inventory(inventory)
 

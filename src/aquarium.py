@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.logger import logger as fastapi_logger
 import uvicorn
 
+from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
@@ -99,6 +100,10 @@ def app_factory():
         logger.info("starting node manager")
         nodemgr: NodeMgr = NodeMgr(gstate)
 
+        # Prep cephadm
+        cephadm: Cephadm = Cephadm()
+        gstate.add_cephadm(cephadm)
+
         # Set up Ceph connections
         ceph: Ceph = Ceph()
         ceph_mgr: Mgr = Mgr(ceph)
@@ -122,7 +127,8 @@ def app_factory():
 
         inventory: Inventory = Inventory(
             gstate.config.options.inventory.probe_interval,
-            nodemgr
+            nodemgr,
+            gstate
         )
         gstate.add_inventory(inventory)
 
