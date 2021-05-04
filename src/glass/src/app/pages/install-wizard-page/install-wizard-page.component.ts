@@ -24,10 +24,10 @@ import { InstallWizardContext } from '~/app/pages/install-wizard-page/models/ins
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import {
   BootstrapBasicReply,
-  BootstrapService,
   BootstrapStageEnum,
-  BootstrapStatusReply
-} from '~/app/shared/services/api/bootstrap.service';
+  BootstrapStatusReply,
+  NodesService
+} from '~/app/shared/services/api/nodes.service';
 import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import { OrchService } from '~/app/shared/services/api/orch.service';
@@ -62,7 +62,7 @@ export class InstallWizardPageComponent implements OnInit {
   };
 
   constructor(
-    private bootstrapService: BootstrapService,
+    private nodesService: NodesService,
     private dialogService: DialogService,
     private localNodeService: LocalNodeService,
     private notificationService: NotificationService,
@@ -73,7 +73,7 @@ export class InstallWizardPageComponent implements OnInit {
   ngOnInit(): void {
     this.blockUI.start(translate(TEXT(`Please wait, checking system status ...`)));
     forkJoin({
-      bootstrapStatusReply: this.bootstrapService.status(),
+      bootstrapStatusReply: this.nodesService.bootstrapStatus(),
       nodeStatus: this.localNodeService.status()
     }).subscribe({
       next: (res) => {
@@ -205,7 +205,7 @@ export class InstallWizardPageComponent implements OnInit {
   private doBootstrap(): void {
     this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
-    this.bootstrapService.start().subscribe({
+    this.nodesService.bootstrapStart().subscribe({
       next: (basicReplay: BootstrapBasicReply) => {
         if (basicReplay.success) {
           this.context.stage = 'bootstrapping';
@@ -225,8 +225,8 @@ export class InstallWizardPageComponent implements OnInit {
 
   private pollBootstrapStatus(): void {
     this.context.stepperVisible = false;
-    this.bootstrapService
-      .status()
+    this.nodesService
+      .bootstrapStatus()
       .pipe(
         tap((statusReply: BootstrapStatusReply) => {
           this.blockUI.update(

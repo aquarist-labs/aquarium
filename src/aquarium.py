@@ -29,7 +29,6 @@ from gravel.controllers.resources.storage import Storage
 from gravel.controllers.services import Services
 
 from gravel.api import (
-    bootstrap,
     orch,
     status,
     services,
@@ -133,7 +132,6 @@ async def on_shutdown():
 
 
 api.include_router(local.router)
-api.include_router(bootstrap.router)
 api.include_router(orch.router)
 api.include_router(status.router)
 api.include_router(services.router)
