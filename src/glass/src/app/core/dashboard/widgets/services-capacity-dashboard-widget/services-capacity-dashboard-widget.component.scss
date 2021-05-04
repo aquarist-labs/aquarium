@@ -1,11 +1,5 @@
-@import 'styles.scss';
-
 .glass-services-capacity-dashboard-widget {
   max-height: 200px;
-}
-.glass-services-capacity-dashboard-widget.error {
-  @extend .glass-color-theme-error;
-  height: 50px;
 }
 .glass-services-capacity-dashboard-widget-no-services {
   padding: 16px;

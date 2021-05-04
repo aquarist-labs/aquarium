@@ -1,16 +1,10 @@
-@import 'styles.scss';
-
 .glass-services-dashboard-widget {
+  .glass-services-dashboard-widget-no-services {
+    padding: 16px;
+  }
   .glass-services-dashboard-widget-table {
     .glass-services-dashboard-widget-loader {
       height: 4px;
     }
   }
-}
-.glass-services-dashboard-widget.error {
-  @extend .glass-color-theme-error;
-  height: 50px;
-}
-.glass-services-dashboard-widget-no-services {
-  padding: 16px;
 }
