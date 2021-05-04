@@ -111,7 +111,11 @@ async def aquarium_shutdown(aquarium_app: FastAPI, aquarium_api: FastAPI):
     await aquarium_api.state.nodemgr.shutdown()
 
 
-def app_factory(startup_method=aquarium_startup, shutdown_method=aquarium_shutdown):
+def aquarium_factory(
+    startup_method=aquarium_startup,
+    shutdown_method=aquarium_shutdown,
+    static_dir=None
+):
     api_tags_metadata = [
         {
             "name": "local",
@@ -181,17 +185,22 @@ def app_factory(startup_method=aquarium_startup, shutdown_method=aquarium_shutdo
         name="api"
     )
     # mounting root "/" must be the last thing, so it does not override "/api".
+    if static_dir:
+        aquarium_app.mount(
+            "/",
+            StaticFiles(directory=static_dir, html=True),
+            name="static"
+        )
+
+    return aquarium_app
+
+
+def app_factory():
     static_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'glass/dist/'
     )
-    aquarium_app.mount(
-        "/",
-        StaticFiles(directory=static_dir, html=True),
-        name="static"
-    )
-
-    return aquarium_app
+    return aquarium_factory(aquarium_startup, aquarium_shutdown, static_dir)
 
 
 if __name__ == "__main__":

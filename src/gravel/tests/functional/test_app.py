@@ -17,6 +17,12 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_simple_app_response(async_client):
-    response = await async_client.get("/")
+    response = await async_client.get("/api/local/status")
     assert response.status_code == 200
-    assert "<title>Aquarium</title>" in response.text
+    assert '{"inited":false,"node_stage":0}' == response.text
+    import asyncio
+    await asyncio.sleep(5)
+
+    response = await async_client.get("/api/local/status")
+    assert response.status_code == 200
+    assert '{"inited":true,"node_stage":0}' == response.text
