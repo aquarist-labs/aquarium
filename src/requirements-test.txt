@@ -1,5 +1,8 @@
+asgi-lifespan
+httpx
 pyfakefs
 pytest
 pytest-asyncio
 pytest-datadir
 pytest-mock
+requests
