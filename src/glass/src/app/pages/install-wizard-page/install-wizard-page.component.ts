@@ -22,14 +22,14 @@ import { tap } from 'rxjs/operators';
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard-page/models/install-wizard-context.type';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
+import { StatusStageEnum } from '~/app/shared/services/api/local.service';
+import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
   BootstrapBasicReply,
   BootstrapStageEnum,
   BootstrapStatusReply,
   NodesService
 } from '~/app/shared/services/api/nodes.service';
-import { StatusStageEnum } from '~/app/shared/services/api/local.service';
-import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import { OrchService } from '~/app/shared/services/api/orch.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
