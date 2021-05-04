@@ -37,6 +37,11 @@ from gravel.controllers.orch.models import (
     CephStatusModel
 )
 
+# Attempt to import rados
+# NOTE(jhesketh): rados comes from a system package and cannot be installed from
+#                 pypi. So for testing it may not exist on the machine. A check
+#                 is made in `Ceph.connect` for whether the package exists.
+#                 Tests overwrite this to simulate their own cluster.
 try:
     import rados
 except ModuleNotFoundError:
