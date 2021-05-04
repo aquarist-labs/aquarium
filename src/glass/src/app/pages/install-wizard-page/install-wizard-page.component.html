@@ -26,10 +26,11 @@
               </div>
             </div>
             <div class="glass-install-wizard-step-actions">
-              <button mat-button
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
                       class="mat-stepper-back"
                       routerLink="/installer/install-mode">
-                <span translate>Back</span>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
               </button>
               <button mat-button
                       matStepperNext>
@@ -47,8 +48,10 @@
               </glass-host-details-step>
             </div>
             <div class="glass-install-wizard-step-actions">
-              <button mat-button matStepperPrevious>
-                <span translate>Back</span>
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
               </button>
               <button mat-button
                       matStepperNext>
@@ -66,9 +69,10 @@
               </glass-networking-step>
             </div>
             <div class="glass-install-wizard-step-actions">
-              <button mat-button
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
                       matStepperPrevious>
-                <span translate>Back</span>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
               </button>
               <button mat-button
                       matStepperNext>
@@ -83,9 +87,10 @@
             </div>
             <div class="glass-install-wizard-step-actions">
               <button *ngIf="!['bootstrapping', 'bootstrapped'].includes(context.stage)"
-                      mat-button
+                      mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
                       matStepperPrevious>
-                <span translate>Back</span>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
               </button>
               <button mat-button
                       class="glass-color-theme-accent"
