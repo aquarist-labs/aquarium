@@ -18,9 +18,13 @@ import sys
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from _pytest.fixtures import SubRequest
 from pytest_mock import MockerFixture
+from typing import (
+    Callable,
+    Tuple
+)
 
-from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.kv import KV
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -94,13 +98,84 @@ def get_data_contents(fs: fake_filesystem.FakeFilesystem):
     yield _get_data_contents
 
 
+def get_data_contents_raw(dir, fn):
+    print(os.path.join(dir, fn))
+    with open(os.path.join(dir, fn), 'r') as f:
+        contents = f.read()
+    return contents
+
+
+class FakeKV(KV):
+    def __init__(self):
+        self._client = None
+        self._is_open = False
+        self._is_closing = False
+
+        self._storage = {}
+        self._watchers = {}
+        self._watch_id_count = 0
+
+    async def ensure_connection(self) -> None:
+        """ Open k/v store connection """
+        self._is_open = True
+
+    async def close(self) -> None:
+        """ Close k/v store connection """
+        self._is_closing = True
+        self._is_open = False
+
+    async def put(self, key: str, value: str) -> None:
+        """ Put key/value pair """
+        assert self._is_open
+        self._storage[key] = value
+        if key in self._watchers:
+            for cb in self._watchers[key].values():
+                cb(key, value)
+
+    async def get(self, key: str) -> Optional[str]:
+        """ Get value for provided key """
+        assert self._is_open
+        if key not in self._storage:
+            return None
+        return self._storage[key]
+
+    async def rm(self, key: str) -> None:
+        """ Remove key from store """
+        assert self._is_open
+        if key in self._storage:
+            del self._storage[key]
+
+    async def lock(self, key: str):
+        """ Lock a given key. Requires compliant consumers. """
+        assert self._is_open
+        raise Exception("TODO")
+
+    async def watch(
+        self,
+        key: str,
+        callback: Callable[[str, str], None]
+    ) -> int:
+        """ Watch updates on a given key """
+        if 'key' not in self._watchers:
+            self._watchers[key] = {}
+        watch_id = self._watch_id_count
+        self._watch_id_count += 1
+        self._watchers[key][watch_id] = callback
+        return watch_id
+
+    async def cancel_watch(self, watch_id: int) -> None:
+        """ Cancel a watch """
+        assert self._client
+        for key, values in self._watchers.items():
+            if watch_id in values:
+                del self._watchers[key][watch_id]
+
+
 @pytest.fixture()
 @pytest.mark.asyncio
-async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
-    mock_ceph_modules(mocker)
-    mock_aetcd_modules(mocker)
-
-    from gravel.controllers.nodes.mgr import NodeMgr
+async def gstate(fs: fake_filesystem.FakeFilesystem, get_data_contents, mocker: MockerFixture):
+    from gravel.cephadm.cephadm import Cephadm
+    from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
     from gravel.controllers.resources.inventory import Inventory
     from gravel.controllers.resources.devices import Devices
     from gravel.controllers.resources.status import Status
@@ -108,6 +183,68 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     from gravel.controllers.services import Services, ServiceModel
     from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
     from gravel.controllers.orch.cephfs import CephFS
+    from gravel.controllers.nodes.deployment import NodeDeployment, NodeCantBootstrapError
+    from fastapi.logger import logger as fastapi_logger
+
+    logger = fastapi_logger
+
+    class FakeNodeDeployment(NodeDeployment):
+        async def _prepare_etcd(
+            self,
+            hostname: str,
+            address: str,
+            token: str
+        ) -> None:
+            assert self._state
+            if self._state.bootstrapping:
+                raise NodeCantBootstrapError("node bootstrapping")
+            elif not self._state.nostage:
+                raise NodeCantBootstrapError("node can't be bootstrapped")
+
+            # We don't need to spawn etcd, just allow gstate to init store
+            self._gstate.init_store()
+
+    class FakeNodeMgr(NodeMgr):
+        def __init__(self, gstate: GlobalState):
+            super().__init__(gstate)
+            self._deployment = FakeNodeDeployment(gstate, self._connmgr)
+
+        async def start(self) -> None:
+            assert self._state
+            logger.debug(f"start > {self._state}")
+
+            if not self.deployment_state.can_start():
+                raise NodeError("unable to start unstartable node")
+
+            assert self._init_stage == NodeInitStage.NONE
+
+            if self.deployment_state.nostage:
+                await self._node_prepare()
+            else:
+                assert self.deployment_state.ready or self.deployment_state.deployed
+                assert self._state.hostname
+                assert self._state.address
+                # We don't need to spawn etcd, just allow gstate to init store
+                self.gstate.init_store()
+
+        async def _obtain_images(self) -> bool:
+            return True
+
+    class FakeCephadm(Cephadm):
+        async def call(self, cmd: str,
+                       outcb: Optional[Callable[[str], None]] = None
+                       ) -> Tuple[str, str, int]:
+            # Implement expected calls to cephadm with testable responses
+            if cmd == 'pull':
+                return '', '', 0
+            elif cmd == 'gather-facts':
+                return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
+            elif cmd == 'ceph-volume inventory --format=json':
+                return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
+            else:
+                print(cmd)
+                print(outcb)
+                raise Exception("Tests should not get here")
 
     class FakeCeph(Ceph):
         def __init__(self, conf_file: str = '/etc/ceph/ceph.conf'):
@@ -140,12 +277,13 @@ async def gstate(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
         total = 2000
 
     gstate: GlobalState = GlobalState()
+    gstate._kvstore = FakeKV()
 
     # init node mgr
-    nodemgr: NodeMgr = NodeMgr(gstate)
+    nodemgr: NodeMgr = FakeNodeMgr(gstate)
 
     # Prep cephadm
-    cephadm: Cephadm = Cephadm()
+    cephadm: Cephadm = FakeCephadm()
     gstate.add_cephadm(cephadm)
 
     # Set up Ceph connections

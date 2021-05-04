@@ -200,22 +200,22 @@ class NodeMgr:
     async def shutdown(self) -> None:
         pass
 
-    async def _node_prepare(self) -> None:
+    async def _obtain_images(self) -> bool:
+        cephadm = self.gstate.cephadm
+        try:
+            await asyncio.gather(
+                cephadm.pull_images(),
+                etcd_pull_image(self.gstate)
+            )
+        except ContainerFetchError as e:
+            logger.error(f"unable to fetch containers: {e.message}")
+            return False
+        except CephadmError as e:
+            logger.error(f"unable to fetch ceph containers: {str(e)}")
+            return False
+        return True
 
-        async def _obtain_images() -> bool:
-            cephadm = self.gstate.cephadm
-            try:
-                await asyncio.gather(
-                    cephadm.pull_images(),
-                    etcd_pull_image(self.gstate)
-                )
-            except ContainerFetchError as e:
-                logger.error(f"unable to fetch containers: {e.message}")
-                return False
-            except CephadmError as e:
-                logger.error(f"unable to fetch ceph containers: {str(e)}")
-                return False
-            return True
+    async def _node_prepare(self) -> None:
 
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
@@ -223,7 +223,7 @@ class NodeMgr:
             await self._node_prestart(nodeinfo)
 
         async def _task() -> None:
-            if not await _obtain_images():
+            if not await self._obtain_images():
                 # xxx: find way to shutdown here?
                 return
             await self.gstate.inventory.subscribe(
