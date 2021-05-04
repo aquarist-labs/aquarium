@@ -27,7 +27,7 @@ import aetcd3
 from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
-from gravel.cephadm.cephadm import Cephadm, CephadmError
+from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import (
@@ -203,7 +203,7 @@ class NodeMgr:
     async def _node_prepare(self) -> None:
 
         async def _obtain_images() -> bool:
-            cephadm = Cephadm()
+            cephadm = self.gstate.cephadm
             try:
                 await asyncio.gather(
                     cephadm.pull_images(),

@@ -348,7 +348,7 @@ class NodeDeployment:
 
         assert not self._bootstrapper
         await _start()
-        self._bootstrapper = Bootstrap()
+        self._bootstrapper = Bootstrap(self._gstate)
 
         try:
             await self._bootstrapper.bootstrap(

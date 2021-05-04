@@ -21,8 +21,9 @@ from typing import (
 )
 from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
+
 from gravel.cephadm.models import NodeInfoModel
-from gravel.controllers.gstate import Ticker
+from gravel.controllers.gstate import Ticker, GlobalState
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.nodes.mgr import NodeMgr
 
@@ -50,14 +51,16 @@ class Inventory(Ticker):
     _nodemgr: NodeMgr
     _has_probed_once: bool
     _probe_interval: float
+    _gstate: GlobalState
 
-    def __init__(self, probe_interval: float, nodemgr: NodeMgr):
+    def __init__(self, probe_interval: float, nodemgr: NodeMgr, gstate: GlobalState):
         super().__init__(1.0)
         self._latest = None
         self._subscribers = []
         self._nodemgr = nodemgr
         self._has_probed_once = False
         self._probe_interval = probe_interval
+        self._gstate = gstate
 
     async def _do_tick(self) -> None:
         await self.probe()
@@ -69,7 +72,7 @@ class Inventory(Ticker):
         return self._nodemgr.inited
 
     async def probe(self) -> None:
-        cephadm: Cephadm = Cephadm()
+        cephadm: Cephadm = self._gstate.cephadm
         start: int = int(time.monotonic())
         nodeinfo = await cephadm.get_node_info()
         diff: int = int(time.monotonic()) - start
