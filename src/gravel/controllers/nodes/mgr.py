@@ -226,7 +226,10 @@ class NodeMgr:
             if not await _obtain_images():
                 # xxx: find way to shutdown here?
                 return
-            self.gstate.inventory.subscribe(_inventory_subscriber, once=True)
+            await self.gstate.inventory.subscribe(
+                _inventory_subscriber,
+                once=True
+            )
 
         self._init_stage = NodeInitStage.PREPARE
         asyncio.create_task(_task())

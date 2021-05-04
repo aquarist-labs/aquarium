@@ -36,19 +36,34 @@ class Subscriber(BaseModel):
 
 
 class Inventory(Ticker):
+    """
+    Obtain host's inventory. Only runs once the node has been inited.
+
+    Until the node is inited and is able to probe for the first time, will
+    attempt to tick every 1.0 second. Once the first probe is finished, will
+    reset its tick interval to the interval provided to the ctor (which will
+    likely be the one passed through the config values).
+    """
 
     _latest: Optional[NodeInfoModel]
     _subscribers: List[Subscriber]
     _nodemgr: NodeMgr
+    _has_probed_once: bool
+    _probe_interval: float
 
     def __init__(self, probe_interval: float, nodemgr: NodeMgr):
-        super().__init__(probe_interval)
+        super().__init__(1.0)
         self._latest = None
         self._subscribers = []
         self._nodemgr = nodemgr
+        self._has_probed_once = False
+        self._probe_interval = probe_interval
 
     async def _do_tick(self) -> None:
         await self.probe()
+        if not self._has_probed_once:
+            super().set_tick_interval(self._probe_interval)
+            self._has_probed_once = True
 
     async def _should_tick(self) -> bool:
         return self._nodemgr.inited
@@ -66,11 +81,16 @@ class Inventory(Ticker):
     def latest(self) -> Optional[NodeInfoModel]:
         return self._latest
 
-    def subscribe(
+    async def subscribe(
         self,
         cb: Callable[[NodeInfoModel], Awaitable[None]],
         once: bool
     ) -> None:
+        # if we have available state, call back immediately.
+        if self._latest:
+            await cb(self._latest)  # type: ignore
+            if once:
+                return
         self._subscribers.append(Subscriber(cb=cb, once=once))
 
     async def _publish(self) -> None:
