@@ -43,10 +43,75 @@ from gravel.api import (
     nfs,
 )
 
+logger: logging.Logger = fastapi_logger
 
-def app_factory():
-    logger: logging.Logger = fastapi_logger
 
+async def aquarium_startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
+    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
+    setup_logging(lvl)
+    logger.info("Aquarium startup!")
+
+    gstate: GlobalState = GlobalState()
+
+    # init node mgr
+    logger.info("starting node manager")
+    nodemgr: NodeMgr = NodeMgr(gstate)
+
+    # Prep cephadm
+    cephadm: Cephadm = Cephadm()
+    gstate.add_cephadm(cephadm)
+
+    # Set up Ceph connections
+    ceph: Ceph = Ceph()
+    ceph_mgr: Mgr = Mgr(ceph)
+    gstate.add_ceph_mgr(ceph_mgr)
+    ceph_mon: Mon = Mon(ceph)
+    gstate.add_ceph_mon(ceph_mon)
+    cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
+    gstate.add_cephfs(cephfs)
+
+    # Set up all of the tickers
+    devices: Devices = Devices(
+        gstate.config.options.devices.probe_interval,
+        nodemgr,
+        ceph_mgr,
+        ceph_mon
+    )
+    gstate.add_devices(devices)
+
+    status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
+    gstate.add_status(status)
+
+    inventory: Inventory = Inventory(
+        gstate.config.options.inventory.probe_interval,
+        nodemgr,
+        gstate
+    )
+    gstate.add_inventory(inventory)
+
+    storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr, ceph_mon)
+    gstate.add_storage(storage)
+
+    services: Services = Services(
+        gstate.config.options.services.probe_interval, gstate, nodemgr)
+    gstate.add_services(services)
+
+    await nodemgr.start()
+    await gstate.start()
+
+    # Add instances into FastAPI's state:
+    aquarium_api.state.gstate = gstate
+    aquarium_api.state.nodemgr = nodemgr
+
+
+async def aquarium_shutdown(aquarium_app: FastAPI, aquarium_api: FastAPI):
+    logger.info("Aquarium shutdown!")
+    await aquarium_api.state.gstate.shutdown()
+    logger.info("shutting down node manager")
+    await aquarium_api.state.nodemgr.shutdown()
+
+
+def app_factory(startup_method=aquarium_startup, shutdown_method=aquarium_shutdown):
     api_tags_metadata = [
         {
             "name": "local",
@@ -89,69 +154,11 @@ def app_factory():
 
     @aquarium_app.on_event("startup")  # type: ignore
     async def on_startup():
-
-        lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
-        setup_logging(lvl)
-        logger.info("Aquarium startup!")
-
-        gstate: GlobalState = GlobalState()
-
-        # init node mgr
-        logger.info("starting node manager")
-        nodemgr: NodeMgr = NodeMgr(gstate)
-
-        # Prep cephadm
-        cephadm: Cephadm = Cephadm()
-        gstate.add_cephadm(cephadm)
-
-        # Set up Ceph connections
-        ceph: Ceph = Ceph()
-        ceph_mgr: Mgr = Mgr(ceph)
-        gstate.add_ceph_mgr(ceph_mgr)
-        ceph_mon: Mon = Mon(ceph)
-        gstate.add_ceph_mon(ceph_mon)
-        cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
-        gstate.add_cephfs(cephfs)
-
-        # Set up all of the tickers
-        devices: Devices = Devices(
-            gstate.config.options.devices.probe_interval,
-            nodemgr,
-            ceph_mgr,
-            ceph_mon
-        )
-        gstate.add_devices(devices)
-
-        status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
-        gstate.add_status(status)
-
-        inventory: Inventory = Inventory(
-            gstate.config.options.inventory.probe_interval,
-            nodemgr,
-            gstate
-        )
-        gstate.add_inventory(inventory)
-
-        storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr, ceph_mon)
-        gstate.add_storage(storage)
-
-        services: Services = Services(
-            gstate.config.options.services.probe_interval, gstate, nodemgr)
-        gstate.add_services(services)
-
-        await nodemgr.start()
-        await gstate.start()
-
-        # Add instances into FastAPI's state:
-        aquarium_api.state.gstate = gstate
-        aquarium_api.state.nodemgr = nodemgr
+        await startup_method(aquarium_app, aquarium_api)
 
     @aquarium_app.on_event("shutdown")  # type: ignore
     async def on_shutdown():
-        logger.info("Aquarium shutdown!")
-        await aquarium_api.state.gstate.shutdown()
-        logger.info("shutting down node manager")
-        await aquarium_api.state.nodemgr.shutdown()
+        await shutdown_method(aquarium_app, aquarium_api)
 
     aquarium_api.include_router(local.router)
     aquarium_api.include_router(bootstrap.router)
