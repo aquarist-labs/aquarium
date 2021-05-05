@@ -121,7 +121,10 @@ export class InstallWizardPageComponent implements OnInit {
             }
         }
       },
-      error: (err) => this.handleError(err)
+      error: (err) => {
+        this.stepper!.linear = true;
+        this.handleError(err.message);
+      }
     });
   }
 
