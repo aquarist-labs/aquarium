@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ToastrModule } from 'ngx-toastr';
 
 import { AppComponent } from '~/app/app.component';
 import { AppRoutingModule } from '~/app/app-routing.module';
@@ -22,6 +23,10 @@ import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-in
     CoreModule,
     MaterialModule,
     PagesModule,
+    ToastrModule.forRoot({
+      positionClass: 'toast-bottom-center',
+      preventDuplicates: true
+    }),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

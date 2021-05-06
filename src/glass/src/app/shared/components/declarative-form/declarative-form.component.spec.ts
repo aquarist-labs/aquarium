@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastrModule } from 'ngx-toastr';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
@@ -9,7 +10,7 @@ describe('DeclarativeFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ComponentsModule]
+      imports: [ComponentsModule, ToastrModule.forRoot()]
     }).compileComponents();
   });
 
