@@ -1,0 +1,50 @@
+wasser:
+  version: '1.0'
+
+routines:
+  Ubuntu:
+    steps:
+    - name: install requirements
+      command: |
+        sudo apt-get install -y git
+    - checkout:
+        dir: aquarium
+    - name: setup dev environment
+      command: |
+        cd aquarium
+        ./tools/setup-dev.sh
+    - name: building image
+      command: |
+        cd aquarium
+        ./tools/build-image.sh
+    # the next step is needed for current user to be able to access libvirt
+    - reconnect
+    - name: make sure libvirtd is running
+      command: |
+        sudo systemctl start libvirtd
+    - name: create deployment
+      command: |
+        cd aquarium
+        source venv/bin/activate
+        ./tools/aqrdev create foo
+    - name: start deployment
+      command: |
+        cd aquarium
+        source venv/bin/activate
+        ./tools/aqrdev start foo --conservative
+    - name: dump aquarium service log
+      command: |
+        cd aquarium/tests/vagrant/deployments/foo
+        vagrant ssh -c "sudo journalctl -u aquarium"
+    - name: check aquarium service is up and running
+      command: |
+        cd aquarium/tests/vagrant/deployments/foo
+        vagrant ssh -c "sudo systemctl status aquarium"
+    - name: check api is accessible
+      command: |
+        curl -f localhost:1337/api/local/status
+
+openstack:
+  flavor: b2-15
+  image: "Ubuntu 20.10"
+  username: ubuntu
