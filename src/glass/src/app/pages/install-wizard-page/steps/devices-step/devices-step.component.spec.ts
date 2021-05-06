@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
+import { ToastrModule } from 'ngx-toastr';
 
 import { DevicesStepComponent } from '~/app/pages/install-wizard-page/steps/devices-step/devices-step.component';
 import { PagesModule } from '~/app/pages/pages.module';
@@ -16,6 +17,7 @@ describe('DevicesStepComponent', () => {
         HttpClientTestingModule,
         NoopAnimationsModule,
         PagesModule,
+        ToastrModule.forRoot(),
         TranslateModule.forRoot()
       ]
     }).compileComponents();

@@ -1,27 +1,18 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrModule, ToastrService } from 'ngx-toastr';
 
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { SharedModule } from '~/app/shared/shared.module';
 
 describe('NotificationService', () => {
   let service: NotificationService;
-  const fakeSnackBar = {
-    open: (message: string, action?: string, config?: Record<string, any>) => true
-  };
-  let snackBar: MatSnackBar;
+  let toastrService: ToastrService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [SharedModule],
-      providers: [
-        {
-          provide: MatSnackBar,
-          useValue: fakeSnackBar
-        }
-      ]
+      imports: [SharedModule, ToastrModule.forRoot()]
     });
-    snackBar = TestBed.inject(MatSnackBar);
+    toastrService = TestBed.inject(ToastrService);
     service = TestBed.inject(NotificationService);
   });
 
@@ -30,32 +21,29 @@ describe('NotificationService', () => {
   });
 
   it('should show notification [1]', fakeAsync(() => {
-    spyOn(snackBar, 'open');
-    service.show('foo', { duration: 5000, type: 'info' });
+    spyOn(toastrService, 'info');
+    service.show('foo', { duration: 2000, type: 'info' });
     tick(5);
-    expect(snackBar.open).toHaveBeenCalledWith('foo', undefined, {
-      duration: 5000,
-      panelClass: 'glass-color-theme-accent'
+    expect(toastrService.info).toHaveBeenCalledWith('foo', undefined, {
+      timeOut: 2000
     });
   }));
 
   it('should show notification [2]', fakeAsync(() => {
-    spyOn(snackBar, 'open');
+    spyOn(toastrService, 'info');
     service.show('bar');
     tick(5);
-    expect(snackBar.open).toHaveBeenCalledWith('bar', undefined, {
-      duration: 2000,
-      panelClass: 'glass-color-theme-accent'
+    expect(toastrService.info).toHaveBeenCalledWith('bar', undefined, {
+      timeOut: 5000
     });
   }));
 
   it('should show notification [3]', fakeAsync(() => {
-    spyOn(snackBar, 'open');
+    spyOn(toastrService, 'error');
     service.show('baz', { type: 'error' });
     tick(5);
-    expect(snackBar.open).toHaveBeenCalledWith('baz', undefined, {
-      duration: 2000,
-      panelClass: 'glass-color-theme-error'
+    expect(toastrService.error).toHaveBeenCalledWith('baz', undefined, {
+      timeOut: 5000
     });
   }));
 });
