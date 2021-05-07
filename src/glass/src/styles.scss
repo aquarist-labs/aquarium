@@ -16,11 +16,12 @@ $glass-light-theme-inverse: mat-light-theme(
 
 @include angular-material-theme($glass-light-theme);
 
+$mat-typography-config: mat-typography-config();
+
 $glass-color-primary: mat-color(map-get($glass-light-theme, primary));
 $glass-color-primary-complementary: white;
 $glass-color-accent: mat-color(map-get($glass-light-theme, accent));
 $glass-color-accent-complementary: white;
-$glass-color-error: mat-color(map-get($glass-light-theme, warn));
 
 .glass-color-theme-primary {
   color: $glass-color-primary-complementary;
@@ -141,4 +142,29 @@ ngx-charts-advanced-pie-chart .advanced-pie-legend {
   .total-value {
     font-size: 20px;
   }
+}
+
+// ngx-toastr
+.toast-container {
+  font-family: mat-font-family($mat-typography-config);
+  font-size: mat-font-size($mat-typography-config, body-1);
+
+  .ngx-toastr {
+    box-shadow: unset;
+    &:hover {
+      box-shadow: unset;
+    }
+  }
+}
+.toast-error {
+  background-color: $glass-color-error;
+}
+.toast-success {
+  background-color: $glass-color-success;
+}
+.toast-info {
+  background-color: $glass-color-info;
+}
+.toast-warning {
+  background-color: $glass-color-warning;
 }

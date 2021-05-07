@@ -3,10 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
+import { ToastrModule } from 'ngx-toastr';
 
 import { CoreModule } from '~/app/core/core.module';
-
-import { FileServiceModalComponent } from './file-service-modal.component';
+import { FileServiceModalComponent } from '~/app/core/modals/file-service/file-service-modal.component';
 
 describe('FileServiceModalComponent', () => {
   let component: FileServiceModalComponent;
@@ -18,6 +18,7 @@ describe('FileServiceModalComponent', () => {
         HttpClientTestingModule,
         NoopAnimationsModule,
         CoreModule,
+        ToastrModule.forRoot(),
         TranslateModule.forRoot()
       ],
       providers: [
