@@ -39,7 +39,7 @@ class StorageOptionsModel(BaseModel):
 
 
 class DevicesOptionsModel(BaseModel):
-    probe_interval: float = Field(30.0, title="Devices Probe Interval")
+    probe_interval: float = Field(5.0, title="Devices Probe Interval")
 
 
 class StatusOptionsModel(BaseModel):

@@ -11,6 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
 from logging import Logger
 import time
 from typing import (
@@ -20,19 +21,14 @@ from typing import (
     Optional
 )
 from fastapi.logger import logger as fastapi_logger
-from pydantic.main import BaseModel
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import Ticker
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.resources.inventory_sub import Subscriber
 
 
 logger: Logger = fastapi_logger
-
-
-class Subscriber(BaseModel):
-    cb: Callable[[NodeInfoModel], Awaitable[None]]
-    once: bool
 
 
 class Inventory(Ticker):
@@ -85,13 +81,15 @@ class Inventory(Ticker):
         self,
         cb: Callable[[NodeInfoModel], Awaitable[None]],
         once: bool
-    ) -> None:
+    ) -> Optional[Subscriber]:
         # if we have available state, call back immediately.
         if self._latest:
             await cb(self._latest)  # type: ignore
             if once:
-                return
-        self._subscribers.append(Subscriber(cb=cb, once=once))
+                return None
+        sub = Subscriber(cb=cb, once=once, registry=self._subscribers)
+        self._subscribers.append(sub)
+        return sub
 
     async def _publish(self) -> None:
         assert self._latest
