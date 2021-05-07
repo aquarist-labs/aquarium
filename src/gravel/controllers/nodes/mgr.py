@@ -12,7 +12,6 @@
 # GNU General Public License for more details.
 
 import asyncio
-import multiprocessing
 from enum import Enum
 from logging import Logger
 from uuid import UUID, uuid4
@@ -27,7 +26,7 @@ import aetcd3
 from pydantic import BaseModel
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
-from gravel.cephadm.cephadm import Cephadm, CephadmError
+from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import (
@@ -155,8 +154,6 @@ class NodeMgr:
 
         self.gstate = gstate
 
-        multiprocessing.set_start_method("spawn")
-
         # attempt reading our node state from disk; create one if not found.
         try:
             self._state = self.gstate.config.read_model("node", NodeStateModel)
@@ -200,22 +197,22 @@ class NodeMgr:
     async def shutdown(self) -> None:
         pass
 
-    async def _node_prepare(self) -> None:
+    async def _obtain_images(self) -> bool:
+        cephadm = self.gstate.cephadm
+        try:
+            await asyncio.gather(
+                cephadm.pull_images(),
+                etcd_pull_image(self.gstate)
+            )
+        except ContainerFetchError as e:
+            logger.error(f"unable to fetch containers: {e.message}")
+            return False
+        except CephadmError as e:
+            logger.error(f"unable to fetch ceph containers: {str(e)}")
+            return False
+        return True
 
-        async def _obtain_images() -> bool:
-            cephadm = Cephadm()
-            try:
-                await asyncio.gather(
-                    cephadm.pull_images(),
-                    etcd_pull_image(self.gstate)
-                )
-            except ContainerFetchError as e:
-                logger.error(f"unable to fetch containers: {e.message}")
-                return False
-            except CephadmError as e:
-                logger.error(f"unable to fetch ceph containers: {str(e)}")
-                return False
-            return True
+    async def _node_prepare(self) -> None:
 
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
@@ -223,7 +220,7 @@ class NodeMgr:
             await self._node_prestart(nodeinfo)
 
         async def _task() -> None:
-            if not await _obtain_images():
+            if not await self._obtain_images():
                 # xxx: find way to shutdown here?
                 return
             await self.gstate.inventory.subscribe(
@@ -361,7 +358,7 @@ class NodeMgr:
         await self._node_start()
 
     async def _finish_bootstrap_config(self) -> None:
-        mon: Mon = Mon()
+        mon: Mon = self.gstate.ceph_mon
         try:
             mon.set_allow_pool_size_one()
         except CephCommandError as e:
@@ -555,7 +552,7 @@ class NodeMgr:
             )
             return
 
-        orch = Orchestrator()
+        orch = Orchestrator(self.gstate.ceph_mgr)
         pubkey: str = orch.get_public_key()
 
         cephconf_path: Path = Path("/etc/ceph/ceph.conf")
@@ -633,13 +630,13 @@ class NodeMgr:
         node: JoiningNodeModel = self._joining[address]
         logger.info("handle ready to add > "
                     f"hostname: {node.hostname}, address: {node.address}")
-        orch = Orchestrator()
+        orch = Orchestrator(self.gstate.ceph_mgr)
         if not orch.host_add(node.hostname, node.address):
             logger.error("handle ready > failed adding host to orch")
 
         # reset default crush ruleset, and adjust pools to use a multi-node
         # ruleset, spreading replicas across hosts rather than osds.
-        mon = Mon()
+        mon = self.gstate.ceph_mon
         if not mon.set_replicated_ruleset():
             logger.error(
                 "handle ready to add > unable to set replicated ruleset")

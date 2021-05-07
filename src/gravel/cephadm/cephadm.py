@@ -49,15 +49,12 @@ class CephadmError(Exception):
 class Cephadm:
 
     def __init__(self):
-
         if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
             self.cephadm = "sudo ./gravel/cephadm/cephadm.bin"
         else:
             # deployment environment
             self.cephadm = "sudo cephadm"
-
-        pass
 
     async def call(self, cmd: str,
                    outcb: Optional[Callable[[str], None]] = None

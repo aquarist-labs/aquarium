@@ -162,8 +162,9 @@ async def get_statistics(request: Request) -> Dict[str, ServiceStorageModel]:
     response_model=CephFSAuthorizationModel
 )
 async def get_authorization(
+    request: Request,
     name: str,
-    clientid: Optional[str] = None
+    clientid: Optional[str] = None,
 ) -> CephFSAuthorizationModel:
     """
     Obtain authorization credentials for a given service `name`. In case of
@@ -171,7 +172,7 @@ async def get_authorization(
     will obtain the authorization for a client with said `clientid`, if it
     exists.
     """
-    cephfs: CephFS = CephFS()
+    cephfs: CephFS = request.app.state.cephfs
     try:
         result = cephfs.get_authorization(name, clientid)
         return result

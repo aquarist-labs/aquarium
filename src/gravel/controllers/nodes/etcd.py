@@ -119,8 +119,9 @@ async def spawn_etcd(
 
     cmd = _get_container_cmd()
 
+    ctx = multiprocessing.get_context("spawn")
     logger.debug("spawn etcd: " + shlex.join(cmd))
-    process = multiprocessing.Process(
+    process = ctx.Process(
         target=_bootstrap_etcd_process,
         args=(cmd,)
     )

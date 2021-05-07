@@ -33,8 +33,8 @@ class Orchestrator:
 
     cluster: Mgr
 
-    def __init__(self):
-        self.cluster = Mgr()
+    def __init__(self, ceph_mgr: Mgr):
+        self.cluster = ceph_mgr
 
     def call(self, cmd: Dict[str, Any]) -> Any:
         if "format" not in cmd:

@@ -14,7 +14,7 @@
 from logging import Logger
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from pydantic import BaseModel
 from typing import Dict, List
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
@@ -59,8 +59,8 @@ class SetNtpRequest(BaseModel):
 
 
 @router.get("/hosts", response_model=List[HostModel])
-def get_hosts() -> List[HostModel]:
-    orch = Orchestrator()
+def get_hosts(request: Request) -> List[HostModel]:
+    orch = Orchestrator(request.app.state.ceph_mgr)
     orch_hosts = orch.host_ls()
     hosts: List[HostModel] = []
     for h in orch_hosts:
@@ -69,8 +69,8 @@ def get_hosts() -> List[HostModel]:
 
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
-def get_devices() -> Dict[str, HostsDevicesModel]:
-    orch = Orchestrator()
+def get_devices(request: Request) -> Dict[str, HostsDevicesModel]:
+    orch = Orchestrator(request.app.state.ceph_mgr)
     orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
     host_devs: Dict[str, HostsDevicesModel] = {}
     for orch_host in orch_devs_per_host:
@@ -101,10 +101,10 @@ def get_devices() -> Dict[str, HostsDevicesModel]:
 
 
 @router.post("/devices/assimilate", response_model=bool)
-async def assimilate_devices() -> bool:
+async def assimilate_devices(request: Request) -> bool:
 
     try:
-        orch = Orchestrator()
+        orch = Orchestrator(request.app.state.ceph_mgr)
         orch.assimilate_all_devices()
     except Exception as e:
         logger.error(str(e))
@@ -114,9 +114,9 @@ async def assimilate_devices() -> bool:
 
 
 @router.get("/devices/all_assimilated", response_model=bool)
-async def all_devices_assimilated() -> bool:
+async def all_devices_assimilated(request: Request) -> bool:
     try:
-        orch = Orchestrator()
+        orch = Orchestrator(request.app.state.ceph_mgr)
         return orch.all_devices_assimilated()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -124,9 +124,9 @@ async def all_devices_assimilated() -> bool:
 
 
 @router.get("/pubkey")
-async def get_pubkey() -> str:
+async def get_pubkey(request: Request) -> str:
     try:
-        orch = Orchestrator()
+        orch = Orchestrator(request.app.state.ceph_mgr)
         return orch.get_public_key()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
