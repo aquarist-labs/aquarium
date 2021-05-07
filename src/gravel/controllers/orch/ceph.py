@@ -94,12 +94,16 @@ class Ceph:
 
     def __init__(self, conf_file: str = CEPH_CONF_FILE):
         self.conf_file = conf_file
+        self._is_connected = False
+
+    def _check_config(self):
         path = Path(self.conf_file)
         if not path.exists():
             raise FileNotFoundError(self.conf_file)
-        self._is_connected = False
 
     def connect(self):
+        self._check_config()
+
         if 'rados' not in sys.modules:
             raise MissingSystemDependency("python3-rados module not found")
 
