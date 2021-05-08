@@ -1,0 +1,46 @@
+wasser:
+  version: '1.0'
+
+routines:
+  openSUSE:
+    steps:
+    - name: setup dev environment
+      command: |
+        cd aquarium
+        ./tools/setup-dev.sh
+    - name: building image
+      command: |
+        cd aquarium
+        ./tools/build-image.sh
+    - name: install libvirtd
+      command: |
+        sudo apt-get install -y libvirt-daemon-system
+    - name: make sure libvirtd is running
+      command: |
+        sudo systemctl start libvirtd
+    - name: create deployment
+      command: |
+        cd aquarium
+        source venv/bin/activate
+        ./tools/aqrdev create foo
+    - name: start deployment
+      command: |
+        cd aquarium
+        source venv/bin/activate
+        ./tools/aqrdev start foo --conservative
+    - name: dump aquarium service log
+      command: |
+        cd aquarium/tests/vagrant/deployments/foo
+        vagrant ssh -c "sudo journalctl -u aquarium"
+    - name: check aquarium service is up and running
+      command: |
+        cd aquarium/tests/vagrant/deployments/foo
+        vagrant ssh -c "sudo systemctl status aquarium"
+
+openstack:
+  flavor: b2-15
+  image: "Ubuntu 20.10"
+  keyfile: ~/.ssh/sa
+  keyname: storage-automation
+  name: aqua-%02d
+  username: ubuntu
