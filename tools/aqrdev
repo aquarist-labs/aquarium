@@ -1080,7 +1080,7 @@ def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
 
     for deployment in deployments:
         box = deployment.box
-        if box and box in boxes:
+        if box and [box for box, _ in boxes]:
             if box not in deployment_per_box:
                 deployment_per_box[box] = []
             deployment_per_box[box].append(deployment)
