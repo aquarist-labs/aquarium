@@ -85,7 +85,7 @@ def app_factory():
         openapi_tags=api_tags_metadata)
 
     @aquarium_app.on_event("startup")  # type: ignore
-    async def on_startup():
+    async def on_startup():  # pyright: reportUnusedFunction=false
 
         lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
         setup_logging(lvl)
@@ -123,7 +123,7 @@ def app_factory():
         aquarium_api.state.nodemgr = nodemgr
 
     @aquarium_app.on_event("shutdown")  # type: ignore
-    async def on_shutdown():
+    async def on_shutdown():  # pyright: reportUnusedFunction=false
         logger.info("Aquarium shutdown!")
         await aquarium_api.state.gstate.shutdown()
         logger.info("shutting down node manager")
