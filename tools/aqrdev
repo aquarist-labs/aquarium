@@ -136,7 +136,7 @@ def _find_builds_path() -> Path:
 def _find_deployments_path() -> Path:
     try:
         rootdir = _find_root()
-    except FileNotFoundError:
+    except RootNotFoundError:
         raise DeploymentPathNotFoundError("unable to find root")
 
     vagrantdir = rootdir.joinpath("tests/vagrant")
@@ -172,7 +172,7 @@ def app(ctx: click.Context, debug: bool, json: bool) -> None:
     ctx.obj = AppCtx(json_output=json)
 
 
-def _list_boxes() -> List[str]:
+def _list_boxes() -> List[Tuple[str,str]]:
     """ List all known vagrant boxes. Includes non-aquarium related boxes. """
     proc = subprocess.run(
         shlex.split("vagrant box list --machine-readable"),
@@ -188,15 +188,21 @@ def _list_boxes() -> List[str]:
     logger.debug(f"boxes: {stdout}")
 
     boxes = [name for name in stdout.splitlines() if name.count("box-name") > 0]
-    boxnames = [entry.split(",")[3] for entry in boxes]
-    return boxnames
+    providers = [provider for provider in stdout.splitlines() if provider.count("box-provider") > 0]
+    boxlist: List[Tuple[str,str]] = []
+    for box_entry, provider_entry in zip(boxes, providers):
+        boxname = box_entry.split(",")[3]
+        provider = provider_entry.split(",")[3]
+        logger.debug(f"boxname: {boxname}, provider: {provider}")
+        boxlist.append((boxname, provider))
+    return boxlist
 
 
-def _list_images() -> List[str]:
+def _list_images() -> List[Tuple[str, str]]:
     """ List all built Vagrant images """
     try:
         rootdir = _find_root()
-    except FileNotFoundError:
+    except RootNotFoundError:
         logger.error("couldn't find git root tree")
         sys.exit(1)
 
@@ -205,7 +211,7 @@ def _list_images() -> List[str]:
     if not buildspath.exists():
         return []
 
-    def is_vagrant_img(path: Path) -> bool:
+    def is_vagrant_img(path: Path) -> (bool, str):
         assert path.exists()
         outdir = path.joinpath("_out")
         if not outdir.exists():
@@ -213,6 +219,7 @@ def _list_images() -> List[str]:
 
         rawimg: Optional[Path] = None
         img: Optional[Path] = None
+        provider = None
         for entry in next(os.walk(outdir))[2]:
             if not entry.startswith("project-aquarium"):
                 continue
@@ -220,25 +227,26 @@ def _list_images() -> List[str]:
             imgpath = Path(entry)
             if imgpath.suffix == ".raw":
                 rawimg = imgpath
-
             elif imgpath.suffix == ".box":
                 if entry.count("vagrant") > 0:
                     img = imgpath
+                if entry.count("virtualbox") > 0:
+                    provider = "virtualbox"
+                elif entry.count("libvirt") > 0:
+                    provider = "libvirt"
 
         if not rawimg:
             raise FileNotFoundError()
         elif not img:
-            return False
+            return False, provider
+        return True, provider 
 
-        return True
-
-    images: List[str] = []
+    images: List[Tuple[str,str]] = []
     for build in next(os.walk(buildspath))[1]:
         if build.startswith("."):
             continue
-
         try:
-            ret = is_vagrant_img(buildspath.joinpath(build))
+            ret, provider = is_vagrant_img(buildspath.joinpath(build))
         except FileNotFoundError:
             logger.debug(f"build {build} not a vagrant build")
             continue
@@ -247,7 +255,7 @@ def _list_images() -> List[str]:
             logger.debug(f"build {build} not a vagrant build")
             continue
 
-        images.append(build)
+        images.append((build, provider))
 
     return images
 
@@ -256,7 +264,7 @@ def _list_deployments() -> List[str]:
     """ List all existing Aquarium's Vagrant deployments. """
     try:
         rootdir = _find_root()
-    except FileNotFoundError:
+    except RootNotFoundError:
         logger.error("unable to find git's root dir")
         sys.exit(1)
 
@@ -303,7 +311,7 @@ def _get_deployments() -> List[DeploymentModel]:
 def _import_image(imgname: str) -> None:
     """ Import an image as a vagrant box with the same name. """
     avail_boxes = _list_boxes()
-    if imgname in avail_boxes:
+    if imgname in [box_name for box_name, _ in avail_boxes]:
         raise BoxAlreadyExistsError()
 
     try:
@@ -349,7 +357,7 @@ def _import_image(imgname: str) -> None:
 def _remove_box(name: str) -> None:
     """ Remove an existing box """
     boxes = _list_boxes()
-    if name not in boxes:
+    if name not in [box_name for box_name, _ in boxes]:
         return
 
     cmd = f"vagrant box remove {name}"
@@ -381,11 +389,14 @@ def _remove(name: str) -> None:
 def _create(
     name: str,
     box: str,
+    provider: str,
     num_nodes: int,
     num_disks: int,
     num_nics: int
 ) -> None:
     """ Create a new deployment, based on provided box. """
+    logger.debug(f"_create: Name: {name}, Box: {box}, Provider: {provider}, Nodes\
+            : {num_nodes}, Disks: {num_disks}, Nics: {num_nics}")
     rootdir = _find_root()
     assert rootdir.exists()
 
@@ -397,7 +408,14 @@ def _create(
     deployments = _list_deployments()
     boxes = _list_boxes()
     assert name not in deployments
-    assert box in boxes
+    
+    box_exist = False
+    for box_name, provider_name in boxes:
+        logger.debug(f"_create boxes {box_name} {provider_name}, searching for {box} {provider}")
+        if box_name == box and provider_name == provider:
+            box_exist = True
+    assert box_exist == True
+    # assert (box, provider) in boxes
 
     new_deployment = deployment_path.joinpath(name)
     if new_deployment.exists():
@@ -418,7 +436,7 @@ def _create(
         f"nics={num_nics}'"
     )
     vagrantfile_text = _gen_vagrantfile(
-        box, rootdir, False,
+        box, provider, rootdir, False,
         num_nodes, num_disks, num_nics
     )
 
@@ -439,6 +457,7 @@ def _create(
 
 def _gen_vagrantfile(
     boxname: str,
+    provider: str,
     rootdir: Path,
     without_nfs: bool,
     nodes: int,
@@ -448,17 +467,28 @@ def _gen_vagrantfile(
 
     without_nfs_str: str = "true" if without_nfs else "false"
 
+    create_node_storage: str = ""
+    if provider == "virtualbox":
+        create_node_storage = \
+            f"""
+vb_config = `VBoxManage list systemproperties`.split(/\\n/).grep(/Default machine folder/).first
+diskpath = vb_config.split(':', 2)[1].strip() """
+        for nid in range(1, nodes+1):
+            for did in range(1, disks+1):
+                create_node_storage += \
+                    f"""
+N{nid}DISK{did} = File.join(diskpath, '{boxname}-node{nid}', 'node{nid}-disk{did}.vdi') """
     template: str = \
         f"""
 # -*- mode: ruby -*-
 # vim: set ft=ruby
+{create_node_storage}
 
 Vagrant.configure("2") do |config|
     config.vm.box = "{boxname}"
     config.vm.synced_folder ".", "/vagrant", disabled: true
     config.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_nfs_str}
     config.vm.guest = "suse"
-
         """
 
     host_port = 1337
@@ -468,16 +498,26 @@ Vagrant.configure("2") do |config|
         for _ in range(0, nics-1):
             node_networks += \
                 """
-        node.vm.network :private_network, :type => "dhcp"
-                """
+        node.vm.network :private_network, :type => "dhcp" """
 
         node_storage: str = ""
-        for _ in range(disks):
-            serial = "".join(random.choice("0123456789") for _ in range(8))
+        if provider == "virtualbox":
             node_storage += \
                 f"""
-            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}"
-                """
+            lv.customize ['storagectl', :id, '--name', 'SATA Controller', '--portcount', '6'] """
+        for did in range(1, disks+1):
+            if provider == "libvirt":
+                serial = "".join(random.choice("0123456789") for _ in range(8))
+                node_storage += \
+                    f"""
+            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}" """
+            elif provider == "virtualbox":
+                node_storage += \
+                    f"""
+            unless File.exist?(N{nid}DISK{did})
+                lv.customize ['createhd', '--filename', N{nid}DISK{did}, '--format', 'VDI', '--size', '20000' ]
+            end
+            lv.customize ['storageattach', :id,  '--storagectl', 'SATA Controller', '--port', {did}, '--device', 0, '--type', 'hdd', '--medium', N{nid}DISK{did}] """
 
         is_primary_str = "true" if nid == 1 else "false"
         node_str: str = \
@@ -486,8 +526,7 @@ Vagrant.configure("2") do |config|
         node.vm.hostname = "node{nid}"
         node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
         {node_networks}
-
-        node.vm.provider "libvirt" do |lv|
+        node.vm.provider "{provider}" do |lv|
             lv.memory = 4096
             lv.cpus = 1
             {node_storage}
@@ -542,6 +581,7 @@ def cmd_create(
     avail_deployments = _list_deployments()
 
     remove_existing_deployment = False
+    provider = ""
 
     if name in avail_deployments:
         if not force:
@@ -549,25 +589,55 @@ def cmd_create(
             sys.exit(errno.EEXIST)
         remove_existing_deployment = True
 
+    if box and image:
+        click.secho("Please provide only one of '--box' or '--image'", fg="red")
+        sys.exit(errno.EINVAL)
+
+    """
+    User did not assign box or image
+    1) search for existing default aquarium box and provider type, then flag it
+    2) look up available image name and provider type, then flag it 
+    3) if nither exist , error out
+    """
     if not box and not image:
-        if "aquarium" in avail_boxes:
-            box = "aquarium"
-        elif "aquarium" in avail_images:
-            image = "aquarium"
-        elif name in avail_boxes:
-            box = name
-        elif name in avail_images:
-            image = name
+        click.secho(f"Using default 'aquarium' as box name and image name", fg="green")
+        aquarium_box_exist = False
+        aquarium_image_exist = False
+        for box_name, provider_name in avail_boxes:
+            if box_name == "aquarium" or box_name == name:
+                aquarium_box_exist = True
+                box = box_name
+                provider = provider_name
+        for img_name, provider_name in avail_images:
+            if aquarium_box_exist:
+                if img_name == box and provider_name == provider:
+                    aquarium_image_exist = True
+            elif img_name == "aquarium" or img_name == name:
+                aquarium_image_exist = True
+                image = img_name
+                provider = provider_name
+
+        if aquarium_box_exist:
+            click.secho(f"Box '{box}' exist with Provider '{provider}' is availble", fg="green")
+        elif aquarium_image_exist:
+            click.secho(f"Image '{image}' exist with Provider '{provider}' is availble", fg="green")
         else:
-            click.secho("Unable to find default box 'aquarium'", fg="red")
+            click.secho("Unable to find default box or default image 'aquarium'", fg="red")
             sys.exit(errno.ENOENT)
 
+    """
+    Either User assign the image name or we get it from listing existing image
+    1) check if user assign image still exist 
+    2) if image name is box name with force flag, remove the box  
+    3) create box with image name, if image already in box list with no force flag, reuse 
+    """
     if not box and image:
-        if image not in avail_images:
+        click.secho(f"Using image '{image}' to create box and deployment", fg="green")
+        if image not in [image_name for image_name, _ in avail_images]:
             click.secho(f"Image '{image}' not found", fg="red")
             sys.exit(errno.ENOENT)
 
-        if image in avail_boxes and force:
+        if image in [image_name for image_name, _ in avail_boxes] and force:
             # remove existing box first
             try:
                 _remove_box(image)
@@ -579,21 +649,28 @@ def cmd_create(
         try:
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
             _import_image(image)
-            avail_boxes.append(image)
-            box = image
-            click.secho(f"Imported image '{image}' as Vagrant box", fg="green")
+            avail_boxes = _list_boxes()
         except ImageNotFoundError as e:
             click.secho(f"Error importing image '{image}': {e.message}")
             sys.exit(1)
         except BoxAlreadyExistsError:
             click.secho("Box already exists, reusing.", fg="green")
             box = image
-    elif box and image:
-        click.secho("Please provide only one of '--box' or '--image'", fg="red")
-        sys.exit(errno.EINVAL)
+        for image_name, provider_name in avail_boxes:
+            if image_name == image:
+                box = image
+                provider = provider_name
+        click.secho(f"Imported image: '{box}' as Vagrant box Provider: {provider}", fg="green")
 
     assert box is not None
-    if box not in avail_boxes:
+    box_exist = False
+    for box_name, provider_name in avail_boxes:
+        if box_name == box:
+            provider = provider_name
+            box_exist = True
+    if box_exist:
+        click.secho(f"Using box '{box}' provider '{provider}'", fg="green")
+    else:
         click.secho(f"Unable to find box '{box}'", fg="red")
         return
 
@@ -606,7 +683,7 @@ def cmd_create(
         click.secho(f"Removed deployment '{name}'")
 
     try:
-        _create(name, box, num_nodes, num_disks, num_nics)
+        _create(name, box, provider, num_nodes, num_disks, num_nics)
     except Exception as e:
         click.secho(
             f"Error creating deployment '{name}' from box '{box}': {str(e)}",
@@ -1003,7 +1080,7 @@ def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
 
     for deployment in deployments:
         box = deployment.box
-        if box and box in boxes:
+        if box and [box for box, _ in boxes]:
             if box not in deployment_per_box:
                 deployment_per_box[box] = []
             deployment_per_box[box].append(deployment)
@@ -1017,13 +1094,14 @@ def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
         return
 
     headerchr = chr(0x25cf)
-    for boxname in boxes:
+    for boxname, provider in boxes:
         num_deployments = 0 if boxname not in deployment_per_box \
                             else len(deployment_per_box[boxname])
-        click.secho("{} {} ({} deployments)".format(
+        click.secho("{} {} ({} deployments) [provider {}]".format(
             click.style(headerchr, fg="cyan", bold=True),
             click.style(boxname, fg="white", bold=True),
-            num_deployments
+            num_deployments,
+            click.style(provider, fg="white", bold=True)
         ))
 
         if verbose and num_deployments > 0:
@@ -1062,8 +1140,9 @@ def cmd_images_list(ctx: AppCtx) -> None:
         print_json(images)
         return
 
-    for image in images:
-        print_entry(image)
+    for image, provider in images:
+        print_entry(f"{image} ({provider})")
+        # print(f"Provider: {provider}")
 
 
 if __name__ == "__main__":
