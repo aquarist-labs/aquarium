@@ -26,6 +26,7 @@ dependencies_debian=(
   "nodejs"
   "vagrant"
   "libvirt-daemon"
+  "libvirt-daemon-system"
 )
 
 dependencies_ubuntu=(
@@ -40,6 +41,7 @@ dependencies_ubuntu=(
   "nodejs"
   "vagrant"
   "libvirt-daemon"
+  "libvirt-daemon-system"
 )
 
 dependencies_build_python_leap=(

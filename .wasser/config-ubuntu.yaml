@@ -12,12 +12,6 @@ routines:
       command: |
         cd aquarium
         ./tools/build-image.sh
-    - name: install libvirtd
-      command: |
-        sudo apt-get install -y libvirt-daemon-system
-    - name: make sure libvirtd is running
-      command: |
-        sudo systemctl start libvirtd
     - name: create deployment
       command: |
         cd aquarium
