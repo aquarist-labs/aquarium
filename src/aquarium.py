@@ -156,6 +156,8 @@ def app_factory():
         name="static"
     )
 
+    aquarium_app.state.api = aquarium_api
+
     return aquarium_app
 
 
