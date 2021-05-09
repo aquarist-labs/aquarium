@@ -112,7 +112,8 @@ def app_factory():
         storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr)
         gstate.add_storage(storage)
 
-        services: Services = Services(gstate.config.options.services.probe_interval, gstate, nodemgr)
+        services: Services = Services(
+            gstate.config.options.services.probe_interval, gstate, nodemgr)
         gstate.add_services(services)
 
         await nodemgr.start()
