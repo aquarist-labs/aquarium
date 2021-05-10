@@ -172,7 +172,8 @@ async def get_authorization(
     will obtain the authorization for a client with said `clientid`, if it
     exists.
     """
-    cephfs: CephFS = request.app.state.cephfs
+    cephfs: CephFS = CephFS(
+        request.app.state.gstate.ceph_mgr, request.app.state.gstate.ceph_mon)
     try:
         result = cephfs.get_authorization(name, clientid)
         return result

@@ -187,7 +187,6 @@ async def aquarium_startup(get_data_contents, mocker):
         from gravel.controllers.resources.storage import Storage
         from gravel.controllers.services import Services, ServiceModel
         from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
-        from gravel.controllers.orch.cephfs import CephFS
         from gravel.controllers.nodes.deployment import NodeDeployment, NodeCantBootstrapError
         from fastapi.logger import logger as fastapi_logger
 
@@ -297,8 +296,6 @@ async def aquarium_startup(get_data_contents, mocker):
         gstate.add_ceph_mgr(ceph_mgr)
         ceph_mon: Mon = Mon(ceph)
         gstate.add_ceph_mon(ceph_mon)
-        cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
-        gstate.add_cephfs(cephfs)
 
         # Set up all of the tickers
         devices: Devices = Devices(

@@ -25,7 +25,6 @@ from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
-from gravel.controllers.orch.cephfs import CephFS
 from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.devices import Devices
 from gravel.controllers.resources.status import Status
@@ -67,8 +66,6 @@ async def aquarium_startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
     gstate.add_ceph_mgr(ceph_mgr)
     ceph_mon: Mon = Mon(ceph)
     gstate.add_ceph_mon(ceph_mon)
-    cephfs: CephFS = CephFS(ceph_mgr, ceph_mon)
-    gstate.add_cephfs(cephfs)
 
     # Set up all of the tickers
     devices: Devices = Devices(

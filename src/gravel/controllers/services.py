@@ -21,7 +21,7 @@ from gravel.controllers.nodes.mgr import (
     NodeMgr
 )
 
-from gravel.controllers.orch.cephfs import CephFSError
+from gravel.controllers.orch.cephfs import CephFS, CephFSError
 from gravel.controllers.orch.models import (
     CephFSListEntryModel,
     CephOSDPoolEntryModel
@@ -342,7 +342,7 @@ class Services(Ticker):
     def _create_cephfs(self, svc: ServiceModel) -> None:
         assert self._is_ready()
 
-        cephfs = self.gstate.cephfs
+        cephfs: CephFS = CephFS(self.gstate.ceph_mgr, self.gstate.ceph_mon)
         assert cephfs
 
         try:

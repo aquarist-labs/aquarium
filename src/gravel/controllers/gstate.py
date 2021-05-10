@@ -25,7 +25,6 @@ from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.config import Config
 from gravel.controllers.kv import KV
 from gravel.controllers.orch.ceph import Mgr, Mon
-from gravel.controllers.orch.cephfs import CephFS
 
 import typing
 if typing.TYPE_CHECKING:
@@ -132,7 +131,6 @@ class GlobalState:
     storage: Storage
     services: Services
     cephadm: Cephadm
-    cephfs: CephFS
     ceph_mgr: Mgr
     ceph_mon: Mon
 
@@ -141,9 +139,6 @@ class GlobalState:
         self._is_shutting_down = False
         self._tickers = {}
         self._kvstore = KV()
-
-    def add_cephfs(self, cephfs: CephFS):
-        self.cephfs = cephfs
 
     def add_cephadm(self, cephadm: Cephadm):
         self.cephadm = cephadm
