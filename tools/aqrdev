@@ -852,8 +852,14 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
 @app.command("shell")
 @click.argument("name", required=True, type=str)
 @click.option("-n", "--node", required=False, type=str)
+@click.option("-c", "--command", required=False, type=str)
 @pass_appctx
-def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
+def cmd_shell(
+    ctx: AppCtx,
+    name: str,
+    node: Optional[str],
+    command: Optional[str]
+) -> None:
     """
     Obtain a shell for a deployment; can specify node
     """
@@ -890,7 +896,12 @@ def cmd_shell(ctx: AppCtx, name: str, node: str) -> None:
     if node:
         cmd += f" {node}"
 
-    subprocess.run(shlex.split(cmd))
+    if command:
+        cmd += f" -c '{command}'"
+
+    process = subprocess.run(shlex.split(cmd))
+    if process.returncode != 0:
+        sys.exit(process.returncode)
 
 
 @app.command("status")
