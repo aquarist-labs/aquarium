@@ -144,7 +144,7 @@ class GlobalState:
         self.cephadm = cephadm
 
     def add_ceph_mgr(self, mgr: Mgr):
-        self.mgr = mgr
+        self.ceph_mgr = mgr
 
     def add_ceph_mon(self, ceph_mon: Mon):
         self.ceph_mon = ceph_mon

@@ -60,7 +60,7 @@ class SetNtpRequest(BaseModel):
 
 @router.get("/hosts", response_model=List[HostModel])
 def get_hosts(request: Request) -> List[HostModel]:
-    orch = Orchestrator(request.app.state.ceph_mgr)
+    orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_hosts = orch.host_ls()
     hosts: List[HostModel] = []
     for h in orch_hosts:
@@ -70,7 +70,7 @@ def get_hosts(request: Request) -> List[HostModel]:
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
 def get_devices(request: Request) -> Dict[str, HostsDevicesModel]:
-    orch = Orchestrator(request.app.state.ceph_mgr)
+    orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
     host_devs: Dict[str, HostsDevicesModel] = {}
     for orch_host in orch_devs_per_host:
@@ -104,7 +104,7 @@ def get_devices(request: Request) -> Dict[str, HostsDevicesModel]:
 async def assimilate_devices(request: Request) -> bool:
 
     try:
-        orch = Orchestrator(request.app.state.ceph_mgr)
+        orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         orch.assimilate_all_devices()
     except Exception as e:
         logger.error(str(e))
@@ -116,7 +116,7 @@ async def assimilate_devices(request: Request) -> bool:
 @router.get("/devices/all_assimilated", response_model=bool)
 async def all_devices_assimilated(request: Request) -> bool:
     try:
-        orch = Orchestrator(request.app.state.ceph_mgr)
+        orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         return orch.all_devices_assimilated()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -126,7 +126,7 @@ async def all_devices_assimilated(request: Request) -> bool:
 @router.get("/pubkey")
 async def get_pubkey(request: Request) -> str:
     try:
-        orch = Orchestrator(request.app.state.ceph_mgr)
+        orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         return orch.get_public_key()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
