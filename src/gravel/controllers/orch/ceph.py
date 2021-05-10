@@ -152,7 +152,6 @@ class Ceph:
     def _cmd(self, func: Callable[[str, bytes], Any],
              cmd: Dict[str, Any]
              ) -> Any:
-        self.connect()
         self.assert_is_ready()
         cmdstr: str = json.dumps(cmd)
 
@@ -176,9 +175,11 @@ class Ceph:
         return res
 
     def mon(self, cmd: Dict[str, Any]) -> Any:
+        self.connect()
         return self._cmd(self.cluster.mon_command, cmd)
 
     def mgr(self, cmd: Dict[str, Any]) -> Any:
+        self.connect()
         return self._cmd(self.cluster.mgr_command, cmd)
 
 
