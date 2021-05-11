@@ -44,8 +44,8 @@ network name/address. If this fails, please check whether the firewall
 settings allow remote incoming connections.
 
 The provided `Vagrant` image will be forwarding ports to the local host. In the
-`localhost`, ports `1337` and `1338` will be used; the former for `node01`, the
-latter for `node02`.
+`localhost`, ports `1337` and `1338` will be used; the former for `node1`, the
+latter for `node2`.
 
 At this moment, although we spin-up both virtual machines, we do not
 support a multi-node deployment yet.
@@ -177,7 +177,7 @@ and running should not be much of a hurdle.
 4. `./tools/aqrdev shell foobar [--node NODE]`
 
     If `NODE` is not specified, the shell will be dropped by default on
-    `node01`. You can always choose to drop into `node02` by specifying that
+    `node1`. You can always choose to drop into `node2` by specifying that
     much.
 
     Note this will drop you into a regular user session and you will
