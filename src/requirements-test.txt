@@ -3,6 +3,7 @@ httpx
 pyfakefs
 pytest
 pytest-asyncio
+pytest-cov
 pytest-datadir
 pytest-mock
 requests
