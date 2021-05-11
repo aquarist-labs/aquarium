@@ -13,150 +13,96 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import os
 import sys
 import errno
 import json
 from typing import Any, Dict, List, Optional, Tuple
 import click
 import logging
-import subprocess
-import shlex
-import shutil
-import random
 from click.decorators import make_pass_decorator
 from pathlib import Path
-from datetime import datetime as dt
-from pydantic import BaseModel
+
+from libaqr.deployment import Deployment, DeploymentModel, get_deployments
+from libaqr.errors import (
+    AqrError,
+    BoxAlreadyExistsError,
+    BuildsPathNotFoundError,
+    DeploymentNodeDoesNotExistError,
+    DeploymentNodeNotRunningError,
+    DeploymentNotFinishedError,
+    DeploymentNotFoundError,
+    DeploymentNotRunningError,
+    DeploymentPathNotFoundError,
+    DeploymentRunningError,
+    ImageNotFoundError,
+    RootNotFoundError
+)
+from libaqr.misc import (
+    find_builds_path,
+    find_deployments_path,
+    find_root,
+    import_image,
+    list_boxes,
+    list_images,
+    remove_box
+)
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger("aquarium")
-
-
-class BaseError(Exception):
-    _msg: str
-
-    def __init__(self, msg: str = ""):
-        self._msg = msg
-
-    @property
-    def message(self) -> str:
-        return self._msg
-
-
-class BoxAlreadyExistsError(BaseError):
-    pass
-
-
-class BuildsPathNotFoundError(BaseError):
-    pass
-
-
-class RootNotFoundError(BaseError):
-    pass
-
-
-class ImageNotFoundError(BaseError):
-    pass
-
-
-class DeploymentPathNotFoundError(BaseError):
-    pass
-
-
-class DeploymentExistsError(BaseError):
-    pass
-
-
-class DeploymentNotFoundError(BaseError):
-    pass
-
-
-class DeploymentNotFinishedError(BaseError):
-    pass
-
-
-class EnterDeploymentError(BaseError):
-    pass
-
-
-class DeploymentStatusError(BaseError):
-    pass
-
-
-class DeploymentModel(BaseModel):
-    name: str
-    created_on: dt
-    box: Optional[str]
 
 
 class AppCtx:
 
     _json_output: bool
 
-    def __init__(self, json_output: bool):
+    _root_path: Path
+    _builds_path: Optional[Path]
+    _deployments_path: Optional[Path]
+    _deployments: Optional[Dict[str, Deployment]]
+
+    def __init__(
+        self,
+        json_output: bool,
+        root_path: Path
+    ):
         self._json_output = json_output
-        pass
+        self._root_path = root_path
+
+        self._builds_path = None
+        self._deployments_path = None
+        self._deployments = None
 
     @property
     def json(self) -> bool:
         return self._json_output
 
+    @property
+    def root_path(self) -> Path:
+        return self._root_path
+
+    @property
+    def builds_path(self) -> Path:
+        if not self._builds_path:
+            # propagate exception to caller
+            self._builds_path = find_builds_path()
+        return self._builds_path
+
+    @property
+    def deployments_path(self) -> Path:
+        if not self._deployments_path:
+            # propagate exception to caller
+            self._deployments_path = find_deployments_path()
+        return self._deployments_path
+
+    @property
+    def deployments(self) -> Dict[str, Deployment]:
+        if not self._deployments:
+            # propagate exceptions to caller
+            self._deployments = get_deployments(self.deployments_path)
+        return self._deployments
+
 
 pass_appctx = make_pass_decorator(AppCtx)
-
-
-def _find_root() -> Path:
-    cwd = Path.cwd()
-
-    def git_exists(path: Path) -> bool:
-        gitpath = path.joinpath(".git")
-        return gitpath.exists() and gitpath.is_dir()
-
-    while cwd.as_posix() != "/":
-        if git_exists(cwd):
-            return cwd
-        cwd = cwd.parent
-
-    raise RootNotFoundError()
-
-
-def _find_builds_path() -> Path:
-    try:
-        rootdir = _find_root()
-    except RootNotFoundError:
-        raise BuildsPathNotFoundError("unable to find root")
-
-    builds: Path = rootdir.joinpath("images/build")
-    if not builds.exists():
-        raise BuildsPathNotFoundError()
-    return builds
-
-
-def _find_deployments_path() -> Path:
-    try:
-        rootdir = _find_root()
-    except FileNotFoundError:
-        raise DeploymentPathNotFoundError("unable to find root")
-
-    vagrantdir = rootdir.joinpath("tests/vagrant")
-    setupsdir = vagrantdir.joinpath("deployments")
-    if not setupsdir:
-        raise DeploymentPathNotFoundError("unable to find deployments dir")
-    return setupsdir
-
-
-def _get_deployment_path(name: str) -> Path:
-    """ Obtain path to deployment `name` """
-    deployments = _list_deployments()
-    if name not in deployments:
-        raise DeploymentNotFoundError(f"unable to find deployment '{name}'")
-
-    deployments_path = _find_deployments_path()
-    assert deployments_path.exists()
-    deployment = deployments_path.joinpath(name)
-    assert deployment.exists()
-    return deployment
 
 
 @click.group()
@@ -168,342 +114,44 @@ def app(ctx: click.Context, debug: bool, json: bool) -> None:
     if debug:
         logger.setLevel(logging.DEBUG)
 
+    rootpath: Optional[Path] = None
+
+    try:
+        rootpath = find_root()
+    except RootNotFoundError:
+        click.secho("Unable to find git repository's root", fg="red")
+        sys.exit(errno.ENOENT)
+
     logger.debug(f"app => debug: {debug}, ctx: {ctx}")
-    ctx.obj = AppCtx(json_output=json)
-
-
-def _list_boxes() -> List[str]:
-    """ List all known vagrant boxes. Includes non-aquarium related boxes. """
-    proc = subprocess.run(
-        shlex.split("vagrant box list --machine-readable"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-    stdout = proc.stdout.decode("utf-8")
-    stderr = proc.stderr.decode("utf-8")
-    if proc.returncode != 0:
-        logger.error(f"error running vagrant: {stderr}")
-
-    logger.debug(f"boxes: {stdout}")
-
-    boxes = [name for name in stdout.splitlines() if name.count("box-name") > 0]
-    boxnames = [entry.split(",")[3] for entry in boxes]
-    return boxnames
-
-
-def _list_images() -> List[str]:
-    """ List all built Vagrant images """
-    try:
-        rootdir = _find_root()
-    except FileNotFoundError:
-        logger.error("couldn't find git root tree")
-        sys.exit(1)
-
-    imagepath = rootdir.joinpath("images")
-    buildspath = imagepath.joinpath("build")
-    if not buildspath.exists():
-        return []
-
-    def is_vagrant_img(path: Path) -> bool:
-        assert path.exists()
-        outdir = path.joinpath("_out")
-        if not outdir.exists():
-            raise FileNotFoundError()
-
-        rawimg: Optional[Path] = None
-        img: Optional[Path] = None
-        for entry in next(os.walk(outdir))[2]:
-            if not entry.startswith("project-aquarium"):
-                continue
-
-            imgpath = Path(entry)
-            if imgpath.suffix == ".raw":
-                rawimg = imgpath
-
-            elif imgpath.suffix == ".box":
-                if entry.count("vagrant") > 0:
-                    img = imgpath
-
-        if not rawimg:
-            raise FileNotFoundError()
-        elif not img:
-            return False
-
-        return True
-
-    images: List[str] = []
-    for build in next(os.walk(buildspath))[1]:
-        if build.startswith("."):
-            continue
-
-        try:
-            ret = is_vagrant_img(buildspath.joinpath(build))
-        except FileNotFoundError:
-            logger.debug(f"build {build} not a vagrant build")
-            continue
-
-        if not ret:
-            logger.debug(f"build {build} not a vagrant build")
-            continue
-
-        images.append(build)
-
-    return images
-
-
-def _list_deployments() -> List[str]:
-    """ List all existing Aquarium's Vagrant deployments. """
-    try:
-        rootdir = _find_root()
-    except FileNotFoundError:
-        logger.error("unable to find git's root dir")
-        sys.exit(1)
-
-    vagrantdir = rootdir.joinpath("tests/vagrant")
-    setupsdir = vagrantdir.joinpath("deployments")
-    if not vagrantdir.exists() or not setupsdir.exists():
-        return []
-
-    setups = [entry for entry in next(os.walk(setupsdir))[1]]
-    return setups
-
-
-def _get_deployment_meta(name: str) -> DeploymentModel:
-    """ Obtain a given deployment's metadata """
-    deployments_path = _find_deployments_path()
-    deployment = deployments_path.joinpath(name)
-    assert deployment.exists()
-
-    metafile = deployment.joinpath("meta.json")
-    if metafile.exists():
-        return DeploymentModel.parse_file(metafile)
-
-    created_on_str: str = ""
-    createdon_path = deployment.joinpath("created_on")
-    if createdon_path.exists():
-        created_on_str = createdon_path.read_text()
-
-    return DeploymentModel(
-        name=name,
-        created_on=created_on_str,
-        box=None
+    ctx.obj = AppCtx(
+        json_output=json,
+        root_path=rootpath
     )
 
 
-def _get_deployments() -> List[DeploymentModel]:
-    """ Obtain deployment metadata for all known deployments """
-    deployments_lst = _list_deployments()
-    deployments: List[DeploymentModel] = []
-    for entry in deployments_lst:
-        deployments.append(_get_deployment_meta(entry))
-    return deployments
-
-
-def _import_image(imgname: str) -> None:
-    """ Import an image as a vagrant box with the same name. """
-    avail_boxes = _list_boxes()
-    if imgname in avail_boxes:
-        raise BoxAlreadyExistsError()
-
+def _get_deployment(ctx: AppCtx, name: str) -> Deployment:
+    deployment: Optional[Deployment] = None
     try:
-        buildspath: Path = _find_builds_path()
-    except BuildsPathNotFoundError:
-        raise ImageNotFoundError("no available builds")
-
-    imgbuild = buildspath.joinpath(imgname)
-    if not imgbuild.exists():
-        raise ImageNotFoundError(f"build for image '{imgname}' not found")
-
-    outpath = imgbuild.joinpath("_out")
-    if not outpath:
-        raise ImageNotFoundError(f"image '{imgname}' not built")
-
-    outfiles = [entry for entry in next(os.walk(outpath))[2]]
-    found: Optional[str] = None
-    for file in outfiles:
-        if file.count(".vagrant.") > 0 and file.endswith(".box"):
-            found = file
-            break
-
-    if not found:
-        raise ImageNotFoundError(f"image '{imgname}' not found at {outpath}")
-
-    imgpath: Path = outpath.joinpath(found)
-    assert imgpath.exists()
-
-    boxname = imgname
-    cmd = f"vagrant box add {boxname} {imgpath}"
-    logger.debug(f"adding box {boxname} from image at {imgpath}")
-    proc = subprocess.run(
-        shlex.split(cmd),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-    stderr = proc.stdout.decode("utf-8")
-    if proc.returncode != 0:
-        raise BaseException(f"error adding vagrant box: {stderr}")
-
-
-def _remove_box(name: str) -> None:
-    """ Remove an existing box """
-    boxes = _list_boxes()
-    if name not in boxes:
-        return
-
-    cmd = f"vagrant box remove {name}"
-    proc = subprocess.run(
-        shlex.split(cmd),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8")
-        raise BaseError(f"error removing box '{name}': {stderr}")
-
-
-def _remove(name: str) -> None:
-    """ Remove an existing deployment """
-
-    try:
-        deployment = _get_deployment_path(name)
+        all_deployments = ctx.deployments
+        if name not in all_deployments:
+            raise DeploymentNotFoundError()
+        deployment = all_deployments[name]
+    except DeploymentPathNotFoundError:
+        click.secho("Unable to find deployments path", fg="red")
+        sys.exit(errno.ENOENT)
     except DeploymentNotFoundError:
-        return
-
-    if not deployment.exists():
-        return
-
-    shutil.rmtree(deployment)
-
-
-def _create(
-    name: str,
-    box: str,
-    num_nodes: int,
-    num_disks: int,
-    num_nics: int
-) -> None:
-    """ Create a new deployment, based on provided box. """
-    rootdir = _find_root()
-    assert rootdir.exists()
-
-    deployment_path = _find_deployments_path()
-    if not deployment_path.exists():
-        deployment_path.mkdir()
-    assert deployment_path.exists()
-
-    deployments = _list_deployments()
-    boxes = _list_boxes()
-    assert name not in deployments
-    assert box in boxes
-
-    new_deployment = deployment_path.joinpath(name)
-    if new_deployment.exists():
-        logger.error(f"deployment {name} already exists")
-        raise DeploymentExistsError()
-
-    try:
-        logger.debug(f"creating new deployment at '{new_deployment}'")
-        new_deployment.mkdir()
-    except Exception as e:
-        logger.error(
-            f"unable to create deployment at {new_deployment}: {str(e)}"
+        click.secho(f"Deployment {name} not found", fg="red")
+        sys.exit(errno.ENOENT)
+    except DeploymentNotFinishedError:
+        click.secho(
+            f"Deployment {name} wasn't finished. Should recreate.",
+            fg="red"
         )
-        raise BaseError(f"error creating deployment: {str(e)}")
-
-    logger.debug(
-        f"generate template, nodes={num_nodes}, disks={num_disks}, "
-        f"nics={num_nics}'"
-    )
-    vagrantfile_text = _gen_vagrantfile(
-        box, rootdir, False,
-        num_nodes, num_disks, num_nics
-    )
-
-    vagrantfile = new_deployment.joinpath("Vagrantfile")
-    logger.debug(f"writing vagrantfile at '{vagrantfile}'")
-    vagrantfile.write_text(vagrantfile_text)
-
-    now = dt.now()
-    metafile = new_deployment.joinpath("meta.json")
-    assert not metafile.exists()
-    meta = DeploymentModel(
-        name=name,
-        created_on=now,
-        box=box
-    )
-    metafile.write_text(meta.json())
-
-
-def _gen_vagrantfile(
-    boxname: str,
-    rootdir: Path,
-    without_nfs: bool,
-    nodes: int,
-    disks: int,
-    nics: int
-) -> str:
-
-    without_nfs_str: str = "true" if without_nfs else "false"
-
-    template: str = \
-        f"""
-# -*- mode: ruby -*-
-# vim: set ft=ruby
-
-Vagrant.configure("2") do |config|
-    config.vm.box = "{boxname}"
-    config.vm.synced_folder ".", "/vagrant", disabled: true
-    config.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_nfs_str}
-    config.vm.guest = "suse"
-
-        """
-
-    host_port = 1337
-    for nid in range(1, nodes+1):
-
-        node_networks: str = ""
-        for _ in range(0, nics-1):
-            node_networks += \
-                """
-        node.vm.network :private_network, :type => "dhcp"
-                """
-
-        node_storage: str = ""
-        for _ in range(disks):
-            serial = "".join(random.choice("0123456789") for _ in range(8))
-            node_storage += \
-                f"""
-            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}"
-                """
-
-        is_primary_str = "true" if nid == 1 else "false"
-        node_str: str = \
-            f"""
-    config.vm.define :"node{nid}", primary: {is_primary_str} do |node|
-        node.vm.hostname = "node{nid}"
-        node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
-        {node_networks}
-
-        node.vm.provider "libvirt" do |lv|
-            lv.memory = 4096
-            lv.cpus = 1
-            {node_storage}
-        end
-    end
-            """
-
-        template += node_str
-        host_port += 1
-
-    template += \
-        """
-end
-        """
-
-    return template
+        sys.exit(errno.EINVAL)
+    except Exception as e:
+        click.secho(f"Unknown error: {str(e)}", fg="red")
+        sys.exit(errno.EINVAL)
+    return deployment
 
 
 #
@@ -537,17 +185,21 @@ def cmd_create(
     num_nics = num_nics if num_nics is not None else 1
     num_nodes = num_nodes if num_nodes is not None else 2
 
-    avail_images = _list_images()
-    avail_boxes = _list_boxes()
-    avail_deployments = _list_deployments()
-
-    remove_existing_deployment = False
+    avail_images: Optional[List[str]] = None
+    avail_boxes = list_boxes()
+    avail_deployments: List[Deployment] = []
+    try:
+        avail_images = list_images()
+        avail_deployments = [v for v in ctx.deployments.values()]
+    except RootNotFoundError:
+        click.secho("Unable to find git repository's root dir")
+        sys.exit(errno.ENOENT)
+    except Exception:
+        pass
 
     if name in avail_deployments:
-        if not force:
-            click.secho(f"Deployment '{name}' already exists", fg="red")
-            sys.exit(errno.EEXIST)
-        remove_existing_deployment = True
+        click.secho(f"Deployment '{name}' already exists", fg="red")
+        sys.exit(errno.EEXIST)
 
     if not box and not image:
         if "aquarium" in avail_boxes:
@@ -570,15 +222,16 @@ def cmd_create(
         if image in avail_boxes and force:
             # remove existing box first
             try:
-                _remove_box(image)
-            except BaseError as e:
+                remove_box(image)
+            except AqrError as e:
                 logger.error(
                     f"Unable to remove existing box '{image}': {e.message}"
                 )
                 sys.exit(1)
         try:
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
-            _import_image(image)
+            builds_path = ctx.builds_path
+            import_image(builds_path, image)
             avail_boxes.append(image)
             box = image
             click.secho(f"Imported image '{image}' as Vagrant box", fg="green")
@@ -588,6 +241,9 @@ def cmd_create(
         except BoxAlreadyExistsError:
             click.secho("Box already exists, reusing.", fg="green")
             box = image
+        except BuildsPathNotFoundError:
+            click.secho("Unable to find builds path", fg="red")
+            sys.exit(errno.ENOENT)
     elif box and image:
         click.secho("Please provide only one of '--box' or '--image'", fg="red")
         sys.exit(errno.EINVAL)
@@ -597,16 +253,19 @@ def cmd_create(
         click.secho(f"Unable to find box '{box}'", fg="red")
         return
 
-    if remove_existing_deployment:
-        click.secho(f"Removing existing deployment '{name}'")
-        try:
-            _remove(name)
-        except BaseError as e:
-            logger.error(f"error removing deployment '{name}': {e.message}")
-        click.secho(f"Removed deployment '{name}'")
-
     try:
-        _create(name, box, num_nodes, num_disks, num_nics)
+        deployment_path = ctx.deployments_path
+        if not deployment_path.exists():
+            deployment_path.mkdir()
+        assert deployment_path.exists()
+
+        Deployment.create(
+            name, box, num_nodes, num_disks, num_nics,
+            deployment_path, find_root()
+        )
+    except DeploymentPathNotFoundError:
+        click.secho("Unable to find deployments path", fg="red")
+        sys.exit(errno.ENOENT)
     except Exception as e:
         click.secho(
             f"Error creating deployment '{name}' from box '{box}': {str(e)}",
@@ -625,18 +284,16 @@ def cmd_remove(ctx: AppCtx, name: str) -> None:
     """
     logger.debug(f"remove => name: {name}, ctx: {ctx}")
 
-    must_stop: bool = False
-    state: List[Tuple[str, str]] = _get_deployment_state(name)
-    for node, node_state in state:
-        if node_state == "running":
-            click.secho(f"node '{node}' is still running", fg="red")
-            must_stop = True
-    if must_stop:
+    deployment: Deployment = _get_deployment(ctx, name)
+    try:
+        deployment.remove()
+    except DeploymentRunningError:
         click.secho("Please stop the deployment before removing", fg="yellow")
         sys.exit(errno.EBUSY)
+    except AqrError as e:
+        click.secho(f"Unkown error: {e.message}")
+        sys.exit(e.errno)
 
-    click.secho(f"Removing deployment '{name}'", fg="cyan")
-    _remove(name)
     click.secho("Removed.", fg="green")
 
 
@@ -652,130 +309,6 @@ def print_json(what: Any) -> None:
     print(json.dumps(what))
 
 
-def _parse_vagrant(raw: str) -> Dict[str, List[Tuple[str, str]]]:
-
-    result: Dict[str, List[Tuple[str, str]]] = {}
-    lines = raw.splitlines()
-
-    for line in lines:
-        fields = line.split(",")
-        entry: Tuple[str, str] = (fields[1], fields[3])
-        state: str = fields[2]
-        if state not in result:
-            result[state] = []
-        result[state].append(entry)
-
-    return result
-
-
-def _get_deployment_status(name: str) -> Dict[str, List[Tuple[str, str]]]:
-    """
-    Returns a List of Tuples with the node's name as first element, and the
-    node's state as the second element.
-    """
-
-    path: Path = _get_deployment_path(name)
-    if not path.exists():
-        raise DeploymentPathNotFoundError()
-
-    vagrantfile = path.joinpath("Vagrantfile")
-    if not vagrantfile:
-        raise DeploymentNotFinishedError()
-
-    env: Dict[str, str] = os.environ.copy()
-    env["VAGRANT_CWD"] = str(path)
-    proc = subprocess.run(
-        shlex.split("vagrant status --machine-readable"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env
-    )
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8")
-        raise DeploymentStatusError(stderr)
-
-    return _parse_vagrant(proc.stdout.decode("utf-8"))
-
-
-def _get_deployment_state(name: str) -> List[Tuple[str, str]]:
-
-    try:
-        metadata: Dict[str, List[Tuple[str, str]]] = \
-            _get_deployment_status(name)
-    except BaseError as e:
-        logger.error(f"unable to obtain deployment's state: {str(e)}")
-        raise e
-
-    if "state" not in metadata:
-        return []
-
-    return metadata["state"]
-
-
-def _check_deployment_state(name: str, statenames: List[str]) -> bool:
-
-    try:
-        state: List[Tuple[str, str]] = _get_deployment_state(name)
-    except BaseError as e:
-        logger.error(f"unable to check deployment's state: {str(e)}")
-        raise e
-
-    num_at_state: int = 0
-    num_nodes: int = 0
-
-    for _, node_state in state:
-        num_nodes += 1
-        if node_state in statenames:
-            num_at_state += 1
-
-    assert num_nodes > 0
-    return num_at_state > 0
-
-
-#
-# start, stop, shell commands
-#
-
-def _vagrant_enter_deployment(name: str) -> None:
-
-    # may raise DeploymentNotFound
-    deployment = _get_deployment_path(name)
-
-    try:
-        os.chdir(deployment)
-    except Exception as e:
-        logger.error(f"unable to change directories: {str(e)}")
-        raise EnterDeploymentError(str(e))
-
-    vagrantfile = deployment.joinpath("Vagrantfile")
-    if not vagrantfile.exists():
-        logger.error(f"unable to find Vagrantfile at {vagrantfile}")
-        raise DeploymentNotFinishedError()
-
-
-def _cmd_try_vagrant_deployment(name: str) -> None:
-
-    error: int = 0
-    try:
-        _vagrant_enter_deployment(name)
-    except DeploymentNotFoundError:
-        click.secho(f"Deployment '{name}' not found", fg="red")
-        error = errno.ENOENT
-    except DeploymentNotFinishedError:
-        click.secho(f"Deployment '{name}' wasn't finished. Should recreate.")
-        error = errno.EINVAL
-    except FileNotFoundError:
-        click.secho("Couldn't find Deployment's directory")
-        error = errno.ENOENT
-    except PermissionError:
-        click.secho(f"No permissions to use Deployment '{name}'")
-        error = errno.EPERM
-
-    if error != 0:
-        sys.exit(error)
-
-
 @app.command("start")
 @click.argument("name", required=True, type=str)
 @click.option("--conservative", flag_value=True)
@@ -784,34 +317,22 @@ def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
     """
     Start a deployment
     """
-    _cmd_try_vagrant_deployment(name)
-
+    deployment: Deployment = _get_deployment(ctx, name)
+    assert deployment
     try:
-        running: bool = _check_deployment_state(name, ["running", "preparing"])
-    except BaseError as e:
-        click.secho(f"Something went wrong: {e.message}", fg="red")
-        sys.exit(errno.EINVAL)
-
-    if running:
+        deployment.start(conservative)
+    except DeploymentRunningError:
         click.secho("Deployment already running", fg="yellow")
         return
+    except AqrError as e:
+        click.secho(f"Error: {e.message}", fg="red")
+        sys.exit(e.errno)
+    except Exception as e:
+        click.secho(f"Unknown error: {str(e)}", fg="red")
+        sys.exit(errno.EINVAL)
 
-    cmd = "vagrant up"
-    if conservative:
-        cmd += " --no-parallel --no-destroy-on-error"
-
-    proc = subprocess.run(
-        shlex.split(cmd),
-        stderr=subprocess.PIPE
-    )
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8")
-        logger.error(f"unable to start vagrant machines: {stderr}")
-        click.secho("Unable to start deployment", fg="red")
-        sys.exit(1)
-
-    click.secho("Deployment started.")
+    click.secho(f"Deployment '{name}' started", fg="green")
+    return
 
 
 @app.command("stop")
@@ -821,30 +342,17 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
     """
     Stop deployment; destroys running machines
     """
-
-    _cmd_try_vagrant_deployment(name)
+    deployment: Deployment = _get_deployment(ctx, name)
+    assert deployment
 
     try:
-        stopped: bool = \
-            _check_deployment_state(name, ["shutoff", "not_created"])
-    except BaseError as e:
-        click.secho(f"Something went wrong: {e.message}", fg="red")
+        deployment.stop()
+    except AqrError as e:
+        click.secho(f"Error: {e.message}", fg="red")
+        sys.exit(e.errno)
+    except Exception as e:
+        click.secho(f"Unknown error: {str(e)}", fg="red")
         sys.exit(errno.EINVAL)
-
-    if stopped:
-        click.secho("Deployment already stopped.", fg="green")
-        return
-
-    proc = subprocess.run(
-        shlex.split("vagrant destroy"),
-        stderr=subprocess.PIPE
-    )
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8")
-        logger.error(f"Unable to stop vagrant machines: {stderr}")
-        click.secho("Unable to stop deployment", fg="red")
-        sys.exit(1)
 
     click.secho("Deployment stopped.", fg="green")
 
@@ -863,45 +371,20 @@ def cmd_shell(
     """
     Obtain a shell for a deployment; can specify node
     """
+    deployment: Deployment = _get_deployment(ctx, name)
+    assert deployment
 
-    _cmd_try_vagrant_deployment(name)
-
-    running = False
     try:
-        running: bool = _check_deployment_state(name, ["running"])
-    except BaseError as e:
-        click.secho(f"Something went wrong: {e.message}", fg="red")
-
-    if not running:
-        click.secho("Deployment not running.", fg="yellow")
-        sys.exit(1)
-
-    if node:
-        has_node: bool = False
-        metadata: Dict[str, List[Tuple[str, str]]] = \
-            _get_deployment_status(name)
-        for nodename, state in metadata["state"]:
-            if nodename == node:
-                if state != "running":
-                    click.secho(f"Node '{node}' not running", fg="red")
-                    sys.exit(errno.EINVAL)
-                has_node = True
-            if has_node:
-                break
-        if not has_node:
-            click.secho(f"Deployment node '{node}' does not exist", fg="red")
-            sys.exit(errno.ENOENT)
-
-    cmd = "vagrant ssh"
-    if node:
-        cmd += f" {node}"
-
-    if command:
-        cmd += f" -c '{command}'"
-
-    process = subprocess.run(shlex.split(cmd))
-    if process.returncode != 0:
-        sys.exit(process.returncode)
+        sys.exit(deployment.shell(node, command))
+    except DeploymentNotRunningError:
+        click.secho("Deployment not running", fg="red")
+        sys.exit(errno.EAGAIN)
+    except DeploymentNodeDoesNotExistError:
+        click.secho(f"Node '{node}' does not exist", fg="red")
+        sys.exit(errno.ENOENT)
+    except DeploymentNodeNotRunningError:
+        click.secho(f"Node '{node}' not running", fg="red")
+        sys.exit(errno.EAGAIN)
 
 
 @app.command("status")
@@ -912,30 +395,39 @@ def cmd_status(ctx: AppCtx, name: Optional[str]) -> None:
     Obtain status of existing deployments
     """
 
-    deployments: List[str] = _list_deployments()
+    deployments: Dict[str, Deployment] = {}
+    try:
+        deployments = ctx.deployments
+    except Exception:
+        pass
 
     if name:
         if name not in deployments:
             click.secho(f"Unknown deployment '{name}'", fg="red")
             sys.exit(errno.ENOENT)
-        deployments = [name]
+        deployment = deployments[name]
+        deployments = {name: deployment}
 
-    for deployment in deployments:
+    for name, deployment in deployments.items():
         hdr = chr(0x25CF)
         click.secho("{} {}".format(
             click.style(hdr, fg="cyan", bold=True),
-            click.style(f"{deployment}", fg="white", bold=True)
+            click.style(f"{name}", fg="white", bold=True)
         ))
-        state = _get_deployment_state(deployment)
 
-        while len(state) > 0:
-            entry: Tuple[str, str] = state.pop(0)
+        status: List[Tuple[str, str]] = deployment.status()
+        while len(status) > 0:
+            entry: Tuple[str, str] = status.pop(0)
             boxline = chr(0x251C)
-            if len(state) == 0:
+            if len(status) == 0:
                 boxline = chr(0x2514)
 
             node, node_state = entry
-            color: str = "green" if node_state == "running" else "red"
+            color = "yellow"
+            if node_state == "running":
+                color = "green"
+            elif node_state == "not created":
+                color = "red"
             node_state = " ".join(node_state.split("_"))
             click.secho("{} {} {}".format(
                 click.style(boxline, fg="cyan", bold=True),
@@ -952,7 +444,13 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
     List existing deployments
     """
     logger.debug("list deployments")
-    deployments: List[DeploymentModel] = _get_deployments()
+    deployments: List[Deployment] = []
+
+    try:
+        deployments = [v for v in ctx.deployments.values()]
+    except Exception:
+        pass
+
     if len(deployments) == 0:
         click.secho("No deployments found", fg="cyan")
         return
@@ -962,7 +460,7 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
 
         if ctx.json:
             json_lst.append(
-                json.loads(deployment.json())
+                json.loads(deployment.meta.json())
             )
             continue
 
@@ -1008,8 +506,13 @@ def cmd_box() -> None:
 @pass_appctx
 def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
     logger.debug("list boxes")
-    boxes = _list_boxes()
-    deployments = _get_deployments()
+    boxes = list_boxes()
+    deployments: List[Deployment] = []
+    try:
+        deployments = [v for v in ctx.deployments.values()]
+    except Exception:
+        pass
+
     deployment_per_box: Dict[str, List[DeploymentModel]] = {}
 
     for deployment in deployments:
@@ -1017,7 +520,7 @@ def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
         if box and box in boxes:
             if box not in deployment_per_box:
                 deployment_per_box[box] = []
-            deployment_per_box[box].append(deployment)
+            deployment_per_box[box].append(deployment.meta)
 
     if len(boxes) == 0:
         click.secho("No boxes found", fg="cyan")
@@ -1064,7 +567,7 @@ def cmd_images() -> None:
 @pass_appctx
 def cmd_images_list(ctx: AppCtx) -> None:
     logger.debug("list images")
-    images = _list_images()
+    images = list_images()
     if len(images) == 0:
         click.secho("No images found", fg="cyan")
         return
