@@ -68,6 +68,7 @@ from gravel.controllers.nodes.messages import (
 )
 from gravel.controllers.nodes.etcd import ContainerFetchError, etcd_pull_image, spawn_etcd
 from gravel.controllers.orch.orchestrator import Orchestrator
+from gravel.controllers.resources.inventory_sub import Subscriber
 
 
 logger: Logger = fastapi_logger
@@ -141,6 +142,7 @@ class NodeMgr:
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
     _deployment: NodeDeployment
+    _inventory_sub: Optional[Subscriber]
 
     gstate: GlobalState
 
@@ -217,24 +219,23 @@ class NodeMgr:
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
             assert nodeinfo
-            await self._node_prestart(nodeinfo)
+            await self._node_update_info(nodeinfo)
+            if self._init_stage == NodeInitStage.PREPARE:
+                await self._node_prestart()
 
         async def _task() -> None:
             if not await self._obtain_images():
                 # xxx: find way to shutdown here?
                 return
-            await self.gstate.inventory.subscribe(
+            self._inventory_sub = await self.gstate.inventory.subscribe(
                 _inventory_subscriber,
-                once=True
+                once=False
             )
 
         self._init_stage = NodeInitStage.PREPARE
         asyncio.create_task(_task())
 
-    async def _node_prestart(self, nodeinfo: NodeInfoModel):
-        """ sets hostname and addresses; allows bootstrap, join. """
-        assert self.deployment_state.nostage
-        assert self._init_stage == NodeInitStage.PREPARE
+    async def _node_update_info(self, nodeinfo: NodeInfoModel) -> None:
 
         self._state.hostname = nodeinfo.hostname
 
@@ -255,6 +256,11 @@ class NodeMgr:
 
         self._state.address = address
         await self._save_state()
+
+    async def _node_prestart(self):
+        """ sets hostname and addresses; allows bootstrap, join. """
+        assert self.deployment_state.nostage
+        assert self._init_stage == NodeInitStage.PREPARE
         self._init_stage = NodeInitStage.AVAILABLE
 
     async def _node_start(self) -> None:
@@ -327,6 +333,10 @@ class NodeMgr:
 
         if self.deployment_state.error:
             raise NodeCantBootstrapError("node is in error state")
+
+        logger.debug("bootstrap - unsubscribe inventory updates")
+        if self._inventory_sub:
+            self.gstate.inventory.unsubscribe(self._inventory_sub)
 
         self._token = self._generate_token()
 

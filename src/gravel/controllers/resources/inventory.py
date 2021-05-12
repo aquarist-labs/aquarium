@@ -11,6 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
 from logging import Logger
 import time
 from typing import (
@@ -20,20 +21,14 @@ from typing import (
     Optional
 )
 from fastapi.logger import logger as fastapi_logger
-from pydantic.main import BaseModel
-
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import Ticker, GlobalState
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.resources.inventory_sub import Subscriber
 
 
 logger: Logger = fastapi_logger
-
-
-class Subscriber(BaseModel):
-    cb: Callable[[NodeInfoModel], Awaitable[None]]
-    once: bool
 
 
 class Inventory(Ticker):
@@ -53,7 +48,12 @@ class Inventory(Ticker):
     _probe_interval: float
     _gstate: GlobalState
 
-    def __init__(self, probe_interval: float, nodemgr: NodeMgr, gstate: GlobalState):
+    def __init__(
+        self,
+        probe_interval: float,
+        nodemgr: NodeMgr,
+        gstate: GlobalState
+    ):
         super().__init__(1.0)
         self._latest = None
         self._subscribers = []
@@ -88,13 +88,19 @@ class Inventory(Ticker):
         self,
         cb: Callable[[NodeInfoModel], Awaitable[None]],
         once: bool
-    ) -> None:
+    ) -> Optional[Subscriber]:
         # if we have available state, call back immediately.
         if self._latest:
             await cb(self._latest)  # type: ignore
             if once:
-                return
-        self._subscribers.append(Subscriber(cb=cb, once=once))
+                return None
+        sub = Subscriber(cb=cb, once=once)
+        self._subscribers.append(sub)
+        return sub
+
+    def unsubscribe(self, sub: Subscriber) -> None:
+        if sub in self._subscribers:
+            self._subscribers.remove(sub)
 
     async def _publish(self) -> None:
         assert self._latest
