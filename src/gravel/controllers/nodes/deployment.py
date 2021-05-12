@@ -289,6 +289,26 @@ class NodeDeployment:
         self._state.mark_ready()
         return True
 
+    async def _prepare_etcd(
+        self,
+        hostname: str,
+        address: str,
+        token: str
+    ) -> None:
+        assert self._state
+        if self._state.bootstrapping:
+            raise NodeCantBootstrapError("node bootstrapping")
+        elif not self._state.nostage:
+            raise NodeCantBootstrapError("node can't be bootstrapped")
+
+        await spawn_etcd(
+            self._gstate,
+            new=True,
+            token=token,
+            hostname=hostname,
+            address=address
+        )
+
     async def bootstrap(
         self,
         config: DeploymentBootstrapConfig,
@@ -306,25 +326,6 @@ class NodeDeployment:
         if self._state.error:
             raise NodeCantBootstrapError("node is in error state")
 
-        async def _prepare(
-            hostname: str,
-            address: str,
-            token: str
-        ) -> None:
-            assert self._state
-            if self._state.bootstrapping:
-                raise NodeCantBootstrapError("node bootstrapping")
-            elif not self._state.nostage:
-                raise NodeCantBootstrapError("node can't be bootstrapped")
-
-            await spawn_etcd(
-                self._gstate,
-                new=True,
-                token=token,
-                hostname=hostname,
-                address=address
-            )
-
         async def _start() -> None:
             assert self._state
             assert self._state.nostage
@@ -341,14 +342,14 @@ class NodeDeployment:
             await finisher(success, error)
 
         try:
-            await _prepare(hostname, address, token)
+            await self._prepare_etcd(hostname, address, token)
         except NodeError as e:
             logger.error(f"bootstrap prepare error: {e.message}")
             raise e
 
         assert not self._bootstrapper
         await _start()
-        self._bootstrapper = Bootstrap()
+        self._bootstrapper = Bootstrap(self._gstate)
 
         try:
             await self._bootstrapper.bootstrap(

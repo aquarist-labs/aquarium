@@ -46,6 +46,7 @@ class Lock:
 class KV:
 
     _client: Optional[aetcd3.Etcd3Client]
+    _is_open: bool
     _is_closing: bool
 
     def __init__(self):
@@ -69,15 +70,18 @@ class KV:
             break
         if opened:
             self._client = aetcd3.client()
+            self._is_open = True
             logger.info("opened kvstore connection")
 
     async def close(self) -> None:
         """ Close k/v store connection """
         self._is_closing = True
         if not self._client:
+            self._is_open = False
             return
         await self._client.close()
         self._client = None
+        self._is_open = False
 
     async def put(self, key: str, value: str) -> None:
         """ Put key/value pair """

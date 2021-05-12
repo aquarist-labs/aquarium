@@ -6,6 +6,8 @@ from gravel.controllers.resources import storage
 from gravel.controllers.orch.ceph import Mon
 
 
+# TODO(jhesketh): This is probably broken from a previous ticker refactor
+
 async def main():
 
     await storage.tick()

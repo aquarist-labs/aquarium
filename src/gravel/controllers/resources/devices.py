@@ -26,7 +26,7 @@ from gravel.controllers.gstate import Ticker
 from gravel.controllers.nodes.mgr import (
     NodeMgr
 )
-from gravel.controllers.orch.ceph import Mon
+from gravel.controllers.orch.ceph import Mgr, Mon
 from gravel.cephadm.models import VolumeDeviceModel
 from gravel.controllers.orch.models import (
     CephOSDDFModel,
@@ -66,9 +66,11 @@ class Devices(Ticker):
     _osds_per_host: Dict[str, List[int]] = {}
     _osd_entries: Dict[int, DeviceModel] = {}
 
-    def __init__(self, probe_interval: float, nodemgr: NodeMgr):
+    def __init__(self, probe_interval: float, nodemgr: NodeMgr, ceph_mgr: Mgr, ceph_mon: Mon):
         super().__init__(probe_interval)
         self.nodemgr = nodemgr
+        self.ceph_mon = ceph_mon
+        self.ceph_mgr = ceph_mgr
 
     async def _do_tick(self) -> None:
         await self.probe()
@@ -83,8 +85,8 @@ class Devices(Ticker):
 
         logger.debug("probe devices")
 
-        orch: Orchestrator = Orchestrator()
-        mon: Mon = Mon()
+        orch: Orchestrator = Orchestrator(self.ceph_mgr)
+        mon: Mon = self.ceph_mon
         device_lst: List[OrchDevicesPerHostModel] = orch.devices_ls()
         osd_df: CephOSDDFModel = mon.osd_df()
 

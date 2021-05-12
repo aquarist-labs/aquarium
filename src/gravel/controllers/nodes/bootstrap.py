@@ -18,6 +18,7 @@ from typing import Awaitable, Callable, Optional
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.gstate import GlobalState
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
@@ -53,13 +54,14 @@ class Bootstrap:
     _progress: int
     _error_code: BootstrapErrorEnum
     _error_msg: str
+    _gstate: GlobalState
 
-    def __init__(self):
+    def __init__(self, gstate: GlobalState):
         self._stage = BootstrapStage.NONE
         self._progress = 0
         self._error_code = BootstrapErrorEnum.NONE
         self._error_msg = ""
-        pass
+        self._gstate = gstate
 
     async def bootstrap(
         self,
@@ -114,7 +116,7 @@ class Bootstrap:
 
         retcode: int = 0
         try:
-            cephadm: Cephadm = Cephadm()
+            cephadm: Cephadm = self._gstate.cephadm
             _, _, retcode = await cephadm.bootstrap(address, progress_cb)
         except Exception as e:
             await cb(False, f"error bootstrapping: {str(e)}")

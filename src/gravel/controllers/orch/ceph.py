@@ -11,11 +11,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 from json.decoder import JSONDecodeError
 from pydantic.tools import parse_obj_as
-import rados
 import json
-from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import (
     Callable,
@@ -27,6 +27,8 @@ from typing import (
 )
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
+import sys
+
 from gravel.controllers.orch.models import (
     CephDFModel,
     CephOSDDFModel,
@@ -34,6 +36,16 @@ from gravel.controllers.orch.models import (
     CephOSDPoolEntryModel, CephOSDPoolStatsModel,
     CephStatusModel
 )
+
+# Attempt to import rados
+# NOTE(jhesketh): rados comes from a system package and cannot be installed from
+#                 pypi. So for testing it may not exist on the machine. A check
+#                 is made in `Ceph.connect` for whether the package exists.
+#                 Tests overwrite this to simulate their own cluster.
+try:
+    import rados
+except ModuleNotFoundError:
+    pass
 
 
 logger: Logger = fastapi_logger
@@ -72,36 +84,50 @@ class NoRulesetError(CephError):
     pass
 
 
-class Ceph(ABC):
+class MissingSystemDependency(Exception):
+    pass
+
+
+class Ceph:
 
     cluster: rados.Rados
 
     def __init__(self, conf_file: str = CEPH_CONF_FILE):
+        self.conf_file = conf_file
+        self._is_connected = False
 
-        path = Path(conf_file)
+    def _check_config(self):
+        path = Path(self.conf_file)
         if not path.exists():
-            raise FileNotFoundError(conf_file)
+            raise FileNotFoundError(self.conf_file)
 
-        self.cluster = rados.Rados(conffile=conf_file)
-        if not self.cluster:
-            raise CephError("error creating cluster handle")
+    def connect(self):
+        self._check_config()
 
-        # apparently we can't rely on argument "timeout" because it's not really
-        # supported by the C API, and thus the python bindings simply expose it
-        # until some day when it's supposed to be dropped.
-        # This is mighty annoying because we can, technically, get stuck here
-        # forever.
-        try:
-            self.cluster.connect()
-        except Exception as e:
-            raise CephError(str(e)) from e
+        if 'rados' not in sys.modules:
+            raise MissingSystemDependency("python3-rados module not found")
 
-        try:
-            self.cluster.require_state("connected")
-        except rados.RadosStateError as e:
-            raise CephError(str(e)) from e
+        if not self.is_connected():
+            self.cluster = rados.Rados(conffile=self.conf_file)
+            if not self.cluster:
+                raise CephError("error creating cluster handle")
 
-        self._is_connected = True
+            # apparently we can't rely on argument "timeout" because it's not really
+            # supported by the C API, and thus the python bindings simply expose it
+            # until some day when it's supposed to be dropped.
+            # This is mighty annoying because we can, technically, get stuck here
+            # forever.
+            try:
+                self.cluster.connect()
+            except Exception as e:
+                raise CephError(str(e)) from e
+
+            try:
+                self.cluster.require_state("connected")
+            except rados.RadosStateError as e:
+                raise CephError(str(e)) from e
+
+            self._is_connected = True
 
     def __del__(self):
         if hasattr(self, 'cluster') and self.cluster:
@@ -149,32 +175,32 @@ class Ceph(ABC):
         return res
 
     def mon(self, cmd: Dict[str, Any]) -> Any:
+        self.connect()
         return self._cmd(self.cluster.mon_command, cmd)
 
     def mgr(self, cmd: Dict[str, Any]) -> Any:
+        self.connect()
         return self._cmd(self.cluster.mgr_command, cmd)
 
-    @abstractmethod
-    def call(self, cmd: Dict[str, Any]) -> Any:
-        raise NotImplementedError("method 'call' has not been implemented")
 
+class Mgr:
+    ceph: Ceph
 
-class Mgr(Ceph):
-
-    def __init__(self, conf_file: str = CEPH_CONF_FILE):
-        super().__init__(conf_file=conf_file)
+    def __init__(self, ceph: Ceph):
+        self.ceph = ceph
 
     def call(self, cmd: Dict[str, Any]) -> Any:
-        return self.mgr(cmd)
+        return self.ceph.mgr(cmd)
 
 
-class Mon(Ceph):
+class Mon:
+    ceph: Ceph
 
-    def __init__(self, conf_file: str = CEPH_CONF_FILE):
-        super().__init__(conf_file=conf_file)
+    def __init__(self, ceph: Ceph):
+        self.ceph = ceph
 
     def call(self, cmd: Dict[str, Any]) -> Any:
-        return self.mon(cmd)
+        return self.ceph.mon(cmd)
 
     @property
     def status(self) -> CephStatusModel:

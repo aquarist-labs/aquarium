@@ -38,10 +38,9 @@ class CephFS:
     mgr: Mgr
     mon: Mon
 
-    def __init__(self):
-        self.mgr = Mgr()
-        self.mon = Mon()
-        pass
+    def __init__(self, mgr: Mgr, mon: Mon):
+        self.mgr = mgr
+        self.mon = mon
 
     def create(self, name: str) -> None:
 
@@ -56,7 +55,7 @@ class CephFS:
             raise CephFSError(e) from e
 
         # schedule orchestrator to update the number of mds instances
-        orch = Orchestrator()
+        orch = Orchestrator(self.mgr)
         orch.apply_mds(name)
 
     def volume_ls(self) -> CephFSVolumeListModel:

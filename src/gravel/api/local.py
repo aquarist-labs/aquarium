@@ -21,7 +21,6 @@ from pydantic import (
     Field
 )
 
-from gravel.cephadm.cephadm import Cephadm
 from gravel.cephadm.models import (
     NodeInfoModel,
     VolumeDeviceModel
@@ -68,7 +67,7 @@ async def get_volumes(request: Request) -> List[VolumeDeviceModel]:
     name="Obtain local node information",
     response_model=NodeInfoModel
 )
-async def get_node_info() -> NodeInfoModel:
+async def get_node_info(request: Request) -> NodeInfoModel:
     """
     Obtain this node's information and facts.
 
@@ -79,7 +78,7 @@ async def get_node_info() -> NodeInfoModel:
 
     This is a sync call to `cephadm` and may take a while to return.
     """
-    cephadm = Cephadm()
+    cephadm = request.app.state.gstate.cephadm
     return await cephadm.get_node_info()
 
 

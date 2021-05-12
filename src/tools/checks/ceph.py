@@ -2,11 +2,13 @@
 # Copyright (C) 2021 SUSE, LLC.
 
 
-from gravel.controllers.orch.ceph import Mon
+from gravel.controllers.orch.ceph import Ceph, Mon
 
 
 if __name__ == "__main__":
-    mon = Mon()
-    print(mon.get_osdmap())
-    print(mon.get_pools())
+    ceph: Ceph = Ceph()
+    ceph_mon: Mon = Mon(ceph)
+
+    print(ceph_mon.get_osdmap())
+    print(ceph_mon.get_pools())
     pass
