@@ -14,9 +14,11 @@
 import pytest
 from typing import List
 
+from gravel.controllers.services import Services
+
 
 @pytest.mark.asyncio
-async def test_create(services):
+async def test_create(services: Services):
     from gravel.controllers.services import ServiceTypeEnum
 
     svc = await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
@@ -28,7 +30,7 @@ async def test_create(services):
 
 
 @pytest.mark.asyncio
-async def test_create_fail_reservation(services):
+async def test_create_fail_reservation(services: Services):
     from gravel.controllers.services import \
         ServiceTypeEnum, NotEnoughSpaceError
     with pytest.raises(NotEnoughSpaceError):
@@ -36,7 +38,7 @@ async def test_create_fail_reservation(services):
 
 
 @pytest.mark.asyncio
-async def test_create_exists(services):
+async def test_create_exists(services: Services):
     from gravel.controllers.services import \
         ServiceTypeEnum, ServiceExistsError
 
@@ -46,7 +48,7 @@ async def test_create_exists(services):
 
 
 @pytest.mark.asyncio
-async def test_create_over_reserved(services):
+async def test_create_over_reserved(services: Services):
     from gravel.controllers.services import \
         ServiceTypeEnum, NotEnoughSpaceError
 
@@ -62,7 +64,7 @@ def test_remove():
 
 
 @pytest.mark.asyncio
-async def test_ls(services):
+async def test_ls(services: Services):
     from gravel.controllers.services import \
         ServiceModel, ServiceTypeEnum
 
@@ -76,7 +78,7 @@ async def test_ls(services):
 
 
 @pytest.mark.asyncio
-async def test_reservations(services):
+async def test_reservations(services: Services):
     from gravel.controllers.services import ServiceTypeEnum
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 20, 1)
@@ -87,7 +89,7 @@ async def test_reservations(services):
 
 
 @pytest.mark.asyncio
-async def test_get(services):
+async def test_get(services: Services):
     from gravel.controllers.services import \
         ServiceTypeEnum, UnknownServiceError
 
@@ -99,7 +101,7 @@ async def test_get(services):
 
 
 @pytest.mark.asyncio
-async def test_check_requirements(services):
+async def test_check_requirements(services: Services):
     from gravel.controllers.services import ServiceTypeEnum
 
     feasible, req = services.check_requirements(1000, 1)

@@ -35,7 +35,7 @@ def test_ceph_conf(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
         target_path='/etc/ceph/ceph.conf'
     )
     ceph = Ceph()
-    ceph._check_config()
+    ceph._check_config()  # pyright: reportPrivateUsage=false
 
     # custom location
     conf_file = '/foo/bar/baz.conf'
@@ -44,13 +44,13 @@ def test_ceph_conf(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
         target_path=conf_file
     )
     ceph = Ceph(conf_file=conf_file)
-    ceph._check_config()
+    ceph._check_config()  # pyright: reportPrivateUsage=false
 
     # invalid location
     conf_file = "missing.conf"
     with pytest.raises(FileNotFoundError, match=conf_file):
         ceph = Ceph(conf_file=conf_file)
-        ceph._check_config()
+        ceph._check_config()  # pyright: reportPrivateUsage=false
 
 
 def test_mon_df(

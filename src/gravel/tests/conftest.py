@@ -13,15 +13,21 @@
 
 import os
 from types import SimpleNamespace
-from typing import Optional
 import pytest
 import sys
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from _pytest.fixtures import SubRequest
 from typing import (
     Callable,
-    Tuple
+    Tuple,
+    Any,
+    Awaitable,
+    Dict,
+    Optional,
+    cast
 )
+from pytest_mock import MockerFixture
+from fastapi import FastAPI
 
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
@@ -33,7 +39,7 @@ import logging
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
-def mock_ceph_modules(mocker):
+def mock_ceph_modules(mocker: MockerFixture):
     class MockRadosError(Exception):
         def __init__(self, message: str, errno: Optional[int] = None):
             super(MockRadosError, self).__init__(message)
@@ -50,7 +56,7 @@ def mock_ceph_modules(mocker):
     })
 
 
-def mock_aetcd_modules(mocker):
+def mock_aetcd_modules(mocker: MockerFixture):
     class MockAetcd3Error(Exception):
         def __init__(self, message: str, errno: Optional[int] = None):
             super().__init__(message)
@@ -85,7 +91,9 @@ def ceph_conf_file_fs(
 
 
 @pytest.fixture()
-def get_data_contents(fs: fake_filesystem.FakeFilesystem):
+def get_data_contents(  # type: ignore
+    fs: fake_filesystem.FakeFilesystem
+) -> str:
     def _get_data_contents(dir: str, fn: str):
         # For tests to be able to access any file we need to  add them to the
         # fake filesystem. (If you open any files before the fakefs is set up
@@ -99,10 +107,10 @@ def get_data_contents(fs: fake_filesystem.FakeFilesystem):
         with open(os.path.join(dir, fn), 'r') as f:
             contents = f.read()
         return contents
-    yield _get_data_contents
+    yield _get_data_contents  # type: ignore
 
 
-def get_data_contents_raw(dir, fn):
+def get_data_contents_raw(dir: str, fn: str):
     print(os.path.join(dir, fn))
     with open(os.path.join(dir, fn), 'r') as f:
         contents = f.read()
@@ -115,8 +123,8 @@ class FakeKV(KV):
         self._is_open = False
         self._is_closing = False
 
-        self._storage = {}
-        self._watchers = {}
+        self._storage: Dict[str, Any] = {}
+        self._watchers: Dict[str, Dict[int, Callable[[str, str], None]]] = {}
         self._watch_id_count = 0
 
     async def ensure_connection(self) -> None:
@@ -149,7 +157,7 @@ class FakeKV(KV):
         if key in self._storage:
             del self._storage[key]
 
-    async def lock(self, key: str):
+    async def lock(self, key: str):  # type: ignore
         """ Lock a given key. Requires compliant consumers. """
         assert self._is_open
         raise Exception("TODO")
@@ -177,8 +185,14 @@ class FakeKV(KV):
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def aquarium_startup(get_data_contents, mocker):
-    async def startup(aquarium_app, aquarium_api):
+async def aquarium_startup(
+    get_data_contents: Callable[[str, str], str],
+    mocker: MockerFixture
+):
+    async def startup(
+        aquarium_app: FastAPI,
+        aquarium_api: FastAPI
+    ):
         from gravel.cephadm.cephadm import Cephadm
         from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
         from gravel.controllers.resources.inventory import Inventory
@@ -190,7 +204,7 @@ async def aquarium_startup(get_data_contents, mocker):
         from gravel.controllers.nodes.deployment import NodeDeployment, NodeCantBootstrapError
         from fastapi.logger import logger as fastapi_logger
 
-        logger = fastapi_logger
+        logger: logging.Logger = fastapi_logger
 
         class FakeNodeDeployment(NodeDeployment):
             async def _prepare_etcd(
@@ -206,7 +220,7 @@ async def aquarium_startup(get_data_contents, mocker):
                     raise NodeCantBootstrapError("node can't be bootstrapped")
 
                 # We don't need to spawn etcd, just allow gstate to init store
-                self._gstate.init_store()
+                await self._gstate.init_store()
 
         class FakeNodeMgr(NodeMgr):
             def __init__(self, gstate: GlobalState):
@@ -229,7 +243,7 @@ async def aquarium_startup(get_data_contents, mocker):
                     assert self._state.hostname
                     assert self._state.address
                     # We don't need to spawn etcd, just allow gstate to init store
-                    self.gstate.init_store()
+                    await self.gstate.init_store()
 
             async def _obtain_images(self) -> bool:
                 return True
@@ -242,7 +256,9 @@ async def aquarium_startup(get_data_contents, mocker):
                 if cmd == 'pull':
                     return '', '', 0
                 elif cmd == 'gather-facts':
-                    return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
+                    return get_data_contents(
+                        DATA_DIR,
+                        'gather_facts_real.json'), "", 0
                 elif cmd == 'ceph-volume inventory --format=json':
                     return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
                 else:
@@ -277,11 +293,11 @@ async def aquarium_startup(get_data_contents, mocker):
                 return True
 
         class FakeStorage(Storage):  # type: ignore
-            available = 2000
-            total = 2000
+            available = 2000  # type: ignore
+            total = 2000  # type: ignore
 
         gstate: GlobalState = GlobalState()
-        gstate._kvstore = FakeKV()
+        gstate._kvstore = FakeKV()  # pyright: reportPrivateUsage=false
 
         # init node mgr
         nodemgr: NodeMgr = FakeNodeMgr(gstate)
@@ -339,7 +355,7 @@ async def aquarium_startup(get_data_contents, mocker):
 @pytest.fixture()
 @pytest.mark.asyncio
 async def aquarium_shutdown():
-    async def shutdown(aquarium_app, aquarium_api):
+    async def shutdown(aquarium_app: FastAPI, aquarium_api: FastAPI):
         print("Shutdown gstate & nodemgr")
         await aquarium_api.state.gstate.shutdown()
         await aquarium_api.state.nodemgr.shutdown()
@@ -348,12 +364,15 @@ async def aquarium_shutdown():
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def gstate(aquarium_startup, aquarium_shutdown):
+async def gstate(
+    aquarium_startup: Callable[[FastAPI, FastAPI], Awaitable[None]],
+    aquarium_shutdown: Callable[[FastAPI, FastAPI], Awaitable[None]]
+):
     class FakeFastAPI:
         state = SimpleNamespace()
 
-    aquarium_app = FakeFastAPI()
-    aquarium_api = FakeFastAPI()
+    aquarium_app = cast(FastAPI, FakeFastAPI())
+    aquarium_api = cast(FastAPI, FakeFastAPI())
     await aquarium_startup(aquarium_app, aquarium_api)
     yield aquarium_api.state.gstate
     await aquarium_shutdown(aquarium_app, aquarium_api)
@@ -361,12 +380,16 @@ async def gstate(aquarium_startup, aquarium_shutdown):
 
 @pytest.fixture()
 @pytest.mark.asyncio
-async def services(gstate):
+async def services(gstate: GlobalState):
     return gstate.services
 
 
 @pytest.fixture()
-def app(caplog, aquarium_startup, aquarium_shutdown):
+def app(
+    caplog: Any,
+    aquarium_startup: FastAPI,
+    aquarium_shutdown: FastAPI
+):
     caplog.set_level(logging.DEBUG)
     import aquarium
     return aquarium.aquarium_factory(
@@ -376,12 +399,13 @@ def app(caplog, aquarium_startup, aquarium_shutdown):
 
 
 @pytest.fixture
-async def app_lifespan(app):
+async def app_lifespan(app: Any):
     async with LifespanManager(app):
         yield app
 
 
 @pytest.fixture
-async def async_client(app_lifespan):
-    async with httpx.AsyncClient(app=app_lifespan, base_url="http://aquarium") as client:
+async def async_client(app_lifespan: Any):
+    async with httpx.AsyncClient(app=app_lifespan,
+                                 base_url="http://aquarium") as client:
         yield client

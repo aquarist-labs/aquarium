@@ -14,14 +14,16 @@
 import asyncio
 import pytest
 
+from gravel.controllers.gstate import GlobalState
 
-def test_gstate_inst(gstate):
+
+def test_gstate_inst(gstate: GlobalState):
     print(type(gstate))
     assert type(gstate).__name__ == 'GlobalState'
 
 
 @pytest.mark.asyncio
-async def test_tickers(gstate):
+async def test_tickers(gstate: GlobalState):
     from gravel.controllers.gstate import Ticker
 
     class TestTicker(Ticker):

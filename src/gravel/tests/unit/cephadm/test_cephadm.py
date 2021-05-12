@@ -11,10 +11,19 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple
+)
 import json
 import os
 import pytest
+
+from pytest_mock import MockerFixture
 
 from gravel.cephadm.cephadm import Cephadm, CephadmError
 from gravel.cephadm.models \
@@ -25,7 +34,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
 @pytest.mark.asyncio
-async def test_bootstrap(mocker):
+async def test_bootstrap(mocker: MockerFixture):
 
     async def mock_call(cmd: str, cb: Optional[Any]) -> Tuple[str, str, int]:
         return "foo", "bar", 0
@@ -40,7 +49,10 @@ async def test_bootstrap(mocker):
 
 
 @pytest.mark.asyncio
-async def test_gather_facts_real(mocker, get_data_contents):
+async def test_gather_facts_real(
+    mocker: MockerFixture,
+    get_data_contents: Callable[[str, str], str]
+):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
 
@@ -54,7 +66,7 @@ async def test_gather_facts_real(mocker, get_data_contents):
 
 
 @pytest.mark.asyncio
-async def test_gather_facts_fail_1(mocker):
+async def test_gather_facts_fail_1(mocker: MockerFixture):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
         return "fail", "", 0
 
@@ -66,7 +78,10 @@ async def test_gather_facts_fail_1(mocker):
 
 
 @pytest.mark.asyncio
-async def test_gather_facts_fail_2(mocker, get_data_contents):
+async def test_gather_facts_fail_2(
+    mocker: MockerFixture,
+    get_data_contents: Callable[[str, str], str]
+):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 1
 
@@ -78,7 +93,10 @@ async def test_gather_facts_fail_2(mocker, get_data_contents):
 
 
 @pytest.mark.asyncio
-async def test_volume_inventory(mocker, get_data_contents):
+async def test_volume_inventory(
+    mocker: MockerFixture,
+    get_data_contents: Callable[[str, str], str]
+):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
 
@@ -96,7 +114,7 @@ async def test_volume_inventory(mocker, get_data_contents):
 
 
 @pytest.mark.asyncio
-async def test_volume_inventory_fail(mocker):
+async def test_volume_inventory_fail(mocker: MockerFixture):
     async def mock_call(cmd: str) -> Tuple[str, str, int]:
         return "fail", "", 0
 
@@ -108,7 +126,10 @@ async def test_volume_inventory_fail(mocker):
 
 
 @pytest.mark.asyncio
-async def test_get_node_info(mocker, get_data_contents):
+async def test_get_node_info(
+    mocker: MockerFixture,
+    get_data_contents: Callable[[str, str], str]
+):
     async def mock_facts_call(cmd: str) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, 'gather_facts_real.json'), "", 0
 
