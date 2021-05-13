@@ -87,7 +87,7 @@ as well as bare-metal hardware environments.
 
     `cd aquarium`
 
-3. run 
+3. run
 
     `./tools/setup-dev.sh`
 
@@ -98,6 +98,15 @@ as well as bare-metal hardware environments.
    hacking.
 
    There will be a few warning from `npm` which you can safely ignore.
+
+   Aquarium requires python3.8+ to run successfully. If your host distribution does
+   not support python3.8+ offically yet, our setup script provides pyenv to
+   help you setup an alternative python environment. If pyenv already
+   exists in`$HOME/.pyenv/` , the script will try to reuse your setup. Regardless,
+   you will need to provide the python version. For example:
+    `--pyenv-python 3.8.8`
+   The script can also replace and rebuild a new pyenv python for you. Just
+   reply yes when it ask you cleanup and reinstall pyenv.
 
 4. run `source venv/bin/activate`.
 
@@ -224,4 +233,3 @@ Let's add our first trivial patch!
 
 This section will walk you through incrementally updating your local
 environment and images build.
-
