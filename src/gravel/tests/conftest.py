@@ -11,30 +11,32 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import httpx
+import logging
 import os
-from types import SimpleNamespace
 import pytest
 import sys
+
+from asgi_lifespan import LifespanManager
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
-from _pytest.fixtures import SubRequest
+from pytest_mock import MockerFixture
+from types import SimpleNamespace
 from typing import (
-    Callable,
-    Tuple,
     Any,
     Awaitable,
+    Callable,
     Dict,
     Optional,
-    cast
+    Tuple,
+    cast,
 )
-from pytest_mock import MockerFixture
+from _pytest.fixtures import SubRequest
+
 from fastapi import FastAPI
 
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
 
-from asgi_lifespan import LifespanManager
-import httpx
-import logging
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 

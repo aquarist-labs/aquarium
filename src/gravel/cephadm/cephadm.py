@@ -12,12 +12,13 @@
 # GNU General Public License for more details.
 
 import asyncio
-from logging import Logger
-import os
 import json
+import os
 import shlex
-from io import StringIO
 import time
+
+from io import StringIO
+from logging import Logger
 from typing import (
     Callable,
     List,
