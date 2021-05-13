@@ -22,6 +22,7 @@ import logging
 from click.decorators import make_pass_decorator
 from pathlib import Path
 
+from libaqr.images import Image
 from libaqr.deployment import Deployment, DeploymentModel, get_deployments
 from libaqr.errors import (
     AqrError,
@@ -41,8 +42,7 @@ from libaqr.misc import (
     find_builds_path,
     find_deployments_path,
     find_root,
-    import_image,
-    list_images
+    import_image
 )
 from libaqr.vagrant import Vagrant
 
@@ -188,7 +188,7 @@ def cmd_create(
     avail_boxes = Vagrant.box_list()
     avail_deployments: List[Deployment] = []
     try:
-        avail_images = list_images()
+        avail_images = [e.name for e in Image.list(find_builds_path())]
         avail_deployments = [v for v in ctx.deployments.values()]
     except RootNotFoundError:
         click.secho("Unable to find git repository's root dir")
@@ -572,17 +572,29 @@ def cmd_images() -> None:
 @pass_appctx
 def cmd_images_list(ctx: AppCtx) -> None:
     logger.debug("list images")
-    images = list_images()
+
+    buildspath = find_builds_path()
+    images = Image.list(buildspath)
+
     if len(images) == 0:
         click.secho("No images found", fg="cyan")
         return
 
+    lst: List[Dict[str, str]] = []
+    for entry in images:
+        lst.append({
+            "name": entry.name,
+            "path": str(entry.path),
+            "type": entry.type
+        })
+        if not ctx.json:
+            print("{} {} ({})".format(
+                click.style("*", fg="cyan"),
+                click.style(entry.name, fg="white", bold=True),
+                click.style(entry.type, fg="white")
+            ))
     if ctx.json:
-        print_json(images)
-        return
-
-    for image in images:
-        print_entry(image)
+        print(json.dumps(lst))
 
 
 if __name__ == "__main__":

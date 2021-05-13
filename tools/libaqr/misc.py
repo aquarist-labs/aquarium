@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 import subprocess
 import shlex
-from typing import List, Optional
+from typing import Optional
 import logging
 
 from libaqr.errors import (
@@ -71,61 +71,6 @@ def import_image(buildspath: Path, imgname: str) -> None:
     stderr = proc.stdout.decode("utf-8")
     if proc.returncode != 0:
         raise BaseException(f"error adding vagrant box: {stderr}")
-
-
-def list_images() -> List[str]:
-    """ List all built Vagrant images """
-    rootdir = find_root()
-    imagepath = rootdir.joinpath("images")
-    buildspath = imagepath.joinpath("build")
-    if not buildspath.exists():
-        return []
-
-    def is_vagrant_img(path: Path) -> bool:
-        assert path.exists()
-        outdir = path.joinpath("_out")
-        if not outdir.exists():
-            raise FileNotFoundError()
-
-        rawimg: Optional[Path] = None
-        img: Optional[Path] = None
-        for entry in next(os.walk(outdir))[2]:
-            if not entry.startswith("project-aquarium"):
-                continue
-
-            imgpath = Path(entry)
-            if imgpath.suffix == ".raw":
-                rawimg = imgpath
-
-            elif imgpath.suffix == ".box":
-                if entry.count("vagrant") > 0:
-                    img = imgpath
-
-        if not rawimg:
-            raise FileNotFoundError()
-        elif not img:
-            return False
-
-        return True
-
-    images: List[str] = []
-    for build in next(os.walk(buildspath))[1]:
-        if build.startswith("."):
-            continue
-
-        try:
-            ret = is_vagrant_img(buildspath.joinpath(build))
-        except FileNotFoundError:
-            logger.debug(f"build {build} not a vagrant build")
-            continue
-
-        if not ret:
-            logger.debug(f"build {build} not a vagrant build")
-            continue
-
-        images.append(build)
-
-    return images
 
 
 def find_root() -> Path:
