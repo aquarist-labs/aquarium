@@ -14,7 +14,6 @@
 import asyncio
 import json
 import os
-import shlex
 import time
 
 from io import StringIO
@@ -52,19 +51,19 @@ class Cephadm:
     def __init__(self):
         if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
-            self.cephadm = "sudo ./gravel/cephadm/cephadm.bin"
+            self.cephadm = ["sudo", "./gravel/cephadm/cephadm.bin"]
         else:
             # deployment environment
-            self.cephadm = "sudo cephadm"
+            self.cephadm = ["sudo", "cephadm"]
 
-    async def call(self, cmd: str,
+    async def call(self, cmd: List[str],
                    outcb: Optional[Callable[[str], None]] = None
                    ) -> Tuple[str, str, int]:
 
-        cmdlst: List[str] = shlex.split(f"{self.cephadm} {cmd}")
+        cmd = self.cephadm + cmd
 
         process = await asyncio.create_subprocess_exec(
-            *cmdlst,
+            *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -125,12 +124,17 @@ class Cephadm:
                 if m in t:
                     percentcb(p)
 
-        cmd = f"bootstrap --skip-prepare-host --mon-ip {addr} " \
-              "--skip-dashboard --skip-monitoring-stack"
+        cmd: List[str] = [
+            "bootstrap",
+            "--skip-prepare-host",
+            "--mon-ip", addr,
+            "--skip-dashboard",
+            "--skip-monitoring-stack",
+        ]
         return await self.call(cmd, outcb_handler)
 
     async def gather_facts(self) -> HostFactsModel:
-        stdout, stderr, rc = await self.call("gather-facts")
+        stdout, stderr, rc = await self.call(["gather-facts"])
         if rc != 0:
             raise CephadmError(stderr)
         try:
@@ -139,7 +143,7 @@ class Cephadm:
             raise CephadmError("format error while obtaining facts")
 
     async def get_volume_inventory(self) -> List[VolumeDeviceModel]:
-        cmd = "ceph-volume inventory --format=json"
+        cmd = ["ceph-volume", "inventory", "--format", "json"]
         stdout, stderr, rc = await self.call(cmd)
         if rc != 0:
             raise CephadmError(stderr)
@@ -196,7 +200,7 @@ class Cephadm:
     async def pull_images(self) -> None:
         logger.debug("fetching ceph container image")
         time_begin: int = int(time.monotonic())
-        _, stderr, rc = await self.call("pull")
+        _, stderr, rc = await self.call(["pull"])
         if rc != 0:
             raise CephadmError(stderr)
         time_end: int = int(time.monotonic())

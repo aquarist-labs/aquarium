@@ -26,6 +26,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    List,
     Optional,
     Tuple,
     cast,
@@ -251,17 +252,17 @@ async def aquarium_startup(
                 return True
 
         class FakeCephadm(Cephadm):
-            async def call(self, cmd: str,
+            async def call(self, cmd: List[str],
                            outcb: Optional[Callable[[str], None]] = None
                            ) -> Tuple[str, str, int]:
                 # Implement expected calls to cephadm with testable responses
-                if cmd == 'pull':
+                if cmd[0] == 'pull':
                     return '', '', 0
-                elif cmd == 'gather-facts':
+                elif cmd[0] == 'gather-facts':
                     return get_data_contents(
                         DATA_DIR,
                         'gather_facts_real.json'), "", 0
-                elif cmd == 'ceph-volume inventory --format=json':
+                elif cmd == ['ceph-volume', 'inventory', '--format', 'json']:
                     return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
                 else:
                     print(cmd)
