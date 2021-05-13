@@ -104,5 +104,9 @@ class ImageNotFoundError(AqrError):
 #
 # Vagrant Errors
 #
-class VagrantStatusError(AqrError):
+class VagrantError(AqrError):
+    pass
+
+
+class VagrantStatusError(VagrantError):
     pass

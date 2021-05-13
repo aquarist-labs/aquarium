@@ -42,10 +42,9 @@ from libaqr.misc import (
     find_deployments_path,
     find_root,
     import_image,
-    list_boxes,
-    list_images,
-    remove_box
+    list_images
 )
+from libaqr.vagrant import Vagrant
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger("aquarium")
@@ -186,7 +185,7 @@ def cmd_create(
     num_nodes = num_nodes if num_nodes is not None else 2
 
     avail_images: Optional[List[str]] = None
-    avail_boxes = list_boxes()
+    avail_boxes = Vagrant.box_list()
     avail_deployments: List[Deployment] = []
     try:
         avail_images = list_images()
@@ -223,7 +222,7 @@ def cmd_create(
         if image in avail_boxes and force:
             # remove existing box first
             try:
-                remove_box(image)
+                Vagrant.box_remove(image)
             except AqrError as e:
                 logger.error(
                     f"Unable to remove existing box '{image}': {e.message}"
@@ -512,7 +511,7 @@ def cmd_box() -> None:
 @pass_appctx
 def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
     logger.debug("list boxes")
-    boxes = list_boxes()
+    boxes: List[str] = Vagrant().box_list()
     deployments: List[Deployment] = []
     try:
         deployments = [v for v in ctx.deployments.values()]

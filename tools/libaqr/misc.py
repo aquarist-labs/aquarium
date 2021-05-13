@@ -19,7 +19,6 @@ from typing import List, Optional
 import logging
 
 from libaqr.errors import (
-    AqrError,
     BoxAlreadyExistsError,
     BuildsPathNotFoundError,
     DeploymentNotFoundError,
@@ -27,52 +26,15 @@ from libaqr.errors import (
     ImageNotFoundError,
     RootNotFoundError
 )
+from libaqr.vagrant import Vagrant
 
 
 logger: logging.Logger = logging.getLogger("aquarium")
 
 
-def list_boxes() -> List[str]:
-    """ List all known vagrant boxes. Includes non-aquarium related boxes. """
-    proc = subprocess.run(
-        shlex.split("vagrant box list --machine-readable"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-    stdout = proc.stdout.decode("utf-8")
-    stderr = proc.stderr.decode("utf-8")
-    if proc.returncode != 0:
-        logger.error(f"error running vagrant: {stderr}")
-
-    logger.debug(f"boxes: {stdout}")
-
-    boxes = [name for name in stdout.splitlines() if name.count("box-name") > 0]
-    boxnames = [entry.split(",")[3] for entry in boxes]
-    return boxnames
-
-
-def remove_box(name: str) -> None:
-    """ Remove an existing box """
-    boxes = list_boxes()
-    if name not in boxes:
-        return
-
-    cmd = f"vagrant box remove {name}"
-    proc = subprocess.run(
-        shlex.split(cmd),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-    if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8")
-        raise AqrError(f"error removing box '{name}': {stderr}")
-
-
 def import_image(buildspath: Path, imgname: str) -> None:
     """ Import an image as a vagrant box with the same name. """
-    avail_boxes = list_boxes()
+    avail_boxes = Vagrant.box_list()
     if imgname in avail_boxes:
         raise BoxAlreadyExistsError()
 

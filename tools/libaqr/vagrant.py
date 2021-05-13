@@ -24,6 +24,7 @@ from libaqr.errors import (
     DeploymentNodeDoesNotExistError,
     DeploymentNodeNotRunningError,
     DeploymentNotFinishedError,
+    VagrantError,
     VagrantStatusError
 )
 
@@ -80,6 +81,44 @@ class Vagrant:
 
         retcode, _, _ = self._run(cmd, interactive=True)
         return retcode
+
+    @classmethod
+    def box_list(cls) -> List[str]:
+        """ List all known vagrant boxes, including unrelated to aquarium. """
+
+        cmd = "vagrant box list --machine-readable"
+        retcode, out, err = cls.run(None, cmd, interactive=False)
+        if retcode != 0:
+            raise VagrantError(msg=err, errno=retcode)
+
+        boxes = (name for name in out.splitlines()
+                 if name.count("box-name") > 0)
+        boxnames = [entry.split(",")[3] for entry in boxes]
+        return boxnames
+
+    @classmethod
+    def box_remove(cls, name: str) -> None:
+        """ Remove an existing box """
+        if name not in cls.box_list():
+            return
+
+        cmd = f"vagrant box remove {name}"
+        retcode, _, err = cls.run(None, cmd, interactive=False)
+        if retcode != 0:
+            raise VagrantError(
+                msg=f"failed removing box '{name}': {err}",
+                errno=retcode
+            )
+
+    @classmethod
+    def run(
+        cls,
+        env_path: Optional[Path],
+        cmd: str,
+        interactive: bool
+    ) -> Tuple[int, str, str]:
+        inst = cls(env_path)
+        return inst._run(cmd, interactive)
 
     @property
     def nodes_status(self) -> List[Tuple[str, VagrantStateEnum]]:

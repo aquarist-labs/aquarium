@@ -32,7 +32,6 @@ from libaqr.errors import (
     DeploymentNotRunningError,
     DeploymentRunningError
 )
-from libaqr.misc import list_boxes
 
 
 logger: logging.Logger = logging.getLogger("aquarium")
@@ -94,7 +93,7 @@ class Deployment:
         if path.exists():
             raise DeploymentExistsError()
 
-        if box not in list_boxes():
+        if box not in vagrant.Vagrant.box_list():
             raise BoxDoesNotExistError(box)
 
         try:
