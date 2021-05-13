@@ -11,9 +11,17 @@
 # GNU General Public License for more details.
 
 from __future__ import annotations
+import errno
 import os
 from pathlib import Path
 from typing import List, Optional, Tuple
+
+from libaqr.vagrant import Vagrant
+from libaqr.errors import (
+    BoxAlreadyExistsError,
+    ImageNotFoundError,
+    VagrantError
+)
 
 
 class Image:
@@ -50,6 +58,34 @@ class Image:
             images.append(Image(build, imgpath, type))
 
         return images
+
+    @classmethod
+    def add(cls, buildpath: Path, name: str) -> Image:
+
+        imgbuild = buildpath.joinpath(name)
+        if not imgbuild.exists():
+            raise ImageNotFoundError(
+                msg="image build not found",
+                errno=errno.ENOENT
+            )
+
+        try:
+            imgtype, imgpath = cls._check_for_image(imgbuild)
+        except FileNotFoundError:
+            raise ImageNotFoundError(
+                msg="image not built",
+                errno=errno.EINVAL
+            )
+        assert imgpath.exists()
+
+        try:
+            Vagrant.box_add(name, imgpath)
+        except BoxAlreadyExistsError as e:
+            raise e  # just being explicit about what we might propagate
+        except VagrantError as e:
+            raise e
+
+        return Image(name, imgpath, imgtype)
 
     @classmethod
     def _check_for_image(cls, path: Path) -> Tuple[str, Path]:

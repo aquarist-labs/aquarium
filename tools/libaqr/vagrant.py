@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Tuple
 from contextlib import contextmanager
 
 from libaqr.errors import (
+    BoxAlreadyExistsError,
     DeploymentNodeDoesNotExistError,
     DeploymentNodeNotRunningError,
     DeploymentNotFinishedError,
@@ -107,6 +108,22 @@ class Vagrant:
         if retcode != 0:
             raise VagrantError(
                 msg=f"failed removing box '{name}': {err}",
+                errno=retcode
+            )
+
+    @classmethod
+    def box_add(cls, name: str, path: Path) -> None:
+        """ Add image from 'path' as box 'name' """
+
+        avail_boxes: List[str] = cls.box_list()
+        if name in avail_boxes:
+            raise BoxAlreadyExistsError()
+
+        cmd = f"vagrant box add {name} {path}"
+        retcode, _, err = cls.run(None, cmd, interactive=False)
+        if retcode != 0:
+            raise VagrantError(
+                msg=f"failed adding box '{name}': {err}",
                 errno=retcode
             )
 

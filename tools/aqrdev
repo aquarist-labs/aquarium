@@ -36,13 +36,13 @@ from libaqr.errors import (
     DeploymentPathNotFoundError,
     DeploymentRunningError,
     ImageNotFoundError,
-    RootNotFoundError
+    RootNotFoundError,
+    VagrantError
 )
 from libaqr.misc import (
     find_builds_path,
     find_deployments_path,
-    find_root,
-    import_image
+    find_root
 )
 from libaqr.vagrant import Vagrant
 
@@ -236,16 +236,23 @@ def cmd_create(
         try:
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
             builds_path = ctx.builds_path
-            import_image(builds_path, image)
+
+            Image.add(builds_path, image)
             avail_boxes.append(image)
             box = image
-            click.secho(f"Imported image '{image}' as Vagrant box", fg="green")
-        except ImageNotFoundError as e:
+            click.secho(
+                f"Imported image '{image}' as Vagrant box",
+                fg="green"
+            )
+        except VagrantError as e:
             click.secho(f"Error importing image '{image}': {e.message}")
-            sys.exit(1)
+            sys.exit(e.errno)
         except BoxAlreadyExistsError:
             click.secho("Box already exists, reusing.", fg="green")
             box = image
+        except ImageNotFoundError as e:
+            click.secho(f"Error importing image '{image}': {e.message}")
+            sys.exit(e.errno)
         except BuildsPathNotFoundError:
             click.secho("Unable to find builds path", fg="red")
             sys.exit(errno.ENOENT)
