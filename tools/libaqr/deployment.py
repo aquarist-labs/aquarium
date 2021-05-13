@@ -151,13 +151,13 @@ class Deployment:
         except AqrError as e:
             raise e
 
-    def stop(self) -> None:
+    def stop(self, interactive: bool = True) -> None:
         """ Stop deployment """
         try:
             with vagrant.deployment(self._path) as deployment:
                 if deployment.shutoff or deployment.notcreated:
                     return  # nothing to do.
-                deployment.stop()
+                deployment.stop(interactive=interactive)
         except AqrError as e:
             raise e
 
