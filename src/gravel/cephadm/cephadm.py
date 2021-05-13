@@ -14,12 +14,14 @@
 import asyncio
 import json
 import os
+import tempfile
 import time
 
 from io import StringIO
 from logging import Logger
 from typing import (
     Callable,
+    IO,
     List,
     Optional,
     Tuple
@@ -125,10 +127,28 @@ class Cephadm:
                 if m in t:
                     percentcb(p)
 
+        def get_default_ceph_conf() -> str:
+            s = (
+                "[global]",
+                "osd_pool_default_size = 2",
+            )
+            return "\n".join(s)
+
+        def write_tmp(s: str) -> IO[str]:
+            t = tempfile.NamedTemporaryFile(
+                prefix='aquarium-',
+                mode='w',
+            )
+            t.write(s)
+            t.flush()
+            return t
+
+        tmp_config: IO[str] = write_tmp(get_default_ceph_conf())
         cmd: List[str] = [
             "bootstrap",
             "--skip-prepare-host",
             "--mon-ip", addr,
+            "--config", tmp_config.name,
             "--skip-dashboard",
             "--skip-monitoring-stack",
         ]
