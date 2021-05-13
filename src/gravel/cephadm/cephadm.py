@@ -60,6 +60,7 @@ class Cephadm:
                    outcb: Optional[Callable[[str], None]] = None
                    ) -> Tuple[str, str, int]:
 
+        logger.debug(f"call: {cmd}")
         cmd = self.cephadm + cmd
 
         process = await asyncio.create_subprocess_exec(
