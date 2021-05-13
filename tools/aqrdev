@@ -196,7 +196,7 @@ def cmd_create(
     except Exception:
         pass
 
-    if name in avail_deployments:
+    if any([True for d in avail_deployments if d.name == name]):
         click.secho(f"Deployment '{name}' already exists", fg="red")
         sys.exit(errno.EEXIST)
 
