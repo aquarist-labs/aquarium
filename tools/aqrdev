@@ -204,18 +204,19 @@ def cmd_create(
     if not box and not image:
         if "aquarium" in avail_boxes:
             box = "aquarium"
-        elif "aquarium" in avail_images:
+        elif avail_images and "aquarium" in avail_images:
             image = "aquarium"
         elif name in avail_boxes:
             box = name
-        elif name in avail_images:
+        elif avail_images and name in avail_images:
             image = name
         else:
             click.secho("Unable to find default box 'aquarium'", fg="red")
             sys.exit(errno.ENOENT)
 
     if not box and image:
-        if image not in avail_images:
+
+        if avail_images and image not in avail_images:
             click.secho(f"Image '{image}' not found", fg="red")
             sys.exit(errno.ENOENT)
 
@@ -228,6 +229,11 @@ def cmd_create(
                     f"Unable to remove existing box '{image}': {e.message}"
                 )
                 sys.exit(1)
+
+        if not avail_images:
+            click.secho("No images found", fg="red")
+            sys.exit(errno.ENOENT)
+
         try:
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
             builds_path = ctx.builds_path
