@@ -17,13 +17,14 @@ import errno
 from pathlib import Path
 from libaqr.errors import BoxAlreadyExistsError, ImageNotFoundError, VagrantError
 from libaqr.images import Image
-from libaqr.runner import Runner
+from libaqr.runner import Runner, RunnerResult
 from libaqr.suites import (
+    SuiteEntry,
     get_available_suites,
     get_suite_tests
 )
 from libaqr.misc import find_builds_path
-from typing import Optional
+from typing import List, Optional, Tuple
 import click
 
 
@@ -81,13 +82,29 @@ def cmd_run(
     deployments_path = Path("aqrtest-deployments")
     deployments_path.mkdir(exist_ok=True)
 
+    has_failures = False
+    results: List[Tuple[SuiteEntry, RunnerResult]] = []
     for entry in get_suite_tests(suitesdir, suite, test):
-        runner = Runner(image, entry)
-        runner.setup(deployments_path)
-        success = runner.run()
-        runner.teardown()
-        if not success:
-            sys.exit(1)
+        runner = Runner(deployments_path, image, entry)
+        runner.start()
+        result = runner.result
+        runner.join()
+        results.append((entry, result))
+        if result.retcode != 0:
+            has_failures = True
+
+    for suite_entry, result in results:
+        print(f"--- Suite: {suite_entry.name}")
+        print(f"   Result: {result.retcode} ({len(result.cases)} cases)")
+        for casename, res in result.cases.items():
+            print(f"   * {casename}")
+            for n, r in res.results:
+                print(f"   `- {n}: {r}")
+            print(f"   '- Total: {len(res.failures)} failures")
+
+    if has_failures:
+        sys.exit(1)
+    sys.exit(0)
 
 
 @app.command("daemon")

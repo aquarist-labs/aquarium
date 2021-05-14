@@ -11,6 +11,23 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import libaqr.vagrant
 
-print(libaqr.vagrant.Vagrant.box_list())
+from libaqr.testing import TestCase, caseunit, requirements
+
+
+@requirements(
+    disks=4,
+    nodes=1,
+    nics=1
+)
+class TestAPIBootstrap(TestCase):
+
+    @caseunit
+    async def test_func_1(self):
+        print("running test func 1")
+        assert True
+
+    @caseunit
+    async def test_func_2(self):
+        print("running test func 2")
+        assert True

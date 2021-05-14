@@ -11,6 +11,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import sys
+from libaqr.testing import TestCase, requirements
 
-sys.exit(0)
+
+@requirements(
+    disks=4,
+    nodes=1,
+    nics=1
+)
+class TestAPIOrch(TestCase):
+    pass
