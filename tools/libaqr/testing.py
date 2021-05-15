@@ -110,6 +110,7 @@ def requirements(
     )
 
     casename = _test.__qualname__
+    print(f"case {casename}: {reqs=}")
 
     if inspect.isclass(_test):
         # ignore type because we still want to check this at runtime, but
@@ -134,7 +135,9 @@ def requirements(
             async def testcase(self):
                 await coro()
 
-        _cases[casename] = TestCaseWrapper()
+        testcls = TestCaseWrapper()
+        testcls.requirements = reqs
+        _cases[casename] = testcls
         return _cases[casename]
     else:
         raise TypeError("expected class or coro")
