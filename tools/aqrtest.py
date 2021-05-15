@@ -63,6 +63,9 @@ def cmd_run(
         click.secho("No suites found", fg="yellow")
         sys.exit(0)
 
+    # add suites parent directory to pythonpath so we can import modules
+    sys.path.append(suitesdir.parent.as_posix())
+
     # prepare image
     try:
         Image.add(find_builds_path(), image)
