@@ -11,13 +11,44 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from libaqr.testing import TestCase, requirements
+from libaqr.testing import TestCase, caseunit, requirements
+from libaqr.http import conn
 
 
 @requirements(
-    disks=4,
+    disks=1,
     nodes=1,
     nics=1
 )
-class TestAPIOrch(TestCase):
-    pass
+class ExpectFailAPIOrch(TestCase):
+
+    @caseunit
+    async def fail_hosts(self) -> None:
+        async with conn() as session:
+            res = await session.get("/orch/hosts", timeout=5)
+            assert res.status != 200
+
+    @caseunit
+    async def fail_devices(self) -> None:
+        async with conn() as session:
+            res = await session.get("/orch/devices", timeout=5)
+            assert res.status != 200
+
+    @caseunit
+    async def fail_devices_assimilate(self) -> None:
+        async with conn() as session:
+            res = await session.post(
+                "/orch/devices/assimilate",
+                json={},
+                timeout=5
+            )
+            assert res.status != 200
+
+            res = await session.get("/orch/devices/all_assimilated", timeout=5)
+            assert res.status != 200
+
+    @caseunit
+    async def fail_pubkey(self) -> None:
+        async with conn() as session:
+            res = await session.get("/orch/pubkey", timeout=5)
+            assert res != 200
