@@ -31,6 +31,11 @@ follows:
 - You will need access to the `root` account on the system for the image
   build and possibly need to install packages on the host to do so
 
+Additionally, if you are developing and intend to run `tox` on the host, you
+will require a python 3.8+ distribution. In case your distribution does not
+support python 3.8, you may want to look into
+[`pyenv`](https://github.com/pyenv/pyenv).
+
 ## Note On Host/Network References
 
 Throughout this document, where we mention a `localhost` address, we are

@@ -85,6 +85,10 @@ Identify risks and ensure team members monitor the risks associated with them.
 Milestones
 ~~~~~~~~~~
 
+The following were the initially planned milestones, meant to guide us for the
+first three months of the project. For up to date, forward looking milestones,
+see :ref:`aquarium-roadmap`.
+
 .. list-table::
    :widths: 35 35 25
    :header-rows: 1
