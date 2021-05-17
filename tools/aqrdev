@@ -22,6 +22,7 @@ import logging
 from click.decorators import make_pass_decorator
 from pathlib import Path
 
+from libaqr.images import Image
 from libaqr.deployment import Deployment, DeploymentModel, get_deployments
 from libaqr.errors import (
     AqrError,
@@ -35,17 +36,15 @@ from libaqr.errors import (
     DeploymentPathNotFoundError,
     DeploymentRunningError,
     ImageNotFoundError,
-    RootNotFoundError
+    RootNotFoundError,
+    VagrantError
 )
 from libaqr.misc import (
     find_builds_path,
     find_deployments_path,
-    find_root,
-    import_image,
-    list_boxes,
-    list_images,
-    remove_box
+    find_root
 )
+from libaqr.vagrant import Vagrant
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger("aquarium")
@@ -186,10 +185,10 @@ def cmd_create(
     num_nodes = num_nodes if num_nodes is not None else 2
 
     avail_images: Optional[List[str]] = None
-    avail_boxes = list_boxes()
+    avail_boxes = Vagrant.box_list()
     avail_deployments: List[Deployment] = []
     try:
-        avail_images = list_images()
+        avail_images = [e.name for e in Image.list(find_builds_path())]
         avail_deployments = [v for v in ctx.deployments.values()]
     except RootNotFoundError:
         click.secho("Unable to find git repository's root dir")
@@ -197,50 +196,63 @@ def cmd_create(
     except Exception:
         pass
 
-    if name in avail_deployments:
+    if any([True for d in avail_deployments if d.name == name]):
         click.secho(f"Deployment '{name}' already exists", fg="red")
         sys.exit(errno.EEXIST)
 
     if not box and not image:
         if "aquarium" in avail_boxes:
             box = "aquarium"
-        elif "aquarium" in avail_images:
+        elif avail_images and "aquarium" in avail_images:
             image = "aquarium"
         elif name in avail_boxes:
             box = name
-        elif name in avail_images:
+        elif avail_images and name in avail_images:
             image = name
         else:
             click.secho("Unable to find default box 'aquarium'", fg="red")
             sys.exit(errno.ENOENT)
 
     if not box and image:
-        if image not in avail_images:
+
+        if avail_images and image not in avail_images:
             click.secho(f"Image '{image}' not found", fg="red")
             sys.exit(errno.ENOENT)
 
         if image in avail_boxes and force:
             # remove existing box first
             try:
-                remove_box(image)
+                Vagrant.box_remove(image)
             except AqrError as e:
                 logger.error(
                     f"Unable to remove existing box '{image}': {e.message}"
                 )
                 sys.exit(1)
+
+        if not avail_images:
+            click.secho("No images found", fg="red")
+            sys.exit(errno.ENOENT)
+
         try:
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
             builds_path = ctx.builds_path
-            import_image(builds_path, image)
+
+            Image.add(builds_path, image)
             avail_boxes.append(image)
             box = image
-            click.secho(f"Imported image '{image}' as Vagrant box", fg="green")
-        except ImageNotFoundError as e:
+            click.secho(
+                f"Imported image '{image}' as Vagrant box",
+                fg="green"
+            )
+        except VagrantError as e:
             click.secho(f"Error importing image '{image}': {e.message}")
-            sys.exit(1)
+            sys.exit(e.errno)
         except BoxAlreadyExistsError:
             click.secho("Box already exists, reusing.", fg="green")
             box = image
+        except ImageNotFoundError as e:
+            click.secho(f"Error importing image '{image}': {e.message}")
+            sys.exit(e.errno)
         except BuildsPathNotFoundError:
             click.secho("Unable to find builds path", fg="red")
             sys.exit(errno.ENOENT)
@@ -506,7 +518,7 @@ def cmd_box() -> None:
 @pass_appctx
 def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
     logger.debug("list boxes")
-    boxes = list_boxes()
+    boxes: List[str] = Vagrant().box_list()
     deployments: List[Deployment] = []
     try:
         deployments = [v for v in ctx.deployments.values()]
@@ -567,17 +579,29 @@ def cmd_images() -> None:
 @pass_appctx
 def cmd_images_list(ctx: AppCtx) -> None:
     logger.debug("list images")
-    images = list_images()
+
+    buildspath = find_builds_path()
+    images = Image.list(buildspath)
+
     if len(images) == 0:
         click.secho("No images found", fg="cyan")
         return
 
+    lst: List[Dict[str, str]] = []
+    for entry in images:
+        lst.append({
+            "name": entry.name,
+            "path": str(entry.path),
+            "type": entry.type
+        })
+        if not ctx.json:
+            print("{} {} ({})".format(
+                click.style("*", fg="cyan"),
+                click.style(entry.name, fg="white", bold=True),
+                click.style(entry.type, fg="white")
+            ))
     if ctx.json:
-        print_json(images)
-        return
-
-    for image in images:
-        print_entry(image)
+        print(json.dumps(lst))
 
 
 if __name__ == "__main__":
