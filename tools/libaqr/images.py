@@ -49,7 +49,7 @@ class Image:
             path = buildspath.joinpath(build)
             assert path.exists()
             try:
-                type, imgpath = cls._check_for_image(path)
+                type, imgpath = cls._get_vagrant_image(path)
             except FileNotFoundError:
                 continue
             assert type
@@ -70,7 +70,7 @@ class Image:
             )
 
         try:
-            imgtype, imgpath = cls._check_for_image(imgbuild)
+            imgtype, imgpath = cls._get_vagrant_image(imgbuild)
         except FileNotFoundError:
             raise ImageNotFoundError(
                 msg="image not built",
@@ -88,34 +88,30 @@ class Image:
         return Image(name, imgpath, imgtype)
 
     @classmethod
-    def _check_for_image(cls, path: Path) -> Tuple[str, Path]:
-        """ Check whether there's an image below `path` """
+    def _get_vagrant_image(cls, path: Path) -> Tuple[str, Path]:
+        """
+        Return vagrant image type and path if present below the `path`,
+        otherwise raises FileNotFoundError.
 
+        Possible values for image type: 'unknown', 'libvirt'.
+        """
         assert path.exists()
         outdir = path.joinpath("_out")
         if not outdir.exists():
             raise FileNotFoundError()
 
-        raw_img: Optional[Path] = None
-        img: Optional[Path] = None
-        for entry in next(os.walk(outdir))[2]:
-            if not entry.startswith("project-aquarium"):
-                continue
-
-            imgpath = Path(entry)
-            if imgpath.suffix == ".raw":
-                raw_img = imgpath
-            elif imgpath.suffix == ".box" and entry.count("vagrant") > 0:
-                img = imgpath
-
-        if not raw_img or not img:
+        _type = 'unknown'
+        # we are searching for vagrant box image file
+        _name = next((_ for _ in next(os.walk(outdir))[2]
+                                if _.startswith('project-aquarium') and
+                                   _.endswith('.box') and
+                                   'vagrant' in _), None)
+        if _name:
+            if 'libvirt' in _name:
+                _type = 'libvirt'
+            return _type, outdir.joinpath(_name)
+        else:
             raise FileNotFoundError()
-
-        img_type = "unknown"
-        if img.as_posix().count("libvirt") > 0:
-            img_type = "libvirt"
-
-        return img_type, outdir.joinpath(img)
 
     @property
     def name(self) -> str:
