@@ -1,0 +1,14 @@
+[tool.black]
+line-length = 88
+target-version = ['py38']
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+# As this is `extend`, we already exclude everything in .gitignore.
+^/(
+  (
+      glass                    # don't bother looking through glass
+    | gravel/ceph.git          # don't try formatting ceph.git
+  )/
+)
+'''
