@@ -4,12 +4,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { InstallRegisterPageComponent } from '~/app/pages/install-register-page/install-register-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
-import { RegisterPageComponent } from '~/app/pages/register-page/register-page.component';
 
-describe('RegisterPageComponent', () => {
-  let component: RegisterPageComponent;
-  let fixture: ComponentFixture<RegisterPageComponent>;
+describe('InstallRegisterPageComponent', () => {
+  let component: InstallRegisterPageComponent;
+  let fixture: ComponentFixture<InstallRegisterPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,7 +24,7 @@ describe('RegisterPageComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(RegisterPageComponent);
+    fixture = TestBed.createComponent(InstallRegisterPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -35,6 +35,12 @@ describe('RegisterPageComponent', () => {
 
   it('should not validate address if empty', () => {
     const control = component.formGroup.get('address');
+    control?.setValue('');
+    expect(control?.errors).toEqual({ required: true });
+  });
+
+  it('should not validate port if empty', () => {
+    const control = component.formGroup.get('port');
     control?.setValue('');
     expect(control?.errors).toEqual({ required: true });
   });

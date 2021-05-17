@@ -20,7 +20,7 @@ describe('NodesService', () => {
   });
 
   it('should call start', () => {
-    service.join({ addr: 'foo', token: 'ABCD-0123-5A6B-98FE' }).subscribe();
+    service.join({ address: 'foo', token: 'ABCD-0123-5A6B-98FE' }).subscribe();
     const req = httpTesting.expectOne('api/nodes/join');
     expect(req.request.method).toBe('POST');
   });

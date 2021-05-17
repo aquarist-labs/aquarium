@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export type JoinNodeRequest = {
-  addr: string;
+  address: string;
   token: string;
 };
 
