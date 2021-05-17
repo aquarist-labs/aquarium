@@ -12,6 +12,7 @@ dependencies_opensuse_tumbleweed=(
   "vagrant"
   "vagrant-libvirt"
   "libvirt-daemon"
+  "dosfstools"
 )
 
 dependencies_debian=(
