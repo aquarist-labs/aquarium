@@ -16,13 +16,13 @@
              [formControlName]="field.name"
              [readonly]="field.readonly"
              [required]="field.required!">
-      <mat-icon *ngIf="field.hasCopyToClipboardButton"
-                matSuffix
-                mat-ripple
-                svgIcon="mdi:content-copy"
-                matTooltip="{{ 'Copy to clipboard' | translate }}"
-                (click)="onCopyToClipboard(field)">
-      </mat-icon>
+      <button *ngIf="field.hasCopyToClipboardButton"
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ 'Copy to clipboard' | translate }}"
+              (click)="onCopyToClipboard(field)">
+        <mat-icon svgIcon="mdi:content-copy"></mat-icon>
+      </button>
       <!-- Text input -->
       <input *ngIf="field.type === 'text'"
              matInput
