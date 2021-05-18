@@ -53,12 +53,14 @@ routines:
     - name: make sure libvirtd is running
       command: |
         sudo systemctl start libvirtd
-    - name: run microos image on vagrant
+    - name: create foo
       command: |
-        cd aquarium
-        source venv/bin/activate
-        ./tools/aqrdev create foo
-        ./tools/aqrdev start foo --conservative
+        source aquarium/venv/bin/activate
+        cd aquarium && ./tools/aqrdev create foo
+    - name: start foo
+      command: |
+        source aquarium/venv/bin/activate
+        cd aquarium && ./tools/aqrdev start foo --conservative
     - name: dump aquarium service log
       command: |
         cd aquarium/tests/vagrant/deployments/foo
