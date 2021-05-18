@@ -1,7 +1,5 @@
 $glass-color-transparent: transparent;
 $glass-color-transparent-black: rgba(0, 0, 0, 0.54);
-$glass-color-white: white;
-$glass-color-black: black;
 
 $eos-bc-red-500: #dc3545;
 $eos-bc-green-500: #30ba78;
@@ -9,6 +7,13 @@ $eos-bc-yellow-500: #ffc107;
 $eos-bc-gray-50: #f2f2f2;
 $eos-bc-gray-300: #b6b4b4;
 $eos-bc-cerulean-900: #008acf;
+
+$glass-color-white: white;
+$glass-color-black: black;
+$glass-color-success: $eos-bc-green-500;
+$glass-color-info: $eos-bc-cerulean-900;
+$glass-color-warning: $eos-bc-yellow-500;
+$glass-color-error: $eos-bc-red-500;
 
 $eos-green-palette: (
   50: #e6f7ef,

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
+import { ToastrModule } from 'ngx-toastr';
 
 import { HostDetailsStepComponent } from '~/app/pages/install-wizard-page/steps/host-details-step/host-details-step.component';
 import { PagesModule } from '~/app/pages/pages.module';
@@ -11,7 +12,12 @@ describe('HostDetailsStepComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PagesModule, TranslateModule.forRoot()]
+      imports: [
+        NoopAnimationsModule,
+        PagesModule,
+        ToastrModule.forRoot(),
+        TranslateModule.forRoot()
+      ]
     }).compileComponents();
   });
 
