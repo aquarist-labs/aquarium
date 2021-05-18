@@ -18,11 +18,11 @@ import { PollService } from '~/app/shared/services/poll.service';
 const TOKEN_REGEXP = /^[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}$/i;
 
 @Component({
-  selector: 'glass-register-page',
-  templateUrl: './register-page.component.html',
-  styleUrls: ['./register-page.component.scss']
+  selector: 'glass-install-register-page',
+  templateUrl: './install-register-page.component.html',
+  styleUrls: ['./install-register-page.component.scss']
 })
-export class RegisterPageComponent implements OnInit {
+export class InstallRegisterPageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
@@ -39,6 +39,7 @@ export class RegisterPageComponent implements OnInit {
   ) {
     this.formGroup = this.formBuilder.group({
       address: [null, [Validators.required, GlassValidators.hostAddress()]],
+      port: [1337, [Validators.required, Validators.min(1), Validators.max(65535)]],
       token: [null, [Validators.required, Validators.pattern(TOKEN_REGEXP)]]
     });
   }
@@ -70,19 +71,41 @@ export class RegisterPageComponent implements OnInit {
     };
     this.joining = true;
     this.blockUI.start(translate(TEXT('Please wait, start joining existing cluster ...')));
-    this.nodesService.join(values).subscribe({
-      next: (success: boolean) => {
-        if (success) {
-          this.blockUI.update(
-            translate(TEXT('Please wait, joining existing cluster in progress ...'))
-          );
-          this.pollJoiningStatus();
-        } else {
-          handleError();
-        }
-      },
-      error: () => handleError()
-    });
+    this.nodesService
+      .join({
+        address: `${values.address}:${values.port}`,
+        token: values.token
+      })
+      .subscribe({
+        next: (success: boolean) => {
+          if (success) {
+            this.blockUI.update(
+              translate(TEXT('Please wait, joining existing cluster in progress ...'))
+            );
+            this.pollJoiningStatus();
+          } else {
+            handleError();
+          }
+        },
+        error: () => handleError()
+      });
+  }
+
+  /**
+   * Process the pasted value. If it has the format '<address>:<port>',
+   * then split the value and insert them into the corresponding form
+   * fields.
+   *
+   * @param event The clipboard event.
+   */
+  onAddressPaste(event: ClipboardEvent): void {
+    // @ts-ignore
+    const text = (event.clipboardData || window.clipboardData).getData('text');
+    const matches = /^(.+):(\d+)$/.exec(text);
+    if (matches && matches.length === 3) {
+      event.preventDefault();
+      this.formGroup.patchValue({ address: matches[1], port: matches[2] });
+    }
   }
 
   protected pollJoiningStatus(): void {
