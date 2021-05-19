@@ -24,3 +24,5 @@ jobs:
     - name: Test with tox
       working-directory: src
       run: tox
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v1
