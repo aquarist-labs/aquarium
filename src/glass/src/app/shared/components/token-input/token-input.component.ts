@@ -45,7 +45,8 @@ type TokenFormat = {
   ]
 })
 export class TokenInputComponent
-  implements ControlValueAccessor, MatFormFieldControl<string>, OnDestroy, OnChanges {
+  implements ControlValueAccessor, MatFormFieldControl<string>, OnDestroy, OnChanges
+{
   // eslint-disable-next-line @typescript-eslint/naming-convention
   static ngAcceptInputType_disabled: BooleanInput;
   // eslint-disable-next-line @typescript-eslint/naming-convention
