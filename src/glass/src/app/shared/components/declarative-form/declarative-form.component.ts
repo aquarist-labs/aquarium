@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { Platform } from '@angular/cdk/platform';
+import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
@@ -37,9 +37,9 @@ export class DeclarativeFormComponent implements OnInit {
   formGroup?: FormGroup;
 
   constructor(
+    private clipboard: Clipboard,
     private formBuilder: FormBuilder,
-    private notificationService: NotificationService,
-    private platform: Platform
+    private notificationService: NotificationService
   ) {}
 
   private static createFormControl(field: FormFieldConfig): FormControl {
@@ -76,64 +76,12 @@ export class DeclarativeFormComponent implements OnInit {
     const text = this.formGroup?.get(field.name)?.value;
     const messages = {
       success: TEXT('Copied text to the clipboard successfully.'),
-      error: TEXT('Failed to copy text to the clipboard.'),
-      denied: TEXT('Permission denied to write data to the clipboard.')
+      error: TEXT('Failed to copy text to the clipboard.')
     };
-    // Try to use Clipboard API.
-    if (navigator.clipboard) {
-      if (
-        this.platform.FIREFOX ||
-        this.platform.TRIDENT ||
-        this.platform.IOS ||
-        this.platform.SAFARI
-      ) {
-        // Various browsers do not support the `Permissions API`.
-        // https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API#Browser_compatibility
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            this.notificationService.show(messages.success);
-          })
-          .catch(() =>
-            this.notificationService.show(messages.error, {
-              type: 'error'
-            })
-          );
-      } else {
-        // Checking if we have the clipboard-write permission
-        navigator.permissions
-          .query({ name: 'clipboard-write' as PermissionName })
-          .then((ps: PermissionStatus) => {
-            if (_.includes(['granted', 'prompt'], ps.state)) {
-              navigator.clipboard
-                .writeText(text)
-                .then(() => {
-                  this.notificationService.show(messages.success);
-                })
-                .catch(() =>
-                  this.notificationService.show(messages.error, {
-                    type: 'error'
-                  })
-                );
-            } else if ('denied' === ps.state) {
-              this.notificationService.show(messages.denied, {
-                type: 'error'
-              });
-            }
-          });
-      }
-    } else {
-      // Fallback
-      const element = document.createElement('textarea');
-      element.value = text;
-      document.body.appendChild(element);
-      element.select();
-      const success = document.execCommand('copy');
-      document.body.removeChild(element);
-      this.notificationService.show(messages[success ? 'success' : 'error'], {
-        type: success ? 'info' : 'error'
-      });
-    }
+    const success = this.clipboard.copy(text);
+    this.notificationService.show(messages[success ? 'success' : 'error'], {
+      type: success ? 'info' : 'error'
+    });
   }
 
   get values(): Record<string, any> {
