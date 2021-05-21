@@ -26,6 +26,8 @@ environment as soon as possible so you can start hacking.
 You will be able to find the backend bits in `src/gravel`, while the frontend
 bits are located in `src/glass`.
 
+For i18n translation contribution please take a look at [Translator Guide](https://github.com/aquarist-labs/aquarium/blob/main/doc/i18n.md)
+
 Check out our [From Zero to Hacking](https://github.com/aquarist-labs/aquarium/blob/main/doc/from-zero-to-hacking.md)
 quickstart to help you get off your feet.
 
