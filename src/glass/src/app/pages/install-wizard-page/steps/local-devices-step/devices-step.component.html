@@ -1,0 +1,12 @@
+<div fxLayout="column"
+     fxLayoutAlign="start stretch">
+  <span class="glass-devices-step-subtitle"
+        translate>
+    The following devices have been identified in the system and are automatically added to the storage management.
+  </span>
+  <glass-datatable [data]="devices"
+                   [columns]="devicesColumns"
+                   [pageSize]="5"
+                   [hidePageSize]="true">
+  </glass-datatable>
+</div>

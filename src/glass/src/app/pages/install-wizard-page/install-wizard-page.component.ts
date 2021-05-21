@@ -55,10 +55,11 @@ export class InstallWizardPageComponent implements OnInit {
   public pageIndex = {
     start: 0,
     networking: 1,
-    installation: 2,
-    devices: 3,
-    services: 4,
-    summary: 5
+    localDevices: 2,
+    installation: 3,
+    devices: 4,
+    services: 5,
+    summary: 6
   };
 
   constructor(
