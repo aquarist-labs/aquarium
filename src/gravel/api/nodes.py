@@ -25,9 +25,9 @@ from gravel.controllers.nodes.bootstrap import (
 from gravel.controllers.nodes.conn import IncomingConnection
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
-    NodeCantBootstrapError,
+    NodeCantDeployError,
     NodeError,
-    NodeNotBootstrappedError,
+    NodeNotDeployedError,
     NodeNotStartedError
 )
 from gravel.controllers.nodes.mgr import NodeMgr
@@ -88,16 +88,16 @@ async def node_deploy(request: Request) -> DeployStartReplyModel:
     error = DeployErrorModel()
 
     try:
-        await request.app.state.nodemgr.bootstrap()
-    except NodeCantBootstrapError as e:
-        logger.error(f"api > can't bootstrap: {e.message}")
+        await request.app.state.nodemgr.deploy()
+    except NodeCantDeployError as e:
+        logger.error(f"api > can't deploy: {e.message}")
         success = False
         error = DeployErrorModel(
             code=BootstrapErrorEnum.CANT_BOOTSTRAP,
             message=e.message
         )
     except NodeNotStartedError as e:
-        logger.error("api > node not yet started, can't bootstrap")
+        logger.error("api > node not yet started, can't deploy")
         success = False
         error = DeployErrorModel(
             code=BootstrapErrorEnum.NODE_NOT_STARTED,
@@ -105,7 +105,7 @@ async def node_deploy(request: Request) -> DeployStartReplyModel:
         )
     except Exception as e:
         logger.exception(e)
-        logger.error(f"api > unknown error on bootstrap: {str(e)}")
+        logger.error(f"api > unknown error on deploy: {str(e)}")
         success = False
         error = DeployErrorModel(
             code=BootstrapErrorEnum.UNKNOWN_ERROR,
@@ -113,7 +113,7 @@ async def node_deploy(request: Request) -> DeployStartReplyModel:
         )
 
     if success:
-        logger.debug("api > start bootstrap")
+        logger.debug("api > start deployment")
 
     return DeployStartReplyModel(success=True, error=error)
 
@@ -143,13 +143,17 @@ async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
 
 @router.post("/deployment/finished", response_model=bool)
 async def finish_deployment(request: Request) -> bool:
+    """
+    Mark a deployment as finished. Triggers internal actions required for node
+    operation.
+    """
     nodemgr: NodeMgr = request.app.state.nodemgr
     try:
         await nodemgr.finish_deployment()
-    except NodeNotBootstrappedError:
+    except NodeNotDeployedError:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="Node has not bootstrapped"
+            detail="Node has not been deployed"
         )
     except NodeAlreadyJoiningError:
         raise HTTPException(
@@ -157,7 +161,7 @@ async def finish_deployment(request: Request) -> bool:
             detail="Node currently joining an existing cluster"
         )
     except NodeError:
-        logger.error("api > unknown error on finished")
+        logger.error("api > unknown error on finished deployment")
         return False
     return True
 

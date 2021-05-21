@@ -35,7 +35,7 @@ from gravel.controllers.nodes.conn import ConnMgr
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeBootstrappingError,
-    NodeCantBootstrapError,
+    NodeCantDeployError,
     NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError
@@ -67,7 +67,7 @@ class DeploymentModel(BaseModel):
     stage: NodeStageEnum = Field(NodeStageEnum.NONE)
 
 
-class DeploymentBootstrapConfig(BaseModel):
+class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
@@ -297,9 +297,9 @@ class NodeDeployment:
     ) -> None:
         assert self._state
         if self._state.bootstrapping:
-            raise NodeCantBootstrapError("node bootstrapping")
+            raise NodeCantDeployError("node being deployed")
         elif not self._state.nostage:
-            raise NodeCantBootstrapError("node can't be bootstrapped")
+            raise NodeCantDeployError("node can't be deployed")
 
         await spawn_etcd(
             self._gstate,
@@ -309,9 +309,9 @@ class NodeDeployment:
             address=address
         )
 
-    async def bootstrap(
+    async def deploy(
         self,
-        config: DeploymentBootstrapConfig,
+        config: DeploymentConfig,
         finisher: Callable[[bool, Optional[str]], Awaitable[None]]
     ) -> None:
 
@@ -324,7 +324,7 @@ class NodeDeployment:
         token = config.token
 
         if self._state.error:
-            raise NodeCantBootstrapError("node is in error state")
+            raise NodeCantDeployError("node is in error state")
 
         async def _start() -> None:
             assert self._state
@@ -357,7 +357,7 @@ class NodeDeployment:
             )
         except BootstrapError as e:
             logger.error(f"bootstrap error: {e.message}")
-            raise NodeCantBootstrapError(e.message)
+            raise NodeCantDeployError(e.message)
 
     def finish_deployment(self) -> None:
         assert self.state.bootstrapping

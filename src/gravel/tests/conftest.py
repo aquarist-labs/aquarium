@@ -201,7 +201,8 @@ async def aquarium_startup(
         from gravel.controllers.resources.storage import Storage
         from gravel.controllers.services import Services, ServiceModel
         from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
-        from gravel.controllers.nodes.deployment import NodeDeployment, NodeCantBootstrapError
+        from gravel.controllers.nodes.deployment import NodeDeployment
+        from gravel.controllers.nodes.errors import NodeCantDeployError
         from fastapi.logger import logger as fastapi_logger
 
         logger: logging.Logger = fastapi_logger
@@ -215,9 +216,9 @@ async def aquarium_startup(
             ) -> None:
                 assert self._state
                 if self._state.bootstrapping:
-                    raise NodeCantBootstrapError("node bootstrapping")
+                    raise NodeCantDeployError("node bootstrapping")
                 elif not self._state.nostage:
-                    raise NodeCantBootstrapError("node can't be bootstrapped")
+                    raise NodeCantDeployError("node can't be bootstrapped")
 
                 # We don't need to spawn etcd, just allow gstate to init store
                 await self._gstate.init_store()

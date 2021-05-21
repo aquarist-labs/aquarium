@@ -34,7 +34,7 @@ from gravel.controllers.nodes.bootstrap import (
     BootstrapStage
 )
 from gravel.controllers.nodes.deployment import (
-    DeploymentBootstrapConfig,
+    DeploymentConfig,
     DeploymentState,
     NodeDeployment
 )
@@ -46,11 +46,11 @@ from gravel.controllers.orch.ceph import (
 from gravel.controllers.nodes.errors import (
     NodeCantJoinError,
     NodeNetworkAddressNotAvailable,
-    NodeNotBootstrappedError,
+    NodeNotDeployedError,
     NodeNotStartedError,
     NodeShuttingDownError,
     NodeAlreadyJoiningError,
-    NodeCantBootstrapError,
+    NodeCantDeployError,
     NodeError
 )
 from gravel.controllers.nodes.conn import (
@@ -325,16 +325,16 @@ class NodeMgr:
         await self._node_start()
         return True
 
-    async def bootstrap(self) -> None:
+    async def deploy(self) -> None:
 
         assert self._state
         if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
 
         if self.deployment_state.error:
-            raise NodeCantBootstrapError("node is in error state")
+            raise NodeCantDeployError("node is in error state")
 
-        logger.debug("bootstrap - unsubscribe inventory updates")
+        logger.debug("deploy > unsubscribe inventory updates")
         if self._inventory_sub:
             self.gstate.inventory.unsubscribe(self._inventory_sub)
 
@@ -342,32 +342,32 @@ class NodeMgr:
 
         assert self._state.hostname
         assert self._state.address
-        logger.info("bootstrap node")
-        await self._deployment.bootstrap(
-            DeploymentBootstrapConfig(
+        logger.info("deploy node")
+        await self._deployment.deploy(
+            DeploymentConfig(
                 hostname=self._state.hostname,
                 address=self._state.address,
                 token=self._token
             ),
-            self._finish_bootstrap
+            self._finish_deployment
         )
         await self._save_token()
 
-    async def _finish_bootstrap(self, success: bool, error: Optional[str]):
+    async def _finish_deployment(self, success: bool, error: Optional[str]):
         """
-        Called asynchronously, presumes bootstrap was successful.
+        Called asynchronously, presumes deployment was successful.
         """
         assert self._state
 
-        logger.info("finish bootstrap config")
-        await self._finish_bootstrap_config()
+        logger.info("finish deployment config")
+        await self._finish_deployment_config()
         self._deployment.finish_deployment()
 
         logger.debug(f"finished deployment: token = {self._token}")
         await self._load()
         await self._node_start()
 
-    async def _finish_bootstrap_config(self) -> None:
+    async def _finish_deployment_config(self) -> None:
         mon: Mon = self.gstate.ceph_mon
         try:
             mon.set_allow_pool_size_one()
@@ -401,7 +401,7 @@ class NodeMgr:
         elif self.deployment_state.joining:
             raise NodeAlreadyJoiningError()
         elif not self.deployment_state.deployed:
-            raise NodeNotBootstrappedError()
+            raise NodeNotDeployedError()
 
         self.deployment_state.mark_ready()
 
