@@ -12,13 +12,25 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Optional
+from typing import List, Optional
 from fastapi import HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from pydantic.main import BaseModel
+from pydantic import BaseModel, Field
 
+from gravel.controllers.nodes.bootstrap import (
+    BootstrapErrorEnum,
+    BootstrapStage
+)
 from gravel.controllers.nodes.conn import IncomingConnection
+from gravel.controllers.nodes.errors import (
+    NodeAlreadyJoiningError,
+    NodeCantBootstrapError,
+    NodeError,
+    NodeNotBootstrappedError,
+    NodeNotStartedError
+)
+from gravel.controllers.nodes.mgr import NodeMgr
 
 
 logger: Logger = fastapi_logger
@@ -28,6 +40,29 @@ router = APIRouter(
 )
 
 
+class DeployErrorModel(BaseModel):
+    code: BootstrapErrorEnum = Field(BootstrapErrorEnum.NONE,
+                                     title="error code")
+    message: Optional[str] = Field(None, title="error message, if possible")
+
+
+class DeployRequestModel(BaseModel):
+    devices: List[str]
+
+
+class DeployStartReplyModel(BaseModel):
+    success: bool = Field(title="operation started successfully")
+    error: DeployErrorModel = Field(DeployErrorModel(),
+                                    title="deployment error")
+
+
+class DeployStatusReplyModel(BaseModel):
+    stage: BootstrapStage = Field(title="current deployment stage")
+    progress: int = Field(0, title="deployment progress (percent)")
+    error: DeployErrorModel = Field(DeployErrorModel(),
+                                    title="deployment error")
+
+
 class NodeJoinRequestModel(BaseModel):
     address: str
     token: str
@@ -35,6 +70,96 @@ class NodeJoinRequestModel(BaseModel):
 
 class TokenReplyModel(BaseModel):
     token: str
+
+
+@router.post("/deployment/start", response_model=DeployStartReplyModel)
+async def node_deploy(request: Request) -> DeployStartReplyModel:
+    """
+    Start deploying this node. The host will be configured according to user
+    specification; a minimal Ceph cluster will be bootstrapped; and a token for
+    other nodes to join the cluster will be generated.
+
+    This is an asynchronous call. The consumer should poll the
+    `/nodes/deploy/status` endpoint to gather progress on the operation.
+    """
+    logger.debug("api > deployment")
+
+    success = True
+    error = DeployErrorModel()
+
+    try:
+        await request.app.state.nodemgr.bootstrap()
+    except NodeCantBootstrapError as e:
+        logger.error(f"api > can't bootstrap: {e.message}")
+        success = False
+        error = DeployErrorModel(
+            code=BootstrapErrorEnum.CANT_BOOTSTRAP,
+            message=e.message
+        )
+    except NodeNotStartedError as e:
+        logger.error("api > node not yet started, can't bootstrap")
+        success = False
+        error = DeployErrorModel(
+            code=BootstrapErrorEnum.NODE_NOT_STARTED,
+            message=e.message
+        )
+    except Exception as e:
+        logger.exception(e)
+        logger.error(f"api > unknown error on bootstrap: {str(e)}")
+        success = False
+        error = DeployErrorModel(
+            code=BootstrapErrorEnum.UNKNOWN_ERROR,
+            message=str(e)
+        )
+
+    if success:
+        logger.debug("api > start bootstrap")
+
+    return DeployStartReplyModel(success=True, error=error)
+
+
+@router.get("/deployment/status", response_model=DeployStatusReplyModel)
+async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
+    """
+    Get deployment status from this node.
+
+    Provides the current state, and progress if currently deploying or fully
+    deployed. Provides error code and message in case it's in an error
+    state.
+
+    This information does not survive Aquarium restarts.
+    """
+    stage: BootstrapStage = request.app.state.nodemgr.bootstrapper_stage
+    percent: int = request.app.state.nodemgr.bootstrapper_progress
+    return DeployStatusReplyModel(
+        stage=stage,
+        progress=percent,
+        error=DeployErrorModel(
+            code=request.app.state.nodemgr.bootstrapper_error_code,
+            message=request.app.state.nodemgr.bootstrapper_error_msg
+        )
+    )
+
+
+@router.post("/deployment/finished", response_model=bool)
+async def finish_deployment(request: Request) -> bool:
+    nodemgr: NodeMgr = request.app.state.nodemgr
+    try:
+        await nodemgr.finish_deployment()
+    except NodeNotBootstrappedError:
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+            detail="Node has not bootstrapped"
+        )
+    except NodeAlreadyJoiningError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Node currently joining an existing cluster"
+        )
+    except NodeError:
+        logger.error("api > unknown error on finished")
+        return False
+    return True
 
 
 @router.post("/join")

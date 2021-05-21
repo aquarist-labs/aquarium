@@ -23,7 +23,7 @@ export type BootstrapStatusReply = {
   providedIn: 'root'
 })
 export class BootstrapService {
-  private url = 'api/bootstrap';
+  private url = 'api/nodes/deployment';
 
   constructor(private http: HttpClient) {}
 

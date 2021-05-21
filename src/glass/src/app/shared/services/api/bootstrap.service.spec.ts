@@ -21,13 +21,13 @@ describe('BootstrapService', () => {
 
   it('should call start', () => {
     service.start().subscribe();
-    const req = httpTesting.expectOne('api/bootstrap/start');
+    const req = httpTesting.expectOne('nodes/deployment/start');
     expect(req.request.method).toBe('POST');
   });
 
   it('should call status', () => {
     service.status().subscribe();
-    const req = httpTesting.expectOne('api/bootstrap/status');
+    const req = httpTesting.expectOne('nodes/deployment/status');
     expect(req.request.method).toBe('GET');
   });
 });
