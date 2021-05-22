@@ -66,20 +66,6 @@ export class OrchService {
   }
 
   /**
-   * Assimilate all devices
-   */
-  assimilateDevices(): Observable<boolean> {
-    return this.http.post<boolean>(`${this.url}/devices/assimilate`, null, {});
-  }
-
-  /**
-   * Get current assimilation status
-   */
-  assimilateStatus(): Observable<boolean> {
-    return this.http.get<boolean>(`${this.url}/devices/all_assimilated`);
-  }
-
-  /**
    * Set NTP
    */
   setNtp(_addr: string): Observable<boolean> {

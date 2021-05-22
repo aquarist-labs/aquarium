@@ -31,18 +31,6 @@ describe('OrchService', () => {
     expect(req.request.method).toBe('GET');
   });
 
-  it('should call assimilateDevices', () => {
-    service.assimilateDevices().subscribe();
-    const req = httpTesting.expectOne('api/orch/devices/assimilate');
-    expect(req.request.method).toBe('POST');
-  });
-
-  it('should call assimilateStatus', () => {
-    service.assimilateStatus().subscribe();
-    const req = httpTesting.expectOne('api/orch/devices/all_assimilated');
-    expect(req.request.method).toBe('GET');
-  });
-
   it('should call setNtp', () => {
     service.setNtp('test.test.test').subscribe();
     const req = httpTesting.expectOne('api/orch/ntp');

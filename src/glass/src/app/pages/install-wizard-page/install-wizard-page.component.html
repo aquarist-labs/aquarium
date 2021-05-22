@@ -116,19 +116,6 @@
             </div>
           </mat-step>
 
-          <mat-step label="{{ 'Devices' | translate }}">
-            <div class="glass-install-wizard-step-content">
-              <glass-devices-step *ngIf="pageIndex.devices === stepper.selectedIndex"></glass-devices-step>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button mat-button
-                      class="glass-color-theme-accent"
-                      (click)="startDeviceDeployment()">
-                <span translate>Next</span>
-              </button>
-            </div>
-          </mat-step>
-
           <mat-step label="{{ 'Services' | translate }}">
             <div class="glass-install-wizard-step-content">
               <glass-services-step></glass-services-step>

@@ -21,7 +21,6 @@ import { tap } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard-page/models/install-wizard-context.type';
-import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
@@ -31,7 +30,6 @@ import {
   NodeStageEnum
 } from '~/app/shared/services/api/nodes.service';
 import { OrchService } from '~/app/shared/services/api/orch.service';
-import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -57,14 +55,12 @@ export class InstallWizardPageComponent implements OnInit {
     networking: 1,
     localDevices: 2,
     installation: 3,
-    devices: 4,
-    services: 5,
-    summary: 6
+    services: 4,
+    summary: 5
   };
 
   constructor(
     private nodesService: NodesService,
-    private dialogService: DialogService,
     private localNodeService: LocalNodeService,
     private notificationService: NotificationService,
     private orchService: OrchService,
@@ -84,7 +80,7 @@ export class InstallWizardPageComponent implements OnInit {
             this.context.stage = 'bootstrapped';
             this.context.stepperVisible = true;
             // Jump to the 'Devices' step.
-            this.stepper!.selectedIndex = this.pageIndex.devices;
+            this.stepper!.selectedIndex = this.pageIndex.services;
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'deployed';
@@ -113,7 +109,7 @@ export class InstallWizardPageComponent implements OnInit {
                 this.context.stage = 'bootstrapped';
                 this.context.stepperVisible = true;
                 // Jump to the 'Devices' step.
-                this.stepper!.selectedIndex = this.pageIndex.devices;
+                this.stepper!.selectedIndex = this.pageIndex.services;
                 break;
               case NodeStageEnum.none:
                 // Force linear mode.
@@ -141,38 +137,6 @@ export class InstallWizardPageComponent implements OnInit {
         this.pollNodeStatus();
       },
       (err) => this.handleError(err.message)
-    );
-  }
-
-  startDeviceDeployment(): void {
-    this.dialogService.open(
-      DialogComponent,
-      (decision) => {
-        if (decision) {
-          this.blockUI.start(translate(TEXT('Please wait, device deployment in progress ...')));
-          this.orchService.assimilateDevices().subscribe(
-            (success) => {
-              if (success) {
-                this.pollDeviceDeploymentStatus();
-              } else {
-                this.handleError(TEXT('Failed to start device deployment.'));
-              }
-            },
-            (err) => this.handleError(err)
-          );
-        }
-      },
-      {
-        width: '35%',
-        data: {
-          type: 'yesNo',
-          icon: 'warn',
-          title: TEXT('Deploy devices'),
-          message: TEXT(
-            'This step will erase all data on the listed devices. Are you sure you want to continue?'
-          )
-        }
-      }
     );
   }
 
@@ -281,22 +245,6 @@ export class InstallWizardPageComponent implements OnInit {
           }
         },
         () => this.handleError(TEXT('Failed to bootstrap the system.'))
-      );
-  }
-
-  private pollDeviceDeploymentStatus(): void {
-    this.context.stepperVisible = false;
-    this.orchService
-      .assimilateStatus()
-      .pipe(this.pollService.poll((res) => !res, undefined, 'Failed to deploy devices.'))
-      .subscribe(
-        (res) => {
-          this.context.stage = 'deployed';
-          this.context.stepperVisible = true;
-          this.blockUI.stop();
-          this.stepper?.next();
-        },
-        (err) => this.handleError(err)
       );
   }
 }
