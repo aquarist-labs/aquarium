@@ -18,11 +18,9 @@ from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.controllers.nodes.bootstrap import (
-    BootstrapErrorEnum,
-    BootstrapStage
-)
+from gravel.controllers.nodes.bootstrap import BootstrapErrorEnum
 from gravel.controllers.nodes.conn import IncomingConnection
+from gravel.controllers.nodes.deployment import NodeStageEnum
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeCantDeployError,
@@ -57,7 +55,7 @@ class DeployStartReplyModel(BaseModel):
 
 
 class DeployStatusReplyModel(BaseModel):
-    stage: BootstrapStage = Field(title="current deployment stage")
+    stage: NodeStageEnum = Field(title="current deployment stage")
     progress: int = Field(0, title="deployment progress (percent)")
     error: DeployErrorModel = Field(DeployErrorModel(),
                                     title="deployment error")
@@ -129,14 +127,16 @@ async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
 
     This information does not survive Aquarium restarts.
     """
-    stage: BootstrapStage = request.app.state.nodemgr.bootstrapper_stage
-    percent: int = request.app.state.nodemgr.bootstrapper_progress
+    nodemgr: NodeMgr = request.app.state.nodemgr
+    stage: NodeStageEnum = nodemgr.deployment_state.stage
+
+    percent: int = nodemgr.bootstrapper_progress
     return DeployStatusReplyModel(
         stage=stage,
         progress=percent,
         error=DeployErrorModel(
-            code=request.app.state.nodemgr.bootstrapper_error_code,
-            message=request.app.state.nodemgr.bootstrapper_error_msg
+            code=nodemgr.bootstrapper_error_code,
+            message=nodemgr.bootstrapper_error_msg
         )
     )
 

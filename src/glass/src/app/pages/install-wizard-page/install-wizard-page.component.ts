@@ -25,10 +25,10 @@ import { DialogComponent } from '~/app/shared/components/dialog/dialog.component
 import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
-  BootstrapStageEnum,
   DeploymentBasicReply,
   DeploymentStatusReply,
-  NodesService
+  NodesService,
+  NodeStageEnum
 } from '~/app/shared/services/api/nodes.service';
 import { OrchService } from '~/app/shared/services/api/orch.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
@@ -94,7 +94,7 @@ export class InstallWizardPageComponent implements OnInit {
             break;
           default:
             switch (res.deploymentStatusReply.stage) {
-              case BootstrapStageEnum.running:
+              case NodeStageEnum.bootstrapping:
                 this.context.stage = 'bootstrapping';
                 this.context.stepperVisible = true;
                 // Jump to the 'Installation' step.
@@ -109,13 +109,13 @@ export class InstallWizardPageComponent implements OnInit {
                 );
                 this.pollBootstrapStatus();
                 break;
-              case BootstrapStageEnum.done:
+              case NodeStageEnum.deployed:
                 this.context.stage = 'bootstrapped';
                 this.context.stepperVisible = true;
                 // Jump to the 'Devices' step.
                 this.stepper!.selectedIndex = this.pageIndex.devices;
                 break;
-              case BootstrapStageEnum.none:
+              case NodeStageEnum.none:
                 // Force linear mode.
                 this.stepper!.linear = true;
                 break;
@@ -255,7 +255,7 @@ export class InstallWizardPageComponent implements OnInit {
           );
         }),
         this.pollService.poll(
-          (statusReply) => statusReply.stage === BootstrapStageEnum.running,
+          (statusReply) => statusReply.stage === NodeStageEnum.bootstrapping,
           Infinity,
           TEXT('Failed to bootstrap the system.')
         )
@@ -263,11 +263,11 @@ export class InstallWizardPageComponent implements OnInit {
       .subscribe(
         (statusReply: DeploymentStatusReply) => {
           switch (statusReply.stage) {
-            case BootstrapStageEnum.error:
+            case NodeStageEnum.error:
               this.handleError(TEXT('Failed to bootstrap the system.'));
               break;
-            case BootstrapStageEnum.none:
-            case BootstrapStageEnum.done:
+            case NodeStageEnum.none:
+            case NodeStageEnum.deployed:
               this.blockUI.update(
                 translate(
                   TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`)

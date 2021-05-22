@@ -16,15 +16,17 @@ export type DeploymentBasicReply = {
 };
 
 // eslint-disable-next-line no-shadow
-export enum BootstrapStageEnum {
+export enum NodeStageEnum {
   none = 0,
-  running = 1,
-  done = 2,
-  error = 3
+  bootstrapping = 1,
+  deployed = 2,
+  joining = 3,
+  ready = 4,
+  error = 5
 }
 
 export type DeploymentStatusReply = {
-  stage: BootstrapStageEnum;
+  stage: NodeStageEnum;
   progress: number;
 };
 
