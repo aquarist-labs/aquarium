@@ -345,25 +345,36 @@ class NodeMgr:
                 address=self._state.address,
                 token=self._token
             ),
+            self._post_bootstrap_finisher,
             self._finish_deployment
         )
         await self._save_token()
 
-    async def _finish_deployment(self, success: bool, error: Optional[str]):
+    async def _post_bootstrap_finisher(
+        self,
+        success: bool,
+        error: Optional[str]
+    ) -> None:
         """
-        Called asynchronously, presumes deployment was successful.
+        Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
 
         logger.info("finish deployment config")
-        await self._finish_deployment_config()
+        await self._post_bootstrap_config()
+
+    async def _finish_deployment(
+        self,
+        success: bool,
+        error: Optional[str]
+    ) -> None:
         self._deployment.finish_deployment()
 
         logger.debug(f"finished deployment: token = {self._token}")
         await self._load()
         await self._node_start()
 
-    async def _finish_deployment_config(self) -> None:
+    async def _post_bootstrap_config(self) -> None:
         mon: Mon = self.gstate.ceph_mon
         try:
             mon.set_allow_pool_size_one()

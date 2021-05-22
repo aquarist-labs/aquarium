@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 
+import asyncio
 from enum import Enum
 from logging import Logger
 from pathlib import Path
@@ -49,6 +50,7 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel
 )
 from gravel.controllers.nodes.etcd import spawn_etcd
+from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
@@ -67,7 +69,8 @@ class ProgressEnum(int, Enum):
     NONE = 0
     PREPARING = 1
     PERFORMING = 2
-    DONE = 3
+    ASSIMILATING = 3
+    DONE = 4
 
 
 class DeploymentModel(BaseModel):
@@ -85,7 +88,8 @@ class DeploymentErrorEnum(int, Enum):
     CANT_BOOTSTRAP = 1
     NODE_NOT_STARTED = 2
     CANT_JOIN = 3
-    UNKNOWN_ERROR = 4
+    CANT_ASSIMILATE = 4
+    UNKNOWN_ERROR = 5
 
 
 class DeploymentErrorState(BaseModel):
@@ -238,7 +242,9 @@ class NodeDeployment:
         bounds = [
             (ProgressEnum.NONE, 0, 0),
             (ProgressEnum.PREPARING, 0, 25),
-            (ProgressEnum.PERFORMING, 25, 100),
+            (ProgressEnum.PERFORMING, 25, 80),
+            # cheat on assimilate because we don't have real progress atm.
+            (ProgressEnum.ASSIMILATING, 80, 90),
             (ProgressEnum.DONE, 100, 100)
         ]
         for pname, pmin, pmax in bounds:
@@ -376,6 +382,7 @@ class NodeDeployment:
     async def deploy(
         self,
         config: DeploymentConfig,
+        post_bootstrap_cb: Callable[[bool, Optional[str]], Awaitable[None]],
         finisher: Callable[[bool, Optional[str]], Awaitable[None]]
     ) -> None:
 
@@ -408,8 +415,33 @@ class NodeDeployment:
                     code=DeploymentErrorEnum.CANT_BOOTSTRAP,
                     msg=error
                 )
-            self._progress = ProgressEnum.DONE
-            await finisher(success, error)
+            await post_bootstrap_cb(success, error)
+            await _assimilate_devices()
+
+        async def _assimilate_devices() -> None:
+            logger.debug("deployment > assimilating devices")
+            self._progress = ProgressEnum.ASSIMILATING
+            try:
+                orch = Orchestrator(self._gstate.ceph_mgr)
+                orch.assimilate_all_devices()
+
+                # wait a few seconds so the orchestrator settles down
+                await asyncio.sleep(5.0)
+                while not orch.all_devices_assimilated():
+                    await asyncio.sleep(1.0)
+
+                logger.debug("deployment > devices assimilated")
+                self._progress = ProgressEnum.DONE
+                await finisher(True, None)
+
+            except Exception as e:
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_ASSIMILATE,
+                    msg=str(e)
+                )
+                logger.error("unable to assimilate devices")
+                logger.exception(e)
+                await finisher(False, str(e))
 
         try:
             self._progress = ProgressEnum.PREPARING
@@ -429,9 +461,13 @@ class NodeDeployment:
             )
         except BootstrapError as e:
             logger.error(f"bootstrap error: {e.message}")
+            self._state.mark_error(
+                code=DeploymentErrorEnum.CANT_BOOTSTRAP,
+                msg=e.message
+            )
             raise NodeCantDeployError(e.message)
 
     def finish_deployment(self) -> None:
         assert self.state.bootstrapping
-        logger.info("finishing bootstrap")
+        logger.info("finishing deployment")
         self._state.mark_deployed()
