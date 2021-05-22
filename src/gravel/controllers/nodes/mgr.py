@@ -29,10 +29,6 @@ from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
-from gravel.controllers.nodes.bootstrap import (
-    BootstrapErrorEnum,
-    BootstrapStage
-)
 from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
     DeploymentState,
@@ -406,28 +402,10 @@ class NodeMgr:
         self.deployment_state.mark_ready()
 
     @property
-    def bootstrapper_stage(self) -> BootstrapStage:
-        if not self._deployment.bootstrapper:
-            return BootstrapStage.NONE
-        return self._deployment.bootstrapper.stage
-
-    @property
     def bootstrapper_progress(self) -> int:
         if not self._deployment.bootstrapper:
             return 0
         return self._deployment.bootstrapper.progress
-
-    @property
-    def bootstrapper_error_code(self) -> BootstrapErrorEnum:
-        if not self._deployment.bootstrapper:
-            return BootstrapErrorEnum.NONE
-        return self._deployment.bootstrapper.error_code
-
-    @property
-    def bootstrapper_error_msg(self) -> str:
-        if not self._deployment.bootstrapper:
-            return ""
-        return self._deployment.bootstrapper.error_msg
 
     @property
     def deployment_state(self) -> DeploymentState:

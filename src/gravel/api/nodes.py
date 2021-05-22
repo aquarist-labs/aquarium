@@ -18,9 +18,12 @@ from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.controllers.nodes.bootstrap import BootstrapErrorEnum
 from gravel.controllers.nodes.conn import IncomingConnection
-from gravel.controllers.nodes.deployment import NodeStageEnum
+from gravel.controllers.nodes.deployment import (
+    DeploymentErrorEnum,
+    DeploymentState,
+    NodeStageEnum
+)
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeCantDeployError,
@@ -39,8 +42,8 @@ router = APIRouter(
 
 
 class DeployErrorModel(BaseModel):
-    code: BootstrapErrorEnum = Field(BootstrapErrorEnum.NONE,
-                                     title="error code")
+    code: DeploymentErrorEnum = Field(DeploymentErrorEnum.NONE,
+                                      title="error code")
     message: Optional[str] = Field(None, title="error message, if possible")
 
 
@@ -91,14 +94,14 @@ async def node_deploy(request: Request) -> DeployStartReplyModel:
         logger.error(f"api > can't deploy: {e.message}")
         success = False
         error = DeployErrorModel(
-            code=BootstrapErrorEnum.CANT_BOOTSTRAP,
+            code=DeploymentErrorEnum.CANT_BOOTSTRAP,
             message=e.message
         )
     except NodeNotStartedError as e:
         logger.error("api > node not yet started, can't deploy")
         success = False
         error = DeployErrorModel(
-            code=BootstrapErrorEnum.NODE_NOT_STARTED,
+            code=DeploymentErrorEnum.NODE_NOT_STARTED,
             message=e.message
         )
     except Exception as e:
@@ -106,7 +109,7 @@ async def node_deploy(request: Request) -> DeployStartReplyModel:
         logger.error(f"api > unknown error on deploy: {str(e)}")
         success = False
         error = DeployErrorModel(
-            code=BootstrapErrorEnum.UNKNOWN_ERROR,
+            code=DeploymentErrorEnum.UNKNOWN_ERROR,
             message=str(e)
         )
 
@@ -128,6 +131,7 @@ async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
     This information does not survive Aquarium restarts.
     """
     nodemgr: NodeMgr = request.app.state.nodemgr
+    state: DeploymentState = nodemgr.deployment_state
     stage: NodeStageEnum = nodemgr.deployment_state.stage
 
     percent: int = nodemgr.bootstrapper_progress
@@ -135,8 +139,8 @@ async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
         stage=stage,
         progress=percent,
         error=DeployErrorModel(
-            code=nodemgr.bootstrapper_error_code,
-            message=nodemgr.bootstrapper_error_msg
+            code=state.error_what.code,
+            message=state.error_what.msg
         )
     )
 

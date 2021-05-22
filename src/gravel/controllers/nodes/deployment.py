@@ -73,6 +73,19 @@ class DeploymentConfig(BaseModel):
     token: str
 
 
+class DeploymentErrorEnum(int, Enum):
+    NONE = 0
+    CANT_BOOTSTRAP = 1
+    NODE_NOT_STARTED = 2
+    CANT_JOIN = 3
+    UNKNOWN_ERROR = 4
+
+
+class DeploymentErrorState(BaseModel):
+    code: DeploymentErrorEnum
+    msg: Optional[str]
+
+
 class DeploymentError(GravelError):
     pass
 
@@ -81,10 +94,14 @@ class DeploymentState:
 
     _stage: NodeStageEnum
     _gstate: GlobalState
+    _error: DeploymentErrorState
 
     def __init__(self, gstate: GlobalState):
         self._gstate = gstate
         self._stage = NodeStageEnum.NONE
+        self._error = DeploymentErrorState(
+            code=DeploymentErrorEnum.NONE, msg=None
+        )
 
         self._load_stage()
 
@@ -134,6 +151,10 @@ class DeploymentState:
     def error(self) -> bool:
         return self._stage == NodeStageEnum.ERROR
 
+    @property
+    def error_what(self) -> DeploymentErrorState:
+        return self._error
+
     def can_start(self) -> bool:
         return (
             self._stage == NodeStageEnum.NONE or
@@ -157,8 +178,11 @@ class DeploymentState:
         self._stage = NodeStageEnum.DEPLOYED
         self._save_stage()
 
-    def mark_error(self) -> None:
+    def mark_error(self, code: DeploymentErrorEnum, msg: str) -> None:
         self._stage = NodeStageEnum.ERROR
+        self._error = DeploymentErrorState(
+            code=code, msg=msg
+        )
         self._save_stage()
 
     def mark_ready(self) -> None:
@@ -239,7 +263,10 @@ class NodeDeployment:
             errmsg = ErrorMessageModel.parse_obj(reply.data)
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
-            self._state.mark_error()
+            self._state.mark_error(
+                code=DeploymentErrorEnum.CANT_JOIN,
+                msg=errmsg.what
+            )
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -338,7 +365,12 @@ class NodeDeployment:
             if not success:
                 logger.error(f"bootstrap finish error: {error}")
                 assert self._state.bootstrapping
-                self._state.mark_error()
+                if not error:
+                    error = "unable to bootstrap"
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_BOOTSTRAP,
+                    msg=error
+                )
             await finisher(success, error)
 
         try:
