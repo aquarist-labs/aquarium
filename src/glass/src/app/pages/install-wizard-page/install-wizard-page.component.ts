@@ -99,7 +99,7 @@ export class InstallWizardPageComponent implements OnInit {
                 this.blockUI.start(
                   translate(
                     TEXT(
-                      `Please wait, bootstrapping in progress (${res.deploymentStatusReply.progress}%) ...`
+                      `Please wait, deployment in progress (${res.deploymentStatusReply.progress}%) ...`
                     )
                   )
                 );
