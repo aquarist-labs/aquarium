@@ -18,20 +18,16 @@ from typing import Awaitable, Callable, Optional
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
 
 
-class BootstrapError(Exception):
-    def __init__(self, msg: Optional[str] = ""):
-        super().__init__()
-        self._msg = msg
-
-    @property
-    def message(self) -> str:
-        return self._msg if self._msg else "bootstrap error"
+class BootstrapError(GravelError):
+    def __init__(self, msg: str = "bootstrap error"):
+        super().__init__(msg=msg)
 
 
 class BootstrapStage(int, Enum):
