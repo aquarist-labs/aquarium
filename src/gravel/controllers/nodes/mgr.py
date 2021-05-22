@@ -402,10 +402,8 @@ class NodeMgr:
         self.deployment_state.mark_ready()
 
     @property
-    def bootstrapper_progress(self) -> int:
-        if not self._deployment.bootstrapper:
-            return 0
-        return self._deployment.bootstrapper.progress
+    def deployment_progress(self) -> int:
+        return self._deployment.progress
 
     @property
     def deployment_state(self) -> DeploymentState:

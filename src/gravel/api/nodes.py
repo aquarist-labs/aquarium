@@ -134,7 +134,7 @@ async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
     state: DeploymentState = nodemgr.deployment_state
     stage: NodeStageEnum = nodemgr.deployment_state.stage
 
-    percent: int = nodemgr.bootstrapper_progress
+    percent: int = nodemgr.deployment_progress
     return DeployStatusReplyModel(
         stage=stage,
         progress=percent,

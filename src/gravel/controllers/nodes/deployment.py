@@ -63,6 +63,13 @@ class NodeStageEnum(int, Enum):
     ERROR = 5
 
 
+class ProgressEnum(int, Enum):
+    NONE = 0
+    PREPARING = 1
+    PERFORMING = 2
+    DONE = 3
+
+
 class DeploymentModel(BaseModel):
     stage: NodeStageEnum = Field(NodeStageEnum.NONE)
 
@@ -197,6 +204,7 @@ class NodeDeployment:
     _gstate: GlobalState
     _connmgr: ConnMgr
     _bootstrapper: Optional[Bootstrap]
+    _progress: ProgressEnum
 
     def __init__(
         self,
@@ -207,6 +215,7 @@ class NodeDeployment:
         self._connmgr = connmgr
         self._state = DeploymentState(gstate)
         self._bootstrapper = None
+        self._progress = ProgressEnum.NONE
 
     @property
     def state(self) -> DeploymentState:
@@ -215,6 +224,34 @@ class NodeDeployment:
     @property
     def bootstrapper(self) -> Optional[Bootstrap]:
         return self._bootstrapper
+
+    @property
+    def progress(self) -> int:
+        if self.state.deployed:
+            return 100
+        elif self.state.error or self.state.nostage:
+            return 0
+
+        if not self._bootstrapper:
+            return 0  # we only handle bootstrap atm
+
+        bounds = [
+            (ProgressEnum.NONE, 0, 0),
+            (ProgressEnum.PREPARING, 0, 25),
+            (ProgressEnum.PERFORMING, 25, 100),
+            (ProgressEnum.DONE, 100, 100)
+        ]
+        for pname, pmin, pmax in bounds:
+            if pname != self._progress:
+                continue
+            if pname != ProgressEnum.PERFORMING:
+                return pmax  # return the max of whatever state we're in
+            # we are performing the operation, which atm means bootstrapping
+            delta = pmax - pmin
+            bootstrap_progress = self._bootstrapper.progress
+            return pmin + int((bootstrap_progress * delta) / 100)
+
+        return 0
 
     async def join(
         self,
@@ -371,9 +408,11 @@ class NodeDeployment:
                     code=DeploymentErrorEnum.CANT_BOOTSTRAP,
                     msg=error
                 )
+            self._progress = ProgressEnum.DONE
             await finisher(success, error)
 
         try:
+            self._progress = ProgressEnum.PREPARING
             await self._prepare_etcd(hostname, address, token)
         except NodeError as e:
             logger.error(f"bootstrap prepare error: {e.message}")
@@ -384,6 +423,7 @@ class NodeDeployment:
         self._bootstrapper = Bootstrap(self._gstate)
 
         try:
+            self._progress = ProgressEnum.PERFORMING
             await self._bootstrapper.bootstrap(
                 address, finish_bootstrap_cb
             )
