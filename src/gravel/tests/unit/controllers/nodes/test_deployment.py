@@ -14,7 +14,12 @@
 # pyright: reportPrivateUsage=false, reportUnknownMemberType=false
 # pyright: reportUnknownVariableType=false
 
-from typing import cast
+from typing import (
+    Awaitable,
+    Callable,
+    Optional,
+    cast
+)
 import pytest
 from pytest_mock import MockerFixture
 
@@ -163,3 +168,74 @@ async def test_deployment_progress(
     # error state
     deployment.state.mark_error(DeploymentErrorEnum.UNKNOWN_ERROR, "foobar")
     assert deployment.progress == 0
+
+
+@pytest.mark.asyncio
+async def test_deploy(
+    mocker: MockerFixture,
+    gstate: GlobalState
+):
+    from gravel.controllers.nodes.conn import ConnMgr
+    from gravel.controllers.nodes.deployment import (
+        NodeDeployment,
+        DeploymentConfig
+    )
+    from gravel.controllers.nodes.bootstrap import Bootstrap
+    from gravel.controllers.orch.orchestrator import Orchestrator
+
+    def mock_true(cls):  # type: ignore
+        return True
+
+    async def mock_bootstrap(
+        cls,  # type: ignore
+        address: str,
+        cb: Callable[[bool, Optional[str]], Awaitable[None]]
+    ) -> None:
+        assert address == "127.0.0.1"
+        await cb(True, None)
+
+    fake_connmgr: ConnMgr = cast(
+        ConnMgr,
+        mocker.MagicMock()
+    )
+    deployment = NodeDeployment(gstate, fake_connmgr)
+    deployment._prepare_etcd = mocker.AsyncMock()
+    mocker.patch.object(
+        Bootstrap,
+        "bootstrap",
+        new=mock_bootstrap  # type: ignore
+    )
+    mocker.patch.object(Orchestrator, "assimilate_all_devices")
+    mocker.patch.object(
+        Orchestrator,
+        "all_devices_assimilated",
+        new=mock_true  # type: ignore
+    )
+
+    called_postbootstrap = False
+    called_finisher = False
+
+    async def postbootstrap_cb(res: bool, errstr: Optional[str]) -> None:
+        assert res
+        assert not errstr
+        nonlocal called_postbootstrap
+        called_postbootstrap = True
+
+    async def finisher_cb(res: bool, errstr: Optional[str]) -> None:
+        assert res
+        assert not errstr
+        nonlocal called_finisher
+        called_finisher = True
+
+    await deployment.deploy(
+        DeploymentConfig(
+            hostname="foobar",
+            address="127.0.0.1",
+            token="myfancytoken"
+        ),
+        post_bootstrap_cb=postbootstrap_cb,
+        finisher=finisher_cb
+    )
+
+    assert called_postbootstrap
+    assert called_finisher
