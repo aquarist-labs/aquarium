@@ -239,3 +239,20 @@ async def test_deploy(
 
     assert called_postbootstrap
     assert called_finisher
+
+
+@pytest.mark.asyncio
+async def test_finish_deployment(
+    mocker: MockerFixture,
+    gstate: GlobalState
+):
+    from gravel.controllers.nodes.conn import ConnMgr
+    from gravel.controllers.nodes.deployment import NodeDeployment
+    fake_connmgr: ConnMgr = cast(
+        ConnMgr,
+        mocker.MagicMock()
+    )
+    deployment = NodeDeployment(gstate, fake_connmgr)
+    deployment.state.mark_bootstrap()
+    deployment.finish_deployment()
+    assert deployment.state.deployed
