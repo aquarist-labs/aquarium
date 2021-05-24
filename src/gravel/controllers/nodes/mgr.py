@@ -18,6 +18,7 @@ from uuid import UUID, uuid4
 import random
 from typing import (
     Dict,
+    List,
     Optional,
 )
 from pathlib import Path
@@ -67,7 +68,10 @@ from gravel.controllers.nodes.messages import (
     MessageTypeEnum,
 )
 from gravel.controllers.nodes.etcd import ContainerFetchError, etcd_pull_image, spawn_etcd
-from gravel.controllers.orch.orchestrator import Orchestrator
+from gravel.controllers.orch.orchestrator import (
+    Orchestrator,
+    OrchHostListModel,
+)
 from gravel.controllers.resources.inventory_sub import Subscriber
 
 
@@ -650,3 +654,57 @@ class NodeMgr:
         if not mon.set_replicated_ruleset():
             logger.error(
                 "handle ready to add > unable to set replicated ruleset")
+
+        await self._set_pool_default_size()
+
+    async def _set_pool_default_size(self) -> None:
+        """ reset the osd pool default size """
+        assert self._init_stage == NodeInitStage.STARTED
+
+        def get_target_size():
+            orch: Orchestrator = Orchestrator(self.gstate.ceph_mgr)
+            orch_hosts: List[OrchHostListModel] = orch.host_ls()
+            return 2 if len(orch_hosts) < 3 else 3
+
+        mon: Mon = self.gstate.ceph_mon
+        current_size: Optional[int] = mon.get_pool_default_size()
+        target_size: int = get_target_size()
+
+        # set the default pool size
+        msg = (
+            "set default osd pool size >"
+            f" current: {current_size}"
+            f" target: {target_size}"
+        )
+
+        if current_size is None:
+            logger.error(f"unable to {msg}")
+            return
+
+        logger.info(msg)
+        mon.set_pool_default_size(target_size)
+
+        # adjust the size of existing pools
+        svc_pool_ids: List[int] = []  # aquarium service pool ids
+        for svc in self.gstate.services.ls():
+            svc_pool_ids += svc.pools
+
+        for pool in mon.get_pools():  # all pools
+            msg = (
+                "set osd pool size >"
+                f" pool: {pool.pool_name}"
+                f" current_size: {pool.size}"
+                f" target_size: {target_size}"
+            )
+
+            if pool.pool in svc_pool_ids:
+                reason = "reason: pool is managed by an aquarium service"
+                logger.debug(f"skipping {msg} {reason}")
+                continue
+            elif pool.size > target_size:
+                reason = "reason: pool is user defined"
+                logger.debug(f"skipping {msg} {reason}")
+                continue
+
+            logger.info(msg)
+            mon.set_pool_size(pool.pool_name, target_size)
