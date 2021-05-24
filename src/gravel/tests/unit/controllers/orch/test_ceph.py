@@ -129,3 +129,27 @@ def test_set_pool_size(
     ceph = Ceph()
     mon = Mon(ceph)
     mon.set_pool_size("foobar", 2)
+
+
+def test_set_pool_default_size(
+    ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
+    mocker: MockerFixture
+):
+    from gravel.controllers.orch.ceph import Ceph, Mon
+
+    def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
+        assert "prefix" in args
+        assert "who" in args
+        assert "name" in args
+        assert "value" in args
+        assert args["prefix"] == "config set"
+        assert args["who"] == "global"
+        assert args["name"] == "osd_pool_default_size"
+        assert args["value"] == "2"
+
+    mocker.patch.object(
+        Mon, "call", new=argscheck
+    )
+    ceph = Ceph()
+    mon = Mon(ceph)
+    mon.set_pool_default_size(2)
