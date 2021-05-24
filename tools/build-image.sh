@@ -115,11 +115,6 @@ if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
 fi
 
-if ! [[ -f /sbin/mkfs.btrfs || -f /bin/mkfs.btrfs ]]; then
-  echo "error: missing btrfsprogs"
-  exit 1
-fi
-
 build=${imgdir}/build/${build_name}
 
 if [[ -e "${build}" && "${clean}" -eq "1" ]]; then
