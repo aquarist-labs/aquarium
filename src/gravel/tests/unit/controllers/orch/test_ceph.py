@@ -131,6 +131,32 @@ def test_set_pool_size(
     mon.set_pool_size("foobar", 2)
 
 
+def test_config_set(
+    ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
+    mocker: MockerFixture
+):
+    from gravel.controllers.orch.ceph import Ceph, Mon
+
+    def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
+        assert "prefix" in args
+        assert "who" in args
+        assert "key" not in args  # config set uses `name`
+        assert "name" in args
+        assert "value" in args
+        assert "force" not in args
+        assert args["prefix"] == "config set"
+        assert args["who"] == "foo"
+        assert args["name"] == "bar"
+        assert args["value"] == "baz"
+
+    mocker.patch.object(
+        Mon, "call", new=argscheck
+    )
+    ceph = Ceph()
+    mon = Mon(ceph)
+    mon.config_set("foo", "bar", "baz")
+
+
 def test_set_pool_default_size(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture
