@@ -79,7 +79,7 @@ export class InstallWizardPageComponent implements OnInit {
           case StatusStageEnum.bootstrapped:
             this.context.stage = 'bootstrapped';
             this.context.stepperVisible = true;
-            // Jump to the 'Devices' step.
+            // Jump to the 'Services' step.
             this.stepper!.selectedIndex = this.pageIndex.services;
             break;
           case StatusStageEnum.ready:
@@ -108,7 +108,7 @@ export class InstallWizardPageComponent implements OnInit {
               case NodeStageEnum.deployed:
                 this.context.stage = 'bootstrapped';
                 this.context.stepperVisible = true;
-                // Jump to the 'Devices' step.
+                // Jump to the 'Services' step.
                 this.stepper!.selectedIndex = this.pageIndex.services;
                 break;
               case NodeStageEnum.none:

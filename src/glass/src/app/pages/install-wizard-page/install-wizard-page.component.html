@@ -86,10 +86,11 @@
               <glass-local-devices-step></glass-local-devices-step>
             </div>
             <div class="glass-install-wizard-step-actions">
-              <button mat-button
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
                       matStepperPrevious>
-                <span translate>Back</span>
-              </button>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>               
               <button mat-button
                       matStepperNext>
                 <span translate>Next</span>
