@@ -1,0 +1,157 @@
+<div class="glass-install-create-wizard-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <div class="glass-install-wizard-page-background"></div>
+  <div class="glass-install-wizard-page-content"
+       [ngClass]="{hidden: !context.stepperVisible}"
+       fxLayout="column"
+       fxLayoutAlign="center center">
+    <mat-card>
+      <mat-card-content>
+        <mat-horizontal-stepper #stepper
+                                linear="false"
+                                labelPosition="bottom">
+          <ng-template matStepperIcon="edit">
+            <mat-icon svgIcon="mdi:check"></mat-icon>
+          </ng-template>
+
+          <mat-step label="{{ 'Start' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <div fxLayout="column"
+                   fxLayoutAlign="center center">
+                <mat-icon class="glass-icon-4x"
+                          svgIcon="aquarium-logo">
+                </mat-icon>
+                <span translate>This wizard will guide you through the installation process to set up a node from scratch.</span>
+              </div>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      class="mat-stepper-back"
+                      routerLink="/installer/install-mode">
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Networking' | translate }}"
+                    [completed]="hostnameStep.completed">
+            <div class="glass-install-wizard-step-content">
+              <glass-hostname-step #hostnameStep
+                                   [context]="context">
+              </glass-hostname-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Time' | translate }}"
+                    [stepControl]="ntpStep.formGroup">
+            <div class="glass-install-wizard-step-content">
+              <glass-ntp-step #ntpStep
+                              [context]="context">
+              </glass-ntp-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Devices' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <glass-local-devices-step></glass-local-devices-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Installation' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <glass-alert-panel type="info">
+                <span translate>Aquarium will now install and setup the core system. All recognized storage devices are automatically assigned. Afterwards, you will be able to configure the services you want to provide.</span>
+              </glass-alert-panel>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button *ngIf="!['bootstrapping', 'bootstrapped'].includes(context.stage)"
+                      mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      class="glass-color-theme-accent"
+                      (click)="startBootstrap()">
+                <span translate>Install</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Services' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <glass-services-step></glass-services-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-button
+                      class="glass-color-theme-accent"
+                      (click)="finishDeployment()">
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Finish' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <div fxLayout="column"
+                   fxLayoutAlign="center center">
+                <mat-icon class="glass-icon-4x"
+                          svgIcon="mdi:check-circle-outline">
+                </mat-icon>
+                <p class="glass-text-center">
+                  <span translate>Your deployment was successful and is now ready to use.</span>
+                  <br>
+                  <span translate>You can now open your dashboard by clicking the button below.</span>
+                </p>
+                <button mat-button
+                        class="glass-color-theme-accent"
+                        routerLink="/dashboard">
+                  <span translate>Go to Dashboard</span>
+                </button>
+              </div>
+            </div>
+          </mat-step>
+        </mat-horizontal-stepper>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

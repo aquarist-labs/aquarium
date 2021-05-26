@@ -1,0 +1,9 @@
+<mat-card [ngClass]="{'glass-color-theme-success': type === 'success', 'glass-color-theme-info': ['info', 'hint'].includes(type), 'glass-color-theme-warn': type === 'warning', 'glass-color-theme-error': type === 'error'}">
+  <div fxLayout="row">
+    <mat-icon mat-card-avatar
+              svgIcon="{{ iconMap[type] }}"></mat-icon>
+    <mat-card-content fxLayoutAlign="center center">
+      <ng-content></ng-content>
+    </mat-card-content>
+  </div>
+</mat-card>

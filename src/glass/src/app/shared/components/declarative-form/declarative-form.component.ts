@@ -14,10 +14,11 @@
  */
 import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
 
+import { GlassValidators } from '~/app/shared/forms/validators';
 import {
   DeclarativeFormConfig,
   FormFieldConfig
@@ -43,7 +44,31 @@ export class DeclarativeFormComponent implements OnInit {
   ) {}
 
   private static createFormControl(field: FormFieldConfig): FormControl {
-    return new FormControl(_.defaultTo(field.value, null));
+    const validators: Array<ValidatorFn> = [];
+    if (field.validators) {
+      if (_.isNumber(field.validators.min)) {
+        validators.push(Validators.min(field.validators.min));
+      }
+      if (_.isNumber(field.validators.max)) {
+        validators.push(Validators.max(field.validators.max));
+      }
+      if (_.isBoolean(field.validators.required) && field.validators.required) {
+        validators.push(Validators.required);
+      }
+      if (_.isString(field.validators.pattern) || _.isRegExp(field.validators.pattern)) {
+        validators.push(Validators.pattern(field.validators.pattern));
+      }
+      if (_.isString(field.validators.patternType)) {
+        switch (field.validators.patternType) {
+          case 'hostAddress':
+            validators.push(GlassValidators.hostAddress());
+            break;
+        }
+      }
+    }
+    return new FormControl(_.defaultTo(field.value, null), {
+      validators
+    });
   }
 
   ngOnInit(): void {
@@ -82,6 +107,12 @@ export class DeclarativeFormComponent implements OnInit {
     this.notificationService.show(messages[success ? 'success' : 'error'], {
       type: success ? 'info' : 'error'
     });
+  }
+
+  onPaste(field: FormFieldConfig, event: ClipboardEvent): void {
+    if (_.isFunction(field.onPaste)) {
+      field.onPaste(event);
+    }
   }
 
   get values(): Record<string, any> {

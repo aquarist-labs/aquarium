@@ -1,0 +1,10 @@
+@import 'styles';
+
+.mat-card {
+  opacity: 0.5;
+
+  &.selected {
+    border: 1px solid $glass-color-accent;
+    opacity: 1;
+  }
+}
