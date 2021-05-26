@@ -1,4 +1,4 @@
-@import '~@angular/material/theming';
+@use '~@angular/material' as mat;
 
 .glass-dashboard-page {
   gridster {
@@ -6,7 +6,7 @@
     background: unset;
 
     gridster-item {
-      @include mat-elevation(1);
+      @include mat.elevation(1);
     }
   }
 }
