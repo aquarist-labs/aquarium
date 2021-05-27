@@ -261,6 +261,21 @@ class Mon:
             logger.exception(e)
             raise NoRulesetError()
 
+    def config_get(self, who: str, name: str) -> Any:
+        cmd = {
+            "prefix": "config get",
+            "who": who,
+            "key": name,
+        }
+        try:
+            value = self.call(cmd)
+        except CephCommandError as e:
+            logger.error(
+                f"mon > unable to get config: {name} on {who}")
+            logger.exception(e)
+            return None
+        return value
+
     def config_set(self, who: str, name: str, value: str) -> bool:
         cmd = {
             "prefix": "config set",
@@ -407,3 +422,16 @@ class Mon:
         }
         results: Dict[str, Any] = self.call(cmd)
         return parse_obj_as(List[CephOSDPoolStatsModel], results)
+
+    def get_pool_default_size(self) -> Optional[int]:
+        return self.config_get("mon", "osd_pool_default_size")
+
+    def set_pool_default_size(self, size: int) -> bool:
+        r = self.config_set(
+            "global",
+            "osd_pool_default_size",
+            str(size)
+        )
+        if not r:
+            logger.error("mon > unable to set osd pool default size: {size}")
+        return r

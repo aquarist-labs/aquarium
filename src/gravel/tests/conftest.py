@@ -11,30 +11,33 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import httpx
+import logging
 import os
-from types import SimpleNamespace
 import pytest
 import sys
+
+from asgi_lifespan import LifespanManager
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
-from _pytest.fixtures import SubRequest
+from pytest_mock import MockerFixture
+from types import SimpleNamespace
 from typing import (
-    Callable,
-    Tuple,
     Any,
     Awaitable,
+    Callable,
     Dict,
+    List,
     Optional,
-    cast
+    Tuple,
+    cast,
 )
-from pytest_mock import MockerFixture
+from _pytest.fixtures import SubRequest
+
 from fastapi import FastAPI
 
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
 
-from asgi_lifespan import LifespanManager
-import httpx
-import logging
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -249,17 +252,17 @@ async def aquarium_startup(
                 return True
 
         class FakeCephadm(Cephadm):
-            async def call(self, cmd: str,
+            async def call(self, cmd: List[str],
                            outcb: Optional[Callable[[str], None]] = None
                            ) -> Tuple[str, str, int]:
                 # Implement expected calls to cephadm with testable responses
-                if cmd == 'pull':
+                if cmd[0] == 'pull':
                     return '', '', 0
-                elif cmd == 'gather-facts':
+                elif cmd[0] == 'gather-facts':
                     return get_data_contents(
                         DATA_DIR,
                         'gather_facts_real.json'), "", 0
-                elif cmd == 'ceph-volume inventory --format=json':
+                elif cmd == ['ceph-volume', 'inventory', '--format', 'json']:
                     return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
                 else:
                     print(cmd)
