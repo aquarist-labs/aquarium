@@ -21,17 +21,15 @@ import { tap } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard-page/models/install-wizard-context.type';
-import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
-import {
-  BootstrapBasicReply,
-  BootstrapService,
-  BootstrapStageEnum,
-  BootstrapStatusReply
-} from '~/app/shared/services/api/bootstrap.service';
 import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
+import {
+  DeploymentBasicReply,
+  DeploymentStatusReply,
+  NodesService,
+  NodeStageEnum
+} from '~/app/shared/services/api/nodes.service';
 import { OrchService } from '~/app/shared/services/api/orch.service';
-import { DialogService } from '~/app/shared/services/dialog.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -55,15 +53,14 @@ export class InstallWizardPageComponent implements OnInit {
   public pageIndex = {
     start: 0,
     networking: 1,
-    installation: 2,
-    devices: 3,
+    localDevices: 2,
+    installation: 3,
     services: 4,
     summary: 5
   };
 
   constructor(
-    private bootstrapService: BootstrapService,
-    private dialogService: DialogService,
+    private nodesService: NodesService,
     private localNodeService: LocalNodeService,
     private notificationService: NotificationService,
     private orchService: OrchService,
@@ -73,7 +70,7 @@ export class InstallWizardPageComponent implements OnInit {
   ngOnInit(): void {
     this.blockUI.start(translate(TEXT(`Please wait, checking system status ...`)));
     forkJoin({
-      bootstrapStatusReply: this.bootstrapService.status(),
+      deploymentStatusReply: this.nodesService.deploymentStatus(),
       nodeStatus: this.localNodeService.status()
     }).subscribe({
       next: (res) => {
@@ -82,8 +79,8 @@ export class InstallWizardPageComponent implements OnInit {
           case StatusStageEnum.bootstrapped:
             this.context.stage = 'bootstrapped';
             this.context.stepperVisible = true;
-            // Jump to the 'Devices' step.
-            this.stepper!.selectedIndex = this.pageIndex.devices;
+            // Jump to the 'Services' step.
+            this.stepper!.selectedIndex = this.pageIndex.services;
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'deployed';
@@ -92,8 +89,8 @@ export class InstallWizardPageComponent implements OnInit {
             this.stepper!.selectedIndex = this.pageIndex.services;
             break;
           default:
-            switch (res.bootstrapStatusReply.stage) {
-              case BootstrapStageEnum.running:
+            switch (res.deploymentStatusReply.stage) {
+              case NodeStageEnum.bootstrapping:
                 this.context.stage = 'bootstrapping';
                 this.context.stepperVisible = true;
                 // Jump to the 'Installation' step.
@@ -102,19 +99,19 @@ export class InstallWizardPageComponent implements OnInit {
                 this.blockUI.start(
                   translate(
                     TEXT(
-                      `Please wait, bootstrapping in progress (${res.bootstrapStatusReply.progress}%) ...`
+                      `Please wait, deployment in progress (${res.deploymentStatusReply.progress}%) ...`
                     )
                   )
                 );
                 this.pollBootstrapStatus();
                 break;
-              case BootstrapStageEnum.done:
+              case NodeStageEnum.deployed:
                 this.context.stage = 'bootstrapped';
                 this.context.stepperVisible = true;
-                // Jump to the 'Devices' step.
-                this.stepper!.selectedIndex = this.pageIndex.devices;
+                // Jump to the 'Services' step.
+                this.stepper!.selectedIndex = this.pageIndex.services;
                 break;
-              case BootstrapStageEnum.none:
+              case NodeStageEnum.none:
                 // Force linear mode.
                 this.stepper!.linear = true;
                 break;
@@ -143,42 +140,10 @@ export class InstallWizardPageComponent implements OnInit {
     );
   }
 
-  startDeviceDeployment(): void {
-    this.dialogService.open(
-      DialogComponent,
-      (decision) => {
-        if (decision) {
-          this.blockUI.start(translate(TEXT('Please wait, device deployment in progress ...')));
-          this.orchService.assimilateDevices().subscribe(
-            (success) => {
-              if (success) {
-                this.pollDeviceDeploymentStatus();
-              } else {
-                this.handleError(TEXT('Failed to start device deployment.'));
-              }
-            },
-            (err) => this.handleError(err)
-          );
-        }
-      },
-      {
-        width: '35%',
-        data: {
-          type: 'yesNo',
-          icon: 'warn',
-          title: TEXT('Deploy devices'),
-          message: TEXT(
-            'This step will erase all data on the listed devices. Are you sure you want to continue?'
-          )
-        }
-      }
-    );
-  }
-
   finishDeployment(): void {
     this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT(`Please wait, finishing deployment ...`)));
-    this.bootstrapService.markFinished().subscribe(
+    this.nodesService.markDeploymentFinished().subscribe(
       (success: boolean) => {
         this.blockUI.stop();
         this.context.stepperVisible = true;
@@ -225,8 +190,8 @@ export class InstallWizardPageComponent implements OnInit {
   private doBootstrap(): void {
     this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
-    this.bootstrapService.start().subscribe({
-      next: (basicReplay: BootstrapBasicReply) => {
+    this.nodesService.deploymentStart().subscribe({
+      next: (basicReplay: DeploymentBasicReply) => {
         if (basicReplay.success) {
           this.context.stage = 'bootstrapping';
           this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
@@ -245,28 +210,28 @@ export class InstallWizardPageComponent implements OnInit {
 
   private pollBootstrapStatus(): void {
     this.context.stepperVisible = false;
-    this.bootstrapService
-      .status()
+    this.nodesService
+      .deploymentStatus()
       .pipe(
-        tap((statusReply: BootstrapStatusReply) => {
+        tap((statusReply: DeploymentStatusReply) => {
           this.blockUI.update(
             translate(TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`))
           );
         }),
         this.pollService.poll(
-          (statusReply) => statusReply.stage === BootstrapStageEnum.running,
+          (statusReply) => statusReply.stage === NodeStageEnum.bootstrapping,
           Infinity,
           TEXT('Failed to bootstrap the system.')
         )
       )
       .subscribe(
-        (statusReply: BootstrapStatusReply) => {
+        (statusReply: DeploymentStatusReply) => {
           switch (statusReply.stage) {
-            case BootstrapStageEnum.error:
+            case NodeStageEnum.error:
               this.handleError(TEXT('Failed to bootstrap the system.'));
               break;
-            case BootstrapStageEnum.none:
-            case BootstrapStageEnum.done:
+            case NodeStageEnum.none:
+            case NodeStageEnum.deployed:
               this.blockUI.update(
                 translate(
                   TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`)
@@ -280,22 +245,6 @@ export class InstallWizardPageComponent implements OnInit {
           }
         },
         () => this.handleError(TEXT('Failed to bootstrap the system.'))
-      );
-  }
-
-  private pollDeviceDeploymentStatus(): void {
-    this.context.stepperVisible = false;
-    this.orchService
-      .assimilateStatus()
-      .pipe(this.pollService.poll((res) => !res, undefined, 'Failed to deploy devices.'))
-      .subscribe(
-        (res) => {
-          this.context.stage = 'deployed';
-          this.context.stepperVisible = true;
-          this.blockUI.stop();
-          this.stepper?.next();
-        },
-        (err) => this.handleError(err)
       );
   }
 }

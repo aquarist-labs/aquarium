@@ -18,20 +18,16 @@ from typing import Awaitable, Callable, Optional
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
 
 
-class BootstrapError(Exception):
-    def __init__(self, msg: Optional[str] = ""):
-        super().__init__()
-        self._msg = msg
-
-    @property
-    def message(self) -> str:
-        return self._msg if self._msg else "bootstrap error"
+class BootstrapError(GravelError):
+    def __init__(self, msg: str = "bootstrap error"):
+        super().__init__(msg=msg)
 
 
 class BootstrapStage(int, Enum):
@@ -41,25 +37,16 @@ class BootstrapStage(int, Enum):
     ERROR = 3
 
 
-class BootstrapErrorEnum(int, Enum):
-    NONE = 0
-    CANT_BOOTSTRAP = 1
-    NODE_NOT_STARTED = 2
-    UNKNOWN_ERROR = 3
-
-
 class Bootstrap:
 
     _stage: BootstrapStage
     _progress: int
-    _error_code: BootstrapErrorEnum
     _error_msg: str
     _gstate: GlobalState
 
     def __init__(self, gstate: GlobalState):
         self._stage = BootstrapStage.NONE
         self._progress = 0
-        self._error_code = BootstrapErrorEnum.NONE
         self._error_msg = ""
         self._gstate = gstate
 
@@ -89,15 +76,10 @@ class Bootstrap:
         return self._progress
 
     @property
-    def error_code(self) -> BootstrapErrorEnum:
-        return self._error_code
-
-    @property
     def error_msg(self) -> str:
         return self._error_msg
 
-    async def set_error(self, code: BootstrapErrorEnum, msg: str) -> None:
-        self._error_code = code
+    async def set_error(self, msg: str) -> None:
         self._error_msg = msg
 
     async def _do_bootstrap(
@@ -121,14 +103,12 @@ class Bootstrap:
         except Exception as e:
             await cb(False, f"error bootstrapping: {str(e)}")
             self._stage = BootstrapStage.ERROR
-            self._error_code = BootstrapErrorEnum.CANT_BOOTSTRAP
             self._error_msg = "error bootstrapping"
             return
 
         if retcode != 0:
             await cb(False, f"error bootstrapping: rc = {retcode}")
             self._stage = BootstrapStage.ERROR
-            self._error_code = BootstrapErrorEnum.CANT_BOOTSTRAP
             self._error_msg = "error bootstrapping"
             return
 

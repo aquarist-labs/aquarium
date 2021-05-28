@@ -18,20 +18,19 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { Device, OrchService } from '~/app/shared/services/api/orch.service';
-import { NotificationService } from '~/app/shared/services/notification.service';
-import { PollService } from '~/app/shared/services/poll.service';
+import { Volume } from '~/app/shared/services/api/local.service';
+import { LocalInventoryService } from '~/app/shared/services/api/local-inventory.service';
 
 @Component({
-  selector: 'glass-devices-step',
+  selector: 'glass-local-devices-step',
   templateUrl: './devices-step.component.html',
   styleUrls: ['./devices-step.component.scss']
 })
-export class DevicesStepComponent implements OnInit {
+export class LocalDevicesStepComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  devices: Device[] = [];
+  devices: Volume[] = [];
   devicesColumns: DatatableColumn[] = [
     {
       name: '',
@@ -51,7 +50,7 @@ export class DevicesStepComponent implements OnInit {
     },
     {
       name: TEXT('Size'),
-      prop: 'size',
+      prop: 'sys_api.size',
       sortable: true,
       pipe: new BytesToSizePipe()
     },
@@ -63,40 +62,13 @@ export class DevicesStepComponent implements OnInit {
     }
   ];
 
-  constructor(
-    private notificationService: NotificationService,
-    private orchService: OrchService,
-    private pollService: PollService
-  ) {}
+  constructor(private localInventoryService: LocalInventoryService) {}
 
   ngOnInit(): void {
-    this.getDevices();
-  }
-
-  getDevices(): void {
-    this.blockUI.start(TEXT('Please wait, fetching device information ...'));
-    this.orchService
-      .devices()
-      .pipe(
-        this.pollService.poll(
-          (hostDevices): boolean => !Object.values(hostDevices).some((v) => v.devices.length),
-          10,
-          TEXT('Failed to fetch device information')
-        )
-      )
-      .subscribe(
-        (hostDevices) => {
-          Object.values(hostDevices).forEach((v) => {
-            this.devices = this.devices.concat(v.devices);
-          });
-          this.blockUI.stop();
-        },
-        (err) => {
-          this.blockUI.stop();
-          this.notificationService.show(err.toString(), {
-            type: 'error'
-          });
-        }
-      );
+    this.localInventoryService.getDevices().subscribe({
+      next: (devices: Volume[]) => {
+        this.devices = devices;
+      }
+    });
   }
 }

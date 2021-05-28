@@ -32,7 +32,6 @@ from gravel.controllers.resources.storage import Storage
 from gravel.controllers.services import Services
 
 from gravel.api import (
-    bootstrap,
     orch,
     status,
     services,
@@ -119,10 +118,6 @@ def aquarium_factory(
             "description": "Operations local to the node where the endpoint is being invoked."
         },
         {
-            "name": "bootstrap",
-            "description": "Allows creating a minimal cluster on the node."
-        },
-        {
             "name": "orch",
             "description": "Operations related to Ceph cluster orchestration."
         },
@@ -162,7 +157,6 @@ def aquarium_factory(
         await shutdown_method(aquarium_app, aquarium_api)
 
     aquarium_api.include_router(local.router)
-    aquarium_api.include_router(bootstrap.router)
     aquarium_api.include_router(orch.router)
     aquarium_api.include_router(status.router)
     aquarium_api.include_router(services.router)

@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 
+import asyncio
 from enum import Enum
 from logging import Logger
 from pathlib import Path
@@ -35,7 +36,7 @@ from gravel.controllers.nodes.conn import ConnMgr
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeBootstrappingError,
-    NodeCantBootstrapError,
+    NodeCantDeployError,
     NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError
@@ -49,6 +50,7 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel
 )
 from gravel.controllers.nodes.etcd import spawn_etcd
+from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
@@ -63,14 +65,36 @@ class NodeStageEnum(int, Enum):
     ERROR = 5
 
 
+class ProgressEnum(int, Enum):
+    NONE = 0
+    PREPARING = 1
+    PERFORMING = 2
+    ASSIMILATING = 3
+    DONE = 4
+
+
 class DeploymentModel(BaseModel):
     stage: NodeStageEnum = Field(NodeStageEnum.NONE)
 
 
-class DeploymentBootstrapConfig(BaseModel):
+class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
+
+
+class DeploymentErrorEnum(int, Enum):
+    NONE = 0
+    CANT_BOOTSTRAP = 1
+    NODE_NOT_STARTED = 2
+    CANT_JOIN = 3
+    CANT_ASSIMILATE = 4
+    UNKNOWN_ERROR = 5
+
+
+class DeploymentErrorState(BaseModel):
+    code: DeploymentErrorEnum
+    msg: Optional[str]
 
 
 class DeploymentError(GravelError):
@@ -81,10 +105,14 @@ class DeploymentState:
 
     _stage: NodeStageEnum
     _gstate: GlobalState
+    _error: DeploymentErrorState
 
     def __init__(self, gstate: GlobalState):
         self._gstate = gstate
         self._stage = NodeStageEnum.NONE
+        self._error = DeploymentErrorState(
+            code=DeploymentErrorEnum.NONE, msg=None
+        )
 
         self._load_stage()
 
@@ -134,6 +162,10 @@ class DeploymentState:
     def error(self) -> bool:
         return self._stage == NodeStageEnum.ERROR
 
+    @property
+    def error_what(self) -> DeploymentErrorState:
+        return self._error
+
     def can_start(self) -> bool:
         return (
             self._stage == NodeStageEnum.NONE or
@@ -157,8 +189,11 @@ class DeploymentState:
         self._stage = NodeStageEnum.DEPLOYED
         self._save_stage()
 
-    def mark_error(self) -> None:
+    def mark_error(self, code: DeploymentErrorEnum, msg: str) -> None:
         self._stage = NodeStageEnum.ERROR
+        self._error = DeploymentErrorState(
+            code=code, msg=msg
+        )
         self._save_stage()
 
     def mark_ready(self) -> None:
@@ -173,6 +208,7 @@ class NodeDeployment:
     _gstate: GlobalState
     _connmgr: ConnMgr
     _bootstrapper: Optional[Bootstrap]
+    _progress: ProgressEnum
 
     def __init__(
         self,
@@ -183,6 +219,7 @@ class NodeDeployment:
         self._connmgr = connmgr
         self._state = DeploymentState(gstate)
         self._bootstrapper = None
+        self._progress = ProgressEnum.NONE
 
     @property
     def state(self) -> DeploymentState:
@@ -191,6 +228,36 @@ class NodeDeployment:
     @property
     def bootstrapper(self) -> Optional[Bootstrap]:
         return self._bootstrapper
+
+    @property
+    def progress(self) -> int:
+        if self.state.deployed:
+            return 100
+        elif self.state.error or self.state.nostage:
+            return 0
+
+        if not self._bootstrapper:
+            return 0  # we only handle bootstrap atm
+
+        bounds = [
+            (ProgressEnum.NONE, 0, 0),
+            (ProgressEnum.PREPARING, 0, 25),
+            (ProgressEnum.PERFORMING, 25, 80),
+            # cheat on assimilate because we don't have real progress atm.
+            (ProgressEnum.ASSIMILATING, 80, 90),
+            (ProgressEnum.DONE, 100, 100)
+        ]
+        for pname, pmin, pmax in bounds:
+            if pname != self._progress:
+                continue
+            if pname != ProgressEnum.PERFORMING:
+                return pmax  # return the max of whatever state we're in
+            # we are performing the operation, which atm means bootstrapping
+            delta = pmax - pmin
+            bootstrap_progress = self._bootstrapper.progress
+            return pmin + int((bootstrap_progress * delta) / 100)
+
+        return 0
 
     async def join(
         self,
@@ -239,7 +306,10 @@ class NodeDeployment:
             errmsg = ErrorMessageModel.parse_obj(reply.data)
             logger.error(f"join > error: {errmsg.what}")
             await conn.close()
-            self._state.mark_error()
+            self._state.mark_error(
+                code=DeploymentErrorEnum.CANT_JOIN,
+                msg=errmsg.what
+            )
             return False
 
         assert reply.type == MessageTypeEnum.WELCOME
@@ -297,9 +367,9 @@ class NodeDeployment:
     ) -> None:
         assert self._state
         if self._state.bootstrapping:
-            raise NodeCantBootstrapError("node bootstrapping")
+            raise NodeCantDeployError("node being deployed")
         elif not self._state.nostage:
-            raise NodeCantBootstrapError("node can't be bootstrapped")
+            raise NodeCantDeployError("node can't be deployed")
 
         await spawn_etcd(
             self._gstate,
@@ -309,9 +379,10 @@ class NodeDeployment:
             address=address
         )
 
-    async def bootstrap(
+    async def deploy(
         self,
-        config: DeploymentBootstrapConfig,
+        config: DeploymentConfig,
+        post_bootstrap_cb: Callable[[bool, Optional[str]], Awaitable[None]],
         finisher: Callable[[bool, Optional[str]], Awaitable[None]]
     ) -> None:
 
@@ -324,7 +395,7 @@ class NodeDeployment:
         token = config.token
 
         if self._state.error:
-            raise NodeCantBootstrapError("node is in error state")
+            raise NodeCantDeployError("node is in error state")
 
         async def _start() -> None:
             assert self._state
@@ -338,10 +409,42 @@ class NodeDeployment:
             if not success:
                 logger.error(f"bootstrap finish error: {error}")
                 assert self._state.bootstrapping
-                self._state.mark_error()
-            await finisher(success, error)
+                if not error:
+                    error = "unable to bootstrap"
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_BOOTSTRAP,
+                    msg=error
+                )
+            await post_bootstrap_cb(success, error)
+            await _assimilate_devices()
+
+        async def _assimilate_devices() -> None:
+            logger.debug("deployment > assimilating devices")
+            self._progress = ProgressEnum.ASSIMILATING
+            try:
+                orch = Orchestrator(self._gstate.ceph_mgr)
+                orch.assimilate_all_devices()
+
+                # wait a few seconds so the orchestrator settles down
+                await asyncio.sleep(5.0)
+                while not orch.all_devices_assimilated():
+                    await asyncio.sleep(1.0)
+
+                logger.debug("deployment > devices assimilated")
+                self._progress = ProgressEnum.DONE
+                await finisher(True, None)
+
+            except Exception as e:
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_ASSIMILATE,
+                    msg=str(e)
+                )
+                logger.error("unable to assimilate devices")
+                logger.exception(e)
+                await finisher(False, str(e))
 
         try:
+            self._progress = ProgressEnum.PREPARING
             await self._prepare_etcd(hostname, address, token)
         except NodeError as e:
             logger.error(f"bootstrap prepare error: {e.message}")
@@ -352,14 +455,19 @@ class NodeDeployment:
         self._bootstrapper = Bootstrap(self._gstate)
 
         try:
+            self._progress = ProgressEnum.PERFORMING
             await self._bootstrapper.bootstrap(
                 address, finish_bootstrap_cb
             )
         except BootstrapError as e:
             logger.error(f"bootstrap error: {e.message}")
-            raise NodeCantBootstrapError(e.message)
+            self._state.mark_error(
+                code=DeploymentErrorEnum.CANT_BOOTSTRAP,
+                msg=e.message
+            )
+            raise NodeCantDeployError(e.message)
 
     def finish_deployment(self) -> None:
         assert self.state.bootstrapping
-        logger.info("finishing bootstrap")
+        logger.info("finishing deployment")
         self._state.mark_deployed()

@@ -30,12 +30,8 @@ from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
-from gravel.controllers.nodes.bootstrap import (
-    BootstrapErrorEnum,
-    BootstrapStage
-)
 from gravel.controllers.nodes.deployment import (
-    DeploymentBootstrapConfig,
+    DeploymentConfig,
     DeploymentState,
     NodeDeployment
 )
@@ -47,11 +43,11 @@ from gravel.controllers.orch.ceph import (
 from gravel.controllers.nodes.errors import (
     NodeCantJoinError,
     NodeNetworkAddressNotAvailable,
-    NodeNotBootstrappedError,
+    NodeNotDeployedError,
     NodeNotStartedError,
     NodeShuttingDownError,
     NodeAlreadyJoiningError,
-    NodeCantBootstrapError,
+    NodeCantDeployError,
     NodeError
 )
 from gravel.controllers.nodes.conn import (
@@ -329,16 +325,16 @@ class NodeMgr:
         await self._node_start()
         return True
 
-    async def bootstrap(self) -> None:
+    async def deploy(self) -> None:
 
         assert self._state
         if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
 
         if self.deployment_state.error:
-            raise NodeCantBootstrapError("node is in error state")
+            raise NodeCantDeployError("node is in error state")
 
-        logger.debug("bootstrap - unsubscribe inventory updates")
+        logger.debug("deploy > unsubscribe inventory updates")
         if self._inventory_sub:
             self.gstate.inventory.unsubscribe(self._inventory_sub)
 
@@ -346,32 +342,43 @@ class NodeMgr:
 
         assert self._state.hostname
         assert self._state.address
-        logger.info("bootstrap node")
-        await self._deployment.bootstrap(
-            DeploymentBootstrapConfig(
+        logger.info("deploy node")
+        await self._deployment.deploy(
+            DeploymentConfig(
                 hostname=self._state.hostname,
                 address=self._state.address,
                 token=self._token
             ),
-            self._finish_bootstrap
+            self._post_bootstrap_finisher,
+            self._finish_deployment
         )
         await self._save_token()
 
-    async def _finish_bootstrap(self, success: bool, error: Optional[str]):
+    async def _post_bootstrap_finisher(
+        self,
+        success: bool,
+        error: Optional[str]
+    ) -> None:
         """
         Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
 
-        logger.info("finish bootstrap config")
-        await self._finish_bootstrap_config()
+        logger.info("finish deployment config")
+        await self._post_bootstrap_config()
+
+    async def _finish_deployment(
+        self,
+        success: bool,
+        error: Optional[str]
+    ) -> None:
         self._deployment.finish_deployment()
 
         logger.debug(f"finished deployment: token = {self._token}")
         await self._load()
         await self._node_start()
 
-    async def _finish_bootstrap_config(self) -> None:
+    async def _post_bootstrap_config(self) -> None:
         mon: Mon = self.gstate.ceph_mon
         try:
             mon.set_allow_pool_size_one()
@@ -405,33 +412,13 @@ class NodeMgr:
         elif self.deployment_state.joining:
             raise NodeAlreadyJoiningError()
         elif not self.deployment_state.deployed:
-            raise NodeNotBootstrappedError()
+            raise NodeNotDeployedError()
 
         self.deployment_state.mark_ready()
 
     @property
-    def bootstrapper_stage(self) -> BootstrapStage:
-        if not self._deployment.bootstrapper:
-            return BootstrapStage.NONE
-        return self._deployment.bootstrapper.stage
-
-    @property
-    def bootstrapper_progress(self) -> int:
-        if not self._deployment.bootstrapper:
-            return 0
-        return self._deployment.bootstrapper.progress
-
-    @property
-    def bootstrapper_error_code(self) -> BootstrapErrorEnum:
-        if not self._deployment.bootstrapper:
-            return BootstrapErrorEnum.NONE
-        return self._deployment.bootstrapper.error_code
-
-    @property
-    def bootstrapper_error_msg(self) -> str:
-        if not self._deployment.bootstrapper:
-            return ""
-        return self._deployment.bootstrapper.error_msg
+    def deployment_progress(self) -> int:
+        return self._deployment.progress
 
     @property
     def deployment_state(self) -> DeploymentState:

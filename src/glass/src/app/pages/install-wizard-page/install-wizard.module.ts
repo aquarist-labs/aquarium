@@ -20,8 +20,8 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { MaterialModule } from '~/app/material.modules';
 import { InstallWizardPageComponent } from '~/app/pages/install-wizard-page/install-wizard-page.component';
-import { DevicesStepComponent } from '~/app/pages/install-wizard-page/steps/devices-step/devices-step.component';
 import { HostDetailsStepComponent } from '~/app/pages/install-wizard-page/steps/host-details-step/host-details-step.component';
+import { LocalDevicesStepComponent } from '~/app/pages/install-wizard-page/steps/local-devices-step/devices-step.component';
 import { NetworkingStepComponent } from '~/app/pages/install-wizard-page/steps/networking-step/networking-step.component';
 import { ServicesStepComponent } from '~/app/pages/install-wizard-page/steps/services-step/services-step.component';
 import { SharedModule } from '~/app/shared/shared.module';
@@ -31,8 +31,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     InstallWizardPageComponent,
     NetworkingStepComponent,
     HostDetailsStepComponent,
-    DevicesStepComponent,
-    ServicesStepComponent
+    ServicesStepComponent,
+    LocalDevicesStepComponent
   ],
   imports: [
     CommonModule,

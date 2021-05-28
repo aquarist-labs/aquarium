@@ -81,6 +81,23 @@
             </div>
           </mat-step>
 
+          <mat-step label="{{ 'Devices' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <glass-local-devices-step></glass-local-devices-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>               
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
           <mat-step label="{{ 'Installation' | translate }}">
             <div class="glass-install-wizard-step-content">
               <span translate>Aquarium will now install and setup the core system. All recognized storage devices are automatically assigned. Afterwards, you will be able to configure the services you want to provide.</span>
@@ -95,19 +112,6 @@
               <button mat-button
                       class="glass-color-theme-accent"
                       (click)="startBootstrap()">
-                <span translate>Next</span>
-              </button>
-            </div>
-          </mat-step>
-
-          <mat-step label="{{ 'Devices' | translate }}">
-            <div class="glass-install-wizard-step-content">
-              <glass-devices-step *ngIf="pageIndex.devices === stepper.selectedIndex"></glass-devices-step>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button mat-button
-                      class="glass-color-theme-accent"
-                      (click)="startDeviceDeployment()">
                 <span translate>Next</span>
               </button>
             </div>

@@ -30,4 +30,16 @@ describe('NodesService', () => {
     const req = httpTesting.expectOne('api/nodes/token');
     expect(req.request.method).toBe('GET');
   });
+
+  it('should call deployment start', () => {
+    service.deploymentStart().subscribe();
+    const req = httpTesting.expectOne('api/nodes/deployment/start');
+    expect(req.request.method).toBe('POST');
+  });
+
+  it('should call deployment status', () => {
+    service.deploymentStatus().subscribe();
+    const req = httpTesting.expectOne('api/nodes/deployment/status');
+    expect(req.request.method).toBe('GET');
+  });
 });

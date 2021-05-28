@@ -34,7 +34,7 @@ class NodeHasBeenDeployedError(NodeError):
     pass
 
 
-class NodeNotBootstrappedError(NodeError):
+class NodeNotDeployedError(NodeError):
     pass
 
 
@@ -50,7 +50,7 @@ class NodeCantJoinError(NodeError):
     pass
 
 
-class NodeCantBootstrapError(NodeError):
+class NodeCantDeployError(NodeError):
     pass
 
 

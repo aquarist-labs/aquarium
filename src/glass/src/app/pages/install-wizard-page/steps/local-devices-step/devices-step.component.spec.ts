@@ -2,14 +2,13 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
-import { ToastrModule } from 'ngx-toastr';
 
-import { DevicesStepComponent } from '~/app/pages/install-wizard-page/steps/devices-step/devices-step.component';
+import { LocalDevicesStepComponent } from '~/app/pages/install-wizard-page/steps/local-devices-step/devices-step.component';
 import { PagesModule } from '~/app/pages/pages.module';
 
-describe('DevicesStepComponent', () => {
-  let component: DevicesStepComponent;
-  let fixture: ComponentFixture<DevicesStepComponent>;
+describe('LocalDevicesStepComponent', () => {
+  let component: LocalDevicesStepComponent;
+  let fixture: ComponentFixture<LocalDevicesStepComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -17,14 +16,13 @@ describe('DevicesStepComponent', () => {
         HttpClientTestingModule,
         NoopAnimationsModule,
         PagesModule,
-        ToastrModule.forRoot(),
         TranslateModule.forRoot()
       ]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DevicesStepComponent);
+    fixture = TestBed.createComponent(LocalDevicesStepComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
