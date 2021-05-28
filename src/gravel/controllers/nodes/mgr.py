@@ -341,7 +341,7 @@ class NodeMgr:
         await self._node_start()
         return True
 
-    async def deploy(self) -> None:
+    async def deploy(self, ntp_addr: str) -> None:
 
         assert self._state
         if self._init_stage < NodeInitStage.AVAILABLE:
@@ -370,7 +370,8 @@ class NodeMgr:
                 hostname=self._state.hostname,
                 address=self._state.address,
                 token=self._token,
-                systemdisk=disk_solution.systemdisk.path
+                systemdisk=disk_solution.systemdisk.path,
+                ntp_addr=ntp_addr
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment

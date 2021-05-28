@@ -77,6 +77,10 @@ class TokenReplyModel(BaseModel):
     token: str
 
 
+class StartDeploymentRequest(BaseModel):
+    ntpaddr: str = Field(title="NTP server address")
+
+
 @router.get("/deployment/disksolution", response_model=DiskSolution)
 async def node_get_disk_solution(request: Request) -> DiskSolution:
     """
@@ -95,7 +99,8 @@ async def node_get_disk_solution(request: Request) -> DiskSolution:
 
 
 @router.post("/deployment/start", response_model=DeployStartReplyModel)
-async def node_deploy(request: Request) -> DeployStartReplyModel:
+async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
+        -> DeployStartReplyModel:
     """
     Start deploying this node. The host will be configured according to user
     specification; a minimal Ceph cluster will be bootstrapped; and a token for
@@ -110,7 +115,7 @@ async def node_deploy(request: Request) -> DeployStartReplyModel:
     error = DeployErrorModel()
 
     try:
-        await request.app.state.nodemgr.deploy()
+        await request.app.state.nodemgr.deploy(req_params.ntpaddr)
     except NodeCantDeployError as e:
         logger.error(f"api > can't deploy: {e.message}")
         success = False

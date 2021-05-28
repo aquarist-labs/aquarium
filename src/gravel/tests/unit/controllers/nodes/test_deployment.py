@@ -201,6 +201,7 @@ async def test_deploy(
     )
     deployment = NodeDeployment(gstate, fake_connmgr)
     deployment._prepare_etcd = mocker.AsyncMock()
+    deployment._set_ntp_addr = mocker.AsyncMock()
     mocker.patch.object(
         Bootstrap,
         "bootstrap",
@@ -235,7 +236,8 @@ async def test_deploy(
             hostname="foobar",
             address="127.0.0.1",
             token="myfancytoken",
-            systemdisk="/dev/foobar"
+            systemdisk="/dev/foobar",
+            ntp_addr="my.ntp.test"
         ),
         post_bootstrap_cb=postbootstrap_cb,
         finisher=finisher_cb
