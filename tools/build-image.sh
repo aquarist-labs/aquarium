@@ -27,7 +27,10 @@ usage: $0 [options]
 options:
   -n NAME | --name NAME     Specify build name (default: aquarium).
   -c | --clean              Cleanup an existing build directory before building.
-  -t | --type IMGTYPE       Specify image type (default: vagrant)
+  -t | --type IMGTYPE       Specify image type (default: vagrant).
+  --rootdir PATH            Path to repository's root.
+  --buildsdir PATH          Path to output builds directory.
+  --cachedir PATH           Path to kiwi's shared cache directory.
   -h | --help               This message.
 
 allowed image types:
@@ -50,22 +53,12 @@ error_exit() {
     exit 1
 }
 
-find_root || exit 1
-[[ -z "${rootdir}" ]] && \
-  error_exit "unable to find repository's root dir"
-
-imgdir=${rootdir}/images
-srcdir=${rootdir}/src
-
-[[ ! -d "${imgdir}" ]] && \
-  error_exit "unable to find 'images' directory at ${rootdir}"
-
-[[ ! -d "${srcdir}" ]] && \
-  error_exit "unable to find 'src' directory at ${rootdir}" 
-
 imgtype="vagrant"
 build_name="aquarium"
 clean=0
+
+buildsdir=
+cachedir=
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -80,6 +73,18 @@ while [[ $# -gt 0 ]]; do
       imgtype=$2
       shift 1
       ;;
+    --rootdir)
+      rootdir=$2
+      shift 1
+      ;;
+    --buildsdir)
+      buildsdir=$2
+      shift 1
+      ;;
+    --cachedir)
+      cachedir=$2
+      shift 1
+      ;;
     -h|--help)
       usage
       exit 0
@@ -90,6 +95,25 @@ while [[ $# -gt 0 ]]; do
   esac
   shift 1
 done
+
+if [[ -z "${rootdir}" ]]; then
+  find_root || exit 1
+fi
+
+[[ -z "${rootdir}" ]] && \
+  error_exit "unable to find repository's root dir"
+
+imgdir=${rootdir}/images
+srcdir=${rootdir}/src
+
+[[ -z "${buildsdir}" ]] && buildsdir=${imgdir}/build
+
+[[ ! -d "${imgdir}" ]] && \
+  error_exit "unable to find 'images' directory at ${rootdir}"
+
+[[ ! -d "${srcdir}" ]] && \
+  error_exit "unable to find 'src' directory at ${rootdir}" 
+
 
 [[ -z "${build_name}" ]] && \
   usage_error_exit "missing build name"
@@ -115,12 +139,7 @@ if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
 fi
 
-if ! [[ -f /sbin/mkfs.btrfs || -f /bin/mkfs.btrfs ]]; then
-  echo "error: missing btrfsprogs"
-  exit 1
-fi
-
-build=${imgdir}/build/${build_name}
+build=${buildsdir}/${build_name}
 
 if [[ -e "${build}" && "${clean}" -eq "1" ]]; then
   echo "warning: removing existing build '${build_name}'"
@@ -138,7 +157,10 @@ set -x
 mkdir -p ${build}
 
 rm -f ${rootdir}/aquarium*.tar.gz
+pushd ${rootdir}
 make dist
+popd
+
 # At this point, we have a dist tarball (aquarium-$version.tar.gz), which
 # has paths prefixed with aquarium-$version.  When using the tarball inside
 # kiwi though, we need it to have bare /usr/... paths, so it's extracted
@@ -169,11 +191,14 @@ cp ${imgdir}/microOS/config.{sh,xml} \
 
 mkdir ${build}/{_out,_logs}
 
+kiwiargs=
+[[ -n "${cachedir}" ]] && kiwiargs="--shared-cache-dir=${cachedir}"
+
 osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
 case $osid in
   opensuse-tumbleweed | opensuse-leap)
     (set -o pipefail
-    sudo kiwi-ng --debug --profile=${profile} --type ${type}\
+    sudo kiwi-ng ${kiwiargs} --debug --profile=${profile} --type ${type}\
       system build --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
@@ -181,7 +206,7 @@ case $osid in
     ;;
   debian | ubuntu)
     (set -o pipefail
-    sudo kiwi-ng --debug --profile=${profile} --type ${type}\
+    sudo kiwi-ng ${kiwiargs} --debug --profile=${profile} --type ${type}\
       system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
