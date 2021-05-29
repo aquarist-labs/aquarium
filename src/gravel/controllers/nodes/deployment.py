@@ -50,6 +50,7 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel
 )
 from gravel.controllers.nodes.etcd import spawn_etcd
+from gravel.controllers.nodes.systemdisk import SystemDisk
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -81,6 +82,7 @@ class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
+    systemdisk: str
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -396,6 +398,13 @@ class NodeDeployment:
 
         if self._state.error:
             raise NodeCantDeployError("node is in error state")
+
+        systemdisk = SystemDisk(self._gstate)
+        try:
+            await systemdisk.create(config.systemdisk)
+            await systemdisk.enable()
+        except GravelError as e:
+            raise NodeCantDeployError(e.message)
 
         async def _start() -> None:
             assert self._state

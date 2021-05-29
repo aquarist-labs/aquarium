@@ -69,6 +69,7 @@ from gravel.controllers.orch.orchestrator import (
     OrchHostListModel,
 )
 from gravel.controllers.resources.inventory_sub import Subscriber
+from gravel.controllers.nodes.disks import Disks
 
 
 logger: Logger = fastapi_logger
@@ -340,6 +341,12 @@ class NodeMgr:
 
         self._token = self._generate_token()
 
+        disk_solution = Disks.gen_solution(self.gstate)
+        if not disk_solution.possible:
+            raise NodeCantDeployError("no possible deployment solution found")
+        assert disk_solution.systemdisk is not None
+        logger.debug(f"mgr > deploy > disk solution: {disk_solution}")
+
         assert self._state.hostname
         assert self._state.address
         logger.info("deploy node")
@@ -347,7 +354,8 @@ class NodeMgr:
             DeploymentConfig(
                 hostname=self._state.hostname,
                 address=self._state.address,
-                token=self._token
+                token=self._token,
+                systemdisk=disk_solution.systemdisk.path
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment
