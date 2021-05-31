@@ -175,18 +175,18 @@ popd
 rm -rf ${tmpdir}
 
 # Extra files needed in system root
-pushd ${imgdir}/microOS/root
+pushd ${imgdir}/aquarium/root
 tar --owner root --group root -czf ${build}/root.tar.gz .
 popd
 
 # Extra files needed in system root for live image
-pushd ${imgdir}/microOS/aquarium_root
+pushd ${imgdir}/aquarium/aquarium_root
 tar --owner root --group root -czf ${build}/aquarium_user.tar.gz .
 popd
 
 
-cp ${imgdir}/microOS/config.{sh,xml} \
-   ${imgdir}/microOS/disk.sh \
+cp ${imgdir}/aquarium/config.{sh,xml} \
+   ${imgdir}/aquarium/disk.sh \
    ${build}/
 
 mkdir ${build}/{_out,_logs}
