@@ -4,6 +4,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { MaterialModule } from '~/app/material.modules';
+import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-panel.component';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
@@ -21,7 +22,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     LanguageButtonComponent,
     TokenInputComponent,
     WidgetComponent,
-    DeclarativeFormComponent
+    DeclarativeFormComponent,
+    AlertPanelComponent
   ],
   exports: [
     SubmitButtonComponent,
@@ -30,7 +32,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     LanguageButtonComponent,
     TokenInputComponent,
     WidgetComponent,
-    DeclarativeFormComponent
+    DeclarativeFormComponent,
+    AlertPanelComponent
   ],
   imports: [CommonModule, FlexLayoutModule, MaterialModule, PipesModule, TranslateModule.forChild()]
 })

@@ -46,7 +46,15 @@ $glass-color-accent-complementary: white;
 }
 .glass-color-theme-warn {
   color: $glass-color-black;
-  background-color: $eos-bc-yellow-500;
+  background-color: $glass-color-warning;
+}
+.glass-color-theme-info {
+  color: $glass-color-white;
+  background-color: $glass-color-info;
+}
+.glass-color-theme-success {
+  color: $glass-color-white;
+  background-color: $glass-color-success;
 }
 
 .glass-background-color-primary {
@@ -64,7 +72,7 @@ $glass-color-accent-complementary: white;
 }
 .glass-color-green,
 .glass-color-success {
-  color: $eos-bc-green-500;
+  color: $glass-color-success;
 }
 .glass-color-red,
 .glass-color-error {

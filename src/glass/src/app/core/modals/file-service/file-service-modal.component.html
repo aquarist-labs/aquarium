@@ -1,18 +1,12 @@
 <div class="glass-fileservice-modal">
-  <mat-card *ngIf="showWarning"
-            class="warning">
-    <mat-card-content fxLayout="row">
-      <mat-icon class="glass-icon-2x"
-                svgIcon="mdi:alert"></mat-icon>
-      <div class="text"
-           fxLayout="column"
-           fxLayoutAlign="center center">
-        <span *ngFor="let warning of showWarningText">
-          {{ warning }}
-        </span>
-      </div>
-    </mat-card-content>
-  </mat-card>
+  <glass-alert-panel *ngIf="showWarning"
+                     type="warning">
+    <div fxLayout="column">
+      <span *ngFor="let warning of showWarningText">
+        {{ warning }}
+      </span>
+    </div>
+  </glass-alert-panel>
   <h1 mat-dialog-title
       translate>
     {{ title }}

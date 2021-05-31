@@ -15,11 +15,12 @@ from logging import Logger
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
 from fastapi import HTTPException, status, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict, List
-from gravel.controllers.orch.models import OrchDevicesPerHostModel
 
-from gravel.controllers.orch.ntp import set_address
+from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.orch.models import OrchDevicesPerHostModel
+from gravel.controllers.orch.system import set_hostname, set_ntp
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
 
@@ -52,6 +53,10 @@ class HostsDevicesModel(BaseModel):
     address: str
     hostname: str
     devices: List[DeviceModel]
+
+
+class SetHostnameRequest(BaseModel):
+    name: str = Field(min_length=1, title="The system hostname")
 
 
 class SetNtpRequest(BaseModel):
@@ -134,9 +139,22 @@ async def get_pubkey(request: Request) -> str:
 
 
 @router.put("/ntp", response_model=bool)
-async def set_ntp(req: SetNtpRequest) -> bool:
+async def put_ntp(req: SetNtpRequest) -> bool:
     try:
-        return set_address(req.addr)
+        return set_ntp(req.addr)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
+
+
+@router.put("/hostname", response_model=bool)
+async def put_hostname(request: Request, req: SetHostnameRequest) -> bool:
+    nodemgr: NodeMgr = request.app.state.nodemgr
+    if nodemgr.deployment_state.deployed or nodemgr.deployment_state.ready:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Node already deployed")
+    try:
+        return set_hostname(req.name)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))

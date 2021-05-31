@@ -1,0 +1,11 @@
+@import 'styles.scss';
+
+.mat-card {
+  .mat-icon {
+    @extend .glass-icon-2x;
+    margin-right: 16px;
+  }
+  .mat-card-content {
+    margin-bottom: unset;
+  }
+}

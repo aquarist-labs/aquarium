@@ -12,6 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/* eslint-disable max-len */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
@@ -22,8 +23,8 @@ import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
-import { InstallRegisterPageComponent } from '~/app/pages/install-register-page/install-register-page.component';
-import { InstallWizardPageComponent } from '~/app/pages/install-wizard-page/install-wizard-page.component';
+import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
+import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { ServicesPageComponent } from '~/app/pages/services-page/services-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
@@ -61,11 +62,11 @@ const routes: Routes = [
       { path: 'welcome', component: WelcomePageComponent },
       {
         path: 'create',
-        children: [{ path: 'wizard', component: InstallWizardPageComponent }]
+        component: InstallCreateWizardPageComponent
       },
       {
         path: 'join',
-        children: [{ path: 'register', component: InstallRegisterPageComponent }]
+        component: InstallJoinWizardPageComponent
       }
     ]
   },

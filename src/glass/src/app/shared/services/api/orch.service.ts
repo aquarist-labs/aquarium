@@ -43,6 +43,10 @@ export type SetNtpRequest = {
   addr: string;
 };
 
+export type SetHostnameRequest = {
+  name: string;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,10 +72,16 @@ export class OrchService {
   /**
    * Set NTP
    */
-  setNtp(_addr: string): Observable<boolean> {
-    const request: SetNtpRequest = {
-      addr: _addr
-    };
+  setNtp(addr: string): Observable<boolean> {
+    const request: SetNtpRequest = { addr };
     return this.http.put<boolean>(`${this.url}/ntp`, request);
+  }
+
+  /**
+   * Setup hostname
+   */
+  setHostname(name: string): Observable<boolean> {
+    const request: SetHostnameRequest = { name };
+    return this.http.put<boolean>(`${this.url}/hostname`, request);
   }
 }

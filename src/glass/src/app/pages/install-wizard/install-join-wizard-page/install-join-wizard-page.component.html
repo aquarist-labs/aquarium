@@ -1,0 +1,127 @@
+<div class="glass-install-join-wizard-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <div class="glass-install-wizard-page-background"></div>
+  <div class="glass-install-wizard-page-content"
+       [ngClass]="{hidden: !context.stepperVisible}"
+       fxLayout="column"
+       fxLayoutAlign="center center">
+    <mat-card>
+      <mat-card-content>
+        <mat-horizontal-stepper #stepper
+                                linear="false"
+                                labelPosition="bottom">
+          <ng-template matStepperIcon="edit">
+            <mat-icon svgIcon="mdi:check"></mat-icon>
+          </ng-template>
+
+          <mat-step label="{{ 'Start' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <div fxLayout="column"
+                   fxLayoutAlign="center center">
+                <mat-icon class="glass-icon-4x"
+                          svgIcon="aquarium-logo">
+                </mat-icon>
+                <span translate>This wizard will guide you through the process to join this node with an existing cluster.</span>
+              </div>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      class="mat-stepper-back"
+                      routerLink="/installer/install-mode">
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Networking' | translate }}"
+                    [completed]="hostnameStep.completed">
+            <div class="glass-install-wizard-step-content">
+              <glass-hostname-step #hostnameStep
+                                   [context]="context">
+              </glass-hostname-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Registration' | translate }}"
+                    [completed]="registerStep.completed">
+            <div class="glass-install-wizard-step-content">
+              <glass-registration-step #registerStep
+                                       [context]="context">
+              </glass-registration-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Join' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <glass-alert-panel type="info">
+                <span translate>The system can now join the existing cluster.</span>
+              </glass-alert-panel>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button *ngIf="!['joining', 'joined'].includes(context.stage)"
+                      mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      class="glass-color-theme-accent"
+                      (click)="doJoin()">
+                <span translate>Join</span>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="{{ 'Finish' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <div fxLayout="column"
+                   fxLayoutAlign="center center">
+                <mat-icon class="glass-icon-4x"
+                          svgIcon="mdi:check-circle-outline">
+                </mat-icon>
+                <p class="glass-text-center">
+                  <span translate>The node was successfully integrated into the cluster and is now ready to use.</span>
+                  <br>
+                  <span translate>You can now open your dashboard by clicking the button below.</span>
+                </p>
+                <button mat-button
+                        class="glass-color-theme-accent"
+                        routerLink="/dashboard">
+                  <span translate>Go to Dashboard</span>
+                </button>
+              </div>
+            </div>
+          </mat-step>
+        </mat-horizontal-stepper>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
