@@ -5,11 +5,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
-import { CapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/capacity-dashboard-widget/capacity-dashboard-widget.component';
+import { AllocationsDashboardWidgetComponent } from '~/app/core/dashboard/widgets/allocations-dashboard-widget/allocations-dashboard-widget.component';
 
-describe('CapacityDashboardWidgetComponent', () => {
-  let component: CapacityDashboardWidgetComponent;
-  let fixture: ComponentFixture<CapacityDashboardWidgetComponent>;
+describe('AllocationsDashboardWidgetComponent', () => {
+  let component: AllocationsDashboardWidgetComponent;
+  let fixture: ComponentFixture<AllocationsDashboardWidgetComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -23,7 +23,7 @@ describe('CapacityDashboardWidgetComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CapacityDashboardWidgetComponent);
+    fixture = TestBed.createComponent(AllocationsDashboardWidgetComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

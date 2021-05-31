@@ -78,7 +78,7 @@ export class DashboardPageComponent {
     },
     {
       id: 'capacity',
-      title: TEXT('Capacity'),
+      title: TEXT('Allocated Storage'),
       cols: 6,
       rows: 4,
       enabledByDefault: true
