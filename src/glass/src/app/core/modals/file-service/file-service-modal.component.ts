@@ -71,7 +71,7 @@ export class FileServiceModalComponent implements OnInit {
     }
     this.formGroup = this.formBuilder.group({
       availableSpace: [0],
-      reservedSpace: [0],
+      allocatedSpace: [0],
       rawRequiredSpace: [0],
       name: [
         '',
@@ -98,7 +98,7 @@ export class FileServiceModalComponent implements OnInit {
       next: (constraints: Constraints) => {
         this.formGroup.patchValue({
           availableSpace: _.defaultTo(constraints.allocations.available, 0),
-          reservedSpace: _.defaultTo(constraints.allocations.allocated, 0)
+          allocatedSpace: _.defaultTo(constraints.allocations.allocated, 0)
         });
         this.constraints = constraints;
         this.updateValues();

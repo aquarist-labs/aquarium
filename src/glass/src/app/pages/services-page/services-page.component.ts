@@ -51,7 +51,7 @@ export class ServicesPageComponent {
       },
       {
         name: TEXT('Allocated Size'),
-        prop: 'reservation',
+        prop: 'allocation',
         pipe: this.bytesToSizePipe,
         sortable: true
       },

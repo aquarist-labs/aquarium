@@ -24,13 +24,13 @@ async def test_create(services: Services):
     svc = await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
     assert svc.name == "foobar"
     assert svc.type == ServiceTypeEnum.CEPHFS
-    assert svc.reservation == 1000
+    assert svc.allocation == 1000
     assert svc.replicas == 2
     assert "foobar" in services._services  # pyright: reportPrivateUsage=false
 
 
 @pytest.mark.asyncio
-async def test_create_fail_reservation(services: Services):
+async def test_create_fail_allocation(services: Services):
     from gravel.controllers.services import \
         ServiceTypeEnum, NotEnoughSpaceError
     with pytest.raises(NotEnoughSpaceError):
@@ -48,7 +48,7 @@ async def test_create_exists(services: Services):
 
 
 @pytest.mark.asyncio
-async def test_create_over_reserved(services: Services):
+async def test_create_over_allocated(services: Services):
     from gravel.controllers.services import \
         ServiceTypeEnum, NotEnoughSpaceError
 
@@ -78,14 +78,14 @@ async def test_ls(services: Services):
 
 
 @pytest.mark.asyncio
-async def test_reservations(services: Services):
+async def test_allocations(services: Services):
     from gravel.controllers.services import ServiceTypeEnum
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 20, 1)
     await services.create("barbaz", ServiceTypeEnum.CEPHFS, 100, 2)
 
-    assert services.total_reservation == 120
-    assert services.total_raw_reservation == 220
+    assert services.total_allocation == 120
+    assert services.total_raw_allocation == 220
 
 
 @pytest.mark.asyncio
@@ -108,30 +108,30 @@ async def test_check_requirements(services: Services):
     assert feasible is True
     assert req.required == 1000
     assert req.available == 2000
-    assert req.reserved == 0
+    assert req.allocated == 0
 
     feasible, req = services.check_requirements(1000, 3)
     assert feasible is False
     assert req.required == 3000
     assert req.available == 2000
-    assert req.reserved == 0
+    assert req.allocated == 0
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 700, 1)
     feasible, req = services.check_requirements(1000, 1)
     assert feasible is True
     assert req.required == 1000
     assert req.available == 1300
-    assert req.reserved == 700
+    assert req.allocated == 700
 
     feasible, req = services.check_requirements(1000, 2)
     assert feasible is False
     assert req.required == 2000
     assert req.available == 1300
-    assert req.reserved == 700
+    assert req.allocated == 700
 
     await services.create("barbaz", ServiceTypeEnum.CEPHFS, 500, 1)
     feasible, req = services.check_requirements(1000, 1)
     assert feasible is False
     assert req.required == 1000
     assert req.available == 800
-    assert req.reserved == 1200
+    assert req.allocated == 1200

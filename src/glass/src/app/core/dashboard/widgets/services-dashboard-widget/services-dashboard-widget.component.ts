@@ -70,7 +70,7 @@ export class ServicesDashboardWidgetComponent implements OnInit {
       },
       {
         name: TEXT('Usable Size'),
-        prop: 'reservation',
+        prop: 'allocation',
         pipe: this.bytesToSizePipe,
         sortable: true
       },

@@ -17,13 +17,13 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, mapTo } from 'rxjs/operators';
 
-export interface Reservations {
-  reserved: number;
+export interface Allocations {
+  allocated: number;
   available: number;
 }
 
 export interface Requirements {
-  reserved: number;
+  allocated: number;
   available: number;
   required: number;
 }
@@ -73,7 +73,7 @@ export interface CreateServiceReply {
 
 export interface ServiceDesc {
   name: string;
-  reservation: number;
+  allocation: number;
   type: ServiceType;
   pools: number[];
   replicas: number;
