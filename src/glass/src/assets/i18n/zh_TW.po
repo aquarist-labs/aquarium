@@ -1,35 +1,35 @@
 # 
 # Translators:
-# Volker <votdev@gmx.de>, 2021
 # AvengerMoJo Alex <avengermojo@gmail.com>, 2021
+# Kiefer Chang <kiefer.chang@suse.com>, 2021
 # 
 msgid ""
 msgstr ""
-"Last-Translator: AvengerMoJo Alex <avengermojo@gmail.com>, 2021\n"
-"Language-Team: German (Germany) (https://www.transifex.com/aquarist-labs/teams/117625/de_DE/)\n"
+"Last-Translator: Kiefer Chang <kiefer.chang@suse.com>, 2021\n"
+"Language-Team: Chinese (Taiwan) (https://www.transifex.com/aquarist-labs/teams/117625/zh_TW/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: de_DE\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "mime-version: 1.0\n"
 
 msgid "1 min"
-msgstr "1 min"
+msgstr "1 分鐘"
 
 msgid "15 min"
-msgstr "15 min"
+msgstr "15 分鐘"
 
 msgid "5 min"
-msgstr "5 min"
+msgstr "5 分鐘"
 
 msgid "Add"
-msgstr "Hinzufügen"
+msgstr "增加"
 
 msgid "Address"
-msgstr "Adresse"
+msgstr "地址"
 
 msgid "Allocated Size"
-msgstr "Zugewiesene Größe"
+msgstr "分配容量大小"
 
 msgid "Aquarium"
 msgstr "Aquarium"
@@ -38,425 +38,426 @@ msgid ""
 "Aquarium will now install and setup the core system. All recognized storage "
 "devices are automatically assigned. Afterwards, you will be able to "
 "configure the services you want to provide."
-msgstr ""
+msgstr "Aquarium將安裝並設置核心系統。 所有被找到的儲存裝置將自動分配，然後您可以配置希望提供的服務。"
 
 msgid "Architecture"
-msgstr "Architektur"
+msgstr "架構"
 
 msgid "Authentication Token"
-msgstr "Authentifizierungstoken"
+msgstr "驗證權杖"
 
 msgid "Available"
-msgstr "Verfügbar"
+msgstr "可用"
 
 msgid "Available Capacity"
-msgstr "Verfügbare Kapazität"
+msgstr "可用空間"
 
 msgid "Back"
-msgstr "Zurück"
+msgstr "返回"
 
 msgid "Bootstrapping not possible at the moment, please retry later."
-msgstr ""
+msgstr "目前無法啟動 ，請稍後重試。"
 
 msgid "CPU Load"
-msgstr "CPU Load"
+msgstr "CPU負載"
 
 msgid "Cancel"
-msgstr "Abbruch"
+msgstr "取消"
 
 msgid "Capacity"
-msgstr "Kapazität"
+msgstr "容量"
 
 msgid "CephFS"
 msgstr "CephFS"
 
 msgid "CephFS Service"
-msgstr "CephFS Bedienung"
+msgstr "CephFS 服務"
 
 msgid "Choose installation mode"
-msgstr "Wählen Sie den Installationsmodus"
+msgstr "選擇安裝模式"
 
 msgid "Close"
-msgstr "Schließen"
+msgstr "關閉"
 
 msgid "Configure CephFS service"
-msgstr "Konfiguriere den CephFS-Dienst"
+msgstr "設定CephFS服務"
 
 msgid "Configure NFS service"
-msgstr "Konfiguriere den NFS-Dienst"
+msgstr "設定NFS服務"
 
 msgid "Continue"
-msgstr "Fortsetzen"
+msgstr "繼續"
 
 msgid "Copied text to the clipboard successfully."
-msgstr "Text erfolgreich in die Zwischenablage kopiert."
+msgstr "已將文字成功複製到剪貼簿。"
 
 msgid "Copy to clipboard"
-msgstr "In die Zwischenablage kopieren"
+msgstr "複製到剪貼簿"
 
 msgid "Create"
-msgstr "Erstellen"
+msgstr "建立"
 
 msgid "Create new cluster"
-msgstr "Neuen Cluster erstellen"
+msgstr "建立新叢集"
 
 msgid "Current deployment has a single host and can't tolerate failures."
-msgstr ""
+msgstr "當前的部署只有一台主機不能容錯。"
 
 msgid "Dashboard"
-msgstr "Dashboard"
+msgstr "儀表板"
 
 msgid "Deploy devices"
-msgstr ""
+msgstr "部署裝置"
 
 msgid "Devices"
-msgstr ""
+msgstr "裝置"
 
 msgid "Discussions"
-msgstr ""
+msgstr "討論"
 
 msgid "Entity"
-msgstr ""
+msgstr "實體"
 
 msgid "Error"
-msgstr ""
+msgstr "錯誤"
 
 msgid "Estimated Required Capacity"
-msgstr ""
+msgstr "估計所需容量"
 
 msgid "Failed to bootstrap the system."
-msgstr "Fehler beim Urladen des Systems."
+msgstr "啟動系統失敗"
 
 msgid "Failed to copy text to the clipboard."
-msgstr ""
+msgstr "複製文字到剪貼簿失敗"
 
 msgid "Failed to create service."
-msgstr ""
+msgstr "建立服務失敗"
 
 msgid "Failed to fetch data"
-msgstr "Daten konnten nicht abgerufen werden"
+msgstr "取得數據失敗"
 
 msgid "Failed to fetch device information"
-msgstr "Geräteinformationen konnten nicht abgerufen werden"
+msgstr "取得裝置資訊失敗"
 
 msgid "Failed to join existing cluster."
-msgstr ""
+msgstr "加入現存叢集失敗"
 
 msgid "Failed to start bootstrapping the system."
-msgstr "Fehler beim Starten des Urladen des Systems."
+msgstr "開始啟動系統失敗"
 
 msgid "Failed to start device deployment."
-msgstr "Fehler beim Starten der Gerätebereitstellung."
+msgstr "開始安裝裝置失敗"
 
 msgid "File Service"
-msgstr ""
+msgstr "檔案服務"
 
 msgid "Flavor"
-msgstr ""
+msgstr "風味"
 
 msgid "Free"
-msgstr "Frei"
+msgstr "空閒"
 
 msgid "Go to Dashboard"
-msgstr "Zum Dashboard gehen"
+msgstr "跳轉至儀表板"
 
 msgid "Health"
-msgstr ""
+msgstr "健康"
 
 msgid "Help"
-msgstr ""
+msgstr "幫助"
 
 msgid "Hostname"
-msgstr "Hostname"
+msgstr "主機名稱"
 
 msgid "Hosts"
-msgstr ""
+msgstr "主機"
 
 msgid ""
 "If you do have your own NTP host configured on the network, please add it "
 "below."
-msgstr ""
+msgstr "如果網絡上有您自己的NTP服務，請在下面輸入主機地址。"
 
 msgid "Installation"
-msgstr ""
+msgstr "安裝"
 
 msgid "Join"
-msgstr ""
+msgstr "加入"
 
 msgid "Join existing cluster"
-msgstr "Einem vorhandenen Cluster beitreten"
+msgstr "加入現存叢集"
 
 msgid "Kernel"
-msgstr "Kernel"
+msgstr "核心"
 
 msgid "Key"
-msgstr ""
+msgstr "金鑰"
 
 msgid "Language"
-msgstr "Sprache"
+msgstr "語言"
 
 msgid "Mount command"
-msgstr ""
+msgstr "掛載命令"
 
 msgid "NFS"
-msgstr ""
+msgstr "NFS"
 
 msgid "NFS Service"
-msgstr ""
+msgstr "NFS 服務"
 
 msgid "NTP host IP/FQDN"
-msgstr ""
+msgstr "NTP 主機 IP/FQDN"
 
 msgid "Name"
-msgstr "Name"
+msgstr "名稱"
 
 msgid "Networking"
-msgstr ""
+msgstr "網絡"
 
 msgid "Next"
-msgstr "Weiter"
+msgstr "下一步"
 
 msgid "No"
-msgstr "Nein"
+msgstr "錯誤"
 
 msgid "No CephFS services configured"
-msgstr "Keine CephFS-Dienste konfiguriert"
+msgstr "未設定CephFS服務"
 
 msgid "No NFS services configured"
-msgstr ""
+msgstr "未設定 NFS 服務"
 
 msgid "No services deployed yet."
-msgstr ""
+msgstr "尚未部署任何服務。"
 
 msgid "Number Of Replicas"
-msgstr ""
+msgstr "副本數"
 
 msgid "OK"
-msgstr "OK"
+msgstr "好"
 
 msgid "Operating System"
-msgstr "Betriebssystem"
+msgstr "作業系統"
 
 msgid "Path"
-msgstr "Pfad"
+msgstr "路徑"
 
 msgid "Performance"
-msgstr ""
+msgstr "性能"
 
 msgid "Please wait, assessing service specifications ..."
-msgstr ""
+msgstr "請稍候，正在評估服務規則..."
 
 msgid "Please wait, bootstrapping in progress ..."
-msgstr "Bitte warten, das Urladen läuft ..."
+msgstr "請稍候，正在啟動中..."
 
 msgid "Please wait, bootstrapping will be started ..."
-msgstr "Bitte warten, das Urladen wird gestartet ..."
+msgstr "請稍候，啟動將開始..."
 
 msgid "Please wait, checking node status ..."
-msgstr ""
+msgstr "請稍候，正在檢查節點狀態..."
 
 msgid "Please wait, checking system status ..."
-msgstr ""
+msgstr "請稍候，正在檢查系統狀態..."
 
 msgid "Please wait, deploying service ..."
-msgstr ""
+msgstr "請稍候，正在安裝服務..."
 
 msgid "Please wait, device deployment in progress ..."
-msgstr "Bitte warten, die Gerätebereitstellung läuft ..."
+msgstr "請稍候，安裝裝置正在進行..."
 
 msgid "Please wait, fetching device information ..."
-msgstr "Bitte warten, die Geräteinformationen werden ermittelt ...."
+msgstr "請稍候，正在取得裝置資訊..."
 
 msgid "Please wait, finishing deployment ..."
-msgstr ""
+msgstr "請稍候，正在完成安裝..."
 
 msgid "Please wait, joining existing cluster in progress ..."
-msgstr ""
+msgstr "請稍候，正在加入現存叢集..."
 
 msgid "Please wait, start joining existing cluster ..."
-msgstr ""
+msgstr "請稍候，開始加入現存叢集..."
 
 msgid "Port"
-msgstr ""
+msgstr "連接埠"
 
 msgid "Raw Required Capacity"
-msgstr ""
+msgstr "原始所需容量"
 
 msgid "Raw Size"
-msgstr ""
+msgstr "原始大小"
 
 msgid "Reserved Capacity"
-msgstr ""
+msgstr "保存容量"
 
 msgid "Serial"
-msgstr "Seriennummer"
+msgstr "序列"
 
 msgid "Service Name"
-msgstr ""
+msgstr "服務名稱"
 
 msgid "Service Type"
-msgstr ""
+msgstr "服務類型"
 
 msgid "Service creation requirements not met."
-msgstr ""
+msgstr "未能達到建立服務之要求。"
 
 msgid "Service successfully created."
-msgstr ""
+msgstr "服務已成功建立。"
 
 msgid "Services"
-msgstr "Dienste"
+msgstr "服務"
 
 msgid "Services Capacity"
-msgstr ""
+msgstr "服務容量"
 
 msgid "Services Capacity - Top 5"
-msgstr ""
+msgstr "服務容量 － Top 5"
 
 msgid ""
 "Setup will create a new deployment from scratch, configuring this node as a "
 "standalone storage solution."
-msgstr ""
+msgstr "安裝程序將建立一個全新的部署，並將此節點設定為獨立儲存解決方案。"
 
 msgid ""
 "Setup will search for existing deployments in the network and be "
 "assimilated."
-msgstr ""
+msgstr "安裝程序將尋找網絡中的現有部署並將此節點其加入"
 
 msgid "Show credentials"
-msgstr ""
+msgstr "顯示憑證"
 
 msgid "Show mount command"
-msgstr ""
+msgstr "顯示掛載命令"
 
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 msgid "Sorry, we could not find what you are looking for."
-msgstr ""
+msgstr "抱歉，沒有找到您想要的東西"
 
 msgid "Start"
-msgstr "Start"
+msgstr "開始"
 
 msgid "Summary"
-msgstr ""
+msgstr "摘要"
 
 msgid "System Information"
-msgstr "System Information"
+msgstr "系統資訊"
 
 msgid "The IP address or FQDN of the NTP host."
-msgstr ""
+msgstr "NTP主機的IP地址或FQDN。"
 
 msgid "The IP address or FQDN of the main node."
-msgstr ""
+msgstr "主節點的IP地址或FQDN。"
 
 msgid ""
 "The following devices have been identified in the system and are "
 "automatically added to the storage management."
-msgstr ""
+msgstr "以下設備已在系統識別並自動添加到存儲管理中。"
 
 msgid "The name of the node."
-msgstr ""
+msgstr "節點的名稱。"
 
 msgid "The security token to authorize at the main node."
-msgstr ""
+msgstr "要在主節點上授權的安全符記。"
 
 msgid "The service name already exists."
-msgstr ""
+msgstr "服務名稱已經存在。"
 
 msgid "The token is invalid."
-msgstr ""
+msgstr "符記無效。"
 
 msgid "The value cannot exceed 65535."
-msgstr ""
+msgstr "數值不能超過65535。"
 
 msgid "The value must be at least 0."
-msgstr ""
+msgstr "數值該值最小是0。"
 
 msgid "This field is required."
-msgstr ""
+msgstr "此欄位為必須欄位。"
 
 msgid "This field must be an IP address or FQDN (<address>:<port>)."
-msgstr ""
+msgstr "此欄位必須是IP地址或FQDN。 (<address>:<port>)."
 
 msgid "This field must be an IP address or FQDN."
-msgstr ""
+msgstr "此欄位必須是IP地址或FQDN。"
 
 msgid ""
 "This step will erase all data on the listed devices. Are you sure you want "
 "to continue?"
-msgstr ""
+msgstr "此步驟將刪除列出裝置上的所有數據。 你確定你要繼續嗎？"
 
 msgid ""
 "This wizard will guide you through the installation process to set up a node"
 " from scratch."
-msgstr ""
+msgstr "此精靈將引導您從頭設置一個節點。"
 
 msgid "Toggle navigation"
-msgstr "Navigation umschalten"
+msgstr "切換導航"
 
 msgid "Token"
-msgstr ""
+msgstr "符記"
 
 msgid "Type"
-msgstr "Typ"
+msgstr "類型"
 
 msgid "Unable to finish deployment."
-msgstr ""
+msgstr "無法完成佈署。"
 
 msgid "Uptime"
-msgstr "Betriebszeit"
+msgstr "運行時間"
 
 msgid "Usable Size"
-msgstr ""
+msgstr "可用大小"
 
 msgid "Use a NTP host on the internet"
-msgstr ""
+msgstr "使用位於網路上的的NTP主機"
 
 msgid "Use the following command line to mount the file system."
-msgstr ""
+msgstr "使用以下命令行來掛載文件系統。"
 
 msgid ""
 "Use this token to authenticate a new node when adding it to the cluster."
-msgstr ""
+msgstr "將新節點添加到叢集時，可使用此符記對新節點進行身份驗證。"
 
 msgid "Use your own NTP host"
-msgstr ""
+msgstr "使用您自己的NTP主機"
 
 msgid "Used"
-msgstr "Benutzt"
+msgstr "使用中"
 
 msgid "Vendor"
-msgstr "Lieferant"
+msgstr "廠商"
 
 msgid "Volumes"
-msgstr ""
+msgstr "磁碟區"
 
 msgid "Warning"
-msgstr ""
+msgstr "警告"
 
 msgid "Website"
-msgstr ""
+msgstr "網站"
 
 msgid ""
 "Welcome to Aquarium - Our take on an opinionated storage appliance. To get "
 "started on your first deployment, click below. We are in the initial phases "
 "of development and welcome feature and bug reports. See our"
 msgstr ""
+"歡迎來到Aquarium－一套有想法的儲存儲設備。請點擊以下按鈕以進行你的首次佈署。我們正處於初始開發階段，歡迎大家提出新功能和提供錯誤報告。請看我們的"
 
 msgid "Yes"
-msgstr "Ja"
+msgstr "正確"
 
 msgid "You can now open your dashboard by clicking the button below."
-msgstr ""
+msgstr "以下按鈕會打開您的儀表板。"
 
 msgid ""
 "Your Aquarium environment needs to have the time synchronized with a "
 "reliable time source. You do have two options in order to configure the time"
 " synchronization:"
-msgstr ""
+msgstr "您的Aquarium環境需與一個可靠的時間同步來源。以下您有兩種配置時間同步的方法："
 
 msgid "Your deployment was successful and is now ready to use."
-msgstr ""
+msgstr "您的部署已完成並且可以開始使用了。"
 
 msgid "for more details."
-msgstr "für mehr Details."
+msgstr "更多內容。"
