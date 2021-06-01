@@ -20,7 +20,7 @@ from typing import Dict, List
 
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
-from gravel.controllers.orch.system import set_hostname, set_ntp
+from gravel.controllers.orch.system import set_hostname
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
 
@@ -133,15 +133,6 @@ async def get_pubkey(request: Request) -> str:
     try:
         orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         return orch.get_public_key()
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=str(e))
-
-
-@router.put("/ntp", response_model=bool)
-async def put_ntp(req: SetNtpRequest) -> bool:
-    try:
-        return set_ntp(req.addr)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
