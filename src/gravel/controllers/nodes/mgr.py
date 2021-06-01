@@ -377,6 +377,7 @@ class NodeMgr:
             self._finish_deployment
         )
         await self._save_token()
+        await self._save_ntp_addr(ntp_addr)
 
     async def _post_bootstrap_finisher(
         self,
@@ -508,6 +509,11 @@ class NodeMgr:
         assert self._token
         logger.info(f"saving token: {self._token}")
         await self.gstate.store.put("/nodes/token", self._token)
+
+    async def _save_ntp_addr(self, ntp_addr: str) -> None:
+        assert ntp_addr
+        logger.info(f"saving NTP addr: {ntp_addr}")
+        await self.gstate.store.put("/nodes/ntp_addr", ntp_addr)
 
     async def _save_state(self) -> None:
         try:
