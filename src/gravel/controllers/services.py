@@ -78,7 +78,7 @@ class ServiceTypeEnum(str, Enum):
 
 class ServiceModel(BaseModel):
     name: str
-    reservation: int
+    allocation: int
     type: ServiceTypeEnum
     pools: List[int]
     replicas: int
@@ -90,7 +90,7 @@ class StateModel(BaseModel):
 
 
 class ServiceRequirementsModel(BaseModel):
-    reserved: int = Field(0, title="Total existing reservations (bytes)")
+    allocated: int = Field(0, title="Total allocated storage space (bytes)")
     available: int = Field(0, title="Available storage space (bytes)")
     required: int = Field(0, title="Required additional storage space (bytes)")
 
@@ -131,7 +131,12 @@ class Services(Ticker):
     _ready: bool
     _state_watcher_id: Optional[int]
 
-    def __init__(self, probe_interval: float, gstate: GlobalState, nodemgr: NodeMgr):
+    def __init__(
+        self,
+        probe_interval: float,
+        gstate: GlobalState,
+        nodemgr: NodeMgr
+    ):
         super().__init__(probe_interval)
         self.gstate = gstate
         self.nodemgr = nodemgr
@@ -178,7 +183,7 @@ class Services(Ticker):
 
         svc: ServiceModel = ServiceModel(
             name=name,
-            reservation=size,
+            allocation=size,
             type=type,
             pools=[],
             replicas=replicas,
@@ -205,24 +210,24 @@ class Services(Ticker):
         return [x for x in self._services.values()]
 
     @property
-    def total_reservation(self) -> int:
+    def total_allocation(self) -> int:
         total: int = 0
         for service in self._services.values():
-            total += service.reservation
+            total += service.allocation
         return total
 
     @property
-    def total_raw_reservation(self) -> int:
+    def total_raw_allocation(self) -> int:
         total: int = 0
         for service in self._services.values():
-            total += (service.reservation * service.replicas)
+            total += (service.allocation * service.replicas)
         return total
 
     @property
     def available_space(self) -> int:
         storage: Storage = self.gstate.storage
         total_storage: int = storage.total
-        return (total_storage - self.total_raw_reservation)
+        return (total_storage - self.total_raw_allocation)
 
     def __contains__(self, name: str) -> bool:
         return name in self._services
@@ -274,7 +279,7 @@ class Services(Ticker):
         redundancy.max_replicas = max_devs if num_hosts == 1 else num_hosts
 
         allocations: AllocationConstraints = AllocationConstraints(
-            allocated=self.total_raw_reservation,
+            allocated=self.total_raw_allocation,
             available=self.available_space
         )
 
@@ -288,11 +293,11 @@ class Services(Ticker):
         self, size: int, replicas: int
     ) -> Tuple[bool, ServiceRequirementsModel]:
         required: int = size*replicas
-        reserved: int = self.total_raw_reservation
+        allocated: int = self.total_raw_allocation
         available: int = self.available_space
         feasible: bool = (required <= available)
         requirements = ServiceRequirementsModel(
-            reserved=reserved,
+            allocated=allocated,
             available=available,
             required=required
         )
@@ -314,7 +319,7 @@ class Services(Ticker):
         services: Dict[str, ServiceStorageModel] = {}
 
         for svc in self._services.values():
-            allocated: int = svc.reservation
+            allocated: int = svc.allocation
             used_bytes: int = 0
 
             for poolid in svc.pools:

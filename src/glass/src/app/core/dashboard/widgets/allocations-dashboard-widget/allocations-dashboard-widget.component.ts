@@ -7,11 +7,11 @@ import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { Constraints, ServicesService } from '~/app/shared/services/api/services.service';
 
 @Component({
-  selector: 'glass-capacity-dashboard-widget',
-  templateUrl: './capacity-dashboard-widget.component.html',
-  styleUrls: ['./capacity-dashboard-widget.component.scss']
+  selector: 'glass-allocations-dashboard-widget',
+  templateUrl: './allocations-dashboard-widget.component.html',
+  styleUrls: ['./allocations-dashboard-widget.component.scss']
 })
-export class CapacityDashboardWidgetComponent {
+export class AllocationsDashboardWidgetComponent {
   // Options for chart
   chartData: any[] = [];
   colorScheme = {

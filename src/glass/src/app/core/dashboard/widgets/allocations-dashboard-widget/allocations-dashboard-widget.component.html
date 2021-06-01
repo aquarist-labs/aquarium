@@ -1,7 +1,7 @@
 <glass-widget [loadData]="loadData.bind(this)"
-              title="{{ 'Capacity' | translate }}"
+              title="{{ 'Allocated Storage' | translate }}"
               (loadDataEvent)="updateChartData($event)">
-  <div class="glass-capacity-dashboard-widget"
+  <div class="glass-allocations-dashboard-widget"
        fxLayout="row"
        fxLayoutAlign="start start">
     <ngx-charts-advanced-pie-chart [scheme]="colorScheme"

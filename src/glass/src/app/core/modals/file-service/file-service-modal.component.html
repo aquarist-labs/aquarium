@@ -29,10 +29,10 @@
                  readonly>
         </mat-form-field>
         <mat-form-field fxFlex>
-          <mat-label translate>Reserved Capacity</mat-label>
+          <mat-label translate>Allocated Capacity</mat-label>
           <input matInput
                  type="text"
-                 [value]="formGroup.value.reservedSpace | bytesToSize"
+                 [value]="formGroup.value.allocatedSpace | bytesToSize"
                  readonly>
         </mat-form-field>
         <mat-form-field [ngClass]="{'mat-form-field-invalid': formGroup.hasError('overBudget', 'requiredSpace')}"
