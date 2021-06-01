@@ -131,6 +131,7 @@ class Cephadm:
             s = (
                 "[global]",
                 "osd_pool_default_size = 2",
+                ""
             )
             return "\n".join(s)
 
