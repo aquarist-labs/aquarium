@@ -42,4 +42,10 @@ describe('NodesService', () => {
     const req = httpTesting.expectOne('api/nodes/deployment/status');
     expect(req.request.method).toBe('GET');
   });
+
+  it('should call deployment disk solution', () => {
+    service.deploymentDiskSolution().subscribe();
+    const req = httpTesting.expectOne('api/nodes/deployment/disksolution');
+    expect(req.request.method).toBe('GET');
+  });
 });

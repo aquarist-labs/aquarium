@@ -16,10 +16,27 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
+import { translate } from '~/app/i18n.helper';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
-import { Volume } from '~/app/shared/services/api/local.service';
-import { LocalInventoryService } from '~/app/shared/services/api/local-inventory.service';
+import {
+  Disk,
+  DiskSolution,
+  DiskTypeEnum,
+  NodesService,
+  RejectedDisk
+} from '~/app/shared/services/api/nodes.service';
+
+type TableEntry = {
+  path?: string;
+  type: string;
+  size: string;
+  useAs: string;
+  isSystemDisk: boolean;
+  isStorageDisk: boolean;
+  isAvailable: boolean;
+  rejectedReasons: string[];
+};
 
 @Component({
   selector: 'glass-local-devices-step',
@@ -33,7 +50,7 @@ export class LocalDevicesStepComponent implements OnInit {
   @ViewChild('availableTpl', { static: true })
   public availableTpl!: TemplateRef<any>;
 
-  devices: Volume[] = [];
+  disks: TableEntry[] = [];
   devicesColumns: DatatableColumn[] = [
     {
       name: '',
@@ -48,30 +65,76 @@ export class LocalDevicesStepComponent implements OnInit {
     },
     {
       name: TEXT('Type'),
-      prop: 'human_readable_type',
+      prop: 'type',
       sortable: true
     },
     {
       name: TEXT('Size'),
-      prop: 'sys_api.size',
+      prop: 'size',
       sortable: true,
       pipe: new BytesToSizePipe()
+    },
+    {
+      name: TEXT('Function'),
+      prop: 'useAs',
+      sortable: true
     }
   ];
 
-  constructor(private localInventoryService: LocalInventoryService) {}
+  constructor(private nodesService: NodesService) {}
 
   ngOnInit(): void {
     this.devicesColumns.push({
       name: TEXT('Available'),
-      prop: 'available',
+      prop: 'isAvailable',
       sortable: true,
       cellTemplate: this.availableTpl
     });
-    this.localInventoryService.getDevices().subscribe({
-      next: (devices: Volume[]) => {
-        this.devices = devices;
+
+    this.nodesService.deploymentDiskSolution().subscribe({
+      next: (solution: DiskSolution) => {
+        const entries: TableEntry[] = [];
+        if (solution.systemdisk) {
+          const entry = this.consumeDisk(solution.systemdisk);
+          entry.isAvailable = true;
+          entry.isSystemDisk = true;
+          entry.useAs = translate(TEXT('System'));
+          entries.push(entry);
+        }
+        solution.storage.forEach((disk: Disk) => {
+          const entry = this.consumeDisk(disk);
+          entry.isStorageDisk = true;
+          entry.isAvailable = true;
+          entry.useAs = translate(TEXT('Storage'));
+          entries.push(entry);
+        });
+        solution.rejected.forEach((rejected: RejectedDisk) => {
+          const entry = this.consumeDisk(rejected.disk);
+          entry.isAvailable = false;
+          entry.rejectedReasons = rejected.reasons;
+          entries.push(entry);
+        });
+        this.disks = entries;
       }
     });
+  }
+
+  private consumeDisk(disk: Disk): TableEntry {
+    let typeStr = translate(TEXT('Unknown'));
+    if (disk.type === DiskTypeEnum.hdd) {
+      typeStr = translate(TEXT('HDD'));
+    } else if (disk.type === DiskTypeEnum.ssd) {
+      typeStr = translate(TEXT('SSD'));
+    }
+    return {
+      path: disk.path,
+      size: disk.size.toString(),
+      type: typeStr,
+      useAs: translate(TEXT('N/A')),
+      isAvailable: false,
+      isSystemDisk: false,
+      isStorageDisk: false,
+      rejectedReasons: []
+    };
   }
 }

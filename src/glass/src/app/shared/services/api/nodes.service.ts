@@ -25,9 +25,41 @@ export enum NodeStageEnum {
   error = 5
 }
 
+export enum DiskTypeEnum {
+  none = 0,
+  hdd = 1,
+  ssd = 2
+}
+
 export type DeploymentStatusReply = {
   stage: NodeStageEnum;
   progress: number;
+};
+
+export type DiskInfo = {
+  vendor: string;
+  model: string;
+};
+
+export type Disk = {
+  path?: string;
+  size: number;
+  type: DiskTypeEnum;
+  info: DiskInfo;
+};
+
+export type RejectedDisk = {
+  disk: Disk;
+  reasons: string[];
+};
+
+export type DiskSolution = {
+  systemdisk?: Disk;
+  storage: Disk[];
+  /* eslint-disable-next-line @typescript-eslint/naming-convention */
+  storage_size: number;
+  rejected: RejectedDisk[];
+  possible: boolean;
 };
 
 @Injectable({
@@ -72,5 +104,12 @@ export class NodesService {
    */
   public markDeploymentFinished(): Observable<boolean> {
     return this.http.post<boolean>(`${this.deploymentURL}/finished`, null, {});
+  }
+
+  /**
+   * Get deployment devices
+   */
+  deploymentDiskSolution(): Observable<DiskSolution> {
+    return this.http.get<DiskSolution>(`${this.deploymentURL}/disksolution`);
   }
 }
