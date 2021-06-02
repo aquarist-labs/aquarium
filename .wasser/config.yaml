@@ -69,12 +69,11 @@ routines:
       command: |
         cd aquarium/tests/vagrant/deployments/foo
         vagrant ssh -c "sudo systemctl status aquarium"
+    - name: check api is accessible
+      command: |
+        curl -f localhost:1337/api/local/status
 
 openstack:
   flavor: b2-15
   image: openSUSE-Leap-15.2-JeOS.x86_64-15.2-OpenStack-Cloud-Build31.348
-  keyfile: ~/.ssh/sa
-  keyname: storage-automation
-  name: aqua-%02d
-  userdata: openstack/user-data.yaml
   username: opensuse
