@@ -15,6 +15,7 @@
     "fix:eslint": "npm run lint:eslint -- --fix",
     "fix": "run-p -csl --aggregate-output fix:*",
     "e2e": "ng e2e",
+    "i18n": "npm run i18n:extract && npm run i18n:pull && npm run i18n:convert",
     "i18n:extract": "ngx-translate-extract --input src --output src/assets/i18n/aquarium.pot --sort --format pot --clean",
     "i18n:pull": "python3 -m venv venv; . venv/bin/activate; pip install transifex-client; tx --root=. pull --all --force",
     "i18n:convert": "run-p -csl --aggregate-output i18n:convert:*",
