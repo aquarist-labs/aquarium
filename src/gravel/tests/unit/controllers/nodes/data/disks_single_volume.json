@@ -1,0 +1,28 @@
+{
+    "available": true,
+    "device_id": "28383427",
+    "human_readable_type": "hdd",
+    "lsm_data": {},
+    "lvs": [],
+    "path": "/dev/vdb",
+    "rejected_reasons": [],
+    "sys_api": {
+      "human_readable_size": "8.00 GB",
+      "locked": 0,
+      "model": "",
+      "nr_requests": 256,
+      "partitions": {},
+      "removable": false,
+      "rev": "",
+      "ro": false,
+      "rotational": true,
+      "sas_address": "",
+      "sas_device_handle": "",
+      "scheduler_mode": "mq-deadline",
+      "sectors": 0,
+      "sectorsize": 512,
+      "size": 8589934592,
+      "support_discard": 512,
+      "vendor": "0x1af4"
+    }
+  }

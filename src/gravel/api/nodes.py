@@ -24,6 +24,10 @@ from gravel.controllers.nodes.deployment import (
     DeploymentState,
     NodeStageEnum
 )
+from gravel.controllers.nodes.disks import (
+    DiskSolution,
+    Disks
+)
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeCantDeployError,
@@ -71,6 +75,23 @@ class NodeJoinRequestModel(BaseModel):
 
 class TokenReplyModel(BaseModel):
     token: str
+
+
+@router.get("/devices", response_model=DiskSolution)
+async def node_get_devices(request: Request) -> DiskSolution:
+    """
+    Obtain the list of devices and a deployment solution, if possible.
+    """
+    logger.debug("api > nodes > devices")
+    nodemgr: NodeMgr = request.app.state.nodemgr
+
+    if not nodemgr.available:
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+            detail="node is not available"
+        )
+
+    return Disks.gen_solution(request.app.state.gstate)
 
 
 @router.post("/deployment/start", response_model=DeployStartReplyModel)

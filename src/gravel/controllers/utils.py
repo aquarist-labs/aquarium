@@ -12,10 +12,22 @@
 # GNU General Public License for more details.
 
 
+import asyncio
+from logging import Logger
 from pathlib import Path
-from typing import Type, TypeVar
+from typing import (
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar
+)
 from pydantic import BaseModel
 from pydantic.tools import parse_file_as
+from fastapi.logger import logger as fastapi_logger
+
+
+logger: Logger = fastapi_logger
 
 
 def _get_file_path(dirpath: Path, name: str) -> Path:
@@ -51,3 +63,26 @@ def write_model(
     if file.exists() and not file.is_file():
         raise FileExistsError()
     file.write_text(model.json())
+
+
+async def aqr_run_cmd(
+    args: List[str]
+) -> Tuple[int, Optional[str], Optional[str]]:
+
+    proc = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    stdout: Optional[str] = None
+    stderr: Optional[str] = None
+
+    if proc.stdout:
+        stdout = (await proc.stdout.read()).decode("utf-8")
+    if proc.stderr:
+        stderr = (await proc.stderr.readline()).decode("utf-8")
+
+    retcode = await asyncio.wait_for(proc.wait(), None)
+    logger.debug(f"run {args}: retcode = {proc.returncode}")
+
+    return retcode, stdout, stderr

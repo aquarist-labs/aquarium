@@ -182,6 +182,7 @@ async def test_deploy(
     )
     from gravel.controllers.nodes.bootstrap import Bootstrap
     from gravel.controllers.orch.orchestrator import Orchestrator
+    from gravel.controllers.nodes.systemdisk import SystemDisk
 
     def mock_true(cls):  # type: ignore
         return True
@@ -211,6 +212,8 @@ async def test_deploy(
         "all_devices_assimilated",
         new=mock_true  # type: ignore
     )
+    mocker.patch.object(SystemDisk, "create")
+    mocker.patch.object(SystemDisk, "enable")
 
     called_postbootstrap = False
     called_finisher = False
@@ -231,7 +234,8 @@ async def test_deploy(
         DeploymentConfig(
             hostname="foobar",
             address="127.0.0.1",
-            token="myfancytoken"
+            token="myfancytoken",
+            systemdisk="/dev/foobar"
         ),
         post_bootstrap_cb=postbootstrap_cb,
         finisher=finisher_cb
