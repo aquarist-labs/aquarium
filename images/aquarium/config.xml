@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- OBS-Profiles: @BUILD_FLAVOR@ -->
-<image schemaversion="6.8" name="project-aquarium-microOS" displayname="Project Aquarium's MicroOS">
+<image schemaversion="6.8" name="project-aquarium" displayname="Project Aquarium">
     <description type="system">
         <author>Aquarium Project</author>
         <contact>alau@suse.com</contact>
         <specification>
-            Aquarium Appliance, is an up and running storage image that wrapped around ceph.
+            Project Aquarium is an easy to use, rock solid storage appliance based on Ceph
         </specification>
     </description>
     <profiles>
@@ -43,7 +43,7 @@
         </profile>
     </profiles>
     <preferences>
-        <version>16.0.0</version>
+        <version>0.1.0</version>
         <packagemanager>zypper</packagemanager>
         <locale>en_US</locale>
         <keytable>us</keytable>
