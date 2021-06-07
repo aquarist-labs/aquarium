@@ -10,3 +10,20 @@
                    [hidePageSize]="true">
   </glass-datatable>
 </div>
+
+<ng-template #availableTpl
+             let-value="value"
+             let-row="row">
+  <mat-icon *ngIf="value"
+            svgIcon="mdi:check">
+  </mat-icon>
+  <mat-icon *ngIf="!value"
+            class="glass-cursor-help"
+            svgIcon="mdi:minus"
+            [matBadge]="row.rejected_reasons.length"
+            matBadgeOverlap="true"
+            matBadgeColor="warn"
+            matBadgeSize="small"
+            [matTooltip]="row.rejected_reasons.join(', ')">
+  </mat-icon>
+</ng-template>

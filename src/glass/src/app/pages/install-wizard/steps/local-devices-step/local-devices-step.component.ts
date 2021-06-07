@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
@@ -29,6 +29,9 @@ import { LocalInventoryService } from '~/app/shared/services/api/local-inventory
 export class LocalDevicesStepComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
+
+  @ViewChild('availableTpl', { static: true })
+  public availableTpl!: TemplateRef<any>;
 
   devices: Volume[] = [];
   devicesColumns: DatatableColumn[] = [
@@ -53,18 +56,18 @@ export class LocalDevicesStepComponent implements OnInit {
       prop: 'sys_api.size',
       sortable: true,
       pipe: new BytesToSizePipe()
-    },
-    {
-      name: TEXT('Available'),
-      prop: 'available',
-      sortable: true,
-      cellTemplateName: 'yesNoIcon'
     }
   ];
 
   constructor(private localInventoryService: LocalInventoryService) {}
 
   ngOnInit(): void {
+    this.devicesColumns.push({
+      name: TEXT('Available'),
+      prop: 'available',
+      sortable: true,
+      cellTemplate: this.availableTpl
+    });
     this.localInventoryService.getDevices().subscribe({
       next: (devices: Volume[]) => {
         this.devices = devices;
