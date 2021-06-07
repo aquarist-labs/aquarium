@@ -21,6 +21,7 @@ import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { finalize } from 'rxjs/operators';
 
+import { toBytes } from '~/app/functions.helper';
 import { translate } from '~/app/i18n.helper';
 import { GlassValidators } from '~/app/shared/forms/validators';
 import {
@@ -112,8 +113,14 @@ export class FileServiceModalComponent implements OnInit {
     this.updateValues();
   }
 
-  public onRequiredSpaceChange(event: MatSliderChange): void {
+  public onInputRequiredSpace(event: MatSliderChange): void {
     const requiredSpace = !!event.value ? event.value : 0;
+    this.formGroup.patchValue({ requiredSpace });
+    this.updateValues();
+  }
+
+  public onChangeRequiredSpace(event: Event): void {
+    const requiredSpace = toBytes((event.target as any).value);
     this.formGroup.patchValue({ requiredSpace });
     this.updateValues();
   }

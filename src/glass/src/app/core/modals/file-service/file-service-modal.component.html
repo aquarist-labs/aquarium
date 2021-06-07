@@ -113,7 +113,7 @@
                  hidden>
           <mat-slider color="primary"
                       [value]="requiredSpaceInput.value"
-                      (input)="onRequiredSpaceChange($event)"
+                      (input)="onInputRequiredSpace($event)"
                       min="0"
                       [max]="formGroup.value.availableSpace"
                       step="1"
@@ -125,7 +125,7 @@
           <input matInput
                  type="text"
                  [value]="formGroup.value.requiredSpace | bytesToSize"
-                 readonly>
+                 (change)="onChangeRequiredSpace($event)">
         </mat-form-field>
       </div>
     </form>
