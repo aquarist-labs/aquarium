@@ -147,7 +147,9 @@ class Deployment:
             with vagrant.deployment(self._path) as deployment:
                 if deployment.running or deployment.preparing:
                     raise DeploymentRunningError()
-                deployment.start(conservative=conservative)
+                ret, err = deployment.start(conservative=conservative)
+                if not ret:
+                    raise AqrError('Cannot start deployment: unknown vagrant error')
         except AqrError as e:
             raise e
 
