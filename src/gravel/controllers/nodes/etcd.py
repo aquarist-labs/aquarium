@@ -110,6 +110,7 @@ async def spawn_etcd(
         return [
             'podman', 'run',
             '--rm',
+            '--replace',
             '--net=host',
             '--entrypoint', '/usr/local/bin/etcd',
             '-v', f'{data_dir}:{data_dir}',
