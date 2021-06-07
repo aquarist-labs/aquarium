@@ -107,6 +107,7 @@ fi
 
 pip install fastapi uvicorn \
     git+https://github.com/aquarist-labs/aetcd3/@edf633045ce61c7bbac4d4a6ca15b14f8acfe9cd
+baseInsertService aquarium-boot
 baseInsertService sshd
 baseInsertService aquarium
 

@@ -25,6 +25,7 @@ dist: submodules glass
 		xargs cp --parents --target-directory=$(TAR_USR) && \
 	cp --target-directory=$(TAR_USR) ./aquarium.py && \
 	cp -R --parents --target-directory=$(TAR_USR) glass/dist && \
+	cp -R --target-directory=$(TAR_USR) boot && \
 	cp --target-directory=$(TAR_SBIN) ./gravel/ceph.git/src/cephadm/cephadm
 	# Copy aquarium service
 	cp systemd/aquarium.service $(TAR_UNIT)

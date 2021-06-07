@@ -1,0 +1,13 @@
+# project aquarium's boot setup
+# Copyright (C) 2021 SUSE, LLC.
+
+[Unit]
+Description=Aquarium Boot Setup Service
+
+After=local-fs.target
+
+[Service]
+ExecStart=/bin/bash /usr/share/aquarium/boot/aqrbootsetup.sh
+
+[Install]
+WantedBy=sysinit.target
