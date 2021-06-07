@@ -14,6 +14,7 @@
  */
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatRippleModule } from '@angular/material/core';
@@ -60,7 +61,8 @@ import { DomSanitizer } from '@angular/platform-browser';
     MatPaginatorModule,
     MatRadioModule,
     MatRippleModule,
-    MatSelectModule
+    MatSelectModule,
+    MatBadgeModule
   ]
 })
 export class MaterialModule {
