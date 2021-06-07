@@ -1,6 +1,5 @@
 <h1 mat-dialog-title>{{ config.title }}</h1>
 <mat-dialog-content class="mat-typography">
-  <p *ngIf="config?.subtitle">{{ config.subtitle }}</p>
   <glass-declarative-form [config]="config"></glass-declarative-form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

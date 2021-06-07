@@ -4,9 +4,9 @@
                      type="hint">
     <div [innerHTML]="config?.hint! | translate"></div>
   </glass-alert-panel>
-  <div *ngIf="config?.subtitle"
+  <p *ngIf="config?.subtitle"
        [innerHTML]="config?.subtitle! | translate">
-  </div>
+  </p>
   <form *ngIf="formGroup && config"
         [formGroup]="formGroup"
         fxLayout="column"
