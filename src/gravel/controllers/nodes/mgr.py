@@ -265,7 +265,7 @@ class NodeMgr:
         self._init_stage = NodeInitStage.AVAILABLE
 
     async def _node_start(self) -> None:
-        """ node is ready to accept incoming messages, if leader """
+        """ node is ready to accept incoming messages """
         assert self._state
         assert self.deployment_state.ready or self.deployment_state.deployed
 
@@ -276,7 +276,7 @@ class NodeMgr:
 
         self._init_stage = NodeInitStage.STARTED
 
-        logger.info("start leader node")
+        logger.info("Start connection manager")
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
         self._connmgr.start_receiving()
 
