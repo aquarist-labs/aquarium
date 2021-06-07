@@ -1,8 +1,10 @@
 /* eslint-disable no-underscore-dangle */
+/* eslint-disable @angular-eslint/no-conflicting-lifecycle */
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
   Component,
+  DoCheck,
   ElementRef,
   HostBinding,
   Input,
@@ -16,10 +18,15 @@ import {
   AbstractControl,
   ControlValueAccessor,
   FormBuilder,
+  FormControl,
   FormGroup,
+  FormGroupDirective,
   NgControl,
+  NgForm,
   Validators
 } from '@angular/forms';
+import { CanUpdateErrorState, ErrorStateMatcher } from '@angular/material/core';
+import { HasErrorState } from '@angular/material/core/common-behaviors/error-state';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import * as _ from 'lodash';
 import { Subject, Subscription } from 'rxjs';
@@ -45,7 +52,14 @@ type TokenFormat = {
   ]
 })
 export class TokenInputComponent
-  implements ControlValueAccessor, MatFormFieldControl<string>, OnDestroy, OnChanges
+  implements
+    ControlValueAccessor,
+    MatFormFieldControl<string>,
+    OnDestroy,
+    OnChanges,
+    DoCheck,
+    CanUpdateErrorState,
+    HasErrorState
 {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   static ngAcceptInputType_disabled: BooleanInput;
@@ -111,6 +125,9 @@ export class TokenInputComponent
     this.stateChanges.next();
   }
 
+  // @ts-ignore
+  @Input() errorStateMatcher: ErrorStateMatcher;
+
   public controlType = 'glass-token-input';
   public _value: string | null = null;
   public _placeholder = '';
@@ -119,6 +136,7 @@ export class TokenInputComponent
   public focused = false;
   public stateChanges = new Subject<void>();
   public formGroup: FormGroup;
+  public errorState = false;
 
   private _uniqueId = `glass-token-input-${++nextUniqueId}`;
   private subscription?: Subscription;
@@ -126,6 +144,9 @@ export class TokenInputComponent
   // eslint-disable-next-line @typescript-eslint/member-ordering
   constructor(
     @Optional() @Self() public ngControl: NgControl,
+    @Optional() public _parentForm: NgForm,
+    @Optional() public _parentFormGroup: FormGroupDirective,
+    public _defaultErrorStateMatcher: ErrorStateMatcher,
     formBuilder: FormBuilder,
     private focusMonitor: FocusMonitor,
     private elementRef: ElementRef<HTMLElement>
@@ -163,15 +184,27 @@ export class TokenInputComponent
     this.stateChanges.next();
   }
 
+  ngDoCheck() {
+    if (this.ngControl) {
+      this.updateErrorState();
+    }
+  }
+
+  updateErrorState(): void {
+    const oldState = this.errorState;
+    const parent = this._parentFormGroup || this._parentForm;
+    const matcher = this.errorStateMatcher || this._defaultErrorStateMatcher;
+    const control = this.ngControl ? (this.ngControl.control as FormControl) : null;
+    const newState = matcher.isErrorState(control, parent);
+    if (newState !== oldState) {
+      this.errorState = newState;
+      this.stateChanges.next();
+    }
+  }
+
   get empty(): boolean {
     const value: TokenFormat = this.formGroup.value;
     return _.every(value, _.isEmpty);
-  }
-
-  get errorState(): boolean {
-    return (
-      coerceBooleanProperty(this.ngControl.errors) && coerceBooleanProperty(this.ngControl.touched)
-    );
   }
 
   @HostBinding('class.floating')
