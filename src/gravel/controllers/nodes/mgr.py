@@ -70,6 +70,7 @@ from gravel.controllers.orch.orchestrator import (
 )
 from gravel.controllers.resources.inventory_sub import Subscriber
 from gravel.controllers.nodes.disks import Disks
+from gravel.controllers.utils import aqr_run_cmd
 
 
 logger: Logger = fastapi_logger
@@ -195,6 +196,7 @@ class NodeMgr:
                 hostname=self._state.hostname,
                 address=self._state.address
             )
+            await self._start_ceph()
             await self._node_start()
 
     async def shutdown(self) -> None:
@@ -279,6 +281,13 @@ class NodeMgr:
         logger.info("Start connection manager")
         self._incoming_task = asyncio.create_task(self._incoming_msg_task())
         self._connmgr.start_receiving()
+
+    async def _start_ceph(self) -> None:
+        """ Start ceph's systemd target """
+        ret, _, err = await aqr_run_cmd(["systemctl", "start", "ceph.target"])
+        if ret:
+            raise NodeError(f"Unable to start Ceph target: {err}")
+        logger.info("Started ceph target")
 
     def _node_shutdown(self) -> None:
         """ shutting down, stop node """
