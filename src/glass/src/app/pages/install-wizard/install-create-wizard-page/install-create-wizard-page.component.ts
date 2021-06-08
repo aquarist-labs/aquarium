@@ -16,7 +16,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { concat, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
@@ -131,15 +131,10 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   /**
-   * This step contains the following steps:
-   * - Configure NTP
-   * - Start bootstrap process
+   * This step starts the bootstrap process
    */
   startBootstrap(): void {
-    concat(
-      this.orchService.setHostname(this.context.config.hostname),
-      this.orchService.setNtp(this.context.config.ntpAddress)
-    ).subscribe({
+    this.orchService.setHostname(this.context.config.hostname).subscribe({
       complete: () => {
         this.blockUI.start(translate(TEXT('Please wait, checking node status ...')));
         this.pollNodeStatus();
@@ -207,7 +202,7 @@ export class InstallCreateWizardPageComponent implements OnInit {
   private doBootstrap(): void {
     this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
-    this.nodesService.deploymentStart().subscribe({
+    this.nodesService.deploymentStart({ ntpaddr: this.context.config.ntpAddress }).subscribe({
       next: (basicReplay: DeploymentBasicReply) => {
         if (basicReplay.success) {
           this.context.stage = 'bootstrapping';

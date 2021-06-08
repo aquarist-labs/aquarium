@@ -2,6 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export type DeploymentStartRequest = {
+  ntpaddr: string;
+};
+
 export type JoinNodeRequest = {
   address: string;
   token: string;
@@ -88,8 +92,8 @@ export class NodesService {
   /**
    * Start node deployment.
    */
-  deploymentStart(): Observable<DeploymentBasicReply> {
-    return this.http.post<DeploymentBasicReply>(`${this.deploymentURL}/start`, null, {});
+  deploymentStart(request: DeploymentStartRequest): Observable<DeploymentBasicReply> {
+    return this.http.post<DeploymentBasicReply>(`${this.deploymentURL}/start`, request, {});
   }
 
   /**
