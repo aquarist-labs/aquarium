@@ -77,12 +77,12 @@ class TokenReplyModel(BaseModel):
     token: str
 
 
-@router.get("/devices", response_model=DiskSolution)
-async def node_get_devices(request: Request) -> DiskSolution:
+@router.get("/deployment/disksolution", response_model=DiskSolution)
+async def node_get_disk_solution(request: Request) -> DiskSolution:
     """
-    Obtain the list of devices and a deployment solution, if possible.
+    Obtain the list of disks and a deployment solution, if possible.
     """
-    logger.debug("api > nodes > devices")
+    logger.debug("api > nodes > deployment > devices")
     nodemgr: NodeMgr = request.app.state.nodemgr
 
     if not nodemgr.available:

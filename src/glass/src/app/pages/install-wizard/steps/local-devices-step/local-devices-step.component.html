@@ -2,9 +2,9 @@
      fxLayoutAlign="start stretch">
   <span class="glass-devices-step-subtitle"
         translate>
-    The following devices have been identified in the system and are automatically added to the storage management.
+    The following devices have been identified in the system and will be automatically added to the storage management.
   </span>
-  <glass-datatable [data]="devices"
+  <glass-datatable [data]="disks"
                    [columns]="devicesColumns"
                    [pageSize]="5"
                    [hidePageSize]="true">
@@ -20,10 +20,10 @@
   <mat-icon *ngIf="!value"
             class="glass-cursor-help"
             svgIcon="mdi:minus"
-            [matBadge]="row.rejected_reasons.length"
+            [matBadge]="row.rejectedReasons.length"
             matBadgeOverlap="true"
             matBadgeColor="warn"
             matBadgeSize="small"
-            [matTooltip]="row.rejected_reasons.join(', ')">
+            [matTooltip]="row.rejectedReasons.join(', ')">
   </mat-icon>
 </ng-template>
