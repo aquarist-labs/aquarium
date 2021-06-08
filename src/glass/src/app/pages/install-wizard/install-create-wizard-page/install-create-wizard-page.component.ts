@@ -123,6 +123,7 @@ export class InstallCreateWizardPageComponent implements OnInit {
         }
       },
       error: (err) => {
+        err.preventDefault();
         this.stepper!.linear = true;
         this.handleError(err.message);
       }
@@ -143,7 +144,10 @@ export class InstallCreateWizardPageComponent implements OnInit {
         this.blockUI.start(translate(TEXT('Please wait, checking node status ...')));
         this.pollNodeStatus();
       },
-      error: (err) => this.handleError(err.message)
+      error: (err) => {
+        err.preventDefault();
+        this.handleError(err.message);
+      }
     });
   }
 
@@ -160,14 +164,17 @@ export class InstallCreateWizardPageComponent implements OnInit {
           this.handleError(TEXT('Unable to finish deployment.'));
         }
       },
-      (err) => this.handleError(err)
+      (err) => {
+        err.preventDefault();
+        this.handleError(err.message);
+      }
     );
   }
 
-  private handleError(err: any): void {
+  private handleError(message: string): void {
     this.context.stepperVisible = true;
     this.blockUI.stop();
-    this.notificationService.show(err.toString(), {
+    this.notificationService.show(message, {
       type: 'error'
     });
   }
@@ -190,7 +197,10 @@ export class InstallCreateWizardPageComponent implements OnInit {
             this.doBootstrap();
           }
         },
-        (err) => this.handleError(err.message)
+        (err) => {
+          err.preventDefault();
+          this.handleError(err.message);
+        }
       );
   }
 
@@ -204,14 +214,13 @@ export class InstallCreateWizardPageComponent implements OnInit {
           this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
           this.pollBootstrapStatus();
         } else {
-          this.context.stepperVisible = true;
-          this.blockUI.stop();
-          this.notificationService.show(TEXT('Failed to start bootstrapping the system.'), {
-            type: 'error'
-          });
+          this.handleError(TEXT('Failed to start bootstrapping the system.'));
         }
       },
-      error: (err) => this.handleError(err)
+      error: (err) => {
+        err.preventDefault();
+        this.handleError(err.message);
+      }
     });
   }
 
@@ -251,7 +260,10 @@ export class InstallCreateWizardPageComponent implements OnInit {
               break;
           }
         },
-        () => this.handleError(TEXT('Failed to bootstrap the system.'))
+        (err) => {
+          err.preventDefault();
+          this.handleError(TEXT('Failed to bootstrap the system.'));
+        }
       );
   }
 }
