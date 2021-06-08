@@ -41,6 +41,7 @@ export class HostnameStepComponent implements AfterViewInit, OnDestroy {
         type: 'text',
         label: TEXT('Hostname'),
         value: '',
+        autofocus: true,
         validators: {
           required: true
         },

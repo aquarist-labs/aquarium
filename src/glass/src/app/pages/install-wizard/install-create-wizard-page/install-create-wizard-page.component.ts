@@ -15,6 +15,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { concat, forkJoin } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -128,6 +129,21 @@ export class InstallCreateWizardPageComponent implements OnInit {
         this.handleError(err.message);
       }
     });
+  }
+
+  onAnimationDone(): void {
+    // Focus the first element with the 'autofocus' attribute.
+    if (this.stepper) {
+      // eslint-disable-next-line no-underscore-dangle
+      const stepContentId = this.stepper._getStepContentId(this.stepper.selectedIndex);
+      const stepContentElement = document.getElementById(stepContentId);
+      const element: HTMLElement | null | undefined = stepContentElement?.querySelector(
+        '[ng-reflect-autofocus=true]'
+      );
+      if (element && _.isFunction(element.focus)) {
+        element.focus();
+      }
+    }
   }
 
   /**

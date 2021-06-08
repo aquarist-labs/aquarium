@@ -10,7 +10,8 @@
       <mat-card-content>
         <mat-horizontal-stepper #stepper
                                 linear="false"
-                                labelPosition="bottom">
+                                labelPosition="bottom"
+                                (animationDone)="onAnimationDone()">
           <ng-template matStepperIcon="edit">
             <mat-icon svgIcon="mdi:check"></mat-icon>
           </ng-template>

@@ -24,6 +24,7 @@
                [formControlName]="field.name"
                [readonly]="field.readonly"
                [required]="field.validators?.required!"
+               [autofocus]="field.autofocus"
                (paste)="onPaste(field, $event)">
         <button *ngIf="field.hasCopyToClipboardButton"
                 mat-icon-button
@@ -40,6 +41,7 @@
                [formControlName]="field.name"
                [readonly]="field.readonly"
                [required]="field.validators?.required!"
+               [autofocus]="field.autofocus"
                (paste)="onPaste(field, $event)">
         <!-- Number input -->
         <input *ngIf="field.type === 'number'"
@@ -50,6 +52,7 @@
                [formControlName]="field.name"
                [readonly]="field.readonly"
                [required]="field.validators?.required!"
+               [autofocus]="field.autofocus"
                (paste)="onPaste(field, $event)">
         <!-- Token -->
         <glass-token-input *ngIf="field.type === 'token'"
