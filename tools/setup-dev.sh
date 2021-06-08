@@ -220,9 +220,9 @@ if ! ${skip_install_deps} ; then
       echo "=> installing nodejs15.x repo to apt source"
       wget -qO - https://deb.nodesource.com/setup_15.x | sudo bash -
       echo "=> installing kiwi repo public key"
-      sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.04/Release.key | sudo apt-key add -
+      sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.10/Release.key | sudo apt-key add -
       echo "=> installing kiwi repo to apt source"
-      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.04 ./' -y
+      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.10 ./' -y
       echo "=> try installing dependencies"
       sudo apt-get install -q -y ${dependencies_ubuntu[*]} ||  {
         echo "Dependency installation failed"
