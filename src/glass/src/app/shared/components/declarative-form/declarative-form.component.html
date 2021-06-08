@@ -5,7 +5,7 @@
     <div [innerHTML]="config?.hint! | translate"></div>
   </glass-alert-panel>
   <p *ngIf="config?.subtitle"
-       [innerHTML]="config?.subtitle! | translate">
+     [innerHTML]="config?.subtitle! | translate">
   </p>
   <form *ngIf="formGroup && config"
         [formGroup]="formGroup"
