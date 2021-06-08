@@ -412,6 +412,14 @@ class NodeMgr:
         if not res:
             logger.error("unable to enable managed ceph.conf by cephadm")
 
+        res = mon.config_set(
+            "global",
+            "auth_allow_insecure_global_id_reclaim",
+            "false"
+        )
+        if not res:
+            logger.error("unable to disable insecure global id reclaim")
+
     async def finish_deployment(self) -> None:
         assert self._state
 
