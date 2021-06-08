@@ -10,7 +10,7 @@ submodules:
 	git submodule update --init
 
 glass:
-	cd src/glass && npm install && npx ng build --prod --output-hashing=all
+	cd src/glass && rm -rf node_modules && npm install && npx ng build --configuration production --output-hashing=all
 
 dist: submodules glass
 	$(eval TMPDIR := $(shell mktemp -d))

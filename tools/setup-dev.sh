@@ -322,7 +322,7 @@ pip install -r src/requirements.txt -U || exit 1
 deactivate
 
 pushd src/glass &>/dev/null
+rm -rf node_modules
 npm install || exit 1
 npx ng build || exit 1
 popd &>/dev/null
-
