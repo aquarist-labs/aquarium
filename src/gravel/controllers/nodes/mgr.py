@@ -157,6 +157,12 @@ class NodeMgr:
 
         self.gstate = gstate
 
+        try:
+            self._init_state()
+        except NodeError as e:
+            raise e  # propagate
+
+    def _init_state(self) -> None:
         # attempt reading our node state from disk; create one if not found.
         try:
             self._state = self.gstate.config.read_model("node", NodeStateModel)
