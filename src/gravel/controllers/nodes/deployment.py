@@ -352,6 +352,11 @@ class NodeDeployment:
         keyring_path.chmod(0o600)
         cephconf_path.chmod(0o644)
 
+        # get NTP address
+        ntp_addr = await self._gstate.store.get("/nodes/ntp_addr")
+        assert ntp_addr
+        await self._set_ntp_addr(ntp_addr)
+
         readymsg = ReadyToAddMessageModel()
         await conn.send(
             MessageModel(
