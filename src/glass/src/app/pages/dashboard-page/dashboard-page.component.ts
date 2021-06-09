@@ -124,6 +124,13 @@ export class DashboardPageComponent {
       cols: 6,
       rows: 4,
       enabledByDefault: true
+    },
+    {
+      id: 'services-utilization',
+      title: TEXT('Services Utilization'),
+      cols: 6,
+      rows: 4,
+      enabledByDefault: true
     }
   ];
 

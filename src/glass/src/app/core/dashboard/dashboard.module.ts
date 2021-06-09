@@ -12,6 +12,7 @@ import { HostsDashboardWidgetComponent } from '~/app/core/dashboard/widgets/host
 import { PerformanceDashboardWidgetComponent } from '~/app/core/dashboard/widgets/performance-dashboard-widget/performance-dashboard-widget.component';
 import { ServicesCapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-capacity-dashboard-widget/services-capacity-dashboard-widget.component';
 import { ServicesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-dashboard-widget/services-dashboard-widget.component';
+import { ServicesUtilizationDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-utilization-dashboard-widget/services-utilization-dashboard-widget.component';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
 import { VolumesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/volumes-dashboard-widget/volumes-dashboard-widget.component';
 import { MaterialModule } from '~/app/material.modules';
@@ -26,6 +27,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     SysInfoDashboardWidgetComponent,
     HostsDashboardWidgetComponent,
     ServicesCapacityDashboardWidgetComponent,
+    ServicesUtilizationDashboardWidgetComponent,
     PerformanceDashboardWidgetComponent
   ],
   exports: [
@@ -36,6 +38,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     SysInfoDashboardWidgetComponent,
     HostsDashboardWidgetComponent,
     ServicesCapacityDashboardWidgetComponent,
+    ServicesUtilizationDashboardWidgetComponent,
     PerformanceDashboardWidgetComponent
   ],
   imports: [
