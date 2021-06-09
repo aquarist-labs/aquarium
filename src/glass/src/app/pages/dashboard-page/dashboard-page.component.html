@@ -15,8 +15,11 @@
         <ng-template [ngSwitchCase]="'performance'">
           <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
         </ng-template>
-        <ng-template [ngSwitchCase]="'capacity'">
+        <ng-template [ngSwitchCase]="'allocations'">
           <glass-allocations-dashboard-widget></glass-allocations-dashboard-widget>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'capacity'">
+          <glass-capacity-dashboard-widget></glass-capacity-dashboard-widget>
         </ng-template>
         <ng-template [ngSwitchCase]="'volumes'">
           <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>

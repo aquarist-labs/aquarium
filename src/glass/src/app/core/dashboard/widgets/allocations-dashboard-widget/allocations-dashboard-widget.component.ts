@@ -19,7 +19,7 @@ export class AllocationsDashboardWidgetComponent {
     domain: ['#30ba78', '#e0dfdf']
   };
 
-  constructor(private service: ServicesService) {}
+  constructor(private servicesService: ServicesService) {}
 
   updateChartData($data: Constraints) {
     this.chartData = [
@@ -38,6 +38,6 @@ export class AllocationsDashboardWidgetComponent {
   }
 
   loadData(): Observable<Constraints> {
-    return this.service.getConstraints();
+    return this.servicesService.getConstraints();
   }
 }
