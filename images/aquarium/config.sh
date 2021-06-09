@@ -107,6 +107,7 @@ fi
 
 pip install fastapi==0.63.0 uvicorn==0.13.3 websockets==8.1 \
     git+https://github.com/aquarist-labs/aetcd3/@edf633045ce61c7bbac4d4a6ca15b14f8acfe9cd
+baseInsertService aquarium-boot
 baseInsertService sshd
 baseInsertService aquarium
 
