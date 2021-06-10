@@ -4,7 +4,7 @@
   / ___ \| (_| || |_| || (_| || |   | || |_| || | | | | |
  /_/   \_\\__, | \__,_| \__,_||_|   |_| \__,_||_| |_| |_|
              |_|                                         
-This is a ceph Appliance System [Aquarium] OS base on openSUSE.
+This is a Ceph Appliance System [Aquarium] OS based on openSUSE.
 The webservice is running on 
 
 <<network interfaces>>
