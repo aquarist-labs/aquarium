@@ -77,8 +77,15 @@ export class DashboardPageComponent {
       enabledByDefault: true
     },
     {
-      id: 'capacity',
+      id: 'allocations',
       title: TEXT('Allocated Storage'),
+      cols: 6,
+      rows: 4,
+      enabledByDefault: true
+    },
+    {
+      id: 'capacity',
+      title: TEXT('Capacity'),
       cols: 6,
       rows: 4,
       enabledByDefault: true
@@ -121,6 +128,13 @@ export class DashboardPageComponent {
     {
       id: 'services-capacity',
       title: TEXT('Services Capacity'),
+      cols: 6,
+      rows: 4,
+      enabledByDefault: true
+    },
+    {
+      id: 'services-utilization',
+      title: TEXT('Services Utilization'),
       cols: 6,
       rows: 4,
       enabledByDefault: true

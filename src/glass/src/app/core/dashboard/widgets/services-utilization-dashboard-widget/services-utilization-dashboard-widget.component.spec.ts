@@ -6,12 +6,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
-import { ServicesCapacityDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-capacity-dashboard-widget/services-capacity-dashboard-widget.component';
+import { ServicesUtilizationDashboardWidgetComponent } from '~/app/core/dashboard/widgets/services-utilization-dashboard-widget/services-utilization-dashboard-widget.component';
 import { ServicesService, ServiceStorage } from '~/app/shared/services/api/services.service';
 
-describe('ServicesCapacityDashboardWidgetComponent', () => {
-  let component: ServicesCapacityDashboardWidgetComponent;
-  let fixture: ComponentFixture<ServicesCapacityDashboardWidgetComponent>;
+describe('ServicesUtilizationDashboardWidgetComponent', () => {
+  let component: ServicesUtilizationDashboardWidgetComponent;
+  let fixture: ComponentFixture<ServicesUtilizationDashboardWidgetComponent>;
   let servicesService: ServicesService;
 
   beforeEach(async () => {
@@ -26,7 +26,7 @@ describe('ServicesCapacityDashboardWidgetComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ServicesCapacityDashboardWidgetComponent);
+    fixture = TestBed.createComponent(ServicesUtilizationDashboardWidgetComponent);
     component = fixture.componentInstance;
     servicesService = TestBed.inject(ServicesService);
     fixture.detectChanges();
@@ -41,15 +41,15 @@ describe('ServicesCapacityDashboardWidgetComponent', () => {
       of({
         foo: {
           name: 'foo',
-          used: 65536
+          utilization: 0.000006287751370776091
         },
         bar: {
           name: 'bar',
-          used: 1539047424
+          utilization: 0.4227160129839737
         },
         baz: {
           name: 'baz',
-          used: 1258291
+          utilization: 0.016
         }
       })
     );
@@ -57,15 +57,15 @@ describe('ServicesCapacityDashboardWidgetComponent', () => {
       expect(data).toEqual([
         {
           name: 'bar',
-          used: 1539047424
+          utilization: 0.42
         },
         {
           name: 'baz',
-          used: 1258291
+          utilization: 0.02
         },
         {
           name: 'foo',
-          used: 65536
+          utilization: 0
         }
       ]);
       done();
