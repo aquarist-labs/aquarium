@@ -120,6 +120,13 @@
     <users>
          <user password="aquarium" home="/home/aquarium" name="aquarium" groups="aquarium"  pwdformat="plain"/>
     </users>
+    <users profiles="Vagrant">
+        <user password="vagrant"
+              home="/home/vagrant"
+              name="vagrant"
+              groups="vagrant"
+              pwdformat="plain"/>
+    </users>
 
     <repository type="rpm-md" alias="kiwi" priority="1">
         <source path="obs://Virtualization:Appliances:Builder/openSUSE_Tumbleweed"/>
