@@ -19,7 +19,7 @@ describe('CephfsService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call setNtp', () => {
+  it('should call authorization', () => {
     service.authorization('foo').subscribe();
     const req = httpTesting.expectOne('api/services/cephfs/auth/foo');
     expect(req.request.method).toBe('GET');

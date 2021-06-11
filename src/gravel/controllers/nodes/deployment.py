@@ -39,7 +39,8 @@ from gravel.controllers.nodes.errors import (
     NodeCantDeployError,
     NodeError,
     NodeHasBeenDeployedError,
-    NodeHasJoinedError
+    NodeHasJoinedError,
+    NodeChronyRestartError
 )
 from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
@@ -49,6 +50,7 @@ from gravel.controllers.nodes.messages import (
     ReadyToAddMessageModel,
     WelcomeMessageModel
 )
+from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.systemdisk import SystemDisk
 from gravel.controllers.orch.orchestrator import Orchestrator
@@ -83,6 +85,7 @@ class DeploymentConfig(BaseModel):
     address: str
     token: str
     systemdisk: str
+    ntp_addr: str
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -349,6 +352,11 @@ class NodeDeployment:
         keyring_path.chmod(0o600)
         cephconf_path.chmod(0o644)
 
+        # get NTP address
+        ntp_addr = await self._gstate.store.get("/nodes/ntp_addr")
+        assert ntp_addr
+        await self._set_ntp_addr(ntp_addr)
+
         readymsg = ReadyToAddMessageModel()
         await conn.send(
             MessageModel(
@@ -391,10 +399,12 @@ class NodeDeployment:
         assert config.hostname
         assert config.address
         assert config.token
+        assert config.ntp_addr
 
         hostname = config.hostname
         address = config.address
         token = config.token
+        ntp_addr = config.ntp_addr
 
         if self._state.error:
             raise NodeCantDeployError("node is in error state")
@@ -459,6 +469,8 @@ class NodeDeployment:
             logger.error(f"bootstrap prepare error: {e.message}")
             raise e
 
+        await self._set_ntp_addr(ntp_addr)
+
         assert not self._bootstrapper
         await _start()
         self._bootstrapper = Bootstrap(self._gstate)
@@ -480,3 +492,10 @@ class NodeDeployment:
         assert self.state.bootstrapping
         logger.info("finishing deployment")
         self._state.mark_deployed()
+
+    async def _set_ntp_addr(self, ntp_addr: str):
+        try:
+            await set_ntp_addr(ntp_addr)
+        except NodeChronyRestartError as e:
+            logger.error(f"set ntp address error: {e.message}")
+            raise e

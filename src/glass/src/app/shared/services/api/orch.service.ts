@@ -39,10 +39,6 @@ export type HostDevices = {
   devices: Device[];
 };
 
-export type SetNtpRequest = {
-  addr: string;
-};
-
 export type SetHostnameRequest = {
   name: string;
 };
@@ -67,14 +63,6 @@ export class OrchService {
    */
   devices(): Observable<{ [hostName: string]: HostDevices }> {
     return this.http.get<{ [hostName: string]: HostDevices }>(`${this.url}/devices`);
-  }
-
-  /**
-   * Set NTP
-   */
-  setNtp(addr: string): Observable<boolean> {
-    const request: SetNtpRequest = { addr };
-    return this.http.put<boolean>(`${this.url}/ntp`, request);
   }
 
   /**

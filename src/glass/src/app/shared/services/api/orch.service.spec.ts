@@ -30,10 +30,4 @@ describe('OrchService', () => {
     const req = httpTesting.expectOne('api/orch/hosts');
     expect(req.request.method).toBe('GET');
   });
-
-  it('should call setNtp', () => {
-    service.setNtp('test.test.test').subscribe();
-    const req = httpTesting.expectOne('api/orch/ntp');
-    expect(req.request.method).toBe('PUT');
-  });
 });

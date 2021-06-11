@@ -32,7 +32,7 @@ describe('NodesService', () => {
   });
 
   it('should call deployment start', () => {
-    service.deploymentStart().subscribe();
+    service.deploymentStart({ ntpaddr: 'test.test.test' }).subscribe();
     const req = httpTesting.expectOne('api/nodes/deployment/start');
     expect(req.request.method).toBe('POST');
   });
