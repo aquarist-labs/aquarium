@@ -12,6 +12,7 @@ import { LanguageButtonComponent } from '~/app/shared/components/language-button
 import { SubmitButtonComponent } from '~/app/shared/components/submit-button/submit-button.component';
 import { TokenInputComponent } from '~/app/shared/components/token-input/token-input.component';
 import { WidgetComponent } from '~/app/shared/components/widget/widget.component';
+import { DirectivesModule } from '~/app/shared/directives/directives.module';
 import { PipesModule } from '~/app/shared/pipes/pipes.module';
 
 @NgModule({
@@ -35,6 +36,13 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     DeclarativeFormComponent,
     AlertPanelComponent
   ],
-  imports: [CommonModule, FlexLayoutModule, MaterialModule, PipesModule, TranslateModule.forChild()]
+  imports: [
+    CommonModule,
+    DirectivesModule,
+    FlexLayoutModule,
+    MaterialModule,
+    PipesModule,
+    TranslateModule.forChild()
+  ]
 })
 export class ComponentsModule {}

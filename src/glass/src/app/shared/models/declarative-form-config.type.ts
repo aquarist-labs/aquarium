@@ -4,6 +4,7 @@ export type FormFieldConfig = {
   label?: string;
   value?: any;
   readonly?: boolean;
+  autofocus?: boolean;
   hint?: string;
   class?: string;
   validators?: {
