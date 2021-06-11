@@ -197,8 +197,8 @@ if ! ${skip_install_deps} ; then
       fi
       ;;
     debian)
-      echo "=> installing nodejs15.x repo to apt source"
-      wget -qO - https://deb.nodesource.com/setup_15.x | sudo bash -
+      echo "=> installing nodejs16.x repo to apt source"
+      wget -qO - https://deb.nodesource.com/setup_16.x | sudo bash -
       echo "=> installing kiwi repo public key"
       sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10/Release.key | sudo apt-key add -
       echo "=> installing kiwi repo to apt source"
@@ -217,8 +217,8 @@ if ! ${skip_install_deps} ; then
       fi
       ;;
     ubuntu)
-      echo "=> installing nodejs15.x repo to apt source"
-      wget -qO - https://deb.nodesource.com/setup_15.x | sudo bash -
+      echo "=> installing nodejs16.x repo to apt source"
+      wget -qO - https://deb.nodesource.com/setup_16.x | sudo bash -
       echo "=> installing kiwi repo public key"
       sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.10/Release.key | sudo apt-key add -
       echo "=> installing kiwi repo to apt source"
