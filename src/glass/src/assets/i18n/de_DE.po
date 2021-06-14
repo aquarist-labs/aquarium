@@ -2,10 +2,11 @@
 # Translators:
 # Volker <votdev@gmx.de>, 2021
 # AvengerMoJo Alex <avengermojo@gmail.com>, 2021
+# Tatjana Dehler, 2021
 # 
 msgid ""
 msgstr ""
-"Last-Translator: AvengerMoJo Alex <avengermojo@gmail.com>, 2021\n"
+"Last-Translator: Tatjana Dehler, 2021\n"
 "Language-Team: German (Germany) (https://www.transifex.com/aquarist-labs/teams/117625/de_DE/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -39,12 +40,15 @@ msgid ""
 "devices are automatically assigned. Afterwards, you will be able to "
 "configure the services you want to provide."
 msgstr ""
+"Aquarium installiert und konfiguriert nun das Basissystem. Alle gefundenen "
+"Speichergeräte werden automatisch übernommen. Anschließend kannst du "
+"benötigte Dienste konfigurieren."
 
 msgid "Architecture"
 msgstr "Architektur"
 
 msgid "Authentication Token"
-msgstr "Authentifizierungstoken"
+msgstr "Authentifizierungsschlüssel"
 
 msgid "Available"
 msgstr "Verfügbar"
@@ -59,7 +63,7 @@ msgid "Bootstrapping not possible at the moment, please retry later."
 msgstr ""
 
 msgid "CPU Load"
-msgstr "CPU Load"
+msgstr "CPU-Auslastung"
 
 msgid "Cancel"
 msgstr "Abbruch"
@@ -71,7 +75,7 @@ msgid "CephFS"
 msgstr "CephFS"
 
 msgid "CephFS Service"
-msgstr "CephFS Bedienung"
+msgstr "CephFS-Dienst"
 
 msgid "Choose installation mode"
 msgstr "Wählen Sie den Installationsmodus"
@@ -119,7 +123,7 @@ msgid "Entity"
 msgstr ""
 
 msgid "Error"
-msgstr ""
+msgstr "Fehler"
 
 msgid "Estimated Required Capacity"
 msgstr ""
@@ -128,10 +132,10 @@ msgid "Failed to bootstrap the system."
 msgstr "Fehler beim Urladen des Systems."
 
 msgid "Failed to copy text to the clipboard."
-msgstr ""
+msgstr "Fehler beim Kopieren des Textes in die Zwischenablage."
 
 msgid "Failed to create service."
-msgstr ""
+msgstr "Fehler beim Erstellen des Dienstes."
 
 msgid "Failed to fetch data"
 msgstr "Daten konnten nicht abgerufen werden"
@@ -164,7 +168,7 @@ msgid "Health"
 msgstr ""
 
 msgid "Help"
-msgstr ""
+msgstr "Hilfe"
 
 msgid "Hostname"
 msgstr "Hostname"
@@ -199,10 +203,10 @@ msgid "Mount command"
 msgstr ""
 
 msgid "NFS"
-msgstr ""
+msgstr "NFS"
 
 msgid "NFS Service"
-msgstr ""
+msgstr "NFS-Dienst"
 
 msgid "NTP host IP/FQDN"
 msgstr ""
@@ -223,10 +227,10 @@ msgid "No CephFS services configured"
 msgstr "Keine CephFS-Dienste konfiguriert"
 
 msgid "No NFS services configured"
-msgstr ""
+msgstr "Keine NFS-Dienste konfiguriert"
 
 msgid "No services deployed yet."
-msgstr ""
+msgstr "Noch keine Dienste erstellt."
 
 msgid "Number Of Replicas"
 msgstr ""
@@ -292,10 +296,10 @@ msgid "Serial"
 msgstr "Seriennummer"
 
 msgid "Service Name"
-msgstr ""
+msgstr "Name des Dienstes"
 
 msgid "Service Type"
-msgstr ""
+msgstr "Art des Dienstes"
 
 msgid "Service creation requirements not met."
 msgstr ""
@@ -329,7 +333,7 @@ msgid "Show mount command"
 msgstr ""
 
 msgid "Size"
-msgstr ""
+msgstr "Größe"
 
 msgid "Sorry, we could not find what you are looking for."
 msgstr ""
@@ -338,10 +342,10 @@ msgid "Start"
 msgstr "Start"
 
 msgid "Summary"
-msgstr ""
+msgstr "Zusammenfassung"
 
 msgid "System Information"
-msgstr "System Information"
+msgstr "Systeminformationen"
 
 msgid "The IP address or FQDN of the NTP host."
 msgstr ""
@@ -361,10 +365,10 @@ msgid "The security token to authorize at the main node."
 msgstr ""
 
 msgid "The service name already exists."
-msgstr ""
+msgstr "Der Name des Dienstes existiert bereits."
 
 msgid "The token is invalid."
-msgstr ""
+msgstr "Der Schlüssel ist ungültig."
 
 msgid "The value cannot exceed 65535."
 msgstr ""
@@ -373,7 +377,7 @@ msgid "The value must be at least 0."
 msgstr ""
 
 msgid "This field is required."
-msgstr ""
+msgstr "Dieses Feld ist ein Pflichtfeld."
 
 msgid "This field must be an IP address or FQDN (<address>:<port>)."
 msgstr ""
@@ -395,7 +399,7 @@ msgid "Toggle navigation"
 msgstr "Navigation umschalten"
 
 msgid "Token"
-msgstr ""
+msgstr "Schlüssel"
 
 msgid "Type"
 msgstr "Typ"
@@ -426,7 +430,7 @@ msgid "Used"
 msgstr "Benutzt"
 
 msgid "Vendor"
-msgstr "Lieferant"
+msgstr "Anbieter"
 
 msgid "Volumes"
 msgstr ""
