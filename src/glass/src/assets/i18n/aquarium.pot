@@ -106,9 +106,6 @@ msgstr ""
 msgid "Discussions"
 msgstr ""
 
-msgid "English"
-msgstr ""
-
 msgid "Entity"
 msgstr ""
 
@@ -146,9 +143,6 @@ msgid "Flavor"
 msgstr ""
 
 msgid "Free"
-msgstr ""
-
-msgid "German"
 msgstr ""
 
 msgid "Go to Dashboard"
@@ -322,9 +316,6 @@ msgstr ""
 msgid "Show mount command"
 msgstr ""
 
-msgid "Simplified Chinese"
-msgstr ""
-
 msgid "Size"
 msgstr ""
 
@@ -396,9 +387,6 @@ msgid "Toggle navigation"
 msgstr ""
 
 msgid "Token"
-msgstr ""
-
-msgid "Traditional Chinese"
 msgstr ""
 
 msgid "Type"

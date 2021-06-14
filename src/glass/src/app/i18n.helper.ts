@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateLoader } from '@ngx-translate/core';
-import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -36,10 +35,10 @@ export class TranslateHttpLoader implements TranslateLoader {
 
 export const supportedLanguages: Record<string, string> = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  en_US: TEXT('English'),
-  de_DE: TEXT('German'),
-  zh_TW: TEXT('Traditional Chinese'),
-  zh_CN: TEXT('Simplified Chinese')
+  en_US: 'English',
+  de_DE: 'Deutsch',
+  zh_TW: '繁體中文',
+  zh_CN: '简体中文'
 };
 
 /**
