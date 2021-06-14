@@ -15,10 +15,13 @@
     "fix:eslint": "npm run lint:eslint -- --fix",
     "fix": "run-p -csl --aggregate-output fix:*",
     "e2e": "ng e2e",
+    "i18n": "npm run i18n:extract && npm run i18n:pull && npm run i18n:convert",
     "i18n:extract": "ngx-translate-extract --input src --output src/assets/i18n/aquarium.pot --sort --format pot --clean",
     "i18n:pull": "python3 -m venv venv; . venv/bin/activate; pip install transifex-client; tx --root=. pull --all --force",
     "i18n:convert": "run-p -csl --aggregate-output i18n:convert:*",
-    "i18n:convert:de_DE": "po2json --format mf --pretty src/assets/i18n/de_DE.po src/assets/i18n/de_DE.json"
+    "i18n:convert:de_DE": "po2json --format mf --pretty src/assets/i18n/de_DE.po src/assets/i18n/de_DE.json",
+    "i18n:convert:zh_CN": "po2json --format mf --pretty src/assets/i18n/zh_CN.po src/assets/i18n/zh_CN.json",
+    "i18n:convert:zh_TW": "po2json --format mf --pretty src/assets/i18n/zh_TW.po src/assets/i18n/zh_TW.json"
   },
   "private": true,
   "jest": {

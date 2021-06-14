@@ -50,7 +50,9 @@ export class TranslateHttpLoader implements TranslateLoader {
 export const supportedLanguages: Record<string, string> = {
   /* eslint-disable @typescript-eslint/naming-convention */
   en_US: 'English',
-  de_DE: 'Deutsch'
+  de_DE: 'Deutsch',
+  zh_TW: '繁體中文',
+  zh_CN: '简体中文'
 };
 
 /**

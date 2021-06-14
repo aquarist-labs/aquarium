@@ -4,16 +4,28 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "15min"
+msgid "1 min"
 msgstr ""
 
-msgid "1min"
+msgid "15 min"
 msgstr ""
 
-msgid "5min"
+msgid "5 min"
+msgstr ""
+
+msgid "Add"
 msgstr ""
 
 msgid "Address"
+msgstr ""
+
+msgid "Allocated Capacity"
+msgstr ""
+
+msgid "Allocated Size"
+msgstr ""
+
+msgid "Allocated Storage"
 msgstr ""
 
 msgid "Aquarium"
@@ -28,16 +40,19 @@ msgstr ""
 msgid "Architecture"
 msgstr ""
 
-msgid "Assigned"
+msgid "Authentication Token"
 msgstr ""
 
 msgid "Available"
 msgstr ""
 
+msgid "Available Capacity"
+msgstr ""
+
 msgid "Back"
 msgstr ""
 
-msgid "Bootstrap system"
+msgid "Bootstrapping not possible at the moment, please retry later."
 msgstr ""
 
 msgid "CPU Load"
@@ -46,13 +61,16 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-msgid "Capacity"
-msgstr ""
-
 msgid "CephFS"
 msgstr ""
 
+msgid "CephFS Service"
+msgstr ""
+
 msgid "Choose installation mode"
+msgstr ""
+
+msgid "Close"
 msgstr ""
 
 msgid "Configure CephFS service"
@@ -61,10 +79,13 @@ msgstr ""
 msgid "Configure NFS service"
 msgstr ""
 
-msgid "Configure iSCSI service"
+msgid "Continue"
 msgstr ""
 
-msgid "Continue"
+msgid "Copied text to the clipboard successfully."
+msgstr ""
+
+msgid "Copy to clipboard"
 msgstr ""
 
 msgid "Create"
@@ -73,28 +94,52 @@ msgstr ""
 msgid "Create new cluster"
 msgstr ""
 
+msgid "Current deployment has a single host and can't tolerate failures."
+msgstr ""
+
 msgid "Dashboard"
 msgstr ""
 
-msgid "Deploy a service"
+msgid "Devices"
 msgstr ""
 
-msgid "Deploy devices"
+msgid "Discussions"
+msgstr ""
+
+msgid "Entity"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Estimated Required Capacity"
 msgstr ""
 
 msgid "Failed to bootstrap the system."
 msgstr ""
 
+msgid "Failed to copy text to the clipboard."
+msgstr ""
+
+msgid "Failed to create service."
+msgstr ""
+
 msgid "Failed to fetch data"
 msgstr ""
 
-msgid "Failed to fetch device information"
+msgid "Failed to join existing cluster."
 msgstr ""
 
 msgid "Failed to start bootstrapping the system."
 msgstr ""
 
-msgid "Failed to start device deployment."
+msgid "File Service"
+msgstr ""
+
+msgid "Finish"
+msgstr ""
+
+msgid "Flavor"
 msgstr ""
 
 msgid "Free"
@@ -106,13 +151,27 @@ msgstr ""
 msgid "Health"
 msgstr ""
 
+msgid "Help"
+msgstr ""
+
 msgid "Hostname"
 msgstr ""
 
 msgid "Hosts"
 msgstr ""
 
-msgid "Inventory"
+msgid ""
+"If you do have your own NTP host configured on the network, please add it "
+"below."
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "Installation"
+msgstr ""
+
+msgid "Join"
 msgstr ""
 
 msgid "Join existing cluster"
@@ -121,10 +180,28 @@ msgstr ""
 msgid "Kernel"
 msgstr ""
 
+msgid "Key"
+msgstr ""
+
 msgid "Language"
 msgstr ""
 
+msgid "Mount command"
+msgstr ""
+
+msgid "NFS"
+msgstr ""
+
+msgid "NFS Service"
+msgstr ""
+
+msgid "NTP host IP/FQDN"
+msgstr ""
+
 msgid "Name"
+msgstr ""
+
+msgid "Networking"
 msgstr ""
 
 msgid "Next"
@@ -136,7 +213,13 @@ msgstr ""
 msgid "No CephFS services configured"
 msgstr ""
 
-msgid "Node deployment"
+msgid "No NFS services configured"
+msgstr ""
+
+msgid "No services deployed yet."
+msgstr ""
+
+msgid "Number Of Replicas"
 msgstr ""
 
 msgid "OK"
@@ -148,28 +231,73 @@ msgstr ""
 msgid "Path"
 msgstr ""
 
+msgid "Performance"
+msgstr ""
+
+msgid "Please enter the hostname for this system."
+msgstr ""
+
+msgid "Please wait, assessing service specifications ..."
+msgstr ""
+
 msgid "Please wait, bootstrapping in progress ..."
 msgstr ""
 
 msgid "Please wait, bootstrapping will be started ..."
 msgstr ""
 
-msgid "Please wait, device deployment in progress ..."
+msgid "Please wait, checking node status ..."
 msgstr ""
 
-msgid "Please wait, fetching device information ..."
+msgid "Please wait, checking system status ..."
 msgstr ""
 
-msgid "Redundancy Level"
+msgid "Please wait, deploying service ..."
+msgstr ""
+
+msgid "Please wait, finishing deployment ..."
+msgstr ""
+
+msgid "Please wait, joining existing cluster in progress ..."
+msgstr ""
+
+msgid "Please wait, start joining existing cluster ..."
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "Raw Required Capacity"
+msgstr ""
+
+msgid "Raw Size"
+msgstr ""
+
+msgid "Registration"
 msgstr ""
 
 msgid "Serial"
 msgstr ""
 
+msgid "Service Name"
+msgstr ""
+
+msgid "Service Type"
+msgstr ""
+
+msgid "Service creation requirements not met."
+msgstr ""
+
+msgid "Service successfully created."
+msgstr ""
+
 msgid "Services"
 msgstr ""
 
-msgid "Services deployment"
+msgid "Services Capacity"
+msgstr ""
+
+msgid "Services Capacity - Top 5"
 msgstr ""
 
 msgid ""
@@ -182,39 +310,107 @@ msgid ""
 "assimilated."
 msgstr ""
 
+msgid "Show credentials"
+msgstr ""
+
+msgid "Show mount command"
+msgstr ""
+
 msgid "Size"
 msgstr ""
 
 msgid "Sorry, we could not find what you are looking for."
 msgstr ""
 
-msgid "Space"
-msgstr ""
-
 msgid "Start"
-msgstr ""
-
-msgid "Summary"
 msgstr ""
 
 msgid "System Information"
 msgstr ""
 
+msgid "The IP address or FQDN of the NTP host."
+msgstr ""
+
+msgid "The IP address or FQDN of the main node."
+msgstr ""
+
 msgid ""
-"The step will erase all data on the listed devices. Are you sure you want "
-"to continue?"
+"The following devices have been identified in the system and are "
+"automatically added to the storage management."
+msgstr ""
+
+msgid "The hostname is a single word that identifies the system to the network."
+msgstr ""
+
+msgid ""
+"The node was successfully integrated into the cluster and is now ready to "
+"use."
+msgstr ""
+
+msgid "The security token to authorize at the main node."
+msgstr ""
+
+msgid "The service name already exists."
+msgstr ""
+
+msgid "The system can now join the existing cluster."
+msgstr ""
+
+msgid ""
+"The token and address of the joining cluster can be found on the "
+"<em>Host</em> page of the UI."
+msgstr ""
+
+msgid "This field is required."
+msgstr ""
+
+msgid "This field must be an IP address or FQDN (<address>:<port>)."
+msgstr ""
+
+msgid "This field must be an IP address or FQDN."
+msgstr ""
+
+msgid ""
+"This wizard will guide you through the installation process to set up a "
+"node from scratch."
+msgstr ""
+
+msgid ""
+"This wizard will guide you through the process to join this node with an "
+"existing cluster."
+msgstr ""
+
+msgid "Time"
 msgstr ""
 
 msgid "Toggle navigation"
 msgstr ""
 
+msgid "Token"
+msgstr ""
+
 msgid "Type"
 msgstr ""
 
-msgid "Unassigned"
+msgid "Unable to finish deployment."
 msgstr ""
 
 msgid "Uptime"
+msgstr ""
+
+msgid "Usable Size"
+msgstr ""
+
+msgid "Use a NTP host on the internet"
+msgstr ""
+
+msgid "Use the following command line to mount the file system."
+msgstr ""
+
+msgid "Use this token to authenticate a new node when adding it to the cluster."
+msgstr ""
+
+msgid "Use your own NTP host"
 msgstr ""
 
 msgid "Used"
@@ -226,7 +422,10 @@ msgstr ""
 msgid "Volumes"
 msgstr ""
 
-msgid "We are sorry, but your deployment was not successful."
+msgid "Warning"
+msgstr ""
+
+msgid "Website"
 msgstr ""
 
 msgid ""
@@ -241,11 +440,14 @@ msgstr ""
 msgid "You can now open your dashboard by clicking the button below."
 msgstr ""
 
+msgid ""
+"Your Aquarium environment needs to have the time synchronized with a "
+"reliable time source. You do have two options in order to configure the "
+"time synchronization:"
+msgstr ""
+
 msgid "Your deployment was successful and is now ready to use."
 msgstr ""
 
 msgid "for more details."
-msgstr ""
-
-msgid "iSCSI"
 msgstr ""
