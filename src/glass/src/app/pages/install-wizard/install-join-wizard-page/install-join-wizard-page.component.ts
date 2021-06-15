@@ -163,10 +163,12 @@ export class InstallJoinWizardPageComponent implements OnInit {
           switch (res.node_stage) {
             case StatusStageEnum.none:
             case StatusStageEnum.unknown:
+              this.context.stage = 'unknown';
               this.handleError(TEXT('Failed to join existing cluster.'));
               break;
             case StatusStageEnum.ready:
-              this.context.stage = 'unknown';
+              this.context.stage = 'joined';
+              this.context.stepperVisible = true;
               this.blockUI.stop();
               this.stepper?.next();
               break;
