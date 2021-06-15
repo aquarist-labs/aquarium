@@ -30,7 +30,6 @@ import {
   NodesService,
   NodeStageEnum
 } from '~/app/shared/services/api/nodes.service';
-import { OrchService } from '~/app/shared/services/api/orch.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -69,7 +68,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
     private localNodeService: LocalNodeService,
     private nodesService: NodesService,
     private notificationService: NotificationService,
-    private orchService: OrchService,
     private pollService: PollService
   ) {}
 
@@ -150,7 +148,7 @@ export class InstallCreateWizardPageComponent implements OnInit {
    * This step starts the bootstrap process
    */
   startBootstrap(): void {
-    this.orchService.setHostname(this.context.config.hostname).subscribe({
+    this.nodesService.setHostname(this.context.config.hostname).subscribe({
       complete: () => {
         this.blockUI.start(translate(TEXT('Please wait, checking node status ...')));
         this.pollNodeStatus();
