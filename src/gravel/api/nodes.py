@@ -146,7 +146,7 @@ async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
     if success:
         logger.debug("api > start deployment")
 
-    return DeployStartReplyModel(success=True, error=error)
+    return DeployStartReplyModel(success=success, error=error)
 
 
 @router.get("/deployment/status", response_model=DeployStatusReplyModel)
