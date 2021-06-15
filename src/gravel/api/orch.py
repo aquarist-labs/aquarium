@@ -53,10 +53,6 @@ class HostsDevicesModel(BaseModel):
     devices: List[DeviceModel]
 
 
-class SetNtpRequest(BaseModel):
-    addr: str
-
-
 @router.get("/hosts", response_model=List[HostModel])
 def get_hosts(request: Request) -> List[HostModel]:
     orch = Orchestrator(request.app.state.gstate.ceph_mgr)
