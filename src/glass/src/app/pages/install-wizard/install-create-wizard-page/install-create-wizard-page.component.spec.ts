@@ -69,7 +69,7 @@ describe('InstallCreateWizardPageComponent', () => {
   it('should show notification only once [3]', fakeAsync(() => {
     component.startBootstrap();
     httpTesting
-      .match({ url: 'api/orch/hostname', method: 'PUT' })[0]
+      .match({ url: 'api/nodes/hostname', method: 'PUT' })[0]
       .error(new ErrorEvent('Unknown error'), { status: 500 });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledTimes(1);

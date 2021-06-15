@@ -27,7 +27,6 @@ import {
   StatusStageEnum
 } from '~/app/shared/services/api/local.service';
 import { NodesService } from '~/app/shared/services/api/nodes.service';
-import { OrchService } from '~/app/shared/services/api/orch.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -64,7 +63,6 @@ export class InstallJoinWizardPageComponent implements OnInit {
     private localNodeService: LocalNodeService,
     private nodesService: NodesService,
     private notificationService: NotificationService,
-    private orchService: OrchService,
     private pollService: PollService
   ) {}
 
@@ -122,7 +120,7 @@ export class InstallJoinWizardPageComponent implements OnInit {
     this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, start joining existing cluster ...')));
     concat(
-      this.orchService.setHostname(this.context.config.hostname),
+      this.nodesService.setHostname(this.context.config.hostname),
       this.nodesService.join({
         address: `${this.context.config.address}:${this.context.config.port}`,
         token: this.context.config.token
