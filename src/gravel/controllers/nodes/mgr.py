@@ -535,12 +535,6 @@ class NodeMgr:
         except Exception as e:
             raise NodeError(str(e))
 
-    def _get_hostname(self) -> str:
-        return ""
-
-    def _get_address(self) -> str:
-        return ""
-
     async def _incoming_msg_task(self) -> None:
         logger.info("start handling incoming messages")
         while not self._shutting_down:
