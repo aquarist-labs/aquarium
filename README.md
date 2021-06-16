@@ -10,7 +10,7 @@ Project Aquarium is a SUSE-sponsored open source project aiming at becoming an e
 
 We are investigating the beginnings of a new storage appliance project in an opinionated fashion. The Aquarium project is split into two clearly defined work streams: Gravel (backend) and Glass (frontend).
 
-Aquarist Labs is licensed under LGPL version 2.1. We do not require assignment of a copyright to contribute code; code is contributed under the terms of the applicable license.
+Aquarist Labs is licensed under GPL version 3, except where other licenses may apply. We do not require assignment of a copyright to contribute code; code is contributed under the terms of the applicable license.
 
 ## How do I get started?
 

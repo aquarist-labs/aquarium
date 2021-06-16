@@ -1,8 +1,8 @@
 Name: aquarium
 
 Files: *
-Copyright: (c) 2021 SUSE, LLC.
-License: LGPL-2.1 or LGPL-3 (see COPYING-LGPL2.1 and COPYING-LGPL3)
+Copyright: (c) 2021 SUSE, LLC., unless otherwise specified
+License: GPL-3 (see COPYING-GPL3), unless otherwise specified
 
 Files: src/gravel/ceph.git
 Copyright: (c) Ceph and contributors
