@@ -24,7 +24,7 @@ from typing import (
 from pathlib import Path
 
 import aetcd3
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.cephadm import CephadmError
@@ -133,6 +133,10 @@ class TokenModel(BaseModel):
 class JoiningNodeModel(BaseModel):
     hostname: str
     address: str
+
+
+class DeployParamsModel(BaseModel):
+    ntpaddr: str = Field(title="NTP address to be used")
 
 
 class NodeMgr:
@@ -355,7 +359,7 @@ class NodeMgr:
         await self._node_start()
         return True
 
-    async def deploy(self, ntp_addr: str) -> None:
+    async def deploy(self, params: DeployParamsModel) -> None:
 
         assert self._state
         if self._init_stage < NodeInitStage.AVAILABLE:
@@ -376,6 +380,10 @@ class NodeMgr:
         assert disk_solution.systemdisk is not None
         logger.debug(f"mgr > deploy > disk solution: {disk_solution}")
 
+        # check parameters
+        if not params.ntpaddr or len(params.ntpaddr) == 0:
+            raise NodeCantDeployError("missing ntp server address")
+
         assert self._state.hostname
         assert self._state.address
         logger.info("deploy node")
@@ -385,13 +393,13 @@ class NodeMgr:
                 address=self._state.address,
                 token=self._token,
                 systemdisk=disk_solution.systemdisk.path,
-                ntp_addr=ntp_addr
+                ntp_addr=params.ntpaddr
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment
         )
         await self._save_token()
-        await self._save_ntp_addr(ntp_addr)
+        await self._save_ntp_addr(params.ntpaddr)
 
     async def _post_bootstrap_finisher(
         self,

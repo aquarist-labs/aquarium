@@ -35,7 +35,10 @@ from gravel.controllers.nodes.errors import (
     NodeNotDeployedError,
     NodeNotStartedError
 )
-from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.nodes.mgr import (
+    DeployParamsModel,
+    NodeMgr
+)
 
 
 logger: Logger = fastapi_logger
@@ -77,10 +80,6 @@ class TokenReplyModel(BaseModel):
     token: str
 
 
-class StartDeploymentRequest(BaseModel):
-    ntpaddr: str = Field(title="NTP server address")
-
-
 class SetHostnameRequest(BaseModel):
     name: str = Field(min_length=1, title="The system hostname")
 
@@ -103,8 +102,10 @@ async def node_get_disk_solution(request: Request) -> DiskSolution:
 
 
 @router.post("/deployment/start", response_model=DeployStartReplyModel)
-async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
-        -> DeployStartReplyModel:
+async def node_deploy(
+    request: Request,
+    req_params: DeployParamsModel
+) -> DeployStartReplyModel:
     """
     Start deploying this node. The host will be configured according to user
     specification; a minimal Ceph cluster will be bootstrapped; and a token for
@@ -119,7 +120,7 @@ async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
     error = DeployErrorModel()
 
     try:
-        await request.app.state.nodemgr.deploy(req_params.ntpaddr)
+        await request.app.state.nodemgr.deploy(req_params)
     except NodeCantDeployError as e:
         logger.error(f"api > can't deploy: {e.message}")
         success = False
