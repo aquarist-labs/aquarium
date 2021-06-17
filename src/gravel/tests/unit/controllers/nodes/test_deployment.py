@@ -195,13 +195,26 @@ async def test_deploy(
         assert address == "127.0.0.1"
         await cb(True, None)
 
+    called_hostname_with: Optional[str] = None
+    called_ntp_with: Optional[str] = None
+
+    def mock_set_hostname(hostname: str) -> None:
+        nonlocal called_hostname_with
+        called_hostname_with = hostname
+
+    async def mock_set_ntpaddr(ntp_addr: str) -> None:
+        nonlocal called_ntp_with
+        called_ntp_with = ntp_addr
+
     fake_connmgr: ConnMgr = cast(
         ConnMgr,
         mocker.MagicMock()
     )
     deployment = NodeDeployment(gstate, fake_connmgr)
     deployment._prepare_etcd = mocker.AsyncMock()
-    deployment._set_ntp_addr = mocker.AsyncMock()
+    deployment._set_hostname = mock_set_hostname
+    deployment._set_ntp_addr = mock_set_ntpaddr
+
     mocker.patch.object(
         Bootstrap,
         "bootstrap",
@@ -245,6 +258,8 @@ async def test_deploy(
 
     assert called_postbootstrap
     assert called_finisher
+    assert called_ntp_with and called_ntp_with == "my.ntp.test"
+    assert called_hostname_with and called_hostname_with == "foobar"
 
 
 @pytest.mark.asyncio
