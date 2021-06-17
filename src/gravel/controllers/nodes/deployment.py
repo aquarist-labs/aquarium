@@ -298,6 +298,7 @@ class NodeDeployment:
         conn = await self._connmgr.connect(uri)
         logger.debug(f"join > conn: {conn}")
 
+        self._set_hostname(hostname)
         joinmsg = JoinMessageModel(
             uuid=uuid,
             hostname=hostname,
@@ -468,15 +469,7 @@ class NodeDeployment:
 
         self._progress = ProgressEnum.PREPARING
 
-        try:
-            set_hostname(hostname)
-        except HostnameCtlError as e:
-            logger.error(f"deploy prepare error setting hostname: {e.message}")
-            raise e
-        except Exception as e:
-            logger.error(f"deploy prepare error setting hostname: {str(e)}")
-            raise DeploymentError(str(e))
-
+        self._set_hostname(hostname)
         try:
             await self._prepare_etcd(hostname, address, token)
         except NodeError as e:
@@ -513,3 +506,13 @@ class NodeDeployment:
         except NodeChronyRestartError as e:
             logger.error(f"set ntp address error: {e.message}")
             raise e
+
+    def _set_hostname(self, hostname: str) -> None:
+        try:
+            set_hostname(hostname)
+        except HostnameCtlError as e:
+            logger.error(f"deploy prepare error setting hostname: {e.message}")
+            raise DeploymentError(e.message)
+        except Exception as e:
+            logger.error(f"deploy prepare error setting hostname: {str(e)}")
+            raise DeploymentError(str(e))

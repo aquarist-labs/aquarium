@@ -135,9 +135,16 @@ class JoiningNodeModel(BaseModel):
     address: str
 
 
-class DeployParamsModel(BaseModel):
-    ntpaddr: str = Field(title="NTP address to be used")
+class DeployParamsBaseModel(BaseModel):
     hostname: str = Field(title="Hostname to use for this node")
+
+
+class DeployParamsModel(DeployParamsBaseModel):
+    ntpaddr: str = Field(title="NTP address to be used")
+
+
+class JoinParamsModel(DeployParamsBaseModel):
+    pass
 
 
 class NodeMgr:
@@ -326,7 +333,12 @@ class NodeMgr:
         self._state.hostname = name
         await self._save_state()
 
-    async def join(self, leader_address: str, token: str) -> bool:
+    async def join(
+        self,
+        leader_address: str,
+        token: str,
+        params: JoinParamsModel
+    ) -> bool:
         logger.debug(
             f"join > with leader {leader_address}, token: {token}"
         )
@@ -336,16 +348,21 @@ class NodeMgr:
         elif self._init_stage > NodeInitStage.AVAILABLE:
             raise NodeCantJoinError()
 
+        if not params.hostname or len(params.hostname) == 0:
+            raise NodeError("hostname parameter not provided")
+
         assert self._state
-        assert self._state.hostname
         assert self._state.address
+
+        # set in-memory hostname state, write it later
+        self._state.hostname = params.hostname
 
         try:
             res: bool = await self._deployment.join(
                 leader_address,
                 token,
                 self._state.uuid,
-                self._state.hostname,
+                params.hostname,
                 self._state.address
             )
 
@@ -357,6 +374,7 @@ class NodeMgr:
             raise e
 
         self._token = token
+        await self._save_state()
         await self._node_start()
         return True
 

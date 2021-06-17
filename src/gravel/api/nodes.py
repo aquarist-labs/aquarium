@@ -37,6 +37,7 @@ from gravel.controllers.nodes.errors import (
 )
 from gravel.controllers.nodes.mgr import (
     DeployParamsModel,
+    JoinParamsModel,
     NodeMgr
 )
 
@@ -74,6 +75,7 @@ class DeployStatusReplyModel(BaseModel):
 class NodeJoinRequestModel(BaseModel):
     address: str
     token: str
+    hostname: str
 
 
 class TokenReplyModel(BaseModel):
@@ -210,7 +212,12 @@ async def node_join(req: NodeJoinRequestModel, request: Request):
             detail="leader address and token are required"
         )
 
-    return await request.app.state.nodemgr.join(req.address, req.token)
+    nodemgr = request.app.state.nodemgr
+    return await nodemgr.join(
+        req.address,
+        req.token,
+        JoinParamsModel(hostname=req.hostname)
+    )
 
 
 @router.get("/token", response_model=TokenReplyModel)

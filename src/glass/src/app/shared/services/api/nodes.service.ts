@@ -10,6 +10,7 @@ export type DeploymentStartRequest = {
 export type JoinNodeRequest = {
   address: string;
   token: string;
+  hostname: string;
 };
 
 export type TokenReply = {
