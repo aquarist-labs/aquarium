@@ -42,6 +42,10 @@ from gravel.controllers.nodes.errors import (
     NodeHasJoinedError,
     NodeChronyRestartError
 )
+from gravel.controllers.nodes.host import (
+    HostnameCtlError,
+    set_hostname
+)
 from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
     JoinMessageModel,
@@ -462,8 +466,18 @@ class NodeDeployment:
                 logger.exception(e)
                 await finisher(False, str(e))
 
+        self._progress = ProgressEnum.PREPARING
+
         try:
-            self._progress = ProgressEnum.PREPARING
+            set_hostname(hostname)
+        except HostnameCtlError as e:
+            logger.error(f"deploy prepare error setting hostname: {e.message}")
+            raise e
+        except Exception as e:
+            logger.error(f"deploy prepare error setting hostname: {str(e)}")
+            raise DeploymentError(str(e))
+
+        try:
             await self._prepare_etcd(hostname, address, token)
         except NodeError as e:
             logger.error(f"bootstrap prepare error: {e.message}")

@@ -137,6 +137,7 @@ class JoiningNodeModel(BaseModel):
 
 class DeployParamsModel(BaseModel):
     ntpaddr: str = Field(title="NTP address to be used")
+    hostname: str = Field(title="Hostname to use for this node")
 
 
 class NodeMgr:
@@ -383,13 +384,17 @@ class NodeMgr:
         # check parameters
         if not params.ntpaddr or len(params.ntpaddr) == 0:
             raise NodeCantDeployError("missing ntp server address")
+        if not params.hostname or len(params.hostname) == 0:
+            raise NodeCantDeployError("missing hostname parameter")
 
-        assert self._state.hostname
+        # set hostname in memory; we'll write it later
+        self._state.hostname = params.hostname
+
         assert self._state.address
         logger.info("deploy node")
         await self._deployment.deploy(
             DeploymentConfig(
-                hostname=self._state.hostname,
+                hostname=params.hostname,
                 address=self._state.address,
                 token=self._token,
                 systemdisk=disk_solution.systemdisk.path,
@@ -410,6 +415,7 @@ class NodeMgr:
         Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
+        await self._save_state()
 
         logger.info("finish deployment config")
         await self._post_bootstrap_config()

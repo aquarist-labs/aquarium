@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 export type DeploymentStartRequest = {
   ntpaddr: string;
+  hostname: string;
 };
 
 export type JoinNodeRequest = {
