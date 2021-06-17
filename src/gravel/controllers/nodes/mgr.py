@@ -35,7 +35,6 @@ from gravel.controllers.nodes.deployment import (
     DeploymentState,
     NodeDeployment
 )
-from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.orch.ceph import (
     CephCommandError,
     Mon
@@ -319,19 +318,6 @@ class NodeMgr:
 
         tokenstr = '-'.join(gen() for _ in range(4))
         return tokenstr
-
-    async def set_hostname(self, name: str) -> None:
-        logger.info(f"set hostname '{name}'")
-        try:
-            set_hostname(name)
-        except HostnameCtlError as e:
-            logger.error(f"set hostname: {e.message}")
-            raise e
-        except Exception as e:
-            logger.error(f"set hostname: {str(e)}")
-            raise NodeError(f"setting hostname: {str(e)}")
-        self._state.hostname = name
-        await self._save_state()
 
     async def join(
         self,

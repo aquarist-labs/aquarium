@@ -122,12 +122,4 @@ export class NodesService {
   deploymentDiskSolution(): Observable<DiskSolution> {
     return this.http.get<DiskSolution>(`${this.deploymentURL}/disksolution`);
   }
-
-  /**
-   * Setup hostname
-   */
-  setHostname(name: string): Observable<boolean> {
-    const request: SetHostnameRequest = { name };
-    return this.http.put<boolean>(`${this.url}/hostname`, request);
-  }
 }
