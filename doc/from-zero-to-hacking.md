@@ -222,7 +222,7 @@ those changes.
 
 2. `cd /srv/aquarium` within the VM
 
-3. `sudo ./run_aquarium.sh`
+3. `sudo ./tools/run_aquarium.sh`
 
 4. access your newly running environment at `http://localhost:1337`
 
