@@ -124,7 +124,7 @@ export class NodesService {
   /**
    * Setup hostname
    */
-   setHostname(name: string): Observable<boolean> {
+  setHostname(name: string): Observable<boolean> {
     const request: SetHostnameRequest = { name };
     return this.http.put<boolean>(`${this.url}/hostname`, request);
   }
