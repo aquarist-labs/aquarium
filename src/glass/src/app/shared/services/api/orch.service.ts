@@ -60,5 +60,4 @@ export class OrchService {
   devices(): Observable<{ [hostName: string]: HostDevices }> {
     return this.http.get<{ [hostName: string]: HostDevices }>(`${this.url}/devices`);
   }
-
 }
