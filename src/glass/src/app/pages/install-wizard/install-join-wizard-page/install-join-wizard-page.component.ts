@@ -54,9 +54,10 @@ export class InstallJoinWizardPageComponent implements OnInit {
   public pageIndex = {
     start: 0,
     hostname: 1,
-    registration: 2,
-    summary: 3,
-    finish: 4
+    devices: 2,
+    registration: 3,
+    summary: 4,
+    finish: 5
   };
 
   constructor(
