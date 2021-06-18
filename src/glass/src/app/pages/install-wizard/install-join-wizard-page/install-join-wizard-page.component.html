@@ -60,6 +60,23 @@
             </div>
           </mat-step>
 
+          <mat-step label="{{ 'Devices' | translate }}">
+            <div class="glass-install-wizard-step-content">
+              <glass-local-devices-step></glass-local-devices-step>
+            </div>
+            <div class="glass-install-wizard-step-actions">
+              <button mat-icon-button
+                      matTooltip="{{ 'Back' | translate }}"
+                      matStepperPrevious>
+                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+              </button>
+              <button mat-button
+                      matStepperNext>
+                <span translate>Next</span>
+              </button>
+            </div>
+          </mat-step>
+
           <mat-step label="{{ 'Registration' | translate }}"
                     [completed]="registerStep.completed">
             <div class="glass-install-wizard-step-content">
