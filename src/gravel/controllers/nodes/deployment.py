@@ -38,6 +38,7 @@ from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeBootstrappingError,
     NodeCantDeployError,
+    NodeCantJoinError,
     NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError,
@@ -280,7 +281,8 @@ class NodeDeployment:
         token: str,
         uuid: UUID,
         hostname: str,
-        address: str
+        address: str,
+        disks: DeploymentDisksConfig
     ) -> bool:
         logger.debug(
             f"join > with leader {leader_address}, token: {token}"
@@ -334,6 +336,14 @@ class NodeDeployment:
         assert welcome.cephconf
         assert welcome.keyring
         assert welcome.etcd_peer
+
+        # create disks here
+        systemdisk = SystemDisk(self._gstate)
+        try:
+            await systemdisk.create(disks.system)
+            await systemdisk.enable()
+        except GravelError as e:
+            raise NodeCantJoinError(e.message)
 
         my_url: str = \
             f"{hostname}=http://{address}:2380"

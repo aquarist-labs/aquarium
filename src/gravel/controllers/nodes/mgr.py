@@ -344,13 +344,24 @@ class NodeMgr:
         # set in-memory hostname state, write it later
         self._state.hostname = params.hostname
 
+        disk_solution = Disks.gen_solution(self.gstate)
+        if not disk_solution.possible:
+            raise NodeCantJoinError("no disk deployment solution found")
+        assert disk_solution.systemdisk is not None
+
+        disks = DeploymentDisksConfig(system=disk_solution.systemdisk.path)
+        disks.storage = [
+            d.path for d in disk_solution.storage if d.path is not None
+        ]
+
         try:
             res: bool = await self._deployment.join(
                 leader_address,
                 token,
                 self._state.uuid,
                 params.hostname,
-                self._state.address
+                self._state.address,
+                disks
             )
 
             if not res:
