@@ -59,6 +59,7 @@ from gravel.controllers.nodes.messages import (
 from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.systemdisk import SystemDisk
+from gravel.controllers.orch.models import OrchHostListModel
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -386,6 +387,25 @@ class NodeDeployment:
             )
         )
         await conn.close()
+
+        def host_added():
+            orch = Orchestrator(self._gstate.ceph_mgr)
+            logger.debug("join > obtain existing hosts")
+            hosts: List[OrchHostListModel] = orch.host_ls()
+            logger.debug(f"join > current hosts: {hosts}")
+            for h in hosts:
+                if h.hostname == hostname:
+                    return True
+            return False
+
+        while not host_added():
+            logger.debug("join > wait for host to be added")
+            await asyncio.sleep(1.0)
+
+        try:
+            await self._assimilate_devices(hostname, disks.storage)
+        except DeploymentError as e:
+            raise NodeCantJoinError(e.message)
 
         self._state.mark_ready()
         return True
