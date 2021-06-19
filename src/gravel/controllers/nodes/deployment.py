@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import (
     Awaitable,
     Callable,
+    List,
     Optional
 )
 from uuid import UUID
@@ -84,12 +85,17 @@ class DeploymentModel(BaseModel):
     stage: NodeStageEnum = Field(NodeStageEnum.NONE)
 
 
+class DeploymentDisksConfig(BaseModel):
+    system: str = Field(title="Device to consume for system disk")
+    storage: List[str] = Field([], title="Devices to consume for storage")
+
+
 class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
-    systemdisk: str
     ntp_addr: str
+    disks: DeploymentDisksConfig
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -416,7 +422,7 @@ class NodeDeployment:
 
         systemdisk = SystemDisk(self._gstate)
         try:
-            await systemdisk.create(config.systemdisk)
+            await systemdisk.create(config.disks.system)
             await systemdisk.enable()
         except GravelError as e:
             raise NodeCantDeployError(e.message)
@@ -440,18 +446,20 @@ class NodeDeployment:
                     msg=error
                 )
             await post_bootstrap_cb(success, error)
-            await _assimilate_devices()
+            if len(config.disks.storage) > 0:
+                await _assimilate_devices()
 
         async def _assimilate_devices() -> None:
             logger.debug("deployment > assimilating devices")
             self._progress = ProgressEnum.ASSIMILATING
             try:
+                storagedevs = config.disks.storage
                 orch = Orchestrator(self._gstate.ceph_mgr)
-                orch.assimilate_all_devices()
+                orch.assimilate_devices(hostname, storagedevs)
 
                 # wait a few seconds so the orchestrator settles down
                 await asyncio.sleep(5.0)
-                while not orch.all_devices_assimilated():
+                while not orch.devices_assimilated(hostname, storagedevs):
                     await asyncio.sleep(1.0)
 
                 logger.debug("deployment > devices assimilated")

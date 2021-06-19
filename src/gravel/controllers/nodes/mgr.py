@@ -32,6 +32,7 @@ from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
+    DeploymentDisksConfig,
     DeploymentState,
     NodeDeployment
 )
@@ -383,7 +384,12 @@ class NodeMgr:
         if not disk_solution.possible:
             raise NodeCantDeployError("no possible deployment solution found")
         assert disk_solution.systemdisk is not None
-        logger.debug(f"mgr > deploy > disk solution: {disk_solution}")
+
+        disks = DeploymentDisksConfig(system=disk_solution.systemdisk.path)
+        disks.storage = [
+            d.path for d in disk_solution.storage if d.path is not None
+        ]
+        logger.debug(f"mgr > deploy > disks: {disks}")
 
         # check parameters
         if not params.ntpaddr or len(params.ntpaddr) == 0:
@@ -401,8 +407,8 @@ class NodeMgr:
                 hostname=params.hostname,
                 address=self._state.address,
                 token=self._token,
-                systemdisk=disk_solution.systemdisk.path,
-                ntp_addr=params.ntpaddr
+                ntp_addr=params.ntpaddr,
+                disks=disks
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment

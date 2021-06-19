@@ -17,6 +17,7 @@
 from typing import (
     Awaitable,
     Callable,
+    List,
     Optional,
     cast
 )
@@ -24,6 +25,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.nodes.deployment import DeploymentDisksConfig
 
 
 @pytest.mark.asyncio
@@ -184,7 +186,11 @@ async def test_deploy(
     from gravel.controllers.orch.orchestrator import Orchestrator
     from gravel.controllers.nodes.systemdisk import SystemDisk
 
-    def mock_true(cls):  # type: ignore
+    def mock_devices_assimilated(
+        cls,  # type: ignore
+        hostname: str,
+        devs: List[str]
+    ):
         return True
 
     async def mock_bootstrap(
@@ -197,6 +203,7 @@ async def test_deploy(
 
     called_hostname_with: Optional[str] = None
     called_ntp_with: Optional[str] = None
+    called_assimilate_with: List[str] = []
 
     def mock_set_hostname(hostname: str) -> None:
         nonlocal called_hostname_with
@@ -205,6 +212,14 @@ async def test_deploy(
     async def mock_set_ntpaddr(ntp_addr: str) -> None:
         nonlocal called_ntp_with
         called_ntp_with = ntp_addr
+
+    def mock_assimilate_devices(
+        cls,  # type: ignore
+        host: str,
+        devices: List[str]
+    ) -> None:
+        nonlocal called_assimilate_with
+        called_assimilate_with.extend(devices)
 
     fake_connmgr: ConnMgr = cast(
         ConnMgr,
@@ -220,11 +235,15 @@ async def test_deploy(
         "bootstrap",
         new=mock_bootstrap  # type: ignore
     )
-    mocker.patch.object(Orchestrator, "assimilate_all_devices")
     mocker.patch.object(
         Orchestrator,
-        "all_devices_assimilated",
-        new=mock_true  # type: ignore
+        "assimilate_devices",
+        new=mock_assimilate_devices  # type: ignore
+    )
+    mocker.patch.object(
+        Orchestrator,
+        "devices_assimilated",
+        new=mock_devices_assimilated  # type: ignore
     )
     mocker.patch.object(SystemDisk, "create")
     mocker.patch.object(SystemDisk, "enable")
@@ -244,13 +263,18 @@ async def test_deploy(
         nonlocal called_finisher
         called_finisher = True
 
+    disks = DeploymentDisksConfig(
+        system="/dev/foobar",
+        storage=["/dev/bar", "/dev/baz"]
+    )
+
     await deployment.deploy(
         DeploymentConfig(
             hostname="foobar",
             address="127.0.0.1",
             token="myfancytoken",
-            systemdisk="/dev/foobar",
-            ntp_addr="my.ntp.test"
+            ntp_addr="my.ntp.test",
+            disks=disks
         ),
         post_bootstrap_cb=postbootstrap_cb,
         finisher=finisher_cb
@@ -260,6 +284,8 @@ async def test_deploy(
     assert called_finisher
     assert called_ntp_with and called_ntp_with == "my.ntp.test"
     assert called_hostname_with and called_hostname_with == "foobar"
+    assert "/dev/bar" in called_assimilate_with
+    assert "/dev/baz" in called_assimilate_with
 
 
 @pytest.mark.asyncio
