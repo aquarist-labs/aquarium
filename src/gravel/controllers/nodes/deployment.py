@@ -456,34 +456,29 @@ class NodeDeployment:
                     msg=error
                 )
             await post_bootstrap_cb(success, error)
-            if len(config.disks.storage) > 0:
-                await _assimilate_devices()
 
-        async def _assimilate_devices() -> None:
-            logger.debug("deployment > assimilating devices")
-            self._progress = ProgressEnum.ASSIMILATING
             try:
-                storagedevs = config.disks.storage
-                orch = Orchestrator(self._gstate.ceph_mgr)
-                orch.assimilate_devices(hostname, storagedevs)
-
-                # wait a few seconds so the orchestrator settles down
-                await asyncio.sleep(5.0)
-                while not orch.devices_assimilated(hostname, storagedevs):
-                    await asyncio.sleep(1.0)
-
-                logger.debug("deployment > devices assimilated")
+                await _assimilate_devices()
+            except DeploymentError as e:
+                logger.error("unable to assimilate devices")
+                logger.exception(e)
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_ASSIMILATE,
+                    msg=e.message
+                )
+                await finisher(False, e.message)
+            else:
                 self._progress = ProgressEnum.DONE
                 await finisher(True, None)
 
-            except Exception as e:
-                self._state.mark_error(
-                    code=DeploymentErrorEnum.CANT_ASSIMILATE,
-                    msg=str(e)
-                )
-                logger.error("unable to assimilate devices")
-                logger.exception(e)
-                await finisher(False, str(e))
+        async def _assimilate_devices() -> None:
+            devices = config.disks.storage
+            if len(devices) == 0:
+                return
+            logger.debug("deployment > assimilating devices")
+            self._progress = ProgressEnum.ASSIMILATING
+            await self._assimilate_devices(hostname, devices)
+            logger.debug("deployment > devices assimilated")
 
         self._progress = ProgressEnum.PREPARING
 
@@ -533,4 +528,21 @@ class NodeDeployment:
             raise DeploymentError(e.message)
         except Exception as e:
             logger.error(f"deploy prepare error setting hostname: {str(e)}")
+            raise DeploymentError(str(e))
+
+    async def _assimilate_devices(
+        self,
+        hostname: str,
+        devices: List[str]
+    ) -> None:
+        try:
+            orch = Orchestrator(self._gstate.ceph_mgr)
+            orch.assimilate_devices(hostname, devices)
+
+            # wait a few seconds so the orchestrator settles down
+            await asyncio.sleep(5.0)
+            while not orch.devices_assimilated(hostname, devices):
+                await asyncio.sleep(1.0)
+
+        except Exception as e:
             raise DeploymentError(str(e))
