@@ -166,6 +166,9 @@
     <packages type="image" profiles="Vagrant,Vagrant-x86_64,Vagrant-VirtualBox-x86_64,Vagrant-aarch64">
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
+
+        <!-- adds entropy to Vagrant boxes -->
+        <package name="haveged"/>
     </packages>
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-dump"/>
