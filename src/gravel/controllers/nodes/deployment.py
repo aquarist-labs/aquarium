@@ -307,7 +307,6 @@ class NodeDeployment:
         conn = await self._connmgr.connect(uri)
         logger.debug(f"join > conn: {conn}")
 
-        self._set_hostname(hostname)
         joinmsg = JoinMessageModel(
             uuid=uuid,
             hostname=hostname,
@@ -316,8 +315,6 @@ class NodeDeployment:
         )
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
-
-        self._state.mark_join()
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
@@ -338,13 +335,17 @@ class NodeDeployment:
         assert welcome.keyring
         assert welcome.etcd_peer
 
-        # create disks here
+        # create system disk after we are certain we are joining.
+        # ensure all state writes happen only after the disk has been created.
         systemdisk = SystemDisk(self._gstate)
         try:
             await systemdisk.create(disks.system)
             await systemdisk.enable()
         except GravelError as e:
             raise NodeCantJoinError(e.message)
+
+        self._state.mark_join()
+        self._set_hostname(hostname)
 
         my_url: str = \
             f"{hostname}=http://{address}:2380"
