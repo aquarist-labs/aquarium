@@ -9,85 +9,172 @@
   </p>
   <form *ngIf="formGroup && config"
         [formGroup]="formGroup"
+        [attr.id]="config.id"
         fxLayout="column"
         novalidate>
     <ng-container *ngFor="let field of config.fields">
-      <mat-form-field [formGroup]="formGroup">
-        <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
-        <!-- Password input -->
-        <input *ngIf="field.type === 'password'"
-               matInput
-               type="password"
-               autocorrect="off"
-               autocapitalize="none"
-               [class]="field.class"
-               [formControlName]="field.name"
-               [readonly]="field.readonly"
-               [required]="field.validators?.required!"
-               [autofocus]="field.autofocus"
-               (paste)="onPaste(field, $event)">
-        <button *ngIf="field.hasCopyToClipboardButton"
-                mat-icon-button
-                matSuffix
-                matTooltip="{{ 'Copy to clipboard' | translate }}"
-                (click)="onCopyToClipboard(field)">
-          <mat-icon svgIcon="mdi:content-copy"></mat-icon>
-        </button>
-        <!-- Text input -->
-        <input *ngIf="field.type === 'text'"
-               matInput
-               type="text"
-               [class]="field.class"
-               [formControlName]="field.name"
-               [readonly]="field.readonly"
-               [required]="field.validators?.required!"
-               [autofocus]="field.autofocus"
-               (paste)="onPaste(field, $event)">
-        <!-- Number input -->
-        <input *ngIf="field.type === 'number'"
-               matInput
-               type="text"
-               inputmode="numeric"
-               [class]="field.class"
-               [formControlName]="field.name"
-               [readonly]="field.readonly"
-               [required]="field.validators?.required!"
-               [autofocus]="field.autofocus"
-               (paste)="onPaste(field, $event)">
-        <!-- Token -->
-        <glass-token-input *ngIf="field.type === 'token'"
-                           matInput
-                           [class]="field.class"
-                           [formControlName]="field.name"
-                           [required]="field.validators?.required!"
-                           (paste)="onPaste(field, $event)">
-        </glass-token-input>
-        <mat-hint *ngIf="field.hint">
-          <span>{{ field.hint | translate }}</span>
-        </mat-hint>
-        <mat-error *ngIf="formGroup.invalid">
-          <span *ngIf="formGroup.hasError('required', field.name)"
-                translate>
-            This field is required.
-          </span>
-          <span *ngIf="formGroup.hasError('min', field.name)">
-                translate
-            The value must be at least {{ field.validators?.min }}.
-          </span>
-          <span *ngIf="formGroup.hasError('max', field.name)"
-                translate>
-            The value cannot exceed {{ field.validators?.max }}.
-          </span>
-          <span *ngIf="formGroup.hasError('pattern', field.name)">
-                translate
-            The value is invalid.
-          </span>
-          <span *ngIf="formGroup.hasError('hostAddress', field.name)"
-                translate>
-            This field must be an IP address or FQDN.
-          </span>
-        </mat-error>
-      </mat-form-field>
+      <ng-container [ngSwitch]="field.type">
+
+        <ng-template [ngSwitchCase]="'password'">
+          <mat-form-field [formGroup]="formGroup">
+            <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
+            <input #passwordInput
+                   matInput
+                   type="password"
+                   autocorrect="off"
+                   autocapitalize="none"
+                   [class]="field.class"
+                   [formControlName]="field.name"
+                   [readonly]="field.readonly"
+                   [required]="field.validators?.required!"
+                   [autofocus]="field.autofocus"
+                   (paste)="onPaste(field, $event)">
+            <mat-icon matSuffix
+                      matTooltip="{{ passwordInput.type === 'password' ? 'Show' : 'Hide' | translate }}"
+                      (click)="passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'"
+                      svgIcon="mdi:eye-outline">
+            </mat-icon>
+            <mat-icon *ngIf="field.hasCopyToClipboardButton"
+                      matSuffix
+                      matTooltip="{{ 'Copy to clipboard' | translate }}"
+                      (click)="onCopyToClipboard(field)"
+                      svgIcon="mdi:content-copy">
+            </mat-icon>
+            <mat-error *ngIf="formGroup.invalid">
+              <span *ngIf="formGroup.hasError('required', field.name)"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="formGroup.hasError('pattern', field.name)">
+                    translate
+                The value is invalid.
+              </span>
+            </mat-error>
+            <mat-hint *ngIf="field.hint && field.hint.length > 0"
+                      [innerHTML]="field.hint | translate">
+            </mat-hint>
+          </mat-form-field>
+        </ng-template>
+
+        <ng-template [ngSwitchCase]="'text'">
+          <mat-form-field [formGroup]="formGroup">
+            <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
+            <input matInput
+                   type="text"
+                   [class]="field.class"
+                   [formControlName]="field.name"
+                   [readonly]="field.readonly"
+                   [required]="field.validators?.required!"
+                   [autofocus]="field.autofocus"
+                   (paste)="onPaste(field, $event)">
+            <mat-icon *ngIf="field.hasCopyToClipboardButton"
+                      matSuffix
+                      matTooltip="{{ 'Copy to clipboard' | translate }}"
+                      (click)="onCopyToClipboard(field)"
+                      svgIcon="mdi:content-copy">
+            </mat-icon>
+            <mat-error *ngIf="formGroup.invalid">
+              <span *ngIf="formGroup.hasError('required', field.name)"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="formGroup.hasError('pattern', field.name)">
+                    translate
+                The value is invalid.
+              </span>
+              <span *ngIf="formGroup.hasError('hostAddress', field.name)"
+                    translate>
+                This field must be an IP address or FQDN.
+              </span>
+            </mat-error>
+            <mat-hint *ngIf="field.hint && field.hint.length > 0"
+                      [innerHTML]="field.hint | translate">
+            </mat-hint>
+          </mat-form-field>
+        </ng-template>
+
+        <ng-template [ngSwitchCase]="'number'">
+          <mat-form-field [formGroup]="formGroup">
+            <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
+            <input matInput
+                   type="text"
+                   inputmode="numeric"
+                   [class]="field.class"
+                   [formControlName]="field.name"
+                   [readonly]="field.readonly"
+                   [required]="field.validators?.required!"
+                   [autofocus]="field.autofocus"
+                   (paste)="onPaste(field, $event)">
+            <mat-icon *ngIf="field.hasCopyToClipboardButton"
+                      matSuffix
+                      matTooltip="{{ 'Copy to clipboard' | translate }}"
+                      (click)="onCopyToClipboard(field)"
+                      svgIcon="mdi:content-copy">
+            </mat-icon>
+            <mat-error *ngIf="formGroup.invalid">
+              <span *ngIf="formGroup.hasError('required', field.name)"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="formGroup.hasError('min', field.name)">
+                    translate
+                The value must be at least {{ field.validators?.min }}.
+              </span>
+              <span *ngIf="formGroup.hasError('max', field.name)"
+                    translate>
+                The value cannot exceed {{ field.validators?.max }}.
+              </span>
+            </mat-error>
+            <mat-hint *ngIf="field.hint && field.hint.length > 0"
+                      [innerHTML]="field.hint | translate">
+            </mat-hint>
+          </mat-form-field>
+        </ng-template>
+
+        <ng-template [ngSwitchCase]="'token'">
+          <mat-form-field [formGroup]="formGroup">
+            <mat-label *ngIf="field.label">{{ field.label | translate }}</mat-label>
+            <glass-token-input matInput
+                               [class]="field.class"
+                               [formControlName]="field.name"
+                               [required]="field.validators?.required!"
+                               (paste)="onPaste(field, $event)">
+            </glass-token-input>
+            <mat-error *ngIf="formGroup.invalid">
+              <span *ngIf="formGroup.hasError('required', field.name)"
+                    translate>
+                This field is required.
+              </span>
+            </mat-error>
+            <mat-hint *ngIf="field.hint && field.hint.length > 0"
+                      [innerHTML]="field.hint | translate">
+            </mat-hint>
+          </mat-form-field>
+        </ng-template>
+
+        <ng-template [ngSwitchCase]="'checkbox'">
+          <div class="mat-form-field"
+               fxFlex
+               fxLayout="column"
+               [formGroup]="formGroup">
+            <mat-checkbox [formControlName]="field.name"
+                          [checked]="field.value"
+                          [required]="field.validators?.required!">
+              {{ field.label! | translate }}
+            </mat-checkbox>
+            <mat-error *ngIf="formGroup.invalid">
+              <span *ngIf="formGroup.hasError('required', field.name)"
+                    translate>
+                This field is required.
+              </span>
+            </mat-error>
+            <mat-hint *ngIf="field.hint && field.hint.length > 0"
+                      [innerHTML]="field.hint | translate">
+            </mat-hint>
+          </div>
+        </ng-template>
+
+      </ng-container>
     </ng-container>
   </form>
 </div>

@@ -21,3 +21,5 @@ tests/vagrant/setups/
 venv/
 virtualenv/
 wheelhouse/
+.coverage
+coverage.xml

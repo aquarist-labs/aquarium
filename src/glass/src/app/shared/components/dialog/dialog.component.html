@@ -1,9 +1,9 @@
-<div *ngIf="config.title"
+<div *ngIf="icon || config.title"
      mat-dialog-title>
   <mat-icon *ngIf="icon"
             svgIcon="{{ icon }}">
   </mat-icon>
-  {{ config.title | translate }}
+  <div *ngIf="config.title">{{ config.title | translate }}</div>
 </div>
 <mat-dialog-content class="mat-typography">
   <span [innerHTML]="config.message | translate"></span>

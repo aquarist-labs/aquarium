@@ -39,12 +39,14 @@ from gravel.api import (
     local,
     devices,
     nfs,
+    auth,
+    user,
 )
 
 logger: logging.Logger = fastapi_logger
 
 
-async def aquarium_startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
+async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
     setup_logging(lvl)
     logger.info("Aquarium startup!")
@@ -100,7 +102,7 @@ async def aquarium_startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
     aquarium_api.state.nodemgr = nodemgr
 
 
-async def aquarium_shutdown(aquarium_app: FastAPI, aquarium_api: FastAPI):
+async def aquarium_shutdown(_: FastAPI, aquarium_api: FastAPI):
     logger.info("Aquarium shutdown!")
     await aquarium_api.state.gstate.shutdown()
     logger.info("shutting down node manager")
@@ -136,6 +138,14 @@ def aquarium_factory(
         {
             "name": "devices",
             "description": "Obtain and perform operations on cluster devices"
+        },
+        {
+            "name": "auth",
+            "description": "Operations related to user authentication"
+        },
+        {
+            "name": "user",
+            "description": "Operations related to user management"
         }
     ]
 
@@ -163,6 +173,8 @@ def aquarium_factory(
     aquarium_api.include_router(nodes.router)
     aquarium_api.include_router(devices.router)
     aquarium_api.include_router(nfs.router)
+    aquarium_api.include_router(auth.router)
+    aquarium_api.include_router(user.router)
 
     #
     # mounts

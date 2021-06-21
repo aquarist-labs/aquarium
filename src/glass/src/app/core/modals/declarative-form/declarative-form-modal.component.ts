@@ -23,8 +23,9 @@ export class DeclarativeFormModalComponent {
   ) {
     this.config = _.defaultsDeep(data, {
       fields: [],
-      okButtonVisible: true,
-      okButtonText: TEXT('OK'),
+      submitButtonVisible: true,
+      submitButtonText: TEXT('OK'),
+      submitButtonResult: undefined,
       cancelButtonVisible: true,
       cancelButtonText: TEXT('Cancel'),
       cancelButtonResult: false
@@ -32,9 +33,9 @@ export class DeclarativeFormModalComponent {
   }
 
   onOK(): void {
-    const result = _.isUndefined(this.config.okButtonResult)
+    const result = _.isUndefined(this.config.submitButtonResult)
       ? this.form.values
-      : this.config.okButtonResult;
+      : this.config.submitButtonResult;
     this.matDialogRef.close(result);
   }
 }

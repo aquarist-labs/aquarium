@@ -14,12 +14,13 @@
 from logging import Logger
 from typing import List, Optional
 
-from fastapi import HTTPException, status, Request
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 
 from pydantic import BaseModel
 
+from gravel.api import jwt_auth_scheme
 from gravel.controllers.orch.nfs import \
     NFSError, NFSBackingStoreEnum, \
     NFSExport, NFSExportModel, \
@@ -55,7 +56,8 @@ class Response(BaseModel):
     name='create an nfs service',
     response_model=Response
 )
-async def service_create(request: Request, service_id: str, req: ServiceRequest) -> Response:
+async def service_create(request: Request, service_id: str, req: ServiceRequest,
+                         _=Depends(jwt_auth_scheme)) -> Response:
     try:
         mgr = request.app.state.gstate.ceph_mgr
         res = NFSService(mgr).create(service_id, placement=req.placement)
@@ -69,7 +71,8 @@ async def service_create(request: Request, service_id: str, req: ServiceRequest)
     '/service/{service_id}',
     name='update an nfs service',
     response_model=Response)
-async def service_update(request: Request, service_id: str, req: ServiceRequest) -> Response:
+async def service_update(request: Request, service_id: str, req: ServiceRequest,
+                         _=Depends(jwt_auth_scheme)) -> Response:
     try:
         mgr = request.app.state.gstate.ceph_mgr
         res = NFSService(mgr).update(service_id, req.placement if req.placement else '*')
@@ -83,7 +86,8 @@ async def service_update(request: Request, service_id: str, req: ServiceRequest)
     '/service/{service_id}',
     name='delete an nfs service',
     response_model=Response)
-async def service_delete(request: Request, service_id: str) -> Response:
+async def service_delete(request: Request, service_id: str,
+                         _=Depends(jwt_auth_scheme)) -> Response:
     try:
         mgr = request.app.state.gstate.ceph_mgr
         res = NFSService(mgr).delete(service_id)
@@ -97,7 +101,7 @@ async def service_delete(request: Request, service_id: str) -> Response:
     '/service',
     name='list nfs service names',
     response_model=List[str])
-def get_service_ls(request: Request) -> List[str]:
+def get_service_ls(request: Request, _=Depends(jwt_auth_scheme)) -> List[str]:
     mgr = request.app.state.gstate.ceph_mgr
     return NFSService(mgr).ls()
 
@@ -106,7 +110,8 @@ def get_service_ls(request: Request) -> List[str]:
     '/service/{service_id}',
     name='nfs service detail',
     response_model=NFSServiceModel)
-def get_service_info(request: Request, service_id: str) -> NFSServiceModel:
+def get_service_info(request: Request, service_id: str,
+                     _=Depends(jwt_auth_scheme)) -> NFSServiceModel:
     mgr = request.app.state.gstate.ceph_mgr
     try:
         for svc in NFSService(mgr).info(service_id=service_id):
@@ -125,7 +130,8 @@ def get_service_info(request: Request, service_id: str) -> NFSServiceModel:
 async def export_create(
         request: Request,
         service_id: str,
-        req: ExportRequest) -> NFSExportModel:
+        req: ExportRequest,
+        _=Depends(jwt_auth_scheme)) -> NFSExportModel:
     try:
         mgr = request.app.state.gstate.ceph_mgr
         res: NFSExportModel = \
@@ -146,7 +152,8 @@ async def export_create(
     '/export/{service_id}/{export_id}',
     name='delete an nfs export',
     response_model=Response)
-async def export_delete(request: Request, service_id: str, export_id: int) -> Response:
+async def export_delete(request: Request, service_id: str, export_id: int,
+                        _=Depends(jwt_auth_scheme)) -> Response:
     mgr = request.app.state.gstate.ceph_mgr
     try:
         res = NFSExport(mgr).delete(service_id, export_id)
@@ -160,7 +167,8 @@ async def export_delete(request: Request, service_id: str, export_id: int) -> Re
     '/export/{service_id}',
     name='list nfs export ids',
     response_model=List[int])
-async def get_export_ls(request: Request, service_id: str) -> List[int]:
+async def get_export_ls(request: Request, service_id: str,
+                        _=Depends(jwt_auth_scheme)) -> List[int]:
     mgr = request.app.state.gstate.ceph_mgr
     try:
         res = NFSExport(mgr).ls(service_id)
@@ -174,7 +182,8 @@ async def get_export_ls(request: Request, service_id: str) -> List[int]:
     '/export/{service_id}/{export_id}',
     name='nfs export detail',
     response_model=NFSExportModel)
-async def get_export_info(request: Request, service_id: str, export_id: int) -> NFSExportModel:
+async def get_export_info(request: Request, service_id: str, export_id: int,
+                          _=Depends(jwt_auth_scheme)) -> NFSExportModel:
     mgr = request.app.state.gstate.ceph_mgr
     try:
         res = NFSExport(mgr).info(service_id)

@@ -73,18 +73,9 @@ export class DeclarativeFormComponent implements OnInit {
 
   ngOnInit(): void {
     _.forEach(this.config?.fields, (field: FormFieldConfig) => {
-      switch (field.type) {
-        case 'password':
-          _.defaultsDeep(field, {
-            hasCopyToClipboardButton: true
-          });
-          break;
-        default:
-          _.defaultsDeep(field, {
-            hasCopyToClipboardButton: false
-          });
-          break;
-      }
+      _.defaultsDeep(field, {
+        hasCopyToClipboardButton: false
+      });
     });
     this.formGroup = this.createForm();
   }

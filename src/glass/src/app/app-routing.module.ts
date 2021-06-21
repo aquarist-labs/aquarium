@@ -25,9 +25,12 @@ import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component'
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
+import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { ServicesPageComponent } from '~/app/pages/services-page/services-page.component';
+import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
+import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 
 const routes: Routes = [
@@ -40,6 +43,8 @@ const routes: Routes = [
       {
         path: 'dashboard',
         data: { breadcrumb: TEXT('Dashboard') },
+        canActivate: [AuthGuardService],
+        canActivateChild: [AuthGuardService],
         children: [
           { path: '', component: DashboardPageComponent },
           {
@@ -47,7 +52,8 @@ const routes: Routes = [
             component: ServicesPageComponent,
             data: { breadcrumb: TEXT('Services') }
           },
-          { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } }
+          { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } },
+          { path: 'users', component: UsersPageComponent, data: { breadcrumb: TEXT('Users') } }
         ]
       }
     ]
@@ -74,6 +80,7 @@ const routes: Routes = [
     path: '',
     component: BlankLayoutComponent,
     children: [
+      { path: 'login', component: LoginPageComponent },
       {
         path: '404',
         component: NotFoundPageComponent

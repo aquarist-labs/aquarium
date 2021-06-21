@@ -21,12 +21,8 @@ export class DialogService {
   }
 
   open(component: ComponentType<any>, onClose?: (result: any) => void, config?: MatDialogConfig) {
-    if (config) {
-      config.width = '60%';
-    } else {
-      config = { width: '60%' };
-    }
-
+    config = _.defaultTo(config, {});
+    _.defaultsDeep(config, { width: '60%' });
     const ref = this.dialog.open(component, config);
     ref.afterClosed().subscribe({
       next: (result) => {

@@ -1,6 +1,6 @@
 export type FormFieldConfig = {
   name: string;
-  type: 'text' | 'number' | 'password' | 'token';
+  type: 'text' | 'number' | 'password' | 'token' | 'checkbox';
   label?: string;
   value?: any;
   readonly?: boolean;
@@ -21,6 +21,7 @@ export type FormFieldConfig = {
 };
 
 export type DeclarativeFormConfig = {
+  id?: string; // A unique form ID.
   hint?: string;
   subtitle?: string;
   fields: FormFieldConfig[];

@@ -11,8 +11,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-
 import asyncio
+import random
+import string
 from logging import Logger
 from pathlib import Path
 from typing import (
@@ -86,3 +87,12 @@ async def aqr_run_cmd(
     logger.debug(f"run {args}: retcode = {proc.returncode}")
 
     return retcode, stdout, stderr
+
+
+def random_string(length: int) -> str:
+    """
+    Return a random text string containing printable characters.
+    :param length: The length of the string.
+    :return: Returns a random string.
+    """
+    return ''.join(random.choices(string.printable, k=length))

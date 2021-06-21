@@ -15,9 +15,11 @@ from logging import Logger
 from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from pydantic.fields import Field
+
+from gravel.api import jwt_auth_scheme
 from gravel.controllers.orch.cephfs import (
     CephFS,
     CephFSError,
@@ -70,13 +72,13 @@ class CreateResponse(BaseModel):
     name="Obtain service constraints",
     response_model=ConstraintsModel
 )
-async def get_constraints(request: Request) -> ConstraintsModel:
+async def get_constraints(request: Request, _=Depends(jwt_auth_scheme)) -> ConstraintsModel:
     services = request.app.state.gstate.services
     return services.constraints
 
 
 @router.get("/", response_model=List[ServiceModel])
-async def get_services(request: Request) -> List[ServiceModel]:
+async def get_services(request: Request, _=Depends(jwt_auth_scheme)) -> List[ServiceModel]:
     services = request.app.state.gstate.services
     return services.ls()
 
@@ -84,7 +86,11 @@ async def get_services(request: Request) -> List[ServiceModel]:
 @router.get("/get/{service_name}",
             name="Get service by name",
             response_model=ServiceModel)
-async def get_service(service_name: str, request: Request) -> ServiceModel:
+async def get_service(
+    service_name: str,
+    request: Request,
+    _=Depends(jwt_auth_scheme)
+) -> ServiceModel:
     services = request.app.state.gstate.services
     try:
         return services.get(service_name)
@@ -96,7 +102,8 @@ async def get_service(service_name: str, request: Request) -> ServiceModel:
 @router.post("/check-requirements", response_model=RequirementsResponse)
 async def check_requirements(
     requirements: RequirementsRequest,
-    request: Request
+    request: Request,
+    _=Depends(jwt_auth_scheme)
 ) -> RequirementsResponse:
 
     size: int = requirements.size
@@ -116,7 +123,8 @@ async def check_requirements(
 @router.post("/create", response_model=CreateResponse)
 async def create_service(
     req: CreateRequest,
-    request: Request
+    request: Request,
+    _=Depends(jwt_auth_scheme)
 ) -> CreateResponse:
 
     services = request.app.state.gstate.services
@@ -146,7 +154,10 @@ async def create_service(
     name="Obtain services statistics",
     response_model=Dict[str, ServiceStorageModel]
 )
-async def get_statistics(request: Request) -> Dict[str, ServiceStorageModel]:
+async def get_statistics(
+    request: Request,
+    _=Depends(jwt_auth_scheme)
+) -> Dict[str, ServiceStorageModel]:
     """
     Returns a dictionary of service names to a dictionary containing the
     allocated space for said service and how much space is being used, along
@@ -171,6 +182,7 @@ async def get_authorization(
     request: Request,
     name: str,
     clientid: Optional[str] = None,
+    _=Depends(jwt_auth_scheme)
 ) -> CephFSAuthorizationModel:
     """
     Obtain authorization credentials for a given service `name`. In case of

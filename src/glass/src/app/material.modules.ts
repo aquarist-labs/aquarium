@@ -17,8 +17,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRippleModule } from '@angular/material/core';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
@@ -62,7 +64,9 @@ import { DomSanitizer } from '@angular/platform-browser';
     MatRadioModule,
     MatRippleModule,
     MatSelectModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatCheckboxModule,
+    MatDividerModule
   ]
 })
 export class MaterialModule {
