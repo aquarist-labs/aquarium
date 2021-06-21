@@ -408,7 +408,7 @@ msgstr "运行时间"
 msgid "Usable Size"
 msgstr "可用大小"
 
-msgid "Use a NTP host on the internet"
+msgid "Use an NTP host on the Internet"
 msgstr "在互联网上使用NTP主机"
 
 msgid "Use the following command line to mount the file system."
