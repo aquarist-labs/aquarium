@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://localhost:4200/",
+  "baseUrl": "http://localhost:1337/",
   "ignoreTestFiles": [
     "*.po.ts"
   ],
