@@ -43,6 +43,10 @@ routines:
     - name: check api is accessible
       command: |
         curl -f localhost:1337/api/local/status
+    - name: run cypress
+      command: |
+        cd aquarium/src/glass
+        npx cypress run
 
 openstack:
   flavor: b2-15
