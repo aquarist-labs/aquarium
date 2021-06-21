@@ -59,7 +59,7 @@
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal root=/dev/vda3 disk=/dev/vda"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 root=/dev/vda3 disk=/dev/vda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
@@ -76,7 +76,7 @@
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal root=/dev/sda3 disk=/dev/sda"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 root=/dev/sda3 disk=/dev/sda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
@@ -159,8 +159,6 @@
 
     <packages type="image" profiles="Vagrant-x86_64">
         <!-- Needed for initial configuration, except on OpenStack-Cloud, where cloud-init is used -->
-        <package name="ignition-dracut"/>
-        <package name="combustion"/>
         <package name="growpart-generator"/>
     </packages>
     <packages type="image" profiles="Vagrant,Vagrant-x86_64,Vagrant-VirtualBox-x86_64,Vagrant-aarch64">
