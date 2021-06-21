@@ -11,33 +11,47 @@
     <profiles>
         <!-- Ceph foo -->
         <profile name="Ceph-base" description="Ceph requirements"/>
-        <!-- Profiles used as dependencies of actual image profiles -->
-        <!-- Flavors -->
-	    <!-- <profile name="ContainerHost" description="Aquarium with container runtime (podman)"/> -->
+	    
         <!-- Platforms -->
-        <profile name="Vagrant-VirtualBox-x86_64" description="Vagrant for x86_64 VirtualBox" arch="x86_64"/>
-        <profile name="Vagrant-x86_64" description="Vagrant for x86_64 libvirt" arch="x86_64"/>
+        <profile name="Vagrant-VirtualBox-x86_64"
+                 description="Vagrant for x86_64 with VirtualBox"
+                 arch="x86_64"/>
+        <profile name="Vagrant-x86_64"
+                 description="Vagrant for x86_64 with libvirt"
+                 arch="x86_64"/>
         <profile name="Vagrant" description="Vagrant" arch="x86_64">
             <requires profile="Vagrant-x86_64"/>
         </profile>
-        <profile name="SelfInstall" description="Self Installing Image" arch="x86_64"/>
+        <profile name="SelfInstall"
+                 description="Self Installing Image"
+                 arch="x86_64"/>
+
         <!-- Images (flavor + platform) -->
-        <profile name="Vagrant-VirtualBox" description="MicroOS with Podman for Vagrant" arch="x86_64">
+        <profile name="Vagrant-VirtualBox"
+                 description="Vagrant with VirtualBox"
+                 arch="x86_64">
             <requires profile="Vagrant-VirtualBox-x86_64"/>
         </profile>
-        <profile name="SelfInstall" description="MicroOS with Podman for SelfInstallation" arch="x86_64">
+        <profile name="SelfInstall"
+                 description="Aquarium for Host Install"
+                 arch="x86_64">
             <requires profile="SelfInstall"/>
         </profile>
         <profile name="Ceph" description="Ceph for Host install" arch="x86_64">
             <requires profile="SelfInstall"/>
             <requires profile="Ceph-base"/>
         </profile>
+
         <!-- default vagrant images using libvirt, optional virtualbox -->
-        <profile name="Ceph-Vagrant-VirtualBox" description="Ceph for Vagrant Host with VirtualBox" arch="x86_64">
+        <profile name="Ceph-Vagrant-VirtualBox"
+                description="Ceph for Vagrant Host with VirtualBox"
+                arch="x86_64">
             <requires profile="Vagrant-VirtualBox"/>
             <requires profile="Ceph-base"/>
         </profile>
-        <profile name="Ceph-Vagrant" description="Ceph for Vagrant Host with libvirt" arch="x86_64">
+        <profile name="Ceph-Vagrant"
+                 description="Ceph for Vagrant Host with libvirt"
+                 arch="x86_64">
             <requires profile="Vagrant"/>
             <requires profile="Ceph-base"/>
         </profile>
@@ -59,7 +73,7 @@
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal root=/dev/vda3 disk=/dev/vda"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 root=/dev/vda3 disk=/dev/vda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
@@ -76,7 +90,7 @@
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal root=/dev/sda3 disk=/dev/sda"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 root=/dev/sda3 disk=/dev/sda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
@@ -159,8 +173,6 @@
 
     <packages type="image" profiles="Vagrant-x86_64">
         <!-- Needed for initial configuration, except on OpenStack-Cloud, where cloud-init is used -->
-        <package name="ignition-dracut"/>
-        <package name="combustion"/>
         <package name="growpart-generator"/>
     </packages>
     <packages type="image" profiles="Vagrant,Vagrant-x86_64,Vagrant-VirtualBox-x86_64,Vagrant-aarch64">
