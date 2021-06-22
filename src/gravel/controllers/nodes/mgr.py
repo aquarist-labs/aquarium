@@ -24,7 +24,7 @@ from typing import (
 from pathlib import Path
 
 import aetcd3
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.cephadm import CephadmError
@@ -35,7 +35,6 @@ from gravel.controllers.nodes.deployment import (
     DeploymentState,
     NodeDeployment
 )
-from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.orch.ceph import (
     CephCommandError,
     Mon
@@ -133,6 +132,18 @@ class TokenModel(BaseModel):
 class JoiningNodeModel(BaseModel):
     hostname: str
     address: str
+
+
+class DeployParamsBaseModel(BaseModel):
+    hostname: str = Field(title="Hostname to use for this node")
+
+
+class DeployParamsModel(DeployParamsBaseModel):
+    ntpaddr: str = Field(title="NTP address to be used")
+
+
+class JoinParamsModel(DeployParamsBaseModel):
+    pass
 
 
 class NodeMgr:
@@ -308,20 +319,12 @@ class NodeMgr:
         tokenstr = '-'.join(gen() for _ in range(4))
         return tokenstr
 
-    async def set_hostname(self, name: str) -> None:
-        logger.info(f"set hostname '{name}'")
-        try:
-            set_hostname(name)
-        except HostnameCtlError as e:
-            logger.error(f"set hostname: {e.message}")
-            raise e
-        except Exception as e:
-            logger.error(f"set hostname: {str(e)}")
-            raise NodeError(f"setting hostname: {str(e)}")
-        self._state.hostname = name
-        await self._save_state()
-
-    async def join(self, leader_address: str, token: str) -> bool:
+    async def join(
+        self,
+        leader_address: str,
+        token: str,
+        params: JoinParamsModel
+    ) -> bool:
         logger.debug(
             f"join > with leader {leader_address}, token: {token}"
         )
@@ -331,16 +334,21 @@ class NodeMgr:
         elif self._init_stage > NodeInitStage.AVAILABLE:
             raise NodeCantJoinError()
 
+        if not params.hostname or len(params.hostname) == 0:
+            raise NodeError("hostname parameter not provided")
+
         assert self._state
-        assert self._state.hostname
         assert self._state.address
+
+        # set in-memory hostname state, write it later
+        self._state.hostname = params.hostname
 
         try:
             res: bool = await self._deployment.join(
                 leader_address,
                 token,
                 self._state.uuid,
-                self._state.hostname,
+                params.hostname,
                 self._state.address
             )
 
@@ -352,10 +360,11 @@ class NodeMgr:
             raise e
 
         self._token = token
+        await self._save_state()
         await self._node_start()
         return True
 
-    async def deploy(self, ntp_addr: str) -> None:
+    async def deploy(self, params: DeployParamsModel) -> None:
 
         assert self._state
         if self._init_stage < NodeInitStage.AVAILABLE:
@@ -376,22 +385,30 @@ class NodeMgr:
         assert disk_solution.systemdisk is not None
         logger.debug(f"mgr > deploy > disk solution: {disk_solution}")
 
-        assert self._state.hostname
+        # check parameters
+        if not params.ntpaddr or len(params.ntpaddr) == 0:
+            raise NodeCantDeployError("missing ntp server address")
+        if not params.hostname or len(params.hostname) == 0:
+            raise NodeCantDeployError("missing hostname parameter")
+
+        # set hostname in memory; we'll write it later
+        self._state.hostname = params.hostname
+
         assert self._state.address
         logger.info("deploy node")
         await self._deployment.deploy(
             DeploymentConfig(
-                hostname=self._state.hostname,
+                hostname=params.hostname,
                 address=self._state.address,
                 token=self._token,
                 systemdisk=disk_solution.systemdisk.path,
-                ntp_addr=ntp_addr
+                ntp_addr=params.ntpaddr
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment
         )
         await self._save_token()
-        await self._save_ntp_addr(ntp_addr)
+        await self._save_ntp_addr(params.ntpaddr)
 
     async def _post_bootstrap_finisher(
         self,
@@ -402,6 +419,7 @@ class NodeMgr:
         Called asynchronously, presumes bootstrap was successful.
         """
         assert self._state
+        await self._save_state()
 
         logger.info("finish deployment config")
         await self._post_bootstrap_config()
@@ -534,12 +552,6 @@ class NodeMgr:
             self.gstate.config.write_model("node", self._state)
         except Exception as e:
             raise NodeError(str(e))
-
-    def _get_hostname(self) -> str:
-        return ""
-
-    def _get_address(self) -> str:
-        return ""
 
     async def _incoming_msg_task(self) -> None:
         logger.info("start handling incoming messages")

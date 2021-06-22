@@ -4,11 +4,13 @@ import { Observable } from 'rxjs';
 
 export type DeploymentStartRequest = {
   ntpaddr: string;
+  hostname: string;
 };
 
 export type JoinNodeRequest = {
   address: string;
   token: string;
+  hostname: string;
 };
 
 export type TokenReply = {
@@ -119,13 +121,5 @@ export class NodesService {
    */
   deploymentDiskSolution(): Observable<DiskSolution> {
     return this.http.get<DiskSolution>(`${this.deploymentURL}/disksolution`);
-  }
-
-  /**
-   * Setup hostname
-   */
-  setHostname(name: string): Observable<boolean> {
-    const request: SetHostnameRequest = { name };
-    return this.http.put<boolean>(`${this.url}/hostname`, request);
   }
 }

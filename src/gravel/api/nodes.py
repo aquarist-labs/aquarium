@@ -35,7 +35,11 @@ from gravel.controllers.nodes.errors import (
     NodeNotDeployedError,
     NodeNotStartedError
 )
-from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.nodes.mgr import (
+    DeployParamsModel,
+    JoinParamsModel,
+    NodeMgr
+)
 
 
 logger: Logger = fastapi_logger
@@ -71,14 +75,11 @@ class DeployStatusReplyModel(BaseModel):
 class NodeJoinRequestModel(BaseModel):
     address: str
     token: str
+    hostname: str
 
 
 class TokenReplyModel(BaseModel):
     token: str
-
-
-class StartDeploymentRequest(BaseModel):
-    ntpaddr: str = Field(title="NTP server address")
 
 
 class SetHostnameRequest(BaseModel):
@@ -103,8 +104,10 @@ async def node_get_disk_solution(request: Request) -> DiskSolution:
 
 
 @router.post("/deployment/start", response_model=DeployStartReplyModel)
-async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
-        -> DeployStartReplyModel:
+async def node_deploy(
+    request: Request,
+    req_params: DeployParamsModel
+) -> DeployStartReplyModel:
     """
     Start deploying this node. The host will be configured according to user
     specification; a minimal Ceph cluster will be bootstrapped; and a token for
@@ -119,7 +122,7 @@ async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
     error = DeployErrorModel()
 
     try:
-        await request.app.state.nodemgr.deploy(req_params.ntpaddr)
+        await request.app.state.nodemgr.deploy(req_params)
     except NodeCantDeployError as e:
         logger.error(f"api > can't deploy: {e.message}")
         success = False
@@ -146,7 +149,7 @@ async def node_deploy(request: Request, req_params: StartDeploymentRequest) \
     if success:
         logger.debug("api > start deployment")
 
-    return DeployStartReplyModel(success=True, error=error)
+    return DeployStartReplyModel(success=success, error=error)
 
 
 @router.get("/deployment/status", response_model=DeployStatusReplyModel)
@@ -209,7 +212,12 @@ async def node_join(req: NodeJoinRequestModel, request: Request):
             detail="leader address and token are required"
         )
 
-    return await request.app.state.nodemgr.join(req.address, req.token)
+    nodemgr = request.app.state.nodemgr
+    return await nodemgr.join(
+        req.address,
+        req.token,
+        JoinParamsModel(hostname=req.hostname)
+    )
 
 
 @router.get("/token", response_model=TokenReplyModel)
@@ -219,20 +227,6 @@ async def nodes_get_token(request: Request):
     return TokenReplyModel(
         token=(token if token is not None else "")
     )
-
-
-@router.put("/hostname", response_model=bool)
-async def put_hostname(request: Request, req: SetHostnameRequest) -> bool:
-    nodemgr: NodeMgr = request.app.state.nodemgr
-    if nodemgr.deployment_state.deployed or nodemgr.deployment_state.ready:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="Node already deployed")
-    try:
-        await nodemgr.set_hostname(req.name)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=str(e))
-    return True
 
 
 router.add_websocket_route(  # pyright: reportUnknownMemberType=false

@@ -20,7 +20,13 @@ describe('NodesService', () => {
   });
 
   it('should call start', () => {
-    service.join({ address: 'foo', token: 'ABCD-0123-5A6B-98FE' }).subscribe();
+    service
+      .join({
+        address: 'foo',
+        token: 'ABCD-0123-5A6B-98FE',
+        hostname: 'foobar'
+      })
+      .subscribe();
     const req = httpTesting.expectOne('api/nodes/join');
     expect(req.request.method).toBe('POST');
   });
@@ -32,7 +38,12 @@ describe('NodesService', () => {
   });
 
   it('should call deployment start', () => {
-    service.deploymentStart({ ntpaddr: 'test.test.test' }).subscribe();
+    service
+      .deploymentStart({
+        ntpaddr: 'test.test.test',
+        hostname: 'foobar'
+      })
+      .subscribe();
     const req = httpTesting.expectOne('api/nodes/deployment/start');
     expect(req.request.method).toBe('POST');
   });
