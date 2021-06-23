@@ -108,19 +108,19 @@
             firmware="uefi"
             initrd_system="dracut"
             installiso="true"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0"
+            installboot="install"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 rd.kiwi.ramdisk ramdisk_size=4096000 net.ifnames=0"
             devicepersistency="by-uuid"
         >
             <oemconfig>
-                <oem-systemsize>2048</oem-systemsize>
-                <oem-swap>true</oem-swap>
-                <oem-device-filter>/dev/ram</oem-device-filter>
+                <oem-skip-verify>true</oem-skip-verify>
+                <oem-unattended>true</oem-unattended>
+                <oem-unattended-id>/dev/ram1</oem-unattended-id>
+                <oem-systemsize>4096</oem-systemsize>
+                <oem-swap>false</oem-swap>
                 <oem-multipath-scan>false</oem-multipath-scan>
             </oemconfig>
-            <machine memory="512" guestOS="suse" HWversion="4">
-                <vmdisk id="0" controller="ide"/>
-                <vmnic driver="e1000" interface="0" mode="bridged"/>
-            </machine>
+            <size unit="G">3</size>
         </type>
         <type
             image="iso"
