@@ -134,7 +134,10 @@ async def create_service(
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
     except NotReadyError:
-        raise HTTPException(status.HTTP_425_TOO_EARLY)
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+            detail="node not ready yet"
+        )
     return CreateResponse(success=True)
 
 
@@ -153,7 +156,10 @@ async def get_statistics(request: Request) -> Dict[str, ServiceStorageModel]:
     try:
         return services.get_stats()
     except NotReadyError:
-        raise HTTPException(status.HTTP_425_TOO_EARLY)
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+            detail="node not ready yet"
+        )
 
 
 @router.get(

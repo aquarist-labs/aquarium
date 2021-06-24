@@ -1,0 +1,180 @@
+
+[
+  {
+    "addr": "asd",
+    "devices": [
+      {
+        "available": false,
+        "device_id": "63192323",
+        "human_readable_type": "hdd",
+        "lsm_data": {},
+        "lvs": [
+          {
+            "comment": "not used by ceph",
+            "name": "systemdisk"
+          }
+        ],
+        "path": "/dev/vdb",
+        "rejected_reasons": [
+          "Insufficient space (<10 extents) on vgs",
+          "LVM detected",
+          "locked"
+        ],
+        "sys_api": {
+          "human_readable_size": "8.00 GB",
+          "locked": 1,
+          "model": "",
+          "nr_requests": "256",
+          "partitions": {},
+          "path": "/dev/vdb",
+          "removable": "0",
+          "rev": "",
+          "ro": "0",
+          "rotational": "1",
+          "sas_address": "",
+          "sas_device_handle": "",
+          "scheduler_mode": "mq-deadline",
+          "sectors": 0,
+          "sectorsize": "512",
+          "size": 8589934592.0,
+          "support_discard": "512",
+          "vendor": "0x1af4"
+        }
+      },
+      {
+        "available": false,
+        "device_id": "95775920",
+        "human_readable_type": "hdd",
+        "lsm_data": {},
+        "lvs": [
+          {
+            "block_uuid": "qWmaa0-Ydh2-EV43-eK6P-3av1-7vOA-PUxtNV",
+            "cluster_fsid": "ede3c202-d191-11eb-9c72-525400efb582",
+            "cluster_name": "ceph",
+            "name": "osd-block-e4858c14-033a-4cea-8fae-4f6edd919df3",
+            "osd_fsid": "e4858c14-033a-4cea-8fae-4f6edd919df3",
+            "osd_id": "0",
+            "osdspec_affinity": "None",
+            "type": "block"
+          }
+        ],
+        "path": "/dev/vdc",
+        "rejected_reasons": [
+          "Insufficient space (<10 extents) on vgs",
+          "LVM detected",
+          "locked"
+        ],
+        "sys_api": {
+          "human_readable_size": "8.00 GB",
+          "locked": 1,
+          "model": "",
+          "nr_requests": "256",
+          "partitions": {},
+          "path": "/dev/vdc",
+          "removable": "0",
+          "rev": "",
+          "ro": "0",
+          "rotational": "1",
+          "sas_address": "",
+          "sas_device_handle": "",
+          "scheduler_mode": "mq-deadline",
+          "sectors": 0,
+          "sectorsize": "512",
+          "size": 8589934592.0,
+          "support_discard": "512",
+          "vendor": "0x1af4"
+        }
+      },
+      {
+        "available": false,
+        "device_id": "22507780",
+        "human_readable_type": "hdd",
+        "lsm_data": {},
+        "lvs": [
+          {
+            "block_uuid": "ZFlBpo-fPR2-brT4-HepS-S4rl-tK3Y-1h36wU",
+            "cluster_fsid": "ede3c202-d191-11eb-9c72-525400efb582",
+            "cluster_name": "ceph",
+            "name": "osd-block-401a61fa-85ce-4425-ba64-a334de80048e",
+            "osd_fsid": "401a61fa-85ce-4425-ba64-a334de80048e",
+            "osd_id": "1",
+            "osdspec_affinity": "None",
+            "type": "block"
+          }
+        ],
+        "path": "/dev/vdd",
+        "rejected_reasons": [
+          "Insufficient space (<10 extents) on vgs",
+          "LVM detected",
+          "locked"
+        ],
+        "sys_api": {
+          "human_readable_size": "8.00 GB",
+          "locked": 1,
+          "model": "",
+          "nr_requests": "256",
+          "partitions": {},
+          "path": "/dev/vdd",
+          "removable": "0",
+          "rev": "",
+          "ro": "0",
+          "rotational": "1",
+          "sas_address": "",
+          "sas_device_handle": "",
+          "scheduler_mode": "mq-deadline",
+          "sectors": 0,
+          "sectorsize": "512",
+          "size": 8589934592.0,
+          "support_discard": "512",
+          "vendor": "0x1af4"
+        }
+      },
+      {
+        "available": false,
+        "device_id": "15926218",
+        "human_readable_type": "hdd",
+        "lsm_data": {},
+        "lvs": [
+          {
+            "block_uuid": "01OkBn-Sidv-2GI5-2joX-fRcj-ECcP-cSj027",
+            "cluster_fsid": "ede3c202-d191-11eb-9c72-525400efb582",
+            "cluster_name": "ceph",
+            "name": "osd-block-66a1ebf3-3d44-490a-b466-23e365665cb0",
+            "osd_fsid": "66a1ebf3-3d44-490a-b466-23e365665cb0",
+            "osd_id": "2",
+            "osdspec_affinity": "None",
+            "type": "block"
+          }
+        ],
+        "path": "/dev/vde",
+        "rejected_reasons": [
+          "Insufficient space (<10 extents) on vgs",
+          "LVM detected",
+          "locked"
+        ],
+        "sys_api": {
+          "human_readable_size": "8.00 GB",
+          "locked": 1,
+          "model": "",
+          "nr_requests": "256",
+          "partitions": {},
+          "path": "/dev/vde",
+          "removable": "0",
+          "rev": "",
+          "ro": "0",
+          "rotational": "1",
+          "sas_address": "",
+          "sas_device_handle": "",
+          "scheduler_mode": "mq-deadline",
+          "sectors": 0,
+          "sectorsize": "512",
+          "size": 8589934592.0,
+          "support_discard": "512",
+          "vendor": "0x1af4"
+        }
+      }
+    ],
+    "labels": [],
+    "name": "asd"
+  }
+]

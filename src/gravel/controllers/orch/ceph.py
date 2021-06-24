@@ -150,13 +150,14 @@ class Ceph:
             raise CephError(str(e))
 
     def _cmd(self, func: Callable[[str, bytes], Any],
-             cmd: Dict[str, Any]
+             cmd: Dict[str, Any],
+             inbuf: bytes = b""
              ) -> Any:
         self.assert_is_ready()
         cmdstr: str = json.dumps(cmd)
 
         try:
-            rc, out, outstr = func(cmdstr, b"")
+            rc, out, outstr = func(cmdstr, inbuf)
         except Exception as e:
             raise CephCommandError(str(e))
 
@@ -178,9 +179,9 @@ class Ceph:
         self.connect()
         return self._cmd(self.cluster.mon_command, cmd)
 
-    def mgr(self, cmd: Dict[str, Any]) -> Any:
+    def mgr(self, cmd: Dict[str, Any], inbuf: bytes = b"") -> Any:
         self.connect()
-        return self._cmd(self.cluster.mgr_command, cmd)
+        return self._cmd(self.cluster.mgr_command, cmd, inbuf)
 
 
 class Mgr:
@@ -189,8 +190,8 @@ class Mgr:
     def __init__(self, ceph: Ceph):
         self.ceph = ceph
 
-    def call(self, cmd: Dict[str, Any]) -> Any:
-        return self.ceph.mgr(cmd)
+    def call(self, cmd: Dict[str, Any], inbuf: bytes = b"") -> Any:
+        return self.ceph.mgr(cmd, inbuf=inbuf)
 
 
 class Mon:

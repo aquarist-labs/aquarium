@@ -84,7 +84,8 @@ class SystemDisk:
         "etc": "/etc",
         "logs": "/var/log",
         "etcd": "/var/lib/etcd",
-        "containers": "/var/lib/containers"
+        "containers": "/var/lib/containers",
+        "roothome": "/root"
     }
     _bindmounts: Dict[str, str] = {
         "ceph": "/var/lib/ceph"

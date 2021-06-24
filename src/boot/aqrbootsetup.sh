@@ -50,6 +50,7 @@ overlay /etc etc || exit 1
 overlay /var/log logs || exit 1
 overlay /var/lib/etcd etcd || exit 1
 overlay /var/lib/containers containers || exit 1
+overlay /root roothome || exit 1
 
 # bind mount
 mount --bind /aquarium/ceph /var/lib/ceph || exit 1

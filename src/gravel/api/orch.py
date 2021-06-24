@@ -95,29 +95,6 @@ def get_devices(request: Request) -> Dict[str, HostsDevicesModel]:
     return host_devs
 
 
-@router.post("/devices/assimilate", response_model=bool)
-async def assimilate_devices(request: Request) -> bool:
-
-    try:
-        orch = Orchestrator(request.app.state.gstate.ceph_mgr)
-        orch.assimilate_all_devices()
-    except Exception as e:
-        logger.error(str(e))
-        return False
-
-    return True
-
-
-@router.get("/devices/all_assimilated", response_model=bool)
-async def all_devices_assimilated(request: Request) -> bool:
-    try:
-        orch = Orchestrator(request.app.state.gstate.ceph_mgr)
-        return orch.all_devices_assimilated()
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=str(e))
-
-
 @router.get("/pubkey")
 async def get_pubkey(request: Request) -> str:
     try:

@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import (
     Awaitable,
     Callable,
+    List,
     Optional
 )
 from uuid import UUID
@@ -37,6 +38,7 @@ from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeBootstrappingError,
     NodeCantDeployError,
+    NodeCantJoinError,
     NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError,
@@ -57,6 +59,7 @@ from gravel.controllers.nodes.messages import (
 from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.systemdisk import SystemDisk
+from gravel.controllers.orch.models import OrchHostListModel
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -84,12 +87,17 @@ class DeploymentModel(BaseModel):
     stage: NodeStageEnum = Field(NodeStageEnum.NONE)
 
 
+class DeploymentDisksConfig(BaseModel):
+    system: str = Field(title="Device to consume for system disk")
+    storage: List[str] = Field([], title="Devices to consume for storage")
+
+
 class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
-    systemdisk: str
     ntp_addr: str
+    disks: DeploymentDisksConfig
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -274,7 +282,8 @@ class NodeDeployment:
         token: str,
         uuid: UUID,
         hostname: str,
-        address: str
+        address: str,
+        disks: DeploymentDisksConfig
     ) -> bool:
         logger.debug(
             f"join > with leader {leader_address}, token: {token}"
@@ -298,7 +307,6 @@ class NodeDeployment:
         conn = await self._connmgr.connect(uri)
         logger.debug(f"join > conn: {conn}")
 
-        self._set_hostname(hostname)
         joinmsg = JoinMessageModel(
             uuid=uuid,
             hostname=hostname,
@@ -307,8 +315,6 @@ class NodeDeployment:
         )
         msg = MessageModel(type=MessageTypeEnum.JOIN, data=joinmsg.dict())
         await conn.send(msg)
-
-        self._state.mark_join()
 
         reply: MessageModel = await conn.receive()
         logger.debug(f"join > recv: {reply}")
@@ -328,6 +334,18 @@ class NodeDeployment:
         assert welcome.cephconf
         assert welcome.keyring
         assert welcome.etcd_peer
+
+        # create system disk after we are certain we are joining.
+        # ensure all state writes happen only after the disk has been created.
+        systemdisk = SystemDisk(self._gstate)
+        try:
+            await systemdisk.create(disks.system)
+            await systemdisk.enable()
+        except GravelError as e:
+            raise NodeCantJoinError(e.message)
+
+        self._state.mark_join()
+        self._set_hostname(hostname)
 
         my_url: str = \
             f"{hostname}=http://{address}:2380"
@@ -370,6 +388,25 @@ class NodeDeployment:
             )
         )
         await conn.close()
+
+        def host_added():
+            orch = Orchestrator(self._gstate.ceph_mgr)
+            logger.debug("join > obtain existing hosts")
+            hosts: List[OrchHostListModel] = orch.host_ls()
+            logger.debug(f"join > current hosts: {hosts}")
+            for h in hosts:
+                if h.hostname == hostname:
+                    return True
+            return False
+
+        while not host_added():
+            logger.debug("join > wait for host to be added")
+            await asyncio.sleep(1.0)
+
+        try:
+            await self._assimilate_devices(hostname, disks.storage)
+        except DeploymentError as e:
+            raise NodeCantJoinError(e.message)
 
         self._state.mark_ready()
         return True
@@ -416,7 +453,7 @@ class NodeDeployment:
 
         systemdisk = SystemDisk(self._gstate)
         try:
-            await systemdisk.create(config.systemdisk)
+            await systemdisk.create(config.disks.system)
             await systemdisk.enable()
         except GravelError as e:
             raise NodeCantDeployError(e.message)
@@ -440,32 +477,29 @@ class NodeDeployment:
                     msg=error
                 )
             await post_bootstrap_cb(success, error)
-            await _assimilate_devices()
 
-        async def _assimilate_devices() -> None:
-            logger.debug("deployment > assimilating devices")
-            self._progress = ProgressEnum.ASSIMILATING
             try:
-                orch = Orchestrator(self._gstate.ceph_mgr)
-                orch.assimilate_all_devices()
-
-                # wait a few seconds so the orchestrator settles down
-                await asyncio.sleep(5.0)
-                while not orch.all_devices_assimilated():
-                    await asyncio.sleep(1.0)
-
-                logger.debug("deployment > devices assimilated")
+                await _assimilate_devices()
+            except DeploymentError as e:
+                logger.error("unable to assimilate devices")
+                logger.exception(e)
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_ASSIMILATE,
+                    msg=e.message
+                )
+                await finisher(False, e.message)
+            else:
                 self._progress = ProgressEnum.DONE
                 await finisher(True, None)
 
-            except Exception as e:
-                self._state.mark_error(
-                    code=DeploymentErrorEnum.CANT_ASSIMILATE,
-                    msg=str(e)
-                )
-                logger.error("unable to assimilate devices")
-                logger.exception(e)
-                await finisher(False, str(e))
+        async def _assimilate_devices() -> None:
+            devices = config.disks.storage
+            if len(devices) == 0:
+                return
+            logger.debug("deployment > assimilating devices")
+            self._progress = ProgressEnum.ASSIMILATING
+            await self._assimilate_devices(hostname, devices)
+            logger.debug("deployment > devices assimilated")
 
         self._progress = ProgressEnum.PREPARING
 
@@ -515,4 +549,21 @@ class NodeDeployment:
             raise DeploymentError(e.message)
         except Exception as e:
             logger.error(f"deploy prepare error setting hostname: {str(e)}")
+            raise DeploymentError(str(e))
+
+    async def _assimilate_devices(
+        self,
+        hostname: str,
+        devices: List[str]
+    ) -> None:
+        try:
+            orch = Orchestrator(self._gstate.ceph_mgr)
+            orch.assimilate_devices(hostname, devices)
+
+            # wait a few seconds so the orchestrator settles down
+            await asyncio.sleep(5.0)
+            while not orch.devices_assimilated(hostname, devices):
+                await asyncio.sleep(1.0)
+
+        except Exception as e:
             raise DeploymentError(str(e))

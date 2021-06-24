@@ -11,7 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+import yaml
 
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
@@ -36,35 +37,67 @@ class Orchestrator:
     def __init__(self, ceph_mgr: Mgr):
         self.cluster = ceph_mgr
 
-    def call(self, cmd: Dict[str, Any]) -> Any:
+    def call(self, cmd: Dict[str, Any], inbuf: bytes = b"") -> Any:
         if "format" not in cmd:
             cmd["format"] = "json"
-        return self.cluster.call(cmd)
+        return self.cluster.call(cmd, inbuf=inbuf)
 
     def host_ls(self) -> List[OrchHostListModel]:
         cmd = {"prefix": "orch host ls"}
         res = self.call(cmd)
         return parse_obj_as(List[OrchHostListModel], res)
 
-    def devices_ls(self) -> List[OrchDevicesPerHostModel]:
-        cmd = {"prefix": "orch device ls"}
+    def devices_ls(
+        self,
+        hostname: Optional[str] = None
+    ) -> List[OrchDevicesPerHostModel]:
+        cmd: Dict[str, Any] = {"prefix": "orch device ls"}
+        if hostname and len(hostname) > 0:
+            cmd["hostname"] = [hostname]
+
         res = self.call(cmd)
         return parse_obj_as(List[OrchDevicesPerHostModel], res)
 
-    def assimilate_all_devices(self) -> None:
-        cmd = {
-            "prefix": "orch apply osd",
-            "all_available_devices": True
+    def assimilate_devices(self, host: str, devices: List[str]) -> None:
+        spec = {
+            "service_type": "osd",
+            "service_id": "default_drive_group",
+            "placement": {
+                "hosts": [host]
+            },
+            "data_devices": {
+                "paths": devices
+            }
         }
-        res = self.call(cmd)
+        specstr: Optional[str] = yaml.dump(spec)  # type: ignore
+        assert specstr is not None
+        specbuf: bytes = specstr.encode("utf-8")
+        cmd = {
+            "prefix": "orch apply osd"
+        }
+        res = self.call(cmd, inbuf=specbuf)
         assert "result" in res
 
-    def all_devices_assimilated(self) -> bool:
-        res = self.devices_ls()
-        for host in res:
-            for dev in host.devices:
-                if dev.available:
-                    return False
+    def devices_assimilated(self, hostname: str, devs: List[str]) -> bool:
+        assert len(devs) > 0
+        assert hostname and len(hostname) > 0
+
+        res = self.devices_ls(hostname)
+        logger.debug(f"devices ls: {res}")
+        if len(res) == 0:
+            return False
+
+        assert len(res) == 1
+        entry: OrchDevicesPerHostModel = res[0]
+        assert entry.name == hostname
+
+        hostdevs: Dict[str, bool] = {}
+        for dev in entry.devices:
+            hostdevs[dev.path] = dev.available
+        for dev in devs:
+            assert dev in hostdevs
+            if hostdevs[dev]:  # if available, not yet assimilated
+                return False
         return True
 
     def apply_mds(self, fsname: str) -> None:
