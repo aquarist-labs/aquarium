@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="net", RUN+="/usr/share/aquarium/boot/add-nic.sh"
