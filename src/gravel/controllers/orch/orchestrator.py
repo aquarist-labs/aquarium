@@ -103,6 +103,10 @@ class Orchestrator:
         entry: OrchDevicesPerHostModel = res[0]
         assert entry.name == hostname
 
+        if len(entry.devices) == 0:
+            logger.debug("devices not yet probed on host, must wait")
+            return False
+
         hostdevs: Dict[str, bool] = {}
         for dev in entry.devices:
             hostdevs[dev.path] = dev.available
