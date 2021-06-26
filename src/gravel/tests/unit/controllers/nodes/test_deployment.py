@@ -204,6 +204,7 @@ async def test_deploy(
     called_hostname_with: Optional[str] = None
     called_ntp_with: Optional[str] = None
     called_assimilate_with: List[str] = []
+    called_check_host_exists_with: Optional[str] = None
 
     def mock_set_hostname(hostname: str) -> None:
         nonlocal called_hostname_with
@@ -220,6 +221,14 @@ async def test_deploy(
     ) -> None:
         nonlocal called_assimilate_with
         called_assimilate_with.extend(devices)
+
+    def mock_host_exists(
+        cls,  # type: ignore
+        hostname: str
+    ) -> bool:
+        nonlocal called_check_host_exists_with
+        called_check_host_exists_with = hostname
+        return True
 
     fake_connmgr: ConnMgr = cast(
         ConnMgr,
@@ -244,6 +253,11 @@ async def test_deploy(
         Orchestrator,
         "devices_assimilated",
         new=mock_devices_assimilated  # type: ignore
+    )
+    mocker.patch.object(
+        Orchestrator,
+        "host_exists",
+        new=mock_host_exists  # type: ignore
     )
     mocker.patch.object(SystemDisk, "create")
     mocker.patch.object(SystemDisk, "enable")
@@ -284,6 +298,8 @@ async def test_deploy(
     assert called_finisher
     assert called_ntp_with and called_ntp_with == "my.ntp.test"
     assert called_hostname_with and called_hostname_with == "foobar"
+    assert called_check_host_exists_with and \
+        called_check_host_exists_with == "foobar"
     assert "/dev/bar" in called_assimilate_with
     assert "/dev/baz" in called_assimilate_with
 

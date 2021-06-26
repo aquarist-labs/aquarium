@@ -108,7 +108,8 @@ class Orchestrator:
             hostdevs[dev.path] = dev.available
         for dev in devs:
             assert dev in hostdevs
-            if hostdevs[dev]:  # if available, not yet assimilated
+            if hostdevs[dev]:
+                # if available, not yet assimilated
                 return False
         return True
 

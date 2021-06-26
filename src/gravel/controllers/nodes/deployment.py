@@ -473,6 +473,19 @@ class NodeDeployment:
             await post_bootstrap_cb(success, error)
 
             try:
+                orch = Orchestrator(self._gstate.ceph_mgr)
+                logger.debug("deployment > wait for host to be added")
+                await asyncio.wait_for(orch.wait_host_added(hostname), 30.0)
+            except TimeoutError:
+                logger.error("deployment > timeout wait for host to be added")
+                errmsg = "node not bootstrapped until timeout expired"
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_BOOTSTRAP,
+                    msg=errmsg
+                )
+                await finisher(False, errmsg)
+
+            try:
                 await _assimilate_devices()
             except DeploymentError as e:
                 logger.error("unable to assimilate devices")
@@ -552,10 +565,11 @@ class NodeDeployment:
     ) -> None:
         try:
             orch = Orchestrator(self._gstate.ceph_mgr)
+            if not orch.host_exists(hostname):
+                raise DeploymentError("host not part of cluster")
             orch.assimilate_devices(hostname, devices)
 
             # wait a few seconds so the orchestrator settles down
-            await asyncio.sleep(5.0)
             while not orch.devices_assimilated(hostname, devices):
                 await asyncio.sleep(1.0)
 
