@@ -11,6 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import asyncio
 from typing import Any, Dict, List, Optional
 import yaml
 
@@ -46,6 +47,17 @@ class Orchestrator:
         cmd = {"prefix": "orch host ls"}
         res = self.call(cmd)
         return parse_obj_as(List[OrchHostListModel], res)
+
+    def host_exists(self, hostname: str) -> bool:
+        hosts: List[OrchHostListModel] = self.host_ls()
+        for h in hosts:
+            if h.hostname == hostname:
+                return True
+        return False
+
+    async def wait_host_added(self, hostname: str) -> None:
+        while not self.host_exists(hostname):
+            await asyncio.sleep(1.0)
 
     def devices_ls(
         self,
@@ -91,12 +103,17 @@ class Orchestrator:
         entry: OrchDevicesPerHostModel = res[0]
         assert entry.name == hostname
 
+        if len(entry.devices) == 0:
+            logger.debug("devices not yet probed on host, must wait")
+            return False
+
         hostdevs: Dict[str, bool] = {}
         for dev in entry.devices:
             hostdevs[dev.path] = dev.available
         for dev in devs:
             assert dev in hostdevs
-            if hostdevs[dev]:  # if available, not yet assimilated
+            if hostdevs[dev]:
+                # if available, not yet assimilated
                 return False
         return True
 

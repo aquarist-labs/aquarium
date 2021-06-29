@@ -59,7 +59,6 @@ from gravel.controllers.nodes.messages import (
 from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.systemdisk import SystemDisk
-from gravel.controllers.orch.models import OrchHostListModel
 from gravel.controllers.orch.orchestrator import Orchestrator
 
 
@@ -389,19 +388,14 @@ class NodeDeployment:
         )
         await conn.close()
 
-        def host_added():
-            orch = Orchestrator(self._gstate.ceph_mgr)
-            logger.debug("join > obtain existing hosts")
-            hosts: List[OrchHostListModel] = orch.host_ls()
-            logger.debug(f"join > current hosts: {hosts}")
-            for h in hosts:
-                if h.hostname == hostname:
-                    return True
-            return False
-
-        while not host_added():
-            logger.debug("join > wait for host to be added")
-            await asyncio.sleep(1.0)
+        logger.debug("join > wait for host to be added")
+        orch = Orchestrator(self._gstate.ceph_mgr)
+        try:
+            await asyncio.wait_for(orch.wait_host_added(hostname), 30.0)
+        except TimeoutError:
+            logger.error("join > timeout waiting for host to be added")
+            raise NodeCantJoinError("host was not added to the cluster")
+        logger.debug("join > host added, continue")
 
         try:
             await self._assimilate_devices(hostname, disks.storage)
@@ -477,6 +471,19 @@ class NodeDeployment:
                     msg=error
                 )
             await post_bootstrap_cb(success, error)
+
+            try:
+                orch = Orchestrator(self._gstate.ceph_mgr)
+                logger.debug("deployment > wait for host to be added")
+                await asyncio.wait_for(orch.wait_host_added(hostname), 30.0)
+            except TimeoutError:
+                logger.error("deployment > timeout wait for host to be added")
+                errmsg = "node not bootstrapped until timeout expired"
+                self._state.mark_error(
+                    code=DeploymentErrorEnum.CANT_BOOTSTRAP,
+                    msg=errmsg
+                )
+                await finisher(False, errmsg)
 
             try:
                 await _assimilate_devices()
@@ -558,10 +565,11 @@ class NodeDeployment:
     ) -> None:
         try:
             orch = Orchestrator(self._gstate.ceph_mgr)
+            if not orch.host_exists(hostname):
+                raise DeploymentError("host not part of cluster")
             orch.assimilate_devices(hostname, devices)
 
             # wait a few seconds so the orchestrator settles down
-            await asyncio.sleep(5.0)
             while not orch.devices_assimilated(hostname, devices):
                 await asyncio.sleep(1.0)
 

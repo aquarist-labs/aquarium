@@ -18,6 +18,8 @@ function overlay() {
   lower=${1}
   upper=${2}
 
+  [[ ! -d "${lower}" ]] && mkdir -p ${lower}
+
   aqrdir=/aquarium/${upper}
   mount -t overlay \
     -o lowerdir=${lower},upperdir=${aqrdir}/overlay,workdir=${aqrdir}/temp \
@@ -53,6 +55,13 @@ overlay /var/lib/containers containers || exit 1
 overlay /root roothome || exit 1
 
 # bind mount
+[[ ! -d "/var/lib/ceph" ]] && mkdir -p /var/lib/ceph
 mount --bind /aquarium/ceph /var/lib/ceph || exit 1
 
 echo "Aquarium system disk mounted successfully"
+
+# The system obtains its hostname right at the beginning of boot, before disks
+# have been mounted or udev and lvm have been setup to allow us to mount them.
+# Because of that, let's set up the hostname once we do have the disks mounted.
+echo "Setup host from system disk"
+hostnamectl set-hostname $(cat /etc/hostname)

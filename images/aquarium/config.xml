@@ -73,7 +73,7 @@
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 root=/dev/vda3 disk=/dev/vda"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 root=/dev/vda3 disk=/dev/vda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
@@ -90,7 +90,7 @@
             bootloader="grub2"
             bootloader_console="gfxterm"
             firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 root=/dev/sda3 disk=/dev/sda"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 root=/dev/sda3 disk=/dev/sda"
             bootpartition="false"
             bootkernel="custom"
             devicepersistency="by-uuid"
@@ -109,7 +109,7 @@
             initrd_system="dracut"
             installiso="true"
             installboot="install"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 rd.kiwi.ramdisk ramdisk_size=4096000 net.ifnames=0"
+            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 rd.kiwi.ramdisk ramdisk_size=4096000"
             devicepersistency="by-uuid"
         >
             <oemconfig>
