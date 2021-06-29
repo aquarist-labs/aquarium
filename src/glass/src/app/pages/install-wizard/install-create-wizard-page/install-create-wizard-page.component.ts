@@ -25,7 +25,7 @@ import { InstallWizardContext } from '~/app/pages/install-wizard/models/install-
 import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
-  DeploymentBasicReply,
+  DeploymentStartReply,
   DeploymentStatusReply,
   NodesService,
   NodeStageEnum
@@ -214,13 +214,15 @@ export class InstallCreateWizardPageComponent implements OnInit {
         hostname: this.context.config.hostname
       })
       .subscribe({
-        next: (basicReplay: DeploymentBasicReply) => {
-          if (basicReplay.success) {
+        next: (startReplay: DeploymentStartReply) => {
+          if (startReplay.success) {
             this.context.stage = 'bootstrapping';
             this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
             this.pollBootstrapStatus();
           } else {
-            this.handleError(TEXT('Failed to start bootstrapping the system.'));
+            this.handleError(
+              TEXT(`Failed to start bootstrapping the system: ${startReplay.error.message}`)
+            );
           }
         },
         error: (err) => {
