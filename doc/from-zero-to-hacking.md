@@ -234,6 +234,16 @@ Aquarium. The next section will cover development in finer detail.
 
 Let's add our first trivial patch!
 
+### Access the Ceph cluster via CLI
+
+For development purposes, it can be helpful to access the cluster via
+CLI. You can reach the Ceph CLI within Aquarium as follows:
+
+1. Connect to the VM and run Aquarium
+
+2. Run the `sudo cephadm shell` command within the VM
+
+
 ## Updating
 
 This section will walk you through incrementally updating your local
