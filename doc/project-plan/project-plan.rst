@@ -114,3 +114,13 @@ see :ref:`aquarium-roadmap`.
          - Announce Aquarist Labs publicly
          - See :ref:`aquarium-public-release-plan` for more details
      - April 30, 2021
+   * - Milestone 4
+     -
+         - Dashboard: Add Capacity (i.e., real usage), Rename "Capacity" to "Allocated"
+         - Install Wizard: Devices config step
+         - Testing: All PRs need unit tests, Test battery
+     - June 14, 2021
+   * - Milestone 5
+     -
+         - RGW
+     - July 30, 2021
