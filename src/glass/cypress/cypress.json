@@ -1,0 +1,13 @@
+{
+  "baseUrl": "http://localhost:1337/",
+  "ignoreTestFiles": [
+    "*.po.ts"
+  ],
+  "supportFile": "cypress/support/index.ts",
+  "video": false,
+  "defaultCommandTimeout": 20000,
+  "viewportHeight": 1080,
+  "viewportWidth": 1920,
+  "fixturesFolder": false,
+  "projectId": "k7ab29"
+}

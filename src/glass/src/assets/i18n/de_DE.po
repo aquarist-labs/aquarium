@@ -413,7 +413,7 @@ msgstr "Betriebszeit"
 msgid "Usable Size"
 msgstr ""
 
-msgid "Use a NTP host on the internet"
+msgid "Use an NTP host on the Internet"
 msgstr ""
 
 msgid "Use the following command line to mount the file system."

@@ -15,6 +15,30 @@ dependencies_opensuse_tumbleweed=(
   "dosfstools"
 )
 
+cypress_opensuse_leap=(
+  "xorg-x11-server"
+  "xorg-x11-fonts"
+  "gconf2"
+  "gtk2-devel"
+  "gtk3-devel"
+  "libnotify-devel"
+  "libxcb-screensaver0"
+  "mozilla-nss"
+  "alsa"
+)
+
+cypress_opensuse_tumbleweed=(
+  "xorg-x11-server-Xvfb"
+  "xorg-x11-fonts"
+  "gconf2"
+  "gtk2-devel"
+  "gtk3-devel"
+  "libnotify-devel"
+  "libxcb-screensaver0"
+  "mozilla-nss"
+  "alsa"
+)
+
 dependencies_debian=(
   "btrfs-progs"
   "git"
@@ -195,6 +219,22 @@ if ! ${skip_install_deps} ; then
           exit 1
       }
       fi
+      echo "=> try installing dependencies for cypress"
+      case $osid in
+        *-tumbleweed)
+          sudo zypper --non-interactive install ${cypress_opensuse_tumbleweed[*]} || {
+            echo "Dependency installation for cypress failed"
+            exit 1
+          }
+          ;;
+        *-leap)
+          echo "=> try installing dependencies for cypress"
+          sudo zypper --non-interactive install ${cypress_opensuse_leap[*]} || {
+            echo "Dependency installation for cypress failed"
+            exit 1
+          }
+          ;;
+      esac
       ;;
     debian)
       echo "=> installing nodejs16.x repo to apt source"
