@@ -166,6 +166,7 @@
         <package name="python38-aiofiles"/>
         <package name="python38-requests"/>
         <package name="python38-PyYAML"/>
+        <package name="python38-psutil"/>
         <package name="python3-rados"/>
         <package name="etcdctl"/>
         <archive name="aquarium.tar.gz"/>
@@ -206,6 +207,8 @@
         <package name="iputils"/>
         <package name="iproute2"/>
         <package name="wicked"/>
+
+        <package name="lshw"/>
 
         <!-- Vagrant sudo-->
         <package name="sudo"/>

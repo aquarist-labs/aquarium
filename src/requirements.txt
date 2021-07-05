@@ -11,4 +11,5 @@ uvicorn==0.13.3
 pip
 websockets==8.1
 PyYAML==5.4.1
+psutil==5.8.0
 git+https://github.com/aquarist-labs/aetcd3/@edf633045ce61c7bbac4d4a6ca15b14f8acfe9cd

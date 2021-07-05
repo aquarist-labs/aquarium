@@ -8,3 +8,4 @@ pytest-datadir
 pytest-mock
 requests
 types-PyYAML
+types-psutil==5.8.0

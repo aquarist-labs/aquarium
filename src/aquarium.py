@@ -29,6 +29,7 @@ from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.devices import Devices
 from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
+from gravel.controllers.resources.ifaces import Interfaces
 from gravel.controllers.services import Services
 
 from gravel.api import (
@@ -96,6 +97,11 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
         gstate.config.options.services.probe_interval, gstate, nodemgr
     )
     gstate.add_services(services)
+
+    interfaces: Interfaces = Interfaces(
+        gstate.config.options.interfaces.probe_interval
+    )
+    gstate.add_interfaces(interfaces)
 
     await nodemgr.start()
     await gstate.start()

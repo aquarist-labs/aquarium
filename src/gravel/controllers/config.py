@@ -54,6 +54,12 @@ class ServicesOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Services Probe Interval")
 
 
+class InterfacesOptionsModel(BaseModel):
+    probe_interval: float = Field(
+        1.0, title="Network Interfaces Probe Interval"
+    )
+
+
 class EtcdOptionsModel(BaseModel):
     registry: str = Field(
         "quay.io/coreos/etcd", title="Container Image Registry"
@@ -82,6 +88,7 @@ class OptionsModel(BaseModel):
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
     services: ServicesOptionsModel = Field(ServicesOptionsModel())
+    interfaces: InterfacesOptionsModel = Field(InterfacesOptionsModel())
     etcd: EtcdOptionsModel = Field(EtcdOptionsModel())
     auth: AuthOptionsModel = Field(AuthOptionsModel())
 

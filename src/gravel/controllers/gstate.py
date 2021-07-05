@@ -34,6 +34,8 @@ if typing.TYPE_CHECKING:
     from gravel.controllers.resources.status import Status
     from gravel.controllers.resources.storage import Storage
     from gravel.controllers.services import Services
+    from gravel.controllers.resources.ifaces import Interfaces
+
 
 logger: Logger = fastapi_logger
 
@@ -127,6 +129,7 @@ class GlobalState:
     inventory: Inventory
     storage: Storage
     services: Services
+    interfaces: Interfaces
     cephadm: Cephadm
     ceph_mgr: Mgr
     ceph_mon: Mon
@@ -165,6 +168,10 @@ class GlobalState:
     def add_services(self, services: Services):
         self.services = services
         self.add_ticker("services", services)
+
+    def add_interfaces(self, interfaces: Interfaces):
+        self.interfaces = interfaces
+        self.add_ticker("interfaces", interfaces)
 
     async def start(self) -> None:
         if self._is_shutting_down:
