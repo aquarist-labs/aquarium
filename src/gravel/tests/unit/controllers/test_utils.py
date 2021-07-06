@@ -11,42 +11,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import List, Optional
+from typing import List
 import pytest
 from pytest_mock import MockerFixture
 import asyncio
 
-
-class FakeStreamReader:
-    contents: str
-
-    def __init__(self, contents: str) -> None:
-        self.contents = contents
-
-    async def read(self) -> bytes:
-        return self.contents.encode("utf-8")
-
-    async def readline(self) -> bytes:
-        lines = self.contents.splitlines()
-        return lines[0].encode("utf-8")
-
-
-class FakeProcess:
-    stderr: Optional[FakeStreamReader] = None
-    stdout: Optional[FakeStreamReader] = None
-    returncode: int
-
-    def __init__(
-        self, stdout: Optional[str], stderr: Optional[str], ret: int
-    ) -> None:
-        if stdout:
-            self.stdout = FakeStreamReader(stdout)
-        if stderr:
-            self.stderr = FakeStreamReader(stderr)
-        self.returncode = ret
-
-    async def wait(self) -> int:
-        return self.returncode
+from gravel.tests.unit.asyncio import FakeProcess
 
 
 @pytest.mark.asyncio
