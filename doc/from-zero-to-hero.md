@@ -1,4 +1,4 @@
-# From Zero to Hacking
+# From Zero to Hero
 
 The goal of this document is to guide you through the process of setting
 up a local, VM-based test instance via `Vagrant` on a Linux system of

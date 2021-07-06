@@ -43,7 +43,7 @@ If you want to get involved in another way:
 
 - Project repo: https://github.com/aquarist-labs/aquarium
 - We're on slack: https://join.slack.com/t/aquaristlabs/shared_invite/zt-lsjrkw8m-Jj_zYAs84PfMsUGwvMDOFA
-- Check out our [From Zero to Hacking](https://github.com/aquarist-labs/aquarium/blob/main/doc/from-zero-to-hacking.md)
+- Check out our [From Zero to Hero](https://github.com/aquarist-labs/aquarium/blob/main/doc/from-zero-to-hero.md)
 quickstart to help you get off your feet
 - Check out the [issue](https://github.com/aquarist-labs/aquarium/issues) list and our [project board](https://github.com/orgs/aquarist-labs/projects/3)
 - Contributing guidelines: https://github.com/aquarist-labs/aquarium/blob/main/CONTRIBUTING.md
