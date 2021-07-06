@@ -28,7 +28,7 @@ bits are located in `src/glass`.
 
 For i18n translation contribution please take a look at [Translator Guide](https://github.com/aquarist-labs/aquarium/blob/main/doc/i18n.md)
 
-Check out our [From Zero to Hacking](https://github.com/aquarist-labs/aquarium/blob/main/doc/from-zero-to-hacking.md)
+Check out our [From Zero to Hero](https://github.com/aquarist-labs/aquarium/blob/main/doc/from-zero-to-hero.md)
 quickstart to help you get off your feet.
 
 ## Where can I get more help, if I need it?
