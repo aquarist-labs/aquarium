@@ -344,7 +344,7 @@ class NodeDeployment:
             raise NodeCantJoinError(e.message)
 
         self._state.mark_join()
-        self._set_hostname(hostname)
+        await self._set_hostname(hostname)
 
         my_url: str = \
             f"{hostname}=http://{address}:2380"
@@ -510,7 +510,7 @@ class NodeDeployment:
 
         self._progress = ProgressEnum.PREPARING
 
-        self._set_hostname(hostname)
+        await self._set_hostname(hostname)
         try:
             await self._prepare_etcd(hostname, address, token)
         except NodeError as e:
@@ -548,9 +548,9 @@ class NodeDeployment:
             logger.error(f"set ntp address error: {e.message}")
             raise e
 
-    def _set_hostname(self, hostname: str) -> None:
+    async def _set_hostname(self, hostname: str) -> None:
         try:
-            set_hostname(hostname)
+            await set_hostname(hostname)
         except HostnameCtlError as e:
             logger.error(f"deploy prepare error setting hostname: {e.message}")
             raise DeploymentError(e.message)

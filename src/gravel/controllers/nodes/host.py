@@ -12,23 +12,22 @@
 # GNU General Public License for more details.
 
 import socket
-import subprocess
 
 from gravel.controllers.errors import GravelError
+from gravel.controllers.utils import aqr_run_cmd
 
 
 class HostnameCtlError(GravelError):
     pass
 
 
-def set_hostname(name: str) -> bool:
+async def set_hostname(name: str) -> bool:
     old_hostname = socket.gethostname()
 
-    try:
-        cmd = ["hostnamectl", "set-hostname", name]
-        subprocess.check_output(cmd, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
-        raise HostnameCtlError(f"Unable to set hostname to '{name}'.") from e
+    cmd = ["hostnamectl", "set-hostname", name]
+    ret, _, stderr = await aqr_run_cmd(cmd)
+    if ret != 0:
+        raise HostnameCtlError(f"Unable to set hostname to '{name}': {stderr}")
 
     with open("/etc/hosts", "r+") as f:
         text = f.read()
