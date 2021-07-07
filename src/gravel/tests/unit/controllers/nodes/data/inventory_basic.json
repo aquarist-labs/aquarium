@@ -1,0 +1,57 @@
+{
+  "hostname": "foo",
+  "model": "",
+  "vendor": "",
+  "kernel": "123.4",
+  "operating_system": "fancything",
+  "system_uptime": 123.0,
+  "current_time": 123,
+  "cpu": {
+    "arch": "x86_64",
+    "model": "bar",
+    "cores": 12,
+    "count": 1,
+    "threads": 24,
+    "load": {
+      "one_min": 0.1,
+      "five_min": 0.2,
+      "fifteen_min": 0.3
+    }
+  },
+  "nics": {},
+  "memory": {
+    "available_kb": 1024,
+    "free_kb": 1024,
+    "total_kb": 2048
+  },
+  "disks": [
+    {
+      "available": true,
+      "device_id": "1234",
+      "human_readable_type": "hdd",
+      "lsm_data": {},
+      "lvs": [],
+      "path": "/dev/foo",
+      "rejected_reasons": [],
+      "sys_api": {
+        "human_readable_size": "8.00 GB",
+        "locked": 0,
+        "model": "",
+        "nr_requests": 256,
+        "partitions": {},
+        "removable": false,
+        "rev": "",
+        "ro": false,
+        "rotational": true,
+        "sas_address": "",
+        "sas_device_handle": "",
+        "scheduler_mode": "mq-deadline",
+        "sectors": 0,
+        "sectorsize": 512,
+        "size": 8589934592,
+        "support_discard": 512,
+        "vendor": ""
+      }
+    }
+  ]
+}

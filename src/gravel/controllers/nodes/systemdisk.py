@@ -73,7 +73,9 @@ def get_mounts() -> List[MountEntry]:
             fields: List[str] = line.split(" ")
             if len(fields) < 2:
                 continue
-            lst.append(MountEntry(source=fields[0], dest=fields[1]))
+            src = fields[0].strip()
+            dst = fields[1].strip()
+            lst.append(MountEntry(source=src, dest=dst))
     return lst
 
 
@@ -195,9 +197,6 @@ class SystemDisk:
         except Exception as e:
             raise MountError(msg=str(e))
 
-    # lacking a better name atm, we're calling this function 'swap in', as in
-    # we're swapping these directories in, some being overlayed, others bind
-    # mounted.
     async def enable(self) -> None:
         if not self.mounted:
             try:
