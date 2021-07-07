@@ -370,7 +370,7 @@ async def aquarium_shutdown():
 @pytest.mark.asyncio
 async def app_state(
     aquarium_startup: Callable[[FastAPI, FastAPI], Awaitable[None]],
-    aquarium_shutdown: Callable[[FastAPI, FastAPI], Awaitable[None]]    
+    aquarium_shutdown: Callable[[FastAPI, FastAPI], Awaitable[None]]
 ):
     class FakeFastAPI:
         state = SimpleNamespace()
