@@ -11,58 +11,36 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# pyright: reportPrivateUsage=false
+
+import os
+from typing import Callable
 import pytest
 from pytest_mock import MockerFixture
-from gravel.cephadm.models import (
-    NodeCPUInfoModel,
-    NodeCPULoadModel,
-    NodeInfoModel,
-    NodeMemoryInfoModel
-)
-from gravel.controllers.gstate import GlobalState
 
+from gravel.cephadm.models import NodeInfoModel
+from gravel.controllers.gstate import GlobalState
 from gravel.controllers.resources.inventory import Inventory
+
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 @pytest.mark.asyncio
 async def test_inventory_subs(
     mocker: MockerFixture,
-    gstate: GlobalState
+    gstate: GlobalState,
+    get_data_contents: Callable[[str, str], str]
 ):
 
-    nodeinfo: NodeInfoModel = NodeInfoModel(
-        hostname="foo",
-        model="",
-        vendor="",
-        kernel="123.4",
-        operating_system="fancything",
-        system_uptime=123,
-        current_time=123,
-        cpu=NodeCPUInfoModel(
-            arch="x86_64",
-            model="bar",
-            cores=12,
-            count=1,
-            threads=24,
-            load=NodeCPULoadModel(
-                one_min=0.1,
-                five_min=0.2,
-                fifteen_min=0.3
-            )
-        ),
-        nics=[],
-        memory=NodeMemoryInfoModel(
-            available_kb=1024,
-            free_kb=1024,
-            total_kb=2048
-        ),
-        disks=[]
+    nodeinfo: NodeInfoModel = NodeInfoModel.parse_raw(
+        get_data_contents(DATA_DIR, "inventory_basic.json")
     )
 
     inventory: Inventory = gstate.inventory
-    inventory._latest = nodeinfo  # pyright: reportPrivateUsage=false
+    inventory._latest = nodeinfo
     prev_subs = inventory._subscribers
-    inventory._subscribers = []  # pyright: reportPrivateUsage=false
+    inventory._subscribers = []
 
     num_called: int = 0
 
