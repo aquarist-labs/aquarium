@@ -435,6 +435,7 @@ class NodeMgr:
         """
         Called asynchronously, presumes bootstrap was successful.
         """
+        assert self._init_stage == NodeInitStage.AVAILABLE
         assert self._state
         await self._save_state()
 
@@ -446,6 +447,7 @@ class NodeMgr:
         success: bool,
         error: Optional[str]
     ) -> None:
+        assert self._init_stage == NodeInitStage.AVAILABLE
         self._deployment.finish_deployment()
 
         logger.debug(f"finished deployment: token = {self._token}")
