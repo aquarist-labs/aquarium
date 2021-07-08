@@ -14,12 +14,13 @@
 # pyright: reportPrivateUsage=false, reportMissingTypeStubs=false
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 import pytest
 from pytest_mock import MockerFixture
 from pyfakefs import fake_filesystem
 
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.nodes.mgr import DeployParamsModel
 
 
 def test_fail_ctor(
@@ -570,6 +571,209 @@ async def test_join(gstate: GlobalState, mocker: MockerFixture) -> None:
     assert nodemgr._token == "751b-51fd-10d7-f7b4"
     nodemgr._save_state.assert_called_once()  # type: ignore
     nodemgr._node_start.assert_called_once()  # type: ignore
+
+
+@pytest.mark.asyncio
+async def test_deploy_checks(gstate: GlobalState) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeInitStage,
+        NodeNotStartedError,
+        NodeCantDeployError,
+        NodeStateModel,
+        DeployParamsModel
+    )
+    from gravel.controllers.nodes.deployment import NodeStageEnum
+
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+
+    nodemgr._init_stage = NodeInitStage.NONE
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
+        )
+    except NodeNotStartedError:
+        throws = True
+    assert throws
+
+    nodemgr._init_stage = NodeInitStage.PREPARE
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
+        )
+    except NodeNotStartedError:
+        throws = True
+    assert throws
+
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+    nodemgr._deployment._state._stage = NodeStageEnum.ERROR
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
+        )
+    except NodeCantDeployError:
+        throws = True
+    assert throws
+
+    nodemgr._deployment._state._stage = NodeStageEnum.NONE
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="", ntpaddr="my.ntp.addr")
+        )
+    except NodeCantDeployError as e:
+        assert e.message == "missing hostname parameter"
+        throws = True
+    assert throws
+
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="barbaz", ntpaddr="")
+        )
+    except NodeCantDeployError as e:
+        assert e.message == "missing ntp server address"
+        throws = True
+    assert throws
+
+
+@pytest.mark.asyncio
+async def test_deploy_check_disk_solution(
+    gstate: GlobalState, mocker: MockerFixture
+) -> None:
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeInitStage,
+        NodeStateModel,
+        NodeCantDeployError
+    )
+    from gravel.controllers.nodes.disks import DiskSolution
+
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+
+    def empty_solution(gstate: GlobalState) -> DiskSolution:
+        return DiskSolution()
+
+    def fail_solution(gstate: GlobalState) -> DiskSolution:
+        return DiskSolution(possible=True)
+
+    mocker.patch(
+        "gravel.controllers.nodes.disks.Disks.gen_solution", new=empty_solution
+    )
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
+        )
+    except NodeCantDeployError as e:
+        assert e.message == "no possible deployment solution found"
+        throws = True
+    assert throws
+
+    mocker.patch(
+        "gravel.controllers.nodes.disks.Disks.gen_solution", new=fail_solution
+    )
+    throws = False
+    try:
+        await nodemgr.deploy(
+            DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
+        )
+    except AssertionError:
+        throws = True
+    assert throws
+
+
+@pytest.mark.asyncio
+async def test_deploy(gstate: GlobalState, mocker: MockerFixture) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeInitStage,
+        NodeStateModel
+    )
+    from gravel.controllers.nodes.disks import DiskSolution, DiskModel
+    from gravel.controllers.nodes.deployment import DeploymentConfig
+
+    called_mock_deploy = False
+
+    def mock_solution(gstate: GlobalState) -> DiskSolution:
+        return DiskSolution(
+            systemdisk=DiskModel(path="/dev/foo", size=1000),
+            storage=[
+                DiskModel(path="/dev/bar", size=2000),
+                DiskModel(path="/dev/baz", size=2000)
+            ],
+            storage_size=4000,
+            possible=True
+        )
+
+    async def mock_deploy(
+        config: DeploymentConfig,
+        post_bootstrap_cb: Callable[[bool, Optional[str]], Awaitable[None]],
+        finisher: Callable[[bool, Optional[str]], Awaitable[None]]
+    ) -> None:
+
+        import inspect
+
+        nonlocal called_mock_deploy
+        called_mock_deploy = True
+
+        assert config.hostname == "barbaz"
+        assert config.address == "1.2.3.4"
+        assert config.token == "751b-51fd-10d7-f7b4"
+        assert config.ntp_addr == "my.ntp.addr"
+        assert config.disks.system == "/dev/foo"
+        assert len(config.disks.storage) == 2
+        assert "/dev/bar" in config.disks.storage
+        assert "/dev/baz" in config.disks.storage
+        assert post_bootstrap_cb is not None
+        assert finisher is not None
+        assert inspect.iscoroutinefunction(post_bootstrap_cb)
+        assert inspect.iscoroutinefunction(finisher)
+
+    mocker.patch(
+        "gravel.controllers.nodes.disks.Disks.gen_solution", new=mock_solution
+    )
+
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+
+    nodemgr._generate_token = mocker.MagicMock(
+        return_value="751b-51fd-10d7-f7b4"
+    )
+    nodemgr._save_token = mocker.AsyncMock()
+    nodemgr._save_ntp_addr = mocker.AsyncMock()
+    nodemgr._deployment.deploy = mock_deploy
+
+    await nodemgr.deploy(
+        DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
+    )
+
+    assert called_mock_deploy
+    assert nodemgr._token == "751b-51fd-10d7-f7b4"
+    assert nodemgr._state.hostname == "barbaz"
+    nodemgr._save_token.assert_called_once()  # type: ignore
+    nodemgr._save_ntp_addr.assert_called_once_with("my.ntp.addr")  # type: ignore
 
 
 @pytest.mark.asyncio
