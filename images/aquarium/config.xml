@@ -134,7 +134,7 @@
     <users>
          <user password="aquarium" home="/home/aquarium" name="aquarium" groups="aquarium"  pwdformat="plain"/>
     </users>
-    <users profiles="Vagrant">
+    <users profiles="Vagrant,Vagrant-VirtualBox">
         <user password="vagrant"
               home="/home/vagrant"
               name="vagrant"
