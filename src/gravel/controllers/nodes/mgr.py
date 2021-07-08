@@ -390,7 +390,11 @@ class NodeMgr:
         if self._inventory_sub:
             self.gstate.inventory.unsubscribe(self._inventory_sub)
 
-        self._token = self._generate_token()
+        # check parameters
+        if not params.ntpaddr or len(params.ntpaddr) == 0:
+            raise NodeCantDeployError("missing ntp server address")
+        if not params.hostname or len(params.hostname) == 0:
+            raise NodeCantDeployError("missing hostname parameter")
 
         disk_solution = Disks.gen_solution(self.gstate)
         if not disk_solution.possible:
@@ -403,16 +407,11 @@ class NodeMgr:
         ]
         logger.debug(f"mgr > deploy > disks: {disks}")
 
-        # check parameters
-        if not params.ntpaddr or len(params.ntpaddr) == 0:
-            raise NodeCantDeployError("missing ntp server address")
-        if not params.hostname or len(params.hostname) == 0:
-            raise NodeCantDeployError("missing hostname parameter")
-
         # set hostname in memory; we'll write it later
         self._state.hostname = params.hostname
-
+        self._token = self._generate_token()
         assert self._state.address
+
         logger.info("deploy node")
         await self._deployment.deploy(
             DeploymentConfig(
