@@ -109,6 +109,8 @@ class Image:
         if _name:
             if 'libvirt' in _name:
                 _type = 'libvirt'
+            elif 'virtualbox' in _name:
+                _type = 'virtualbox'
             return _type, outdir.joinpath(_name)
         else:
             raise FileNotFoundError()
