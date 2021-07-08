@@ -776,6 +776,96 @@ async def test_deploy(gstate: GlobalState, mocker: MockerFixture) -> None:
     nodemgr._save_ntp_addr.assert_called_once_with("my.ntp.addr")  # type: ignore
 
 
+async def expect_assertion(coro: Awaitable[None]) -> bool:
+    try:
+        await coro
+    except AssertionError:
+        return True
+    return False
+
+
+@pytest.mark.asyncio
+async def test_bootstrap_finisher_cb(
+    gstate: GlobalState, mocker: MockerFixture
+) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeStateModel,
+        NodeInitStage
+    )
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+
+    nodemgr._init_stage = NodeInitStage.NONE
+    assert await expect_assertion(
+        nodemgr._post_bootstrap_finisher(True, None)
+    )
+    nodemgr._init_stage = NodeInitStage.PREPARE
+    assert await expect_assertion(
+        nodemgr._post_bootstrap_finisher(True, None)
+    )
+    nodemgr._init_stage = NodeInitStage.STARTED
+    assert await expect_assertion(
+        nodemgr._post_bootstrap_finisher(True, None)
+    )
+
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+    nodemgr._save_state = mocker.AsyncMock()
+    nodemgr._post_bootstrap_config = mocker.AsyncMock()
+
+    await nodemgr._post_bootstrap_finisher(True, None)
+
+    nodemgr._save_state.assert_called_once()  # type: ignore
+    nodemgr._post_bootstrap_config.assert_called_once()  # type: ignore
+
+
+@pytest.mark.asyncio
+async def test_finish_deployment_cb(
+    gstate: GlobalState, mocker: MockerFixture
+) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeStateModel,
+        NodeInitStage
+    )
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+
+    nodemgr._init_stage = NodeInitStage.NONE
+    assert await expect_assertion(
+        nodemgr._finish_deployment(True, None)
+    )
+    nodemgr._init_stage = NodeInitStage.PREPARE
+    assert await expect_assertion(
+        nodemgr._finish_deployment(True, None)
+    )
+    nodemgr._init_stage = NodeInitStage.STARTED
+    assert await expect_assertion(
+        nodemgr._finish_deployment(True, None)
+    )
+
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+    nodemgr._deployment.finish_deployment = mocker.MagicMock()
+    nodemgr._load = mocker.AsyncMock()
+    nodemgr._node_start = mocker.AsyncMock()
+
+    await nodemgr._finish_deployment(True, None)
+
+    nodemgr._deployment.finish_deployment.assert_called_once()  # type: ignore
+    nodemgr._load.assert_called_once()  # type: ignore
+    nodemgr._node_start.assert_called_once()  # type: ignore
+
+
 @pytest.mark.asyncio
 async def test_postbootstrap_config(
     mocker: MockerFixture,
@@ -808,3 +898,54 @@ async def test_postbootstrap_config(
     expect_key("global", "mon_warn_on_pool_no_redundancy", "false")
     expect_key("mgr", "mgr/cephadm/manage_etc_ceph_ceph_conf", "true")
     expect_key("global", "auth_allow_insecure_global_id_reclaim", "false")
+
+
+@pytest.mark.asyncio
+async def test_finish_deployment(
+    gstate: GlobalState, mocker: MockerFixture
+) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeStateModel,
+        NodeAlreadyJoiningError,
+        NodeNotDeployedError
+    )
+    from gravel.controllers.nodes.deployment import NodeStageEnum
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+
+    orig_mark_ready = nodemgr._deployment._state.mark_ready
+    nodemgr._deployment._state.mark_ready = mocker.MagicMock()
+    nodemgr._deployment._state._stage = NodeStageEnum.READY
+    await nodemgr.finish_deployment()
+
+    nodemgr._deployment._state.mark_ready.assert_not_called()  # type: ignore
+    nodemgr._deployment._state.mark_ready = orig_mark_ready
+
+    nodemgr._deployment._state._stage = NodeStageEnum.JOINING
+    throws = False
+    try:
+        await nodemgr.finish_deployment()
+    except NodeAlreadyJoiningError:
+        throws = True
+    assert throws
+
+    nodemgr._deployment._state._stage = NodeStageEnum.BOOTSTRAPPING
+    throws = False
+    try:
+        await nodemgr.finish_deployment()
+    except NodeNotDeployedError:
+        throws = True
+    assert throws
+
+    nodemgr._deployment._state._stage = NodeStageEnum.DEPLOYED
+    await nodemgr.finish_deployment()
+    assert nodemgr._deployment._state._stage == NodeStageEnum.READY
+    assert nodemgr.deployment_state.stage == NodeStageEnum.READY
+    assert nodemgr.deployment_state.ready
+
