@@ -211,7 +211,7 @@ def _gen_vagrantfile(
         f"generate template: nodes={nodes}, disks={disks}, nics={nics}"
     )
 
-    without_nfs_str: str = "true" if not rootdir else "false"
+    without_shared_folder_str: str = "true" if not rootdir else "false"
     rootdir = rootdir if rootdir else Path(".")
 
     template: str = \
@@ -222,7 +222,14 @@ def _gen_vagrantfile(
 Vagrant.configure("2") do |config|
     config.vm.box = "{boxname}"
     config.vm.synced_folder ".", "/vagrant", disabled: true
-    config.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_nfs_str}
+
+    config.vm.provider :virtualbox do |_, override|
+        override.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "virtualbox", disabled: {without_shared_folder_str}
+    end
+    config.vm.provider :libvirt do |_, override|
+        override.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_shared_folder_str}
+    end
+
     config.vm.guest = "suse"
 
         """
