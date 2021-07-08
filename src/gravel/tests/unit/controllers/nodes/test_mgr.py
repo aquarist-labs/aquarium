@@ -352,6 +352,227 @@ def test_generate_token(gstate: GlobalState) -> None:
 
 
 @pytest.mark.asyncio
+async def test_join_checks(gstate: GlobalState) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeCantJoinError,
+        NodeNotStartedError,
+        NodeError,
+        NodeInitStage,
+        JoinParamsModel
+    )
+
+    nodemgr = NodeMgr(gstate)
+
+    throws = False
+    nodemgr._init_stage = NodeInitStage.NONE
+    try:
+        await nodemgr.join(
+            "1.2.3.4",
+            "751b-51fd-10d7-f7b4",
+            JoinParamsModel(hostname="foobar")
+        )
+    except NodeNotStartedError:
+        throws = True
+    assert throws
+
+    throws = False
+    nodemgr._init_stage = NodeInitStage.STARTED
+    try:
+        await nodemgr.join(
+            "1.2.3.4",
+            "751b-51fd-10d7-f7b4",
+            JoinParamsModel(hostname="foobar")
+        )
+    except NodeCantJoinError:
+        throws = True
+    assert throws
+
+    throws = False
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+    try:
+        await nodemgr.join(
+            "1.2.3.4",
+            "751b-51fd-10d7-f7b4",
+            JoinParamsModel(hostname="")
+        )
+    except NodeError as e:
+        throws = True
+        assert "hostname" in e.message
+    assert throws
+
+
+@pytest.mark.asyncio
+async def test_join_check_disk_solution(
+    gstate: GlobalState, mocker: MockerFixture
+) -> None:
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeCantJoinError,
+        NodeStateModel,
+        NodeInitStage,
+        JoinParamsModel
+    )
+    from gravel.controllers.nodes.disks import DiskSolution
+
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+
+    def empty_solution(gstate: GlobalState) -> DiskSolution:
+        return DiskSolution()
+
+    mocker.patch(
+        "gravel.controllers.nodes.disks.Disks.gen_solution", new=empty_solution
+    )
+
+    throws = False
+    try:
+        await nodemgr.join(
+            "1.2.3.4",
+            "751b-51fd-10d7-f7b4",
+            JoinParamsModel(hostname="foobar")
+        )
+    except NodeCantJoinError as e:
+        assert e.message == "no disk deployment solution found"
+        throws = True
+    assert throws
+
+    def fail_solution(gstate: GlobalState) -> DiskSolution:
+        return DiskSolution(possible=True)
+
+    mocker.patch(
+        "gravel.controllers.nodes.disks.Disks.gen_solution", new=fail_solution
+    )
+
+    throws = False
+    try:
+        await nodemgr.join(
+            "1.2.3.4",
+            "751b-51fd-10d7-f7b4",
+            JoinParamsModel(hostname="foobar")
+        )
+    except AssertionError:
+        throws = True
+    assert throws
+
+
+@pytest.mark.asyncio
+async def test_join(gstate: GlobalState, mocker: MockerFixture) -> None:
+
+    from uuid import UUID
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeStateModel,
+        NodeInitStage,
+        JoinParamsModel
+    )
+    from gravel.controllers.nodes.disks import DiskSolution, DiskModel
+    from gravel.controllers.nodes.deployment import DeploymentDisksConfig
+
+    def mock_solution(gstate: GlobalState) -> DiskSolution:
+        return DiskSolution(
+            systemdisk=DiskModel(path="/dev/foo", size=1000),
+            storage=[
+                DiskModel(path="/dev/bar", size=2000),
+                DiskModel(path="/dev/baz", size=2000)
+            ],
+            storage_size=4000,
+            possible=True
+        )
+
+    async def mock_join(
+        leader_address: str,
+        token: str,
+        uuid: UUID,
+        hostname: str,
+        address: str,
+        disks: DeploymentDisksConfig
+    ) -> bool:
+        assert leader_address == "10.1.2.3"
+        assert token == "751b-51fd-10d7-f7b4"
+        assert str(uuid) == "bba35d93-d4a5-48b3-804b-99c406555c89"
+        assert hostname == "foobar"
+        assert address == "1.2.3.4"
+        assert disks.system == "/dev/foo"
+        assert len(disks.storage) == 2
+        assert "/dev/bar" in disks.storage
+        assert "/dev/baz" in disks.storage
+        return True
+
+    async def fail_join(
+        leader_address: str,
+        token: str,
+        uuid: UUID,
+        hostname: str,
+        address: str,
+        disks: DeploymentDisksConfig
+    ) -> bool:
+        return False
+
+    async def throw_join(
+        leader_address: str,
+        token: str,
+        uuid: UUID,
+        hostname: str,
+        address: str,
+        disks: DeploymentDisksConfig
+    ) -> bool:
+        raise Exception()
+
+    mocker.patch(
+        "gravel.controllers.nodes.disks.Disks.gen_solution", new=mock_solution
+    )
+
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+    nodemgr._init_stage = NodeInitStage.AVAILABLE
+
+    nodemgr._deployment.join = throw_join
+    throws = False
+    try:
+        await nodemgr.join(
+            "10.1.2.3",
+            "751b-51fd-10d7-f7b4",
+            JoinParamsModel(hostname="foobar")
+        )
+    except Exception:
+        throws = True
+    assert throws
+
+    nodemgr._deployment.join = fail_join
+    res = await nodemgr.join(
+        "10.1.2.3",
+        "751b-51fd-10d7-f7b4",
+        JoinParamsModel(hostname="foobar")
+    )
+    assert not res
+
+    nodemgr._save_state = mocker.AsyncMock()
+    nodemgr._node_start = mocker.AsyncMock()
+    nodemgr._deployment.join = mock_join
+    res = await nodemgr.join(
+        "10.1.2.3",
+        "751b-51fd-10d7-f7b4",
+        JoinParamsModel(hostname="foobar")
+    )
+    assert res
+    assert nodemgr._token == "751b-51fd-10d7-f7b4"
+    nodemgr._save_state.assert_called_once()  # type: ignore
+    nodemgr._node_start.assert_called_once()  # type: ignore
+
+
+@pytest.mark.asyncio
 async def test_postbootstrap_config(
     mocker: MockerFixture,
     gstate: GlobalState
