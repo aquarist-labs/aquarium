@@ -168,6 +168,7 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._deployment = NodeDeployment(gstate, self._connmgr)
+        self._inventory_sub = None
 
         self.gstate = gstate
 
