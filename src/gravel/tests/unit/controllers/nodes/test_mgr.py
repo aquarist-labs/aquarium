@@ -14,12 +14,23 @@
 # pyright: reportPrivateUsage=false, reportMissingTypeStubs=false
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    cast
+)
 import pytest
 from pytest_mock import MockerFixture
 from pyfakefs import fake_filesystem
 
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.nodes.conn import IncomingConnection
+from gravel.controllers.nodes.messages import MessageModel
 from gravel.controllers.nodes.mgr import DeployParamsModel
 
 
@@ -949,3 +960,164 @@ async def test_finish_deployment(
     assert nodemgr.deployment_state.stage == NodeStageEnum.READY
     assert nodemgr.deployment_state.ready
 
+
+def fake_conn(cb: Callable[[MessageModel], None]) -> IncomingConnection:
+
+    class FakeConn(IncomingConnection):
+
+        checker: Callable[[MessageModel], None]
+
+        def __init__(self, checker: Callable[[MessageModel], None]):
+            self.checker = checker
+
+        async def send_msg(self, data: MessageModel) -> None:
+            self.checker(data)
+
+        @property
+        def address(self) -> str:
+            return "placeholder"
+
+    return FakeConn(cb)
+
+
+@pytest.mark.asyncio
+async def test_handle_join(
+    gstate: GlobalState,
+    mocker: MockerFixture,
+    fs: fake_filesystem.FakeFilesystem
+) -> None:
+
+    from fastapi import status
+    from gravel.controllers.nodes.messages import (
+        MessageModel,
+        JoinMessageModel,
+        ErrorMessageModel,
+        WelcomeMessageModel,
+        MessageTypeEnum
+    )
+
+    from gravel.controllers.nodes.mgr import (
+        NodeMgr,
+        NodeStateModel
+    )
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+    nodemgr._token = "751b-51fd-10d7-f7b4"
+
+    # test wrong token
+    #
+    failed_token = False
+
+    def fail_token(data: MessageModel) -> None:
+        assert data.type == MessageTypeEnum.ERROR
+        msg = cast(ErrorMessageModel, data.data)
+        assert msg.what == "bad token"
+        assert msg.code == status.HTTP_401_UNAUTHORIZED
+        nonlocal failed_token
+        failed_token = True
+
+    fail_conn = fake_conn(fail_token)
+    await nodemgr._handle_join(fail_conn, JoinMessageModel(
+        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+        hostname="barbaz",
+        address="5.6.7.8",
+        token="failtoken"
+    ))
+    assert failed_token
+
+    # test missing address and hostname
+    #
+    failed_bad_addr_hostname = False
+
+    def bad_addr_hostname(data: MessageModel) -> None:
+        assert data.type == MessageTypeEnum.ERROR
+        msg = cast(ErrorMessageModel, data.data)
+        assert msg.what == "missing address or hostname"
+        assert msg.code == status.HTTP_400_BAD_REQUEST
+        nonlocal failed_bad_addr_hostname
+        failed_bad_addr_hostname = True
+
+    fail_conn = fake_conn(bad_addr_hostname)
+    await nodemgr._handle_join(fail_conn, JoinMessageModel(
+        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+        hostname="",
+        address="5.6.7.8",
+        token=nodemgr._token
+    ))
+    assert failed_bad_addr_hostname
+
+    failed_bad_addr_hostname = False
+    fail_conn = fake_conn(bad_addr_hostname)
+    await nodemgr._handle_join(fail_conn, JoinMessageModel(
+        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+        hostname="barbaz",
+        address="",
+        token=nodemgr._token
+    ))
+    assert failed_bad_addr_hostname
+
+    # test add new member
+    #
+
+    class Member:
+        name: str = "asd"
+        peer_urls: List[str] = ["10.11.12.13"]
+
+    called_add_member = False
+    called_conn_cb = False
+
+    async def mock_add_member(urls: List[str]) -> Tuple[Member, List[Member]]:
+        nonlocal called_add_member
+        called_add_member = True
+        return Member(), [Member()]
+
+    def conn_cb(data: MessageModel) -> None:
+        assert data.type == MessageTypeEnum.WELCOME
+        msg = WelcomeMessageModel.parse_obj(data.data)
+        assert msg.pubkey == "mypubkey"
+        assert msg.cephconf == "mycephconf"
+        assert msg.keyring == "mycephkeyring"
+        assert msg.etcd_peer == "asd=10.11.12.13"
+        nonlocal called_conn_cb
+        called_conn_cb = True
+
+    mocker.patch(
+        "gravel.controllers.orch.orchestrator.Orchestrator.get_public_key",
+        new=mocker.MagicMock(return_value="mypubkey")  # type: ignore
+    )
+
+    fs.create_file("/etc/ceph/ceph.conf")
+    fs.create_file("/etc/ceph/ceph.client.admin.keyring")
+    with open("/etc/ceph/ceph.conf", mode="w") as f:
+        f.write("mycephconf")
+    with open("/etc/ceph/ceph.client.admin.keyring", mode="w") as f:
+        f.write("mycephkeyring")
+
+    class FakeAETCD:
+
+        async def add_member(
+            self, urls: List[str]
+        ) -> Tuple[Member, List[Member]]:
+            return await mock_add_member(urls)
+
+        async def close(self) -> None:
+            pass
+
+    mocker.patch("aetcd3.client", new=FakeAETCD)
+
+    conn = fake_conn(conn_cb)
+    await nodemgr._handle_join(conn, JoinMessageModel(
+        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+        hostname="barbaz",
+        address="5.6.7.8",
+        token=nodemgr._token
+    ))
+    assert called_add_member
+    assert called_conn_cb
+    assert "placeholder" in nodemgr._joining
+    assert nodemgr._joining["placeholder"].address == "5.6.7.8"
+    assert nodemgr._joining["placeholder"].hostname == "barbaz"
