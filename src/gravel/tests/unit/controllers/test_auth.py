@@ -11,6 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# pyright: reportUnknownMemberType=false, reportPrivateUsage=false
+
 import pytest
 
 from gravel.controllers.auth import (
@@ -60,6 +62,7 @@ async def test_user_mgr(gstate: GlobalState):
     assert not await user_mgr.exists("xyz")
     assert len(await user_mgr.enumerate()) == 2
     user = await user_mgr.get("bar")
+    assert user is not None
     assert user.username == "bar"
     await user_mgr.remove("bar")
     assert len(await user_mgr.enumerate()) == 1
@@ -90,7 +93,7 @@ def test_jwt_mgr_get_raw_access_token():
 async def test_jwt_deny_list(gstate: GlobalState):
     await gstate.store.ensure_connection()
     jwt_deny_list = JWTDenyList(gstate.store)
-    jwt_deny_list.load()
+    await jwt_deny_list.load()
     assert not len(jwt_deny_list._jti_dict)
     jwt = JWT(
         iss='Aquarium',

@@ -636,6 +636,7 @@ async def test_deploy(
     from gravel.controllers.nodes.mgr import NodeInitStage
     from gravel.controllers.nodes.disks import DiskSolution, DiskModel
     from gravel.controllers.nodes.deployment import DeploymentConfig
+    from gravel.controllers.auth import UserMgr, UserModel
 
     called_mock_deploy = False
 
@@ -684,8 +685,9 @@ async def test_deploy(
         return_value="751b-51fd-10d7-f7b4"
     )
     nodemgr._save_token = mocker.AsyncMock()
-    nodemgr._save_ntp_addr = mocker.AsyncMock()
     nodemgr._deployment.deploy = mock_deploy
+
+    await gstate.store.ensure_connection()
 
     await nodemgr.deploy(
         DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
@@ -695,7 +697,20 @@ async def test_deploy(
     assert nodemgr._token == "751b-51fd-10d7-f7b4"
     assert nodemgr._state.hostname == "barbaz"
     nodemgr._save_token.assert_called_once()  # type: ignore
-    nodemgr._save_ntp_addr.assert_called_once_with("my.ntp.addr")  # type: ignore
+
+    ntpaddr = await gstate.store.get("/nodes/ntp_addr")
+    assert ntpaddr == "my.ntp.addr"
+
+    usermgr = UserMgr(gstate.store)
+    assert await usermgr.exists("admin")
+    user: Optional[UserModel] = await usermgr.get("admin")
+    assert user is not None
+    assert user.username == "admin"
+    # We can't test the plain password here because it will fail
+    # and we don't care particularly about the password itself, just that
+    # the user has been populated. We'll leave for the 'UserMgr' tests to
+    # validate the correctness of its operations.
+    assert len(user.password) > 0
 
 
 async def expect_assertion(coro: Awaitable[None]) -> bool:
