@@ -136,16 +136,10 @@ async def test_mgr_start(
     assert throws
     nodemgr.deployment_state.can_start = orig
 
-    called_prepare = False
-
-    async def mock_prepare() -> None:
-        nonlocal called_prepare
-        called_prepare = True
-
     nodemgr._deployment._state._stage = NodeStageEnum.NONE
-    nodemgr._node_prepare = mock_prepare
+    nodemgr._node_prepare = mocker.AsyncMock()
     await nodemgr.start()
-    assert called_prepare
+    nodemgr._node_prepare.assert_called_once()  # type: ignore
 
     nodemgr._deployment._state._stage = NodeStageEnum.READY
     nodemgr._state = NodeStateModel(
@@ -155,8 +149,6 @@ async def test_mgr_start(
     )
 
     called_etcd_spawn = False
-    called_start_ceph = False
-    called_node_start = False
 
     async def mock_spawn_etcd(
         gstate: GlobalState,
@@ -174,31 +166,16 @@ async def test_mgr_start(
         nonlocal called_etcd_spawn
         called_etcd_spawn = True
 
-    async def mock_start_ceph() -> None:
-        nonlocal called_start_ceph
-        called_start_ceph = True
-
-    async def mock_node_start() -> None:
-        nonlocal called_node_start
-        called_node_start = True
-
     mocker.patch(
         "gravel.controllers.nodes.mgr.spawn_etcd", new=mock_spawn_etcd
     )
-    # save orig state
-    orig_start_ceph = nodemgr._start_ceph
-    orig_node_start = nodemgr._node_start
-    nodemgr._start_ceph = mock_start_ceph
-    nodemgr._node_start = mock_node_start
+    nodemgr._start_ceph = mocker.AsyncMock()
+    nodemgr._node_start = mocker.AsyncMock()
 
     await nodemgr.start()
     assert called_etcd_spawn
-    assert called_start_ceph
-    assert called_node_start
-
-    # restore orig state
-    nodemgr._start_ceph = orig_start_ceph
-    nodemgr._node_start = orig_node_start
+    nodemgr._start_ceph.assert_called_once()  # type: ignore
+    nodemgr._node_start.assert_called_once()  # type: ignore
 
 
 @pytest.mark.asyncio
@@ -206,12 +183,7 @@ async def test_obtain_images(
     gstate: GlobalState, mocker: MockerFixture
 ) -> None:
 
-    called_cephadm_pull_images = False
     called_etcd_pull_image = False
-
-    async def mock_cephadm_pull_img() -> None:
-        nonlocal called_cephadm_pull_images
-        called_cephadm_pull_images = True
 
     async def mock_etcd_pull_img(gstate: GlobalState) -> None:
         nonlocal called_etcd_pull_image
@@ -221,27 +193,22 @@ async def test_obtain_images(
         "gravel.controllers.nodes.mgr.etcd_pull_image", new=mock_etcd_pull_img
     )
     orig_cephadm_pull_img = gstate.cephadm.pull_images
-    gstate.cephadm.pull_images = mock_cephadm_pull_img
+    gstate.cephadm.pull_images = mocker.AsyncMock()
 
     nodemgr = NodeMgr(gstate)
     ret = await nodemgr._obtain_images()
     assert ret
-    assert called_cephadm_pull_images
+    gstate.cephadm.pull_images.assert_called_once()  # type: ignore
     assert called_etcd_pull_image
 
     from gravel.cephadm.cephadm import CephadmError
 
-    called_cephadm_pull_images = False
-
-    async def fail_cephadm_pull_img() -> None:
-        nonlocal called_cephadm_pull_images
-        called_cephadm_pull_images = True
-        raise CephadmError("foobar")
-
-    gstate.cephadm.pull_images = fail_cephadm_pull_img
+    gstate.cephadm.pull_images = mocker.AsyncMock(
+        side_effect=CephadmError("foobar")
+    )
     ret = await nodemgr._obtain_images()
     assert not ret
-    assert called_cephadm_pull_images
+    gstate.cephadm.pull_images.assert_called_once()  # type: ignore
 
     from gravel.controllers.nodes.etcd import ContainerFetchError
 
@@ -260,6 +227,7 @@ async def test_obtain_images(
     ret = await nodemgr._obtain_images()
     assert not ret
     assert called_etcd_pull_image_fail
+    gstate.cephadm.pull_images.assert_called_once()  # type: ignore
 
     gstate.cephadm.pull_images = orig_cephadm_pull_img
 
@@ -510,33 +478,13 @@ async def test_join(
         assert "/dev/baz" in disks.storage
         return True
 
-    async def fail_join(
-        leader_address: str,
-        token: str,
-        uuid: UUID,
-        hostname: str,
-        address: str,
-        disks: DeploymentDisksConfig
-    ) -> bool:
-        return False
-
-    async def throw_join(
-        leader_address: str,
-        token: str,
-        uuid: UUID,
-        hostname: str,
-        address: str,
-        disks: DeploymentDisksConfig
-    ) -> bool:
-        raise Exception()
-
     mocker.patch(
         "gravel.controllers.nodes.disks.Disks.gen_solution", new=mock_solution
     )
 
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
-    nodemgr._deployment.join = throw_join
+    nodemgr._deployment.join = mocker.AsyncMock(side_effects=Exception())
     throws = False
     try:
         await nodemgr.join(
@@ -547,14 +495,16 @@ async def test_join(
     except Exception:
         throws = True
     assert throws
+    nodemgr._deployment.join.assert_called_once()  # type: ignore
 
-    nodemgr._deployment.join = fail_join
+    nodemgr._deployment.join = mocker.AsyncMock(return_value=False)
     res = await nodemgr.join(
         "10.1.2.3",
         "751b-51fd-10d7-f7b4",
         JoinParamsModel(hostname="foobar")
     )
     assert not res
+    nodemgr._deployment.join.assert_called_once()  # type: ignore
 
     nodemgr._save_state = mocker.AsyncMock()
     nodemgr._node_start = mocker.AsyncMock()
