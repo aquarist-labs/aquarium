@@ -118,10 +118,11 @@ export class ServicesPageComponent {
                         name: 'key',
                         label: TEXT('Key'),
                         value: auth.key,
-                        readonly: true
+                        readonly: true,
+                        hasCopyToClipboardButton: true
                       }
                     ],
-                    okButtonVisible: false,
+                    submitButtonVisible: false,
                     cancelButtonText: TEXT('Close')
                   }
                 });
@@ -209,7 +210,7 @@ export class ServicesPageComponent {
             class: 'glass-text-monospaced'
           }
         ],
-        okButtonVisible: false,
+        submitButtonVisible: false,
         cancelButtonText: TEXT('Close')
       }
     });

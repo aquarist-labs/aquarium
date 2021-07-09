@@ -154,6 +154,15 @@ class FakeKV(KV):
             return None
         return self._storage[key]
 
+    async def get_prefix(self, key: str) -> List[str]:
+        """ Get a range of keys with a prefix """
+        assert self._is_open
+        values = []
+        for k in self._storage.keys():
+            if k.startswith(key):
+                values.append(self._storage[k])
+        return values
+
     async def rm(self, key: str) -> None:
         """ Remove key from store """
         assert self._is_open

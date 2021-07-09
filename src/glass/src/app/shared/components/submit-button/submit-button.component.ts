@@ -9,7 +9,10 @@ import * as _ from 'lodash';
 })
 export class SubmitButtonComponent implements OnInit {
   @Input()
-  form?: FormGroup;
+  formId?: string;
+
+  @Input()
+  form?: FormGroup | undefined;
 
   @Output()
   buttonClick = new EventEmitter<Event>();
@@ -20,19 +23,17 @@ export class SubmitButtonComponent implements OnInit {
 
   onSubmit(event: Event) {
     if (this.form && this.form.invalid) {
-      if (this.form instanceof AbstractControl) {
-        // Process all invalid controls and update them to draw the
-        // as invalid.
-        _.forEach<Record<string, AbstractControl>>(
-          this.form.controls,
-          (control: AbstractControl, key: string) => {
-            if (control.invalid) {
-              control.markAllAsTouched();
-              control.updateValueAndValidity();
-            }
+      // Process all invalid controls and update them to draw
+      // as invalid.
+      _.forEach<Record<string, AbstractControl>>(
+        this.form.controls,
+        (control: AbstractControl, key: string) => {
+          if (control.invalid) {
+            control.markAllAsTouched();
+            control.updateValueAndValidity();
           }
-        );
-      }
+        }
+      );
       return;
     }
     this.buttonClick.emit(event);

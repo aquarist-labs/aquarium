@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 import asyncio
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 import aetcd3
 import aetcd3.locks
 import aetcd3.events
@@ -95,6 +95,14 @@ class KV:
         if not value:
             return None
         return value.decode("utf-8")
+
+    async def get_prefix(self, key: str) -> List[str]:
+        """ Get a range of keys with a prefix """
+        assert self._client
+        values = []
+        async for value, _ in self._client.get_prefix(key):  # type: ignore[attr-defined]
+            values.append(value.decode("utf-8"))
+        return values
 
     async def rm(self, key: str) -> None:
         """ Remove key from store """

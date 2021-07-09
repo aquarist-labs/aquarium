@@ -29,6 +29,7 @@ from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
+from gravel.controllers.auth import UserModel, UserMgr
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
@@ -426,6 +427,11 @@ class NodeMgr:
         )
         await self._save_token()
         await self._save_ntp_addr(params.ntpaddr)
+
+        admin_user = UserModel(username="admin", password="aquarium")
+        admin_user.hash_password()
+        user_mgr = UserMgr(self.gstate.store)
+        await user_mgr.put(admin_user)
 
     async def _post_bootstrap_finisher(
         self,

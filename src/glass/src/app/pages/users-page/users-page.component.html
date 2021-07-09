@@ -1,0 +1,23 @@
+<div class="glass-users-page"
+     fxLayout="column">
+  <div class="glass-users-page-actions"
+       fxLayout="row"
+       fxLayoutAlign="start center">
+    <button mat-flat-button
+            (click)="onAdd()">
+      <span translate>Add</span>
+    </button>
+  </div>
+  <div class="glass-users-page-content">
+    <mat-card>
+      <mat-progress-bar *ngIf="!firstLoadComplete && loading"
+                        mode="indeterminate">
+      </mat-progress-bar>
+      <glass-datatable [data]="data"
+                       [columns]="columns"
+                       [autoReload]="15000"
+                       (loadData)="loadData()">
+      </glass-datatable>
+    </mat-card>
+  </div>
+</div>

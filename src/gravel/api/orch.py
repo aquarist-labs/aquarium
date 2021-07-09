@@ -14,10 +14,11 @@
 from logging import Logger
 from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
-from fastapi import HTTPException, status, Request
+from fastapi import Depends, HTTPException, status, Request
 from pydantic import BaseModel
 from typing import Dict, List
 
+from gravel.api import jwt_auth_scheme
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
 from gravel.controllers.orch.orchestrator \
     import Orchestrator
@@ -54,7 +55,7 @@ class HostsDevicesModel(BaseModel):
 
 
 @router.get("/hosts", response_model=List[HostModel])
-def get_hosts(request: Request) -> List[HostModel]:
+def get_hosts(request: Request, _=Depends(jwt_auth_scheme)) -> List[HostModel]:
     orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_hosts = orch.host_ls()
     hosts: List[HostModel] = []
@@ -64,7 +65,7 @@ def get_hosts(request: Request) -> List[HostModel]:
 
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
-def get_devices(request: Request) -> Dict[str, HostsDevicesModel]:
+def get_devices(request: Request, _=Depends(jwt_auth_scheme)) -> Dict[str, HostsDevicesModel]:
     orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
     host_devs: Dict[str, HostsDevicesModel] = {}
@@ -96,7 +97,7 @@ def get_devices(request: Request) -> Dict[str, HostsDevicesModel]:
 
 
 @router.get("/pubkey")
-async def get_pubkey(request: Request) -> str:
+async def get_pubkey(request: Request, _=Depends(jwt_auth_scheme)) -> str:
     try:
         orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         return orch.get_public_key()

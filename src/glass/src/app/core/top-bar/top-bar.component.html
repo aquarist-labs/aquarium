@@ -1,4 +1,5 @@
-<mat-toolbar color="primary">
+<mat-toolbar class="glass-top-bar"
+             color="primary">
   <button mat-icon-button
           matTooltip="{{ 'Toggle navigation' | translate }}"
           (click)="onToggleNavigationBar()">
@@ -11,6 +12,11 @@
           matTooltip="{{ 'Help' | translate }}"
           [matMenuTriggerFor]="helpMenu">
     <mat-icon svgIcon="mdi:help"></mat-icon>
+  </button>
+  <button mat-icon-button
+          matTooltip="{{ 'Logged in user' | translate }}"
+          [matMenuTriggerFor]="userMenu">
+    <mat-icon svgIcon="mdi:account"></mat-icon>
   </button>
 </mat-toolbar>
 
@@ -31,4 +37,18 @@
       <span translate>Discussions</span>
     </button>
   </a>
+</mat-menu>
+
+<mat-menu #userMenu="matMenu">
+  <button mat-menu-item
+          disabled>
+    <mat-icon svgIcon="mdi:account"></mat-icon>
+    <span translate>Signed in as <b>{{ username }}</b></span>
+  </button>
+  <mat-divider></mat-divider>
+  <button mat-menu-item
+          (click)="onLogout()">
+    <mat-icon svgIcon="mdi:logout"></mat-icon>
+    <span translate>Logout</span>
+  </button>
 </mat-menu>

@@ -13,11 +13,12 @@
 
 from logging import Logger
 from typing import List, Optional
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
+from gravel.api import jwt_auth_scheme
 from gravel.controllers.nodes.conn import IncomingConnection
 from gravel.controllers.nodes.deployment import (
     DeploymentErrorEnum,
@@ -87,7 +88,7 @@ class SetHostnameRequest(BaseModel):
 
 
 @router.get("/deployment/disksolution", response_model=DiskSolution)
-async def node_get_disk_solution(request: Request) -> DiskSolution:
+async def node_get_disk_solution(request: Request, _=Depends(jwt_auth_scheme)) -> DiskSolution:
     """
     Obtain the list of disks and a deployment solution, if possible.
     """
@@ -106,7 +107,8 @@ async def node_get_disk_solution(request: Request) -> DiskSolution:
 @router.post("/deployment/start", response_model=DeployStartReplyModel)
 async def node_deploy(
     request: Request,
-    req_params: DeployParamsModel
+    req_params: DeployParamsModel,
+    _=Depends(jwt_auth_scheme)
 ) -> DeployStartReplyModel:
     """
     Start deploying this node. The host will be configured according to user
@@ -153,7 +155,10 @@ async def node_deploy(
 
 
 @router.get("/deployment/status", response_model=DeployStatusReplyModel)
-async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
+async def get_deployment_status(
+    request: Request,
+    _=Depends(jwt_auth_scheme)
+) -> DeployStatusReplyModel:
     """
     Get deployment status from this node.
 
@@ -179,7 +184,7 @@ async def get_deployment_status(request: Request) -> DeployStatusReplyModel:
 
 
 @router.post("/deployment/finished", response_model=bool)
-async def finish_deployment(request: Request) -> bool:
+async def finish_deployment(request: Request, _=Depends(jwt_auth_scheme)) -> bool:
     """
     Mark a deployment as finished. Triggers internal actions required for node
     operation.
@@ -204,7 +209,8 @@ async def finish_deployment(request: Request) -> bool:
 
 
 @router.post("/join")
-async def node_join(req: NodeJoinRequestModel, request: Request):
+async def node_join(req: NodeJoinRequestModel, request: Request,
+                    _=Depends(jwt_auth_scheme)):
     logger.debug(f"api > join {req.address} with {req.token}")
     if not req.address or not req.token:
         raise HTTPException(
@@ -221,7 +227,7 @@ async def node_join(req: NodeJoinRequestModel, request: Request):
 
 
 @router.get("/token", response_model=TokenReplyModel)
-async def nodes_get_token(request: Request):
+async def nodes_get_token(request: Request, _=Depends(jwt_auth_scheme)):
     nodemgr = request.app.state.nodemgr
     token: Optional[str] = nodemgr.token
     return TokenReplyModel(

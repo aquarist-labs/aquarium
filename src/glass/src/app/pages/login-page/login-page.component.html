@@ -1,0 +1,18 @@
+<div class="glass-login-page">
+  <div class="glass-login-page-background"></div>
+  <div class="glass-login-page-content"
+       fxLayout="column">
+    <mat-card>
+      <mat-card-content>
+        <glass-declarative-form [config]="config"></glass-declarative-form>
+      </mat-card-content>
+      <mat-card-actions fxLayoutAlign="center center">
+        <glass-submit-button [form]="form?.formGroup"
+                             [formId]="config.id"
+                             (buttonClick)="onLogin()">
+          <span translate>Login</span>
+        </glass-submit-button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

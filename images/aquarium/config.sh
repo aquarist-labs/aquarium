@@ -103,6 +103,7 @@ if [[ "$kiwi_profiles" == *"Vagrant"* ]]; then
 fi
 
 pip install fastapi==0.63.0 uvicorn==0.13.3 websockets==8.1 \
+    bcrypt==3.2.0 pyjwt==2.1.0 python-multipart==0.0.5 \
     git+https://github.com/aquarist-labs/aetcd3/@edf633045ce61c7bbac4d4a6ca15b14f8acfe9cd
 baseInsertService aquarium-boot
 baseInsertService sshd

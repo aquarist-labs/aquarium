@@ -60,6 +60,13 @@ class EtcdOptionsModel(BaseModel):
     data_dir: str = Field("/var/lib/etcd", title="Etcd Data Dir")
 
 
+class AuthOptionsModel(BaseModel):
+    jwt_secret: str = Field(title="The access token secret",
+                            default_factory=lambda: utils.random_string(24))
+    jwt_ttl: int = Field(36000,
+                         title="How long an access token should live before it expires")
+
+
 class OptionsModel(BaseModel):
     service_state_path: Path = Field(Path(_get_default_confdir()).joinpath("storage.json"),
                                      title="Path to Service State file")
@@ -69,6 +76,7 @@ class OptionsModel(BaseModel):
     status: StatusOptionsModel = Field(StatusOptionsModel())
     services: ServicesOptionsModel = Field(ServicesOptionsModel())
     etcd: EtcdOptionsModel = Field(EtcdOptionsModel())
+    auth: AuthOptionsModel = Field(AuthOptionsModel())
 
 
 class ConfigModel(BaseModel):

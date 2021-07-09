@@ -15,12 +15,13 @@ from logging import Logger
 from typing import List
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from pydantic import (
     BaseModel,
     Field
 )
 
+from gravel.api import jwt_auth_scheme
 from gravel.cephadm.models import (
     NodeInfoModel,
     VolumeDeviceModel
@@ -47,7 +48,7 @@ class NodeStatusReplyModel(BaseModel):
     name="Obtain local volumes",
     response_model=List[VolumeDeviceModel]
 )
-async def get_volumes(request: Request) -> List[VolumeDeviceModel]:
+async def get_volumes(request: Request, _=Depends(jwt_auth_scheme)) -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
 
@@ -67,7 +68,7 @@ async def get_volumes(request: Request) -> List[VolumeDeviceModel]:
     name="Obtain local node information",
     response_model=NodeInfoModel
 )
-async def get_node_info(request: Request) -> NodeInfoModel:
+async def get_node_info(request: Request, _=Depends(jwt_auth_scheme)) -> NodeInfoModel:
     """
     Obtain this node's information and facts.
 
@@ -87,7 +88,7 @@ async def get_node_info(request: Request) -> NodeInfoModel:
     name="Obtain local node inventory",
     response_model=NodeInfoModel
 )
-async def get_inventory(request: Request) -> NodeInfoModel:
+async def get_inventory(request: Request, _=Depends(jwt_auth_scheme)) -> NodeInfoModel:
     """
     Obtain this node's inventory.
 
@@ -114,7 +115,7 @@ async def get_inventory(request: Request) -> NodeInfoModel:
     name="Obtain local node's status",
     response_model=NodeStatusReplyModel
 )
-async def get_status(request: Request) -> NodeStatusReplyModel:
+async def get_status(request: Request, _=Depends(jwt_auth_scheme)) -> NodeStatusReplyModel:
     """
     Obtain this node's current status.
 

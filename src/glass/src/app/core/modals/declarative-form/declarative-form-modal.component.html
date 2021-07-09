@@ -2,18 +2,20 @@
 <mat-dialog-content class="mat-typography">
   <glass-declarative-form [config]="config"></glass-declarative-form>
 </mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button *ngIf="config.okButtonVisible"
-          mat-flat-button
-          cdkFocusInitial
-          [class]="config.okButtonClass"
-          (click)="onOK()">
-    {{ config.okButtonText! | translate }}
-  </button>
+<mat-dialog-actions align="end"
+                    fxLayout="row"
+                    fxLayoutGap="10px">
   <button *ngIf="config.cancelButtonVisible"
           mat-flat-button
           [class]="config.cancelButtonClass"
           [mat-dialog-close]="config.cancelButtonResult">
     {{ config.cancelButtonText! | translate }}
   </button>
+  <glass-submit-button *ngIf="config.submitButtonVisible"
+                       [form]="form?.formGroup"
+                       [formId]="config.id"
+                       cdkFocusInitial
+                       (buttonClick)="onOK()">
+    {{ config.submitButtonText! | translate }}
+  </glass-submit-button>
 </mat-dialog-actions>

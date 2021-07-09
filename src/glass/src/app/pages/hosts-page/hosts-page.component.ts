@@ -50,7 +50,7 @@ export class HostsPageComponent {
       this.dialogService.open(DeclarativeFormModalComponent, undefined, {
         width: '40%',
         data: {
-          title: 'Authentication Token',
+          title: TEXT('Authentication Token'),
           subtitle: TEXT(
             'Use this token to authenticate a new node when adding it to the cluster.'
           ),
@@ -64,7 +64,7 @@ export class HostsPageComponent {
               class: 'glass-text-monospaced'
             }
           ],
-          okButtonVisible: false,
+          submitButtonVisible: false,
           cancelButtonText: TEXT('Close')
         }
       });
