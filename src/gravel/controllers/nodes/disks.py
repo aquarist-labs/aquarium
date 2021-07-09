@@ -39,7 +39,9 @@ class DiskModel(BaseModel):
     path: Optional[str] = Field(None, title="disk's device path")
     size: int = Field(0, title="size in bytes")
     type: DiskTypeEnum = Field(DiskTypeEnum.NONE, title="disk type")
-    info: DiskInfoModel = Field(title="additional info about disk")
+    info: DiskInfoModel = Field(
+        DiskInfoModel(), title="additional info about disk"
+    )
 
 
 class RejectedDiskModel(BaseModel):

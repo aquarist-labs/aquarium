@@ -33,14 +33,10 @@ def test_solution(
     from gravel.controllers.nodes.disks import Disks
     from gravel.controllers.nodes.disks import DiskSolution
 
-    # we need to do creative mocking for a property that happens to be an
-    # attribute on a mock object itself.
-    #  https://docs.python.org/3/library/unittest.mock.html#unittest.mock.PropertyMock
-    fake_inventory = mocker.PropertyMock()
-    type(gstate.inventory).latest = fake_inventory  # type: ignore
-    fake_inventory.return_value = NodeInfoModel.parse_raw(
+    fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
         get_data_contents(DATA_DIR, "disks_local_inventory.json")
     )
+    gstate.inventory._latest = fake_inventory
 
     solution: DiskSolution = Disks.gen_solution(gstate)
     assert solution.possible
@@ -80,14 +76,10 @@ def test_solution_with_ssd(
     from gravel.controllers.nodes.disks import Disks
     from gravel.controllers.nodes.disks import DiskSolution
 
-    # we need to do creative mocking for a property that happens to be an
-    # attribute on a mock object itself.
-    #  https://docs.python.org/3/library/unittest.mock.html#unittest.mock.PropertyMock
-    fake_inventory = mocker.PropertyMock()
-    type(gstate.inventory).latest = fake_inventory  # type: ignore
-    fake_inventory.return_value = NodeInfoModel.parse_raw(
+    fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
         get_data_contents(DATA_DIR, "disks_local_inventory_with_ssd.json")
     )
+    gstate.inventory._latest = fake_inventory
 
     solution: DiskSolution = Disks.gen_solution(gstate)
     assert solution.possible

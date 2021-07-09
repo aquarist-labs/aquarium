@@ -169,6 +169,7 @@ class NodeMgr:
         self._token = None
         self._joining = {}
         self._deployment = NodeDeployment(gstate, self._connmgr)
+        self._inventory_sub = None
 
         self.gstate = gstate
 
@@ -390,7 +391,11 @@ class NodeMgr:
         if self._inventory_sub:
             self.gstate.inventory.unsubscribe(self._inventory_sub)
 
-        self._token = self._generate_token()
+        # check parameters
+        if not params.ntpaddr or len(params.ntpaddr) == 0:
+            raise NodeCantDeployError("missing ntp server address")
+        if not params.hostname or len(params.hostname) == 0:
+            raise NodeCantDeployError("missing hostname parameter")
 
         disk_solution = Disks.gen_solution(self.gstate)
         if not disk_solution.possible:
@@ -403,16 +408,11 @@ class NodeMgr:
         ]
         logger.debug(f"mgr > deploy > disks: {disks}")
 
-        # check parameters
-        if not params.ntpaddr or len(params.ntpaddr) == 0:
-            raise NodeCantDeployError("missing ntp server address")
-        if not params.hostname or len(params.hostname) == 0:
-            raise NodeCantDeployError("missing hostname parameter")
-
         # set hostname in memory; we'll write it later
         self._state.hostname = params.hostname
-
+        self._token = self._generate_token()
         assert self._state.address
+
         logger.info("deploy node")
         await self._deployment.deploy(
             DeploymentConfig(
@@ -441,6 +441,7 @@ class NodeMgr:
         """
         Called asynchronously, presumes bootstrap was successful.
         """
+        assert self._init_stage == NodeInitStage.AVAILABLE
         assert self._state
         await self._save_state()
 
@@ -452,6 +453,7 @@ class NodeMgr:
         success: bool,
         error: Optional[str]
     ) -> None:
+        assert self._init_stage == NodeInitStage.AVAILABLE
         self._deployment.finish_deployment()
 
         logger.debug(f"finished deployment: token = {self._token}")

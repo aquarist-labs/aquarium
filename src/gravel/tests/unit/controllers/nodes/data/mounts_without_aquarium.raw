@@ -1,0 +1,5 @@
+tmpfs /run/user/1000 tmpfs rw,nosuid,nodev,relatime,size=6578580k,nr_inodes=1644645,mode=700,uid=1000,gid=100,inode64 0 0
+tracefs /sys/kernel/debug/tracing tracefs rw,nosuid,nodev,noexec,relatime 0 0
+sunrpc /var/lib/nfs/rpc_pipefs rpc_pipefs rw,relatime 0 0
+nfsd /proc/fs/nfsd nfsd rw,relatime 0 0
+binfmt_misc /proc/sys/fs/binfmt_misc binfmt_misc rw,nosuid,nodev,noexec,relatime

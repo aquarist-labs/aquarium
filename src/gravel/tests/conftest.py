@@ -375,9 +375,9 @@ async def aquarium_shutdown():
     yield shutdown
 
 
-@pytest.fixture()
+@pytest.fixture
 @pytest.mark.asyncio
-async def gstate(
+async def app_state(
     aquarium_startup: Callable[[FastAPI, FastAPI], Awaitable[None]],
     aquarium_shutdown: Callable[[FastAPI, FastAPI], Awaitable[None]]
 ):
@@ -387,8 +387,18 @@ async def gstate(
     aquarium_app = cast(FastAPI, FakeFastAPI())
     aquarium_api = cast(FastAPI, FakeFastAPI())
     await aquarium_startup(aquarium_app, aquarium_api)
-    yield aquarium_api.state.gstate
+    yield aquarium_api.state
     await aquarium_shutdown(aquarium_app, aquarium_api)
+
+
+@pytest.fixture()
+def gstate(app_state: SimpleNamespace):
+    yield app_state.gstate
+
+
+@pytest.fixture
+def global_nodemgr(app_state: SimpleNamespace):
+    yield app_state.nodemgr
 
 
 @pytest.fixture()

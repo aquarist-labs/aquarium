@@ -11,22 +11,38 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# pyright: reportPrivateUsage=false
+
 import pytest
 from typing import List
 
+from pytest_mock import MockerFixture
+
+from gravel.controllers.gstate import GlobalState
 from gravel.controllers.services import Services
 
 
 @pytest.mark.asyncio
-async def test_create(services: Services):
+async def test_create(services: Services, gstate: GlobalState):
     from gravel.controllers.services import ServiceTypeEnum
+
+    # we need to ensure we have enough storage to test this
+    gstate.storage.available = 4000  # type: ignore
+    gstate.storage.total = 4000  # type: ignore
 
     svc = await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
     assert svc.name == "foobar"
     assert svc.type == ServiceTypeEnum.CEPHFS
     assert svc.allocation == 1000
     assert svc.replicas == 2
-    assert "foobar" in services._services  # pyright: reportPrivateUsage=false
+    assert "foobar" in services._services
+
+    svc = await services.create("barbaz", ServiceTypeEnum.NFS, 2000, 1)
+    assert svc.name == "barbaz"
+    assert svc.type == ServiceTypeEnum.NFS
+    assert svc.allocation == 2000
+    assert svc.replicas == 1
+    assert "barbaz" in services._services
 
 
 @pytest.mark.asyncio
@@ -58,9 +74,29 @@ async def test_create_over_allocated(services: Services):
         await services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
 
 
-def test_remove():
-    # TODO: add missing tests
-    pass
+@pytest.mark.asyncio
+async def test_create_not_ready(
+    mocker: MockerFixture, services: Services
+) -> None:
+    from gravel.controllers.services import ServiceTypeEnum, NotReadyError
+
+    services._is_ready = mocker.MagicMock(return_value=False)  # type: ignore
+    try:
+        await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
+    except NotReadyError:
+        pass
+
+
+def test_remove(mocker: MockerFixture, services: Services) -> None:
+    from gravel.controllers.services import NotReadyError
+
+    services.remove("foo")
+
+    services._is_ready = mocker.MagicMock(return_value=False)  # type: ignore
+    try:
+        services.remove("bar")
+    except NotReadyError:
+        pass
 
 
 @pytest.mark.asyncio
@@ -98,6 +134,21 @@ async def test_get(services: Services):
 
     await services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
     services.get("barbaz")
+
+
+def test_constraints(gstate: GlobalState, services: Services) -> None:
+
+    from gravel.controllers.services import ConstraintsModel
+
+    gstate.storage.available = 2000  # type: ignore
+    gstate.storage.total = 2000  # type: ignore
+
+    constraints: ConstraintsModel = services.constraints
+    assert constraints.allocations.allocated == 0
+    assert constraints.allocations.available == 2000
+
+    # FIXME: we're not testing redundancy or availability constraints because
+    # that requires mocking the Devices class.
 
 
 @pytest.mark.asyncio

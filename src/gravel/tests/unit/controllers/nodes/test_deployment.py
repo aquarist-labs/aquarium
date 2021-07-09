@@ -206,7 +206,7 @@ async def test_deploy(
     called_assimilate_with: List[str] = []
     called_check_host_exists_with: Optional[str] = None
 
-    def mock_set_hostname(hostname: str) -> None:
+    async def mock_set_hostname(hostname: str) -> None:
         nonlocal called_hostname_with
         called_hostname_with = hostname
 
