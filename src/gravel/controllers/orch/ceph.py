@@ -300,6 +300,24 @@ class Mon:
             return False
         return True
 
+    def pool_rm(self, poolname: str) -> bool:
+        assert poolname
+        self.config_set("mon", "mon_allow_pool_delete", "true")
+        cmd = {
+            "prefix": "osd pool rm",
+            "pool": poolname,
+            "pool2": poolname,
+            "yes_i_really_really_mean_it": True,
+        }
+        try:
+            self.call(cmd)
+        except CephCommandError as e:
+            logger.error(f"mon > unable to delete pool {poolname}")
+            logger.exception(e)
+            return False
+        self.config_set("mon", "mon_allow_pool_delete", "false")
+        return True
+
     def _set_default_ruleset_config(self, rulesetid: int) -> bool:
         r = self.config_set(
             "global", "osd_pool_default_crush_rule", str(rulesetid)

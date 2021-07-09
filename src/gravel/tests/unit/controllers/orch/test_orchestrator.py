@@ -67,3 +67,49 @@ def test_devices_assimilated(
 
     orch.devices_ls = mocker.MagicMock(return_value=next(devicegen))
     assert not orch.devices_assimilated("asd", ["/dev/vdc"])
+
+
+def test_rm_mds(mocker: MockerFixture, gstate: GlobalState) -> None:
+    from gravel.controllers.orch.orchestrator import Orchestrator
+
+    mocker.patch("gravel.controllers.orch.orchestrator.Orchestrator.call")
+    mocker.patch(
+        "gravel.controllers.orch.orchestrator.Orchestrator.get_daemons"
+    )
+    orch = Orchestrator(gstate.ceph_mgr)
+    orch.call = mocker.Mock()
+    orch.get_daemons = mocker.Mock()
+    orch.get_daemons.side_effect = [
+        [{"name": "mds.service_name.1"}, {"name": "mds.service_name.2"}],
+        [{"name": "mds.service_name.1"}],
+        [],
+    ]
+    orch.rm_mds("service_name")
+    orch.call.assert_called_once_with(
+        {  # type: ignore
+            "prefix": "orch rm",
+            "service_name": "mds.service_name",
+        }
+    )
+    orch.get_daemons.assert_has_calls(
+        [  # type: ignore
+            mocker.call("service_name", "mds"),
+            mocker.call("service_name", "mds"),
+            mocker.call("service_name", "mds"),
+        ]
+    )
+
+
+def test_get_daemons(mocker: MockerFixture, gstate: GlobalState) -> None:
+    from gravel.controllers.orch.orchestrator import Orchestrator
+
+    mocker.patch("gravel.controllers.orch.orchestrator.Orchestrator.call")
+    orch = Orchestrator(gstate.ceph_mgr)
+    orch.call = mocker.Mock()
+    orch.get_daemons("service_name", "service_type")
+    orch.call.assert_called_once_with(
+        {  # type: ignore
+            "prefix": "orch ps",
+            "service_name": "service_type.service_name",
+        }
+    )

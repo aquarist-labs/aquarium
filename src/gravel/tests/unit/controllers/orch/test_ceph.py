@@ -135,6 +135,37 @@ def test_set_pool_size(
     mon.set_pool_size("foobar", 2)
 
 
+def test_pool_rm(
+    ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
+    mocker: MockerFixture,
+) -> None:
+    from gravel.controllers.orch.ceph import Ceph, Mon
+
+    mocker.patch("gravel.controllers.orch.ceph.Mon.config_set")
+    mocker.patch("gravel.controllers.orch.ceph.Mon.call")
+
+    ceph = Ceph()
+    mon = Mon(ceph)
+    mon.call = mocker.Mock()
+    mon.config_set = mocker.Mock()
+    mon.pool_rm("test_pool")
+
+    mon.call.assert_called_once_with(
+        {  # type: ignore
+            "prefix": "osd pool rm",
+            "pool": "test_pool",
+            "pool2": "test_pool",
+            "yes_i_really_really_mean_it": True,
+        }
+    )
+    mon.config_set.assert_has_calls(
+        [  # type: ignore
+            mocker.call("mon", "mon_allow_pool_delete", "true"),
+            mocker.call("mon", "mon_allow_pool_delete", "false"),
+        ]
+    )
+
+
 def test_config_get(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture,

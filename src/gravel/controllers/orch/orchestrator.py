@@ -111,6 +111,23 @@ class Orchestrator:
         cmd = {"prefix": "orch apply mds", "fs_name": fsname}
         self.call(cmd)
 
+    def rm_mds(self, svc_name: str) -> None:
+        cmd = {"prefix": "orch rm", "service_name": "mds.{}".format(svc_name)}
+        self.call(cmd)
+
+        # TODO: Wait for all mds service daemons to be removed. Can be improved?
+        # TODO: How to break the loop if something gets stuck?
+        orch_ps = self.get_daemons(svc_name, "mds")
+        while len(orch_ps) > 0:
+            orch_ps = self.get_daemons(svc_name, "mds")
+
+    def get_daemons(self, svc_name: str, svc_type: str) -> List[Dict[str, Any]]:
+        cmd = {
+            "prefix": "orch ps",
+            "service_name": "{}.{}".format(svc_type, svc_name),
+        }
+        return self.call(cmd)
+
     def get_public_key(self) -> str:
         cmd = {"prefix": "cephadm get-pub-key"}
         res = self.call(cmd)
