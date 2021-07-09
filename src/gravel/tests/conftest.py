@@ -388,7 +388,7 @@ def gstate(app_state: SimpleNamespace):
 
 
 @pytest.fixture
-def nodemgr(app_state: SimpleNamespace):
+def global_nodemgr(app_state: SimpleNamespace):
     yield app_state.nodemgr
 
 
