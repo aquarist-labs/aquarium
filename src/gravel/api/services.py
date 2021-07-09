@@ -150,6 +150,23 @@ async def create_service(
     return CreateResponse(success=True)
 
 
+@router.delete("/{service_name}", name="Delete service by name")
+async def delete(
+    service_name: str, request: Request, _=Depends(jwt_auth_scheme)
+) -> None:
+    services = request.app.state.gstate.services
+    try:
+        await services.remove(service_name)
+    except UnknownServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except NotImplementedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=str(e)
+        )
+
+
 @router.get(
     "/stats",
     name="Obtain services statistics",

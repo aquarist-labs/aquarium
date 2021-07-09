@@ -187,10 +187,24 @@ class Services(Ticker):
         await self._save()
         return svc
 
-    def remove(self, name: str):
+    async def remove(self, name: str) -> None:
         if not self._is_ready():
             raise NotReadyError()
-        pass
+
+        if name not in self._services:
+            raise UnknownServiceError(name)
+
+        svc = self._services[name]
+
+        if svc.type == ServiceTypeEnum.CEPHFS:
+            self._remove_cephfs(svc.name)
+        elif svc.type == ServiceTypeEnum.NFS:
+            pass
+        else:
+            raise NotImplementedError(f"unknown service type: {svc.type}")
+
+        del self._services[name]
+        await self._save()
 
     def ls(self) -> List[ServiceModel]:
         return [x for x in self._services.values()]
@@ -377,6 +391,14 @@ class Services(Ticker):
             logger.exception(e)
             # do nothing else, the service still works without an authorized
             # client.
+
+    def _remove_cephfs(self, svc_name: str) -> None:
+        cephfs: CephFS = CephFS(self.gstate.ceph_mgr, self.gstate.ceph_mon)
+        assert cephfs
+        try:
+            cephfs.remove(svc_name)
+        except CephFSError as e:
+            raise ServiceError("unable to remove cephfs service") from e
 
     def _create_nfs(self, svc: ServiceModel) -> None:
         assert self._is_ready()
