@@ -121,3 +121,23 @@ class CephFS:
         if len(lst) == 0:
             raise CephFSNoAuthorizationError()
         return lst[0]
+
+    def remove(self, name: str) -> None:
+        # TODO: check for active clients and reject if there are any?
+        # remove mds instances
+        orch = Orchestrator(self.mgr)
+        orch.rm_mds(name)
+
+        # remove filesystem
+        cmd = {"prefix": "fs rm", "fs_name": name, "yes_i_really_mean_it": True}
+        try:
+            self.mon.call(cmd)
+        except CephCommandError as e:
+            raise CephFSError(e) from e
+
+        # remove related pools
+        try:
+            self.mon.pool_rm("cephfs.{}.data".format(name))
+            self.mon.pool_rm("cephfs.{}.meta".format(name))
+        except CephCommandError as e:
+            raise CephFSError(e) from e
