@@ -31,14 +31,28 @@ from pyfakefs import fake_filesystem
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.conn import IncomingConnection
 from gravel.controllers.nodes.messages import MessageModel
-from gravel.controllers.nodes.mgr import DeployParamsModel
+from gravel.controllers.nodes.mgr import DeployParamsModel, NodeMgr
+
+
+@pytest.fixture
+def nodemgr(gstate: GlobalState) -> NodeMgr:
+
+    from gravel.controllers.nodes.mgr import NodeStateModel
+
+    nodemgr = NodeMgr(gstate)
+    nodemgr._state = NodeStateModel(
+        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
+        address="1.2.3.4",
+        hostname="foobar"
+    )
+    yield nodemgr
 
 
 def test_fail_ctor(
     gstate: GlobalState, fs: fake_filesystem.FakeFilesystem
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeMgr, NodeError
+    from gravel.controllers.nodes.mgr import NodeError
 
     if fs.exists("/etc/aquarium/node.json"):
         fs.remove("/etc/aquarium/node.json")
@@ -58,7 +72,7 @@ def test_fail_ctor(
 def test_ctor(
     gstate: GlobalState, fs: fake_filesystem.FakeFilesystem
 ) -> None:
-    from gravel.controllers.nodes.mgr import NodeMgr
+
     NodeMgr(gstate)
     assert fs.exists("/etc/aquarium/node.json")
 
@@ -71,7 +85,7 @@ def test_init_state_fail(
     gstate: GlobalState, fs: fake_filesystem.FakeFilesystem
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeMgr, NodeError
+    from gravel.controllers.nodes.mgr import NodeError
 
     if fs.exists("/etc/aquarium/node.json"):
         fs.remove("/etc/aquarium/node.json")
@@ -104,7 +118,7 @@ async def test_mgr_start(
     mocker: MockerFixture
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeStateModel
+    from gravel.controllers.nodes.mgr import NodeError, NodeStateModel
     from gravel.controllers.nodes.deployment import NodeStageEnum
 
     nodemgr = NodeMgr(gstate)
@@ -209,8 +223,6 @@ async def test_obtain_images(
     orig_cephadm_pull_img = gstate.cephadm.pull_images
     gstate.cephadm.pull_images = mock_cephadm_pull_img
 
-    from gravel.controllers.nodes.mgr import NodeMgr
-
     nodemgr = NodeMgr(gstate)
     ret = await nodemgr._obtain_images()
     assert ret
@@ -256,22 +268,13 @@ async def test_obtain_images(
 async def test_node_start(
     gstate: GlobalState,
     mocker: MockerFixture,
-    fs: fake_filesystem.FakeFilesystem
+    fs: fake_filesystem.FakeFilesystem,
+    nodemgr: NodeMgr
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeStateModel,
-        NodeInitStage
-    )
+    from gravel.controllers.nodes.mgr import NodeInitStage
     from gravel.controllers.nodes.deployment import NodeStageEnum
 
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
     nodemgr._deployment._state._stage = NodeStageEnum.READY
 
     nodemgr._obtain_state = mocker.AsyncMock()
@@ -291,7 +294,7 @@ async def test_node_start(
 @pytest.mark.asyncio
 async def test_start_ceph(gstate: GlobalState, mocker: MockerFixture) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeMgr, NodeError
+    from gravel.controllers.nodes.mgr import NodeError
 
     called = False
 
@@ -352,8 +355,6 @@ def test_node_shutdown(gstate: GlobalState, mocker: MockerFixture) -> None:
 
 def test_generate_token(gstate: GlobalState) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeMgr
-
     nodemgr = NodeMgr(gstate)
     token = nodemgr._generate_token()
     assert len(token) > 0
@@ -367,7 +368,6 @@ def test_generate_token(gstate: GlobalState) -> None:
 async def test_join_checks(gstate: GlobalState) -> None:
 
     from gravel.controllers.nodes.mgr import (
-        NodeMgr,
         NodeCantJoinError,
         NodeNotStartedError,
         NodeError,
@@ -417,24 +417,16 @@ async def test_join_checks(gstate: GlobalState) -> None:
 
 @pytest.mark.asyncio
 async def test_join_check_disk_solution(
-    gstate: GlobalState, mocker: MockerFixture
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
     from gravel.controllers.nodes.mgr import (
-        NodeMgr,
         NodeCantJoinError,
-        NodeStateModel,
         NodeInitStage,
         JoinParamsModel
     )
     from gravel.controllers.nodes.disks import DiskSolution
 
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
     def empty_solution(gstate: GlobalState) -> DiskSolution:
@@ -476,12 +468,12 @@ async def test_join_check_disk_solution(
 
 
 @pytest.mark.asyncio
-async def test_join(gstate: GlobalState, mocker: MockerFixture) -> None:
+async def test_join(
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
+) -> None:
 
     from uuid import UUID
     from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeStateModel,
         NodeInitStage,
         JoinParamsModel
     )
@@ -542,12 +534,6 @@ async def test_join(gstate: GlobalState, mocker: MockerFixture) -> None:
         "gravel.controllers.nodes.disks.Disks.gen_solution", new=mock_solution
     )
 
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
     nodemgr._deployment.join = throw_join
@@ -585,24 +571,15 @@ async def test_join(gstate: GlobalState, mocker: MockerFixture) -> None:
 
 
 @pytest.mark.asyncio
-async def test_deploy_checks(gstate: GlobalState) -> None:
+async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
 
     from gravel.controllers.nodes.mgr import (
-        NodeMgr,
         NodeInitStage,
         NodeNotStartedError,
         NodeCantDeployError,
-        NodeStateModel,
         DeployParamsModel
     )
     from gravel.controllers.nodes.deployment import NodeStageEnum
-
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
 
     nodemgr._init_stage = NodeInitStage.NONE
     throws = False
@@ -659,22 +636,14 @@ async def test_deploy_checks(gstate: GlobalState) -> None:
 
 @pytest.mark.asyncio
 async def test_deploy_check_disk_solution(
-    gstate: GlobalState, mocker: MockerFixture
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
     from gravel.controllers.nodes.mgr import (
-        NodeMgr,
         NodeInitStage,
-        NodeStateModel,
         NodeCantDeployError
     )
     from gravel.controllers.nodes.disks import DiskSolution
 
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
     def empty_solution(gstate: GlobalState) -> DiskSolution:
@@ -710,13 +679,11 @@ async def test_deploy_check_disk_solution(
 
 
 @pytest.mark.asyncio
-async def test_deploy(gstate: GlobalState, mocker: MockerFixture) -> None:
+async def test_deploy(
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
+) -> None:
 
-    from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeInitStage,
-        NodeStateModel
-    )
+    from gravel.controllers.nodes.mgr import NodeInitStage
     from gravel.controllers.nodes.disks import DiskSolution, DiskModel
     from gravel.controllers.nodes.deployment import DeploymentConfig
 
@@ -761,12 +728,6 @@ async def test_deploy(gstate: GlobalState, mocker: MockerFixture) -> None:
         "gravel.controllers.nodes.disks.Disks.gen_solution", new=mock_solution
     )
 
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
     nodemgr._generate_token = mocker.MagicMock(
@@ -797,20 +758,10 @@ async def expect_assertion(coro: Awaitable[None]) -> bool:
 
 @pytest.mark.asyncio
 async def test_bootstrap_finisher_cb(
-    gstate: GlobalState, mocker: MockerFixture
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeStateModel,
-        NodeInitStage
-    )
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
+    from gravel.controllers.nodes.mgr import NodeInitStage
 
     nodemgr._init_stage = NodeInitStage.NONE
     assert await expect_assertion(
@@ -837,20 +788,10 @@ async def test_bootstrap_finisher_cb(
 
 @pytest.mark.asyncio
 async def test_finish_deployment_cb(
-    gstate: GlobalState, mocker: MockerFixture
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeStateModel,
-        NodeInitStage
-    )
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
+    from gravel.controllers.nodes.mgr import NodeInitStage
 
     nodemgr._init_stage = NodeInitStage.NONE
     assert await expect_assertion(
@@ -913,22 +854,14 @@ async def test_postbootstrap_config(
 
 @pytest.mark.asyncio
 async def test_finish_deployment(
-    gstate: GlobalState, mocker: MockerFixture
+    gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
     from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeStateModel,
         NodeAlreadyJoiningError,
         NodeNotDeployedError
     )
     from gravel.controllers.nodes.deployment import NodeStageEnum
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
 
     orig_mark_ready = nodemgr._deployment._state.mark_ready
     nodemgr._deployment._state.mark_ready = mocker.MagicMock()
@@ -984,7 +917,8 @@ def fake_conn(cb: Callable[[MessageModel], None]) -> IncomingConnection:
 async def test_handle_join(
     gstate: GlobalState,
     mocker: MockerFixture,
-    fs: fake_filesystem.FakeFilesystem
+    fs: fake_filesystem.FakeFilesystem,
+    nodemgr: NodeMgr
 ) -> None:
 
     from fastapi import status
@@ -996,16 +930,6 @@ async def test_handle_join(
         MessageTypeEnum
     )
 
-    from gravel.controllers.nodes.mgr import (
-        NodeMgr,
-        NodeStateModel
-    )
-    nodemgr = NodeMgr(gstate)
-    nodemgr._state = NodeStateModel(
-        uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
-        address="1.2.3.4",
-        hostname="foobar"
-    )
     nodemgr._token = "751b-51fd-10d7-f7b4"
 
     # test wrong token
