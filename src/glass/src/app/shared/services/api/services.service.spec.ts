@@ -36,4 +36,10 @@ describe('ServicesService', () => {
     const req = httpTesting.expectOne('api/services/get/foo');
     expect(req.request.method).toBe('GET');
   });
+
+  it('should call delete', () => {
+    service.delete('test_service').subscribe();
+    const req = httpTesting.expectOne('api/services/test_service');
+    expect(req.request.method).toBe('DELETE');
+  });
 });

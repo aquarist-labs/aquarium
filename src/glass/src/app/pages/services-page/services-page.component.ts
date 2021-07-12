@@ -1,9 +1,13 @@
 import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
+import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
+import { translate } from '~/app/i18n.helper';
+import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
@@ -20,6 +24,9 @@ import { DialogService } from '~/app/shared/services/dialog.service';
   styleUrls: ['./services-page.component.scss']
 })
 export class ServicesPageComponent {
+  @BlockUI()
+  blockUI!: NgBlockUI;
+
   loading = false;
   firstLoadComplete = false;
   data: ServiceDesc[] = [];
@@ -151,6 +158,12 @@ export class ServicesPageComponent {
                 this.showMountCmdDialog(cmdArgs);
               });
             }
+          },
+          {
+            title: TEXT('Remove service'),
+            callback: (data: DatatableData) => {
+              this.removeService(data.name);
+            }
           }
         );
         break;
@@ -214,5 +227,30 @@ export class ServicesPageComponent {
         cancelButtonText: TEXT('Close')
       }
     });
+  }
+
+  private removeService(serviceName: string): void {
+    this.dialogService.open(
+      DialogComponent,
+      (res: boolean) => {
+        if (res) {
+          this.blockUI.start(translate(TEXT('Please wait, removing service ...')));
+          this.service
+            .delete(serviceName)
+            .pipe(finalize(() => this.blockUI.stop()))
+            .subscribe(() => {
+              this.loadData();
+            });
+        }
+      },
+      {
+        width: '40%',
+        data: {
+          type: 'yesNo',
+          icon: 'question',
+          message: TEXT(`Do you really want to remove the service <strong>${serviceName}</strong>?`)
+        }
+      }
+    );
   }
 }

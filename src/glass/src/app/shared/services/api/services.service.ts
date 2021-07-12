@@ -144,4 +144,8 @@ export class ServicesService {
   public stats(): Observable<Record<string, ServiceStorage>> {
     return this.http.get<Record<string, ServiceStorage>>(`${this.url}/stats`);
   }
+
+  public delete(service_name: string): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${service_name}`);
+  }
 }
