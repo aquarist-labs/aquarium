@@ -77,12 +77,15 @@ async def delete_user(username: str,
 async def patch_user(username: str,
                      update_user: UserModel,
                      request: Request,
-                     _=Depends(jwt_auth_scheme)) -> UserModel:
+                     token: JWT = Depends(jwt_auth_scheme)) -> UserModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
     user = await user_mgr.get(username)
     if user is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND,
                             detail="User does not exist")
+    if token.sub == username and update_user.disabled:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                            detail="Cannot disable current user")
     if update_user.password:
         update_user.hash_password()
     update_data = update_user.dict(exclude_unset=True, exclude_none=True)
