@@ -27,12 +27,12 @@ from libaqr.errors import (
 class Image:
     _name: str
     _path: Path
-    _type: str
+    _provider: str
 
-    def __init__(self, name: str, path: Path, type: str) -> None:
+    def __init__(self, name: str, path: Path, provider: str) -> None:
         self._name = name
         self._path = path
-        self._type = type
+        self._provider = provider
         pass
 
     @classmethod
@@ -49,13 +49,13 @@ class Image:
             path = buildspath.joinpath(build)
             assert path.exists()
             try:
-                type, imgpath = cls._get_vagrant_image(path)
+                provider, imgpath = cls._get_vagrant_image(path)
             except FileNotFoundError:
                 continue
-            assert type
+            assert provider
             assert imgpath
 
-            images.append(Image(build, imgpath, type))
+            images.append(Image(build, imgpath, provider))
 
         return images
 
@@ -90,17 +90,17 @@ class Image:
     @classmethod
     def _get_vagrant_image(cls, path: Path) -> Tuple[str, Path]:
         """
-        Return vagrant image type and path if present below the `path`,
+        Return vagrant image provider and path if present below the `path`,
         otherwise raises FileNotFoundError.
 
-        Possible values for image type: 'unknown', 'libvirt'.
+        Possible values for image provider: 'unknown', 'libvirt', 'virtualbox'.
         """
         assert path.exists()
         outdir = path.joinpath("_out")
         if not outdir.exists():
             raise FileNotFoundError()
 
-        _type = 'unknown'
+        _provider = 'unknown'
         # we are searching for vagrant box image file
         _name = next((_ for _ in next(os.walk(outdir))[2]
                                 if _.startswith('project-aquarium') and
@@ -108,10 +108,10 @@ class Image:
                                    'vagrant' in _), None)
         if _name:
             if 'libvirt' in _name:
-                _type = 'libvirt'
+                _provider = 'libvirt'
             elif 'virtualbox' in _name:
-                _type = 'virtualbox'
-            return _type, outdir.joinpath(_name)
+                _provider = 'virtualbox'
+            return _provider, outdir.joinpath(_name)
         else:
             raise FileNotFoundError()
 
@@ -124,5 +124,5 @@ class Image:
         return self._path
 
     @property
-    def type(self) -> str:
-        return self._type
+    def provider(self) -> str:
+        return self._provider
