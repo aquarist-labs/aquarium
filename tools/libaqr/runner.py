@@ -66,6 +66,7 @@ class RunnerResult(BaseModel):
 class Runner(multiprocessing.Process):
 
     _boxname: str
+    _provider: str
     _test: SuiteEntry
     _run_name: Optional[str]
     _deployment: Optional[Deployment]
@@ -76,11 +77,13 @@ class Runner(multiprocessing.Process):
         self,
         deployments: Path,
         boxname: str,
+        provider: str,
         test: SuiteEntry
     ):
         super().__init__()
         print(f"create runner for {test}")
         self._boxname = boxname
+        self._provider= provider
         self._test = test
         self._deployment = None
         self._run_name = None
@@ -149,6 +152,7 @@ class Runner(multiprocessing.Process):
             self._deployment = Deployment.create(
                 name=self._run_name,
                 box=self._boxname,
+                provider=self._provider,
                 num_nodes=requirements.nodes,
                 num_disks=requirements.disks,
                 num_nics=requirements.nics,

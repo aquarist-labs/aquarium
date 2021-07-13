@@ -79,7 +79,7 @@ class Image:
         assert imgpath.exists()
 
         try:
-            Vagrant.box_add(name, imgpath)
+            Vagrant.box_add(name, imgpath, imgtype)
         except BoxAlreadyExistsError as e:
             raise e  # just being explicit about what we might propagate
         except VagrantError as e:
