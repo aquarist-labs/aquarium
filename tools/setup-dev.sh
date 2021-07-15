@@ -45,8 +45,6 @@ dependencies_debian=(
   "make"
   "python3"
   "python3-pip"
-  "python3-kiwi"
-  "python3-kiwi-boxed-plugin"
   "python3-venv"
   "nodejs"
   "vagrant"
@@ -59,8 +57,6 @@ dependencies_ubuntu=(
   "make"
   "python3"
   "python3-pip"
-  "python3-kiwi"
-  "python3-kiwi-boxed-plugin"
   "python3-venv"
   "nodejs"
   "vagrant"
@@ -239,10 +235,6 @@ if ! ${skip_install_deps} ; then
     debian)
       echo "=> installing nodejs16.x repo to apt source"
       wget -qO - https://deb.nodesource.com/setup_16.x | sudo bash -
-      echo "=> installing kiwi repo public key"
-      sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10/Release.key | sudo apt-key add -
-      echo "=> installing kiwi repo to apt source"
-      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/Debian_10 ./'
       echo "=> try installing dependencies"
       sudo apt-get install -q -y ${dependencies_debian[*]} || {
         echo "Dependency installation failed"
@@ -259,10 +251,6 @@ if ! ${skip_install_deps} ; then
     ubuntu)
       echo "=> installing nodejs16.x repo to apt source"
       wget -qO - https://deb.nodesource.com/setup_16.x | sudo bash -
-      echo "=> installing kiwi repo public key"
-      sudo wget -qO - https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.10/Release.key | sudo apt-key add -
-      echo "=> installing kiwi repo to apt source"
-      sudo add-apt-repository 'deb https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/xUbuntu_20.10 ./' -y
       echo "=> try installing dependencies"
       sudo apt-get install -q -y ${dependencies_ubuntu[*]} ||  {
         echo "Dependency installation failed"

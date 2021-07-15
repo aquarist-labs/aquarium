@@ -2,8 +2,8 @@
 <!-- OBS-Profiles: @BUILD_FLAVOR@ -->
 <image schemaversion="6.8" name="project-aquarium" displayname="Project Aquarium">
     <description type="system">
-        <author>Aquarium Project</author>
-        <contact>alau@suse.com</contact>
+	<author>Aquarium Project</author>
+	<contact>alau@suse.com</contact>
         <specification>
             Project Aquarium is an easy to use, rock solid storage appliance based on Ceph
         </specification>
@@ -15,22 +15,33 @@
         <!-- Platforms -->
         <profile name="Vagrant-VirtualBox-x86_64"
                  description="Vagrant for x86_64 with VirtualBox"
-                 arch="x86_64"/>
-        <profile name="Vagrant-x86_64"
+                 arch="x86_64">
+            <requires profile="Vagrant-x86_64"/>
+	</profile> 
+	<profile name="Vagrant-libvirt-x86_64"
                  description="Vagrant for x86_64 with libvirt"
-                 arch="x86_64"/>
-        <profile name="Vagrant" description="Vagrant" arch="x86_64">
+                 arch="x86_64">
             <requires profile="Vagrant-x86_64"/>
         </profile>
+        <profile name="Vagrant" description="Vagrant" arch="x86_64">
+	    <requires profile="Vagrant-x86_64"/>
+        </profile>
+	<profile name="Vagrant-x86_64" description="Vagrant" arch="x86_64"/>
         <profile name="SelfInstall"
                  description="Self Installing Image"
                  arch="x86_64"/>
-
         <!-- Images (flavor + platform) -->
         <profile name="Vagrant-VirtualBox"
                  description="Vagrant with VirtualBox"
                  arch="x86_64">
             <requires profile="Vagrant-VirtualBox-x86_64"/>
+            <requires profile="Vagrant"/>
+        </profile>
+        <profile name="Vagrant-libvirt"
+                 description="Vagrant with libvirt"
+                 arch="x86_64">
+            <requires profile="Vagrant-libvirt-x86_64"/>
+            <requires profile="Vagrant"/>
         </profile>
         <profile name="SelfInstall"
                  description="Aquarium for Host Install"
@@ -49,10 +60,10 @@
             <requires profile="Vagrant-VirtualBox"/>
             <requires profile="Ceph-base"/>
         </profile>
-        <profile name="Ceph-Vagrant"
+        <profile name="Ceph-Vagrant-libvirt"
                  description="Ceph for Vagrant Host with libvirt"
                  arch="x86_64">
-            <requires profile="Vagrant"/>
+            <requires profile="Vagrant-libvirt"/>
             <requires profile="Ceph-base"/>
         </profile>
     </profiles>
@@ -65,7 +76,7 @@
         <rpm-check-signatures>false</rpm-check-signatures>
         <bootloader-theme>openSUSE</bootloader-theme>
     </preferences>
-    <preferences profiles="Vagrant-x86_64">
+    <preferences profiles="Vagrant-libvirt">
         <type
             image="oem"
             filesystem="xfs"
@@ -82,7 +93,7 @@
             <size unit="G">24</size>
         </type>
     </preferences>
-    <preferences profiles="Vagrant-VirtualBox-x86_64">
+    <preferences profiles="Vagrant-VirtualBox">
         <type
             image="oem"
             filesystem="xfs"
@@ -172,11 +183,9 @@
         <archive name="root.tar.gz"/>
     </packages>
 
-    <packages type="image" profiles="Vagrant-x86_64">
+    <packages type="image" profiles="Vagrant-libvirt,Vagrant-VirtualBox">
         <!-- Needed for initial configuration, except on OpenStack-Cloud, where cloud-init is used -->
         <package name="growpart-generator"/>
-    </packages>
-    <packages type="image" profiles="Vagrant,Vagrant-x86_64,Vagrant-VirtualBox-x86_64,Vagrant-aarch64">
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
 
