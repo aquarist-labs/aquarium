@@ -15,10 +15,15 @@ import os
 import subprocess
 import shlex
 import errno
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from contextlib import contextmanager
+
+logging.basicConfig(level=logging.INFO)
+logger: logging.Logger = logging.getLogger("aquarium")
+
 
 from libaqr.errors import (
     BoxAlreadyExistsError,
@@ -89,17 +94,20 @@ class Vagrant:
     def box_list(cls) -> List[Tuple[str,str]]:
         """ List all known vagrant boxes with the provider, including unrelated to aquarium. """
 
+        logger.debug(f"boxlist.......")
+
         cmd = "vagrant box list --machine-readable"
         retcode, out, err = cls.run(None, cmd, interactive=False)
         if retcode != 0:
             raise VagrantError(msg=err, errno=retcode)
 
         boxes = [name for name in out.splitlines() if name.count("box-name") > 0]
-        providers = [provider for provider in stdout.splitlines() if provider.count("box-provider") > 0]
+        providers = [provider for provider in out.splitlines() if provider.count("box-provider") > 0]
         boxlist: List[Tuple[str,str]] = []
         for box_entry, provider_entry in zip(boxes, providers):
             boxname = box_entry.split(",")[3]
             provider = provider_entry.split(",")[3]
+            logger.debug(f"boxname: {boxname}, provider: {provider}")
             boxlist.append((boxname, provider))
         return boxlist
 

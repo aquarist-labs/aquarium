@@ -94,8 +94,9 @@ class Deployment:
         if path.exists():
             raise DeploymentExistsError()
 
-        if [box, provider] not in vagrant.Vagrant.box_list():
-            raise BoxDoesNotExistError(box)
+        if (box, provider) not in vagrant.Vagrant.box_list():
+            logger.debug(f"boxlist: '{vagrant.Vagrant.box_list()}'")
+            raise BoxDoesNotExistError(box, provider)
 
         try:
             logger.debug(f"creating deployment '{name}'")
@@ -202,7 +203,7 @@ class Deployment:
 
 def _gen_vagrantfile(
     boxname: str,
-    provider: str='libvirt'
+    provider: str,
     rootdir: Optional[Path],
     nodes: int,
     disks: int,
