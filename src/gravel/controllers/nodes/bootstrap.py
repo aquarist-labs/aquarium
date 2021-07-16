@@ -51,9 +51,7 @@ class Bootstrap:
         self._gstate = gstate
 
     async def bootstrap(
-        self,
-        address: str,
-        cb: Callable[[bool, Optional[str]], Awaitable[None]]
+        self, address: str, cb: Callable[[bool, Optional[str]], Awaitable[None]]
     ) -> None:
         logger.debug(f"start bootstrapping, address: {address}")
 
@@ -83,9 +81,7 @@ class Bootstrap:
         self._error_msg = msg
 
     async def _do_bootstrap(
-        self,
-        address: str,
-        cb: Callable[[bool, Optional[str]], Awaitable[None]]
+        self, address: str, cb: Callable[[bool, Optional[str]], Awaitable[None]]
     ) -> None:
         logger.info(f"bootstrap address: {address}")
         assert address is not None and len(address) > 0

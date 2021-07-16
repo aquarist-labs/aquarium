@@ -14,13 +14,7 @@
 # pyright: reportPrivateUsage=false, reportUnknownMemberType=false
 # pyright: reportUnknownVariableType=false
 
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-    Optional,
-    cast
-)
+from typing import Awaitable, Callable, List, Optional, cast
 import pytest
 from pytest_mock import MockerFixture
 
@@ -29,15 +23,13 @@ from gravel.controllers.nodes.deployment import DeploymentDisksConfig
 
 
 @pytest.mark.asyncio
-async def test_state(
-    mocker: MockerFixture,
-    gstate: GlobalState
-):
+async def test_state(mocker: MockerFixture, gstate: GlobalState):
     from gravel.controllers.nodes.deployment import (
         DeploymentState,
         NodeStageEnum,
-        DeploymentErrorEnum
+        DeploymentErrorEnum,
     )
+
     mocker.patch.object(DeploymentState, "_load_stage")
     mocker.patch.object(DeploymentState, "_save_stage")
 
@@ -91,10 +83,7 @@ async def test_state(
     assert state.stage == NodeStageEnum.READY
     assert state.can_start()
 
-    state.mark_error(
-        code=DeploymentErrorEnum.UNKNOWN_ERROR,
-        msg="foobar"
-    )
+    state.mark_error(code=DeploymentErrorEnum.UNKNOWN_ERROR, msg="foobar")
     assert state.error
     assert not state.nostage
     assert not state.bootstrapping
@@ -108,22 +97,16 @@ async def test_state(
 
 
 @pytest.mark.asyncio
-async def test_deployment_progress(
-    mocker: MockerFixture,
-    gstate: GlobalState
-):
+async def test_deployment_progress(mocker: MockerFixture, gstate: GlobalState):
 
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import (
         NodeDeployment,
         DeploymentErrorEnum,
-        ProgressEnum
+        ProgressEnum,
     )
 
-    fake_connmgr: ConnMgr = cast(
-        ConnMgr,
-        mocker.MagicMock()
-    )
+    fake_connmgr: ConnMgr = cast(ConnMgr, mocker.MagicMock())
     deployment = NodeDeployment(gstate, fake_connmgr)
 
     # no bootstrapper, nostage
@@ -173,30 +156,25 @@ async def test_deployment_progress(
 
 
 @pytest.mark.asyncio
-async def test_deploy(
-    mocker: MockerFixture,
-    gstate: GlobalState
-):
+async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import (
         NodeDeployment,
-        DeploymentConfig
+        DeploymentConfig,
     )
     from gravel.controllers.nodes.bootstrap import Bootstrap
     from gravel.controllers.orch.orchestrator import Orchestrator
     from gravel.controllers.nodes.systemdisk import SystemDisk
 
     def mock_devices_assimilated(
-        cls,  # type: ignore
-        hostname: str,
-        devs: List[str]
+        cls, hostname: str, devs: List[str]  # type: ignore
     ):
         return True
 
     async def mock_bootstrap(
         cls,  # type: ignore
         address: str,
-        cb: Callable[[bool, Optional[str]], Awaitable[None]]
+        cb: Callable[[bool, Optional[str]], Awaitable[None]],
     ) -> None:
         assert address == "127.0.0.1"
         await cb(True, None)
@@ -215,49 +193,37 @@ async def test_deploy(
         called_ntp_with = ntp_addr
 
     def mock_assimilate_devices(
-        cls,  # type: ignore
-        host: str,
-        devices: List[str]
+        cls, host: str, devices: List[str]  # type: ignore
     ) -> None:
         nonlocal called_assimilate_with
         called_assimilate_with.extend(devices)
 
-    def mock_host_exists(
-        cls,  # type: ignore
-        hostname: str
-    ) -> bool:
+    def mock_host_exists(cls, hostname: str) -> bool:  # type: ignore
         nonlocal called_check_host_exists_with
         called_check_host_exists_with = hostname
         return True
 
-    fake_connmgr: ConnMgr = cast(
-        ConnMgr,
-        mocker.MagicMock()
-    )
+    fake_connmgr: ConnMgr = cast(ConnMgr, mocker.MagicMock())
     deployment = NodeDeployment(gstate, fake_connmgr)
     deployment._prepare_etcd = mocker.AsyncMock()
     deployment._set_hostname = mock_set_hostname
     deployment._set_ntp_addr = mock_set_ntpaddr
 
     mocker.patch.object(
-        Bootstrap,
-        "bootstrap",
-        new=mock_bootstrap  # type: ignore
+        Bootstrap, "bootstrap", new=mock_bootstrap  # type: ignore
     )
     mocker.patch.object(
         Orchestrator,
         "assimilate_devices",
-        new=mock_assimilate_devices  # type: ignore
+        new=mock_assimilate_devices,  # type: ignore
     )
     mocker.patch.object(
         Orchestrator,
         "devices_assimilated",
-        new=mock_devices_assimilated  # type: ignore
+        new=mock_devices_assimilated,  # type: ignore
     )
     mocker.patch.object(
-        Orchestrator,
-        "host_exists",
-        new=mock_host_exists  # type: ignore
+        Orchestrator, "host_exists", new=mock_host_exists  # type: ignore
     )
     mocker.patch.object(SystemDisk, "create")
     mocker.patch.object(SystemDisk, "enable")
@@ -278,8 +244,7 @@ async def test_deploy(
         called_finisher = True
 
     disks = DeploymentDisksConfig(
-        system="/dev/foobar",
-        storage=["/dev/bar", "/dev/baz"]
+        system="/dev/foobar", storage=["/dev/bar", "/dev/baz"]
     )
 
     await deployment.deploy(
@@ -288,33 +253,30 @@ async def test_deploy(
             address="127.0.0.1",
             token="myfancytoken",
             ntp_addr="my.ntp.test",
-            disks=disks
+            disks=disks,
         ),
         post_bootstrap_cb=postbootstrap_cb,
-        finisher=finisher_cb
+        finisher=finisher_cb,
     )
 
     assert called_postbootstrap
     assert called_finisher
     assert called_ntp_with and called_ntp_with == "my.ntp.test"
     assert called_hostname_with and called_hostname_with == "foobar"
-    assert called_check_host_exists_with and \
-        called_check_host_exists_with == "foobar"
+    assert (
+        called_check_host_exists_with
+        and called_check_host_exists_with == "foobar"
+    )
     assert "/dev/bar" in called_assimilate_with
     assert "/dev/baz" in called_assimilate_with
 
 
 @pytest.mark.asyncio
-async def test_finish_deployment(
-    mocker: MockerFixture,
-    gstate: GlobalState
-):
+async def test_finish_deployment(mocker: MockerFixture, gstate: GlobalState):
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import NodeDeployment
-    fake_connmgr: ConnMgr = cast(
-        ConnMgr,
-        mocker.MagicMock()
-    )
+
+    fake_connmgr: ConnMgr = cast(ConnMgr, mocker.MagicMock())
     deployment = NodeDeployment(gstate, fake_connmgr)
     deployment.state.mark_bootstrap()
     deployment.finish_deployment()

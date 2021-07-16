@@ -17,9 +17,7 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic.fields import Field
 from pydantic.main import BaseModel
 from gravel.controllers.gstate import Ticker
-from gravel.controllers.nodes.mgr import (
-    NodeMgr
-)
+from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.ceph import Mon
 
 
@@ -53,12 +51,10 @@ class StoragePoolModel(BaseModel):
 class StorageModel(BaseModel):
     stats: StorageStatsModel = Field(StorageStatsModel(), title="statistics")
     pools_by_id: Dict[int, StoragePoolModel] = Field({}, title="Pool by ID")
-    pools_by_name: Dict[str, StoragePoolModel] = \
-        Field({}, title="Pool by name")
+    pools_by_name: Dict[str, StoragePoolModel] = Field({}, title="Pool by name")
 
 
 class Storage(Ticker):
-
     def __init__(self, probe_interval: float, nodemgr: NodeMgr, ceph_mon: Mon):
         super().__init__(probe_interval)
         self.nodemgr: NodeMgr = nodemgr
@@ -70,8 +66,8 @@ class Storage(Ticker):
 
     async def _should_tick(self) -> bool:
         return (
-            self.nodemgr.deployment_state.deployed or
-            self.nodemgr.deployment_state.ready
+            self.nodemgr.deployment_state.deployed
+            or self.nodemgr.deployment_state.ready
         ) and self.nodemgr.started
 
     @property
@@ -101,7 +97,7 @@ class Storage(Ticker):
             available=df.stats.total_avail_bytes,
             used=df.stats.total_used_bytes,
             raw_used=df.stats.total_used_raw_bytes,
-            raw_used_ratio=df.stats.total_used_raw_ratio
+            raw_used_ratio=df.stats.total_used_raw_ratio,
         )
         by_id: Dict[int, StoragePoolModel] = {}
         by_name: Dict[str, StoragePoolModel] = {}
@@ -112,8 +108,8 @@ class Storage(Ticker):
                 stats=StoragePoolStatsModel(
                     used=p.stats.bytes_used,
                     percent_used=p.stats.percent_used,
-                    max_available=p.stats.max_avail
-                )
+                    max_available=p.stats.max_avail,
+                ),
             )
             by_id[p.id] = pool
             by_name[p.name] = pool

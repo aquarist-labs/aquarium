@@ -39,7 +39,7 @@ from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
 
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 def mock_ceph_modules(mocker: MockerFixture):
@@ -52,11 +52,15 @@ def mock_ceph_modules(mocker: MockerFixture):
             msg = super(MockRadosError, self).__str__()
             if self.errno is None:
                 return msg
-            return '[errno {0}] {1}'.format(self.errno, msg)
+            return "[errno {0}] {1}".format(self.errno, msg)
 
-    sys.modules.update({
-        'rados': mocker.MagicMock(Error=MockRadosError, OSError=MockRadosError),
-    })
+    sys.modules.update(
+        {
+            "rados": mocker.MagicMock(
+                Error=MockRadosError, OSError=MockRadosError
+            ),
+        }
+    )
 
 
 def mock_aetcd_modules(mocker: MockerFixture):
@@ -71,31 +75,31 @@ def mock_aetcd_modules(mocker: MockerFixture):
                 return msg
             return f"[errno {self.errno}] {msg}"
 
-    sys.modules.update({
-        'aetcd3.etcdrpc': mocker.MagicMock(Error=MockAetcd3Error, OSError=MockAetcd3Error)
-    })
+    sys.modules.update(
+        {
+            "aetcd3.etcdrpc": mocker.MagicMock(
+                Error=MockAetcd3Error, OSError=MockAetcd3Error
+            )
+        }
+    )
 
 
-@pytest.fixture(params=['default_ceph.conf'])
-def ceph_conf_file_fs(
-    request: SubRequest,
-    fs: fake_filesystem.FakeFilesystem
-):
-    """ This fixture uses pyfakefs to stub filesystem calls and return
-    any files created with the parent `fs` fixture. """
+@pytest.fixture(params=["default_ceph.conf"])
+def ceph_conf_file_fs(request: SubRequest, fs: fake_filesystem.FakeFilesystem):
+    """This fixture uses pyfakefs to stub filesystem calls and return
+    any files created with the parent `fs` fixture."""
     fs.add_real_file(  # pyright: reportUnknownMemberType=false
         os.path.join(
-            DATA_DIR,
-            request.param  # pyright: reportUnknownArgumentType=false
+            DATA_DIR, request.param  # pyright: reportUnknownArgumentType=false
         ),
-        target_path='/etc/ceph/ceph.conf'
+        target_path="/etc/ceph/ceph.conf",
     )
     yield fs
 
 
 @pytest.fixture()
 def get_data_contents(  # type: ignore
-    fs: fake_filesystem.FakeFilesystem
+    fs: fake_filesystem.FakeFilesystem,
 ) -> str:
     def _get_data_contents(dir: str, fn: str):
         # For tests to be able to access any file we need to  add them to the
@@ -107,15 +111,16 @@ def get_data_contents(  # type: ignore
         except FileExistsError:
             pass
 
-        with open(os.path.join(dir, fn), 'r') as f:
+        with open(os.path.join(dir, fn), "r") as f:
             contents = f.read()
         return contents
+
     yield _get_data_contents  # type: ignore
 
 
 def get_data_contents_raw(dir: str, fn: str):
     print(os.path.join(dir, fn))
-    with open(os.path.join(dir, fn), 'r') as f:
+    with open(os.path.join(dir, fn), "r") as f:
         contents = f.read()
     return contents
 
@@ -131,16 +136,16 @@ class FakeKV(KV):
         self._watch_id_count = 0
 
     async def ensure_connection(self) -> None:
-        """ Open k/v store connection """
+        """Open k/v store connection"""
         self._is_open = True
 
     async def close(self) -> None:
-        """ Close k/v store connection """
+        """Close k/v store connection"""
         self._is_closing = True
         self._is_open = False
 
     async def put(self, key: str, value: str) -> None:
-        """ Put key/value pair """
+        """Put key/value pair"""
         assert self._is_open
         self._storage[key] = value
         if key in self._watchers:
@@ -148,14 +153,14 @@ class FakeKV(KV):
                 cb(key, value)
 
     async def get(self, key: str) -> Optional[str]:
-        """ Get value for provided key """
+        """Get value for provided key"""
         assert self._is_open
         if key not in self._storage:
             return None
         return self._storage[key]
 
     async def get_prefix(self, key: str) -> List[str]:
-        """ Get a range of keys with a prefix """
+        """Get a range of keys with a prefix"""
         assert self._is_open
         values = []
         for k in self._storage.keys():
@@ -164,23 +169,21 @@ class FakeKV(KV):
         return values
 
     async def rm(self, key: str) -> None:
-        """ Remove key from store """
+        """Remove key from store"""
         assert self._is_open
         if key in self._storage:
             del self._storage[key]
 
     async def lock(self, key: str):  # type: ignore
-        """ Lock a given key. Requires compliant consumers. """
+        """Lock a given key. Requires compliant consumers."""
         assert self._is_open
         raise Exception("TODO")
 
     async def watch(
-        self,
-        key: str,
-        callback: Callable[[str, str], None]
+        self, key: str, callback: Callable[[str, str], None]
     ) -> int:
-        """ Watch updates on a given key """
-        if 'key' not in self._watchers:
+        """Watch updates on a given key"""
+        if "key" not in self._watchers:
             self._watchers[key] = {}
         watch_id = self._watch_id_count
         self._watch_id_count += 1
@@ -188,7 +191,7 @@ class FakeKV(KV):
         return watch_id
 
     async def cancel_watch(self, watch_id: int) -> None:
-        """ Cancel a watch """
+        """Cancel a watch"""
         assert self._client
         for key, values in self._watchers.items():
             if watch_id in values:
@@ -198,15 +201,15 @@ class FakeKV(KV):
 @pytest.fixture()
 @pytest.mark.asyncio
 async def aquarium_startup(
-    get_data_contents: Callable[[str, str], str],
-    mocker: MockerFixture
+    get_data_contents: Callable[[str, str], str], mocker: MockerFixture
 ):
-    async def startup(
-        aquarium_app: FastAPI,
-        aquarium_api: FastAPI
-    ):
+    async def startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
         from gravel.cephadm.cephadm import Cephadm
-        from gravel.controllers.nodes.mgr import NodeMgr, NodeError, NodeInitStage
+        from gravel.controllers.nodes.mgr import (
+            NodeMgr,
+            NodeError,
+            NodeInitStage,
+        )
         from gravel.controllers.resources.inventory import Inventory
         from gravel.controllers.resources.devices import Devices
         from gravel.controllers.resources.status import Status
@@ -221,10 +224,7 @@ async def aquarium_startup(
 
         class FakeNodeDeployment(NodeDeployment):
             async def _prepare_etcd(
-                self,
-                hostname: str,
-                address: str,
-                token: str
+                self, hostname: str, address: str, token: str
             ) -> None:
                 assert self._state
                 if self._state.bootstrapping:
@@ -252,7 +252,10 @@ async def aquarium_startup(
                 if self.deployment_state.nostage:
                     await self._node_prepare()
                 else:
-                    assert self.deployment_state.ready or self.deployment_state.deployed
+                    assert (
+                        self.deployment_state.ready
+                        or self.deployment_state.deployed
+                    )
                     assert self._state.hostname
                     assert self._state.address
                     # We don't need to spawn etcd, just allow gstate to init store
@@ -262,25 +265,33 @@ async def aquarium_startup(
                 return True
 
         class FakeCephadm(Cephadm):
-            async def call(self, cmd: List[str],
-                           outcb: Optional[Callable[[str], None]] = None
-                           ) -> Tuple[str, str, int]:
+            async def call(
+                self,
+                cmd: List[str],
+                outcb: Optional[Callable[[str], None]] = None,
+            ) -> Tuple[str, str, int]:
                 # Implement expected calls to cephadm with testable responses
-                if cmd[0] == 'pull':
-                    return '', '', 0
-                elif cmd[0] == 'gather-facts':
-                    return get_data_contents(
-                        DATA_DIR,
-                        'gather_facts_real.json'), "", 0
-                elif cmd == ['ceph-volume', 'inventory', '--format', 'json']:
-                    return get_data_contents(DATA_DIR, 'inventory_real.json'), "", 0
+                if cmd[0] == "pull":
+                    return "", "", 0
+                elif cmd[0] == "gather-facts":
+                    return (
+                        get_data_contents(DATA_DIR, "gather_facts_real.json"),
+                        "",
+                        0,
+                    )
+                elif cmd == ["ceph-volume", "inventory", "--format", "json"]:
+                    return (
+                        get_data_contents(DATA_DIR, "inventory_real.json"),
+                        "",
+                        0,
+                    )
                 else:
                     print(cmd)
                     print(outcb)
                     raise Exception("Tests should not get here")
 
         class FakeCeph(Ceph):
-            def __init__(self, conf_file: str = '/etc/ceph/ceph.conf'):
+            def __init__(self, conf_file: str = "/etc/ceph/ceph.conf"):
                 self.conf_file = conf_file
                 self._is_connected = False
 
@@ -331,29 +342,28 @@ async def aquarium_startup(
             gstate.config.options.devices.probe_interval,
             nodemgr,
             ceph_mgr,
-            ceph_mon
+            ceph_mon,
         )
         gstate.add_devices(devices)
 
-        status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
+        status: Status = Status(
+            gstate.config.options.status.probe_interval, gstate, nodemgr
+        )
         gstate.add_status(status)
 
         inventory: Inventory = Inventory(
-            gstate.config.options.inventory.probe_interval,
-            nodemgr,
-            gstate
+            gstate.config.options.inventory.probe_interval, nodemgr, gstate
         )
         gstate.add_inventory(inventory)
 
         storage: Storage = FakeStorage(
-            gstate.config.options.storage.probe_interval,
-            nodemgr,
-            ceph_mon
+            gstate.config.options.storage.probe_interval, nodemgr, ceph_mon
         )
         gstate.add_storage(storage)
 
         services: Services = FakeServices(
-            gstate.config.options.services.probe_interval, gstate, nodemgr)
+            gstate.config.options.services.probe_interval, gstate, nodemgr
+        )
         gstate.add_services(services)
 
         await nodemgr.start()
@@ -362,6 +372,7 @@ async def aquarium_startup(
         # Add instances into FastAPI's state:
         aquarium_api.state.gstate = gstate
         aquarium_api.state.nodemgr = nodemgr
+
     yield startup
 
 
@@ -372,6 +383,7 @@ async def aquarium_shutdown():
         print("Shutdown gstate & nodemgr")
         await aquarium_api.state.gstate.shutdown()
         await aquarium_api.state.nodemgr.shutdown()
+
     yield shutdown
 
 
@@ -379,7 +391,7 @@ async def aquarium_shutdown():
 @pytest.mark.asyncio
 async def app_state(
     aquarium_startup: Callable[[FastAPI, FastAPI], Awaitable[None]],
-    aquarium_shutdown: Callable[[FastAPI, FastAPI], Awaitable[None]]
+    aquarium_shutdown: Callable[[FastAPI, FastAPI], Awaitable[None]],
 ):
     class FakeFastAPI:
         state = SimpleNamespace()
@@ -408,16 +420,12 @@ async def services(gstate: GlobalState):
 
 
 @pytest.fixture()
-def app(
-    caplog: Any,
-    aquarium_startup: FastAPI,
-    aquarium_shutdown: FastAPI
-):
+def app(caplog: Any, aquarium_startup: FastAPI, aquarium_shutdown: FastAPI):
     caplog.set_level(logging.DEBUG)
     import aquarium
+
     return aquarium.aquarium_factory(
-        startup_method=aquarium_startup,
-        shutdown_method=aquarium_shutdown
+        startup_method=aquarium_startup, shutdown_method=aquarium_shutdown
     )
 
 
@@ -429,6 +437,7 @@ async def app_lifespan(app: Any):
 
 @pytest.fixture
 async def async_client(app_lifespan: Any):
-    async with httpx.AsyncClient(app=app_lifespan,
-                                 base_url="http://aquarium") as client:
+    async with httpx.AsyncClient(
+        app=app_lifespan, base_url="http://aquarium"
+    ) as client:
         yield client

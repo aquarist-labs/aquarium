@@ -12,10 +12,7 @@
 # GNU General Public License for more details.
 
 from typing import Any, Dict, List
-from pydantic import (
-    BaseModel,
-    Field
-)
+from pydantic import BaseModel, Field
 
 from gravel.cephadm.models import VolumeDeviceModel
 
@@ -148,7 +145,8 @@ class CephOSDDFSummaryModel(BaseModel):
 
 
 class CephOSDDFModel(BaseModel):
-    """ Result from 'osd df' """
+    """Result from 'osd df'"""
+
     nodes: List[CephOSDDFEntryModel]
     stray: List[Any]
     summary: CephOSDDFSummaryModel

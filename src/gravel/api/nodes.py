@@ -23,36 +23,31 @@ from gravel.controllers.nodes.conn import IncomingConnection
 from gravel.controllers.nodes.deployment import (
     DeploymentErrorEnum,
     DeploymentState,
-    NodeStageEnum
+    NodeStageEnum,
 )
-from gravel.controllers.nodes.disks import (
-    DiskSolution,
-    Disks
-)
+from gravel.controllers.nodes.disks import DiskSolution, Disks
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeCantDeployError,
     NodeError,
     NodeNotDeployedError,
-    NodeNotStartedError
+    NodeNotStartedError,
 )
 from gravel.controllers.nodes.mgr import (
     DeployParamsModel,
     JoinParamsModel,
-    NodeMgr
+    NodeMgr,
 )
 
 
 logger: Logger = fastapi_logger
-router = APIRouter(
-    prefix="/nodes",
-    tags=["nodes"]
-)
+router = APIRouter(prefix="/nodes", tags=["nodes"])
 
 
 class DeployErrorModel(BaseModel):
-    code: DeploymentErrorEnum = Field(DeploymentErrorEnum.NONE,
-                                      title="error code")
+    code: DeploymentErrorEnum = Field(
+        DeploymentErrorEnum.NONE, title="error code"
+    )
     message: Optional[str] = Field(None, title="error message, if possible")
 
 
@@ -62,15 +57,17 @@ class DeployRequestModel(BaseModel):
 
 class DeployStartReplyModel(BaseModel):
     success: bool = Field(title="operation started successfully")
-    error: DeployErrorModel = Field(DeployErrorModel(),
-                                    title="deployment error")
+    error: DeployErrorModel = Field(
+        DeployErrorModel(), title="deployment error"
+    )
 
 
 class DeployStatusReplyModel(BaseModel):
     stage: NodeStageEnum = Field(title="current deployment stage")
     progress: int = Field(0, title="deployment progress (percent)")
-    error: DeployErrorModel = Field(DeployErrorModel(),
-                                    title="deployment error")
+    error: DeployErrorModel = Field(
+        DeployErrorModel(), title="deployment error"
+    )
 
 
 class NodeJoinRequestModel(BaseModel):
@@ -88,7 +85,9 @@ class SetHostnameRequest(BaseModel):
 
 
 @router.get("/deployment/disksolution", response_model=DiskSolution)
-async def node_get_disk_solution(request: Request, _=Depends(jwt_auth_scheme)) -> DiskSolution:
+async def node_get_disk_solution(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> DiskSolution:
     """
     Obtain the list of disks and a deployment solution, if possible.
     """
@@ -98,7 +97,7 @@ async def node_get_disk_solution(request: Request, _=Depends(jwt_auth_scheme)) -
     if not nodemgr.available:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="node is not available"
+            detail="node is not available",
         )
 
     return Disks.gen_solution(request.app.state.gstate)
@@ -106,9 +105,7 @@ async def node_get_disk_solution(request: Request, _=Depends(jwt_auth_scheme)) -
 
 @router.post("/deployment/start", response_model=DeployStartReplyModel)
 async def node_deploy(
-    request: Request,
-    req_params: DeployParamsModel,
-    _=Depends(jwt_auth_scheme)
+    request: Request, req_params: DeployParamsModel, _=Depends(jwt_auth_scheme)
 ) -> DeployStartReplyModel:
     """
     Start deploying this node. The host will be configured according to user
@@ -129,23 +126,20 @@ async def node_deploy(
         logger.error(f"api > can't deploy: {e.message}")
         success = False
         error = DeployErrorModel(
-            code=DeploymentErrorEnum.CANT_BOOTSTRAP,
-            message=e.message
+            code=DeploymentErrorEnum.CANT_BOOTSTRAP, message=e.message
         )
     except NodeNotStartedError as e:
         logger.error("api > node not yet started, can't deploy")
         success = False
         error = DeployErrorModel(
-            code=DeploymentErrorEnum.NODE_NOT_STARTED,
-            message=e.message
+            code=DeploymentErrorEnum.NODE_NOT_STARTED, message=e.message
         )
     except Exception as e:
         logger.exception(e)
         logger.error(f"api > unknown error on deploy: {str(e)}")
         success = False
         error = DeployErrorModel(
-            code=DeploymentErrorEnum.UNKNOWN_ERROR,
-            message=str(e)
+            code=DeploymentErrorEnum.UNKNOWN_ERROR, message=str(e)
         )
 
     if success:
@@ -156,8 +150,7 @@ async def node_deploy(
 
 @router.get("/deployment/status", response_model=DeployStatusReplyModel)
 async def get_deployment_status(
-    request: Request,
-    _=Depends(jwt_auth_scheme)
+    request: Request, _=Depends(jwt_auth_scheme)
 ) -> DeployStatusReplyModel:
     """
     Get deployment status from this node.
@@ -177,14 +170,15 @@ async def get_deployment_status(
         stage=stage,
         progress=percent,
         error=DeployErrorModel(
-            code=state.error_what.code,
-            message=state.error_what.msg
-        )
+            code=state.error_what.code, message=state.error_what.msg
+        ),
     )
 
 
 @router.post("/deployment/finished", response_model=bool)
-async def finish_deployment(request: Request, _=Depends(jwt_auth_scheme)) -> bool:
+async def finish_deployment(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> bool:
     """
     Mark a deployment as finished. Triggers internal actions required for node
     operation.
@@ -195,12 +189,12 @@ async def finish_deployment(request: Request, _=Depends(jwt_auth_scheme)) -> boo
     except NodeNotDeployedError:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="Node has not been deployed"
+            detail="Node has not been deployed",
         )
     except NodeAlreadyJoiningError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Node currently joining an existing cluster"
+            detail="Node currently joining an existing cluster",
         )
     except NodeError:
         logger.error("api > unknown error on finished deployment")
@@ -209,20 +203,19 @@ async def finish_deployment(request: Request, _=Depends(jwt_auth_scheme)) -> boo
 
 
 @router.post("/join")
-async def node_join(req: NodeJoinRequestModel, request: Request,
-                    _=Depends(jwt_auth_scheme)):
+async def node_join(
+    req: NodeJoinRequestModel, request: Request, _=Depends(jwt_auth_scheme)
+):
     logger.debug(f"api > join {req.address} with {req.token}")
     if not req.address or not req.token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="leader address and token are required"
+            detail="leader address and token are required",
         )
 
     nodemgr = request.app.state.nodemgr
     return await nodemgr.join(
-        req.address,
-        req.token,
-        JoinParamsModel(hostname=req.hostname)
+        req.address, req.token, JoinParamsModel(hostname=req.hostname)
     )
 
 
@@ -230,12 +223,9 @@ async def node_join(req: NodeJoinRequestModel, request: Request,
 async def nodes_get_token(request: Request, _=Depends(jwt_auth_scheme)):
     nodemgr = request.app.state.nodemgr
     token: Optional[str] = nodemgr.token
-    return TokenReplyModel(
-        token=(token if token is not None else "")
-    )
+    return TokenReplyModel(token=(token if token is not None else ""))
 
 
 router.add_websocket_route(  # pyright: reportUnknownMemberType=false
-    "/nodes/ws",
-    IncomingConnection
+    "/nodes/ws", IncomingConnection
 )

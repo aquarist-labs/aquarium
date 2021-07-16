@@ -33,8 +33,9 @@ from gravel.controllers.orch.models import (
     CephDFModel,
     CephOSDDFModel,
     CephOSDMapModel,
-    CephOSDPoolEntryModel, CephOSDPoolStatsModel,
-    CephStatusModel
+    CephOSDPoolEntryModel,
+    CephOSDPoolStatsModel,
+    CephStatusModel,
 )
 
 # Attempt to import rados
@@ -50,11 +51,10 @@ except ModuleNotFoundError:
 
 logger: Logger = fastapi_logger
 
-CEPH_CONF_FILE = '/etc/ceph/ceph.conf'
+CEPH_CONF_FILE = "/etc/ceph/ceph.conf"
 
 
 class CephError(Exception):
-
     def __init__(self, msg: Optional[str] = "", rc: int = 1):
         super().__init__()
         self._msg = msg
@@ -104,7 +104,7 @@ class Ceph:
     def connect(self):
         self._check_config()
 
-        if 'rados' not in sys.modules:
+        if "rados" not in sys.modules:
             raise MissingSystemDependency("python3-rados module not found")
 
         if not self.is_connected():
@@ -130,7 +130,7 @@ class Ceph:
             self._is_connected = True
 
     def __del__(self):
-        if hasattr(self, 'cluster') and self.cluster:
+        if hasattr(self, "cluster") and self.cluster:
             self.cluster.shutdown()
             self._is_connected = False
 
@@ -149,10 +149,12 @@ class Ceph:
         except Exception as e:
             raise CephError(str(e))
 
-    def _cmd(self, func: Callable[[str, bytes], Any],
-             cmd: Dict[str, Any],
-             inbuf: bytes = b""
-             ) -> Any:
+    def _cmd(
+        self,
+        func: Callable[[str, bytes], Any],
+        cmd: Dict[str, Any],
+        inbuf: bytes = b"",
+    ) -> Any:
         self.assert_is_ready()
         cmdstr: str = json.dumps(cmd)
 
@@ -163,8 +165,7 @@ class Ceph:
 
         res: Dict[str, Any] = {}
         if rc != 0:
-            logger.error(
-                f"error running command: rc = {rc}, reason = {outstr}")
+            logger.error(f"error running command: rc = {rc}, reason = {outstr}")
             raise CephCommandError(outstr, rc=rc)
         if out:
             try:
@@ -205,34 +206,22 @@ class Mon:
 
     @property
     def status(self) -> CephStatusModel:
-        cmd: Dict[str, Any] = {
-            "prefix": "status",
-            "format": "json"
-        }
+        cmd: Dict[str, Any] = {"prefix": "status", "format": "json"}
         result: Dict[str, Any] = self.call(cmd)  # propagate exception
         return CephStatusModel.parse_obj(result)
 
     def df(self) -> CephDFModel:
-        cmd: Dict[str, str] = {
-            "prefix": "df",
-            "format": "json"
-        }
+        cmd: Dict[str, str] = {"prefix": "df", "format": "json"}
         result: Dict[str, Any] = self.call(cmd)
         return CephDFModel.parse_obj(result)
 
     def osd_df(self) -> CephOSDDFModel:
-        cmd: Dict[str, str] = {
-            "prefix": "osd df",
-            "format": "json"
-        }
+        cmd: Dict[str, str] = {"prefix": "osd df", "format": "json"}
         result: Dict[str, Any] = self.call(cmd)
         return CephOSDDFModel.parse_obj(result)
 
     def get_osdmap(self) -> CephOSDMapModel:
-        cmd: Dict[str, str] = {
-            "prefix": "osd dump",
-            "format": "json"
-        }
+        cmd: Dict[str, str] = {"prefix": "osd dump", "format": "json"}
         result: Dict[str, Any] = self.call(cmd)
         return CephOSDMapModel.parse_obj(result)
 
@@ -241,10 +230,7 @@ class Mon:
         return osdmap.pools
 
     def _get_ruleset_id(self, name: str) -> int:
-        cmd = {
-            "prefix": "osd crush rule dump",
-            "format": "json"
-        }
+        cmd = {"prefix": "osd crush rule dump", "format": "json"}
         try:
             result = self.call(cmd)
             assert type(result) == list
@@ -271,36 +257,27 @@ class Mon:
         try:
             value = self.call(cmd)
         except CephCommandError as e:
-            logger.error(
-                f"mon > unable to get config: {name} on {who}")
+            logger.error(f"mon > unable to get config: {name} on {who}")
             logger.exception(e)
             return None
         return value
 
     def config_set(self, who: str, name: str, value: str) -> bool:
-        cmd = {
-            "prefix": "config set",
-            "who": who,
-            "name": name,
-            "value": value
-        }
+        cmd = {"prefix": "config set", "who": who, "name": name, "value": value}
         try:
             self.call(cmd)
         except CephCommandError as e:
             logger.error(
-                f"mon > unable to set config: {name} = {value} on {who}")
+                f"mon > unable to set config: {name} = {value} on {who}"
+            )
             logger.exception(e)
             return False
         return True
 
     def pool_set(
-        self,
-        poolname: str,
-        var: str,
-        value: str,
-        really: bool = False
+        self, poolname: str, var: str, value: str, really: bool = False
     ) -> bool:
-        """ Set given pool's configuration variable to a provided value """
+        """Set given pool's configuration variable to a provided value"""
         assert poolname
         assert var
         assert value
@@ -308,7 +285,7 @@ class Mon:
             "prefix": "osd pool set",
             "pool": poolname,
             "var": var,
-            "val": value
+            "val": value,
         }
         if really:
             cmd["yes_i_really_mean_it"] = True
@@ -317,16 +294,15 @@ class Mon:
             self.call(cmd)
         except CephCommandError as e:
             logger.error(
-                f"mon > unable to set {var} = {value} on pool {poolname}")
+                f"mon > unable to set {var} = {value} on pool {poolname}"
+            )
             logger.exception(e)
             return False
         return True
 
     def _set_default_ruleset_config(self, rulesetid: int) -> bool:
         r = self.config_set(
-            "global",
-            "osd_pool_default_crush_rule",
-            str(rulesetid)
+            "global", "osd_pool_default_crush_rule", str(rulesetid)
         )
         if not r:
             logger.error("mon > unable to set default crush rule")
@@ -338,13 +314,14 @@ class Mon:
             "prefix": "osd crush rule create-replicated",
             "name": "single_node_rule",
             "root": "default",
-            "type": "osd"
+            "type": "osd",
         }
         try:
             self.call(cmd)
         except CephCommandError as e:
             logger.error(
-                f"mon > unable to create single-node ruleset: {str(e)}")
+                f"mon > unable to create single-node ruleset: {str(e)}"
+            )
             logger.exception(e)
             return False
 
@@ -381,7 +358,7 @@ class Mon:
         return True
 
     def set_pool_ruleset(self, poolname: str, ruleset: str) -> bool:
-        """ Set a given pool's ruleset. Expects a ruleset's name. """
+        """Set a given pool's ruleset. Expects a ruleset's name."""
         assert ruleset
         r = self.pool_set(poolname, "crush_rule", ruleset)
         if not r:
@@ -417,10 +394,7 @@ class Mon:
             logger.error("mon > unable to disable warn on no redundancy")
 
     def get_pools_stats(self) -> List[CephOSDPoolStatsModel]:
-        cmd: Dict[str, str] = {
-            "prefix": "osd pool stats",
-            "format": "json"
-        }
+        cmd: Dict[str, str] = {"prefix": "osd pool stats", "format": "json"}
         results: Dict[str, Any] = self.call(cmd)
         return parse_obj_as(List[CephOSDPoolStatsModel], results)
 
@@ -428,11 +402,7 @@ class Mon:
         return self.config_get("mon", "osd_pool_default_size")
 
     def set_pool_default_size(self, size: int) -> bool:
-        r = self.config_set(
-            "global",
-            "osd_pool_default_size",
-            str(size)
-        )
+        r = self.config_set("global", "osd_pool_default_size", str(size))
         if not r:
             logger.error("mon > unable to set osd pool default size: {size}")
         return r

@@ -16,13 +16,7 @@ import random
 import string
 from logging import Logger
 from pathlib import Path
-from typing import (
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar
-)
+from typing import List, Optional, Tuple, Type, TypeVar
 from pydantic import BaseModel
 from pydantic.tools import parse_file_as
 from fastapi.logger import logger as fastapi_logger
@@ -39,14 +33,10 @@ def _get_file_path(dirpath: Path, name: str) -> Path:
     return file
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
-def read_model(
-    dirpath: Path,
-    name: str,
-    model: Type[T]
-) -> T:
+def read_model(dirpath: Path, name: str, model: Type[T]) -> T:
     file: Path = _get_file_path(dirpath, name)
     if not file.exists():
         raise FileNotFoundError()
@@ -55,11 +45,7 @@ def read_model(
     return parse_file_as(model, file)
 
 
-def write_model(
-    dirpath: Path,
-    name: str,
-    model: BaseModel
-):
+def write_model(dirpath: Path, name: str, model: BaseModel):
     file: Path = _get_file_path(dirpath, name)
     if file.exists() and not file.is_file():
         raise FileExistsError()
@@ -67,13 +53,11 @@ def write_model(
 
 
 async def aqr_run_cmd(
-    args: List[str]
+    args: List[str],
 ) -> Tuple[int, Optional[str], Optional[str]]:
 
     proc = await asyncio.create_subprocess_exec(
-        *args,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
     stdout: Optional[str] = None
     stderr: Optional[str] = None
@@ -95,4 +79,4 @@ def random_string(length: int) -> str:
     :param length: The length of the string.
     :return: Returns a random string.
     """
-    return ''.join(random.choices(string.printable, k=length))
+    return "".join(random.choices(string.printable, k=length))

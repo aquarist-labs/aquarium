@@ -47,16 +47,15 @@ async def test_create(services: Services, gstate: GlobalState):
 
 @pytest.mark.asyncio
 async def test_create_fail_allocation(services: Services):
-    from gravel.controllers.services import \
-        ServiceTypeEnum, NotEnoughSpaceError
+    from gravel.controllers.services import ServiceTypeEnum, NotEnoughSpaceError
+
     with pytest.raises(NotEnoughSpaceError):
         await services.create("foobar", ServiceTypeEnum.CEPHFS, 3000, 2)
 
 
 @pytest.mark.asyncio
 async def test_create_exists(services: Services):
-    from gravel.controllers.services import \
-        ServiceTypeEnum, ServiceExistsError
+    from gravel.controllers.services import ServiceTypeEnum, ServiceExistsError
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
     with pytest.raises(ServiceExistsError):
@@ -65,8 +64,7 @@ async def test_create_exists(services: Services):
 
 @pytest.mark.asyncio
 async def test_create_over_allocated(services: Services):
-    from gravel.controllers.services import \
-        ServiceTypeEnum, NotEnoughSpaceError
+    from gravel.controllers.services import ServiceTypeEnum, NotEnoughSpaceError
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
     with pytest.raises(NotEnoughSpaceError):
@@ -101,8 +99,7 @@ def test_remove(mocker: MockerFixture, services: Services) -> None:
 
 @pytest.mark.asyncio
 async def test_ls(services: Services):
-    from gravel.controllers.services import \
-        ServiceModel, ServiceTypeEnum
+    from gravel.controllers.services import ServiceModel, ServiceTypeEnum
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 1, 1)
     await services.create("barbaz", ServiceTypeEnum.CEPHFS, 1, 1)
@@ -126,8 +123,7 @@ async def test_allocations(services: Services):
 
 @pytest.mark.asyncio
 async def test_get(services: Services):
-    from gravel.controllers.services import \
-        ServiceTypeEnum, UnknownServiceError
+    from gravel.controllers.services import ServiceTypeEnum, UnknownServiceError
 
     with pytest.raises(UnknownServiceError):
         services.get("foobar")

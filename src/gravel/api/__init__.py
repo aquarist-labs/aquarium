@@ -15,13 +15,7 @@ from fastapi import HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from typing import Optional
 
-from gravel.controllers.auth import (
-    JWTDenyList,
-    JWTMgr,
-    JWT,
-    UserMgr,
-    UserModel
-)
+from gravel.controllers.auth import JWTDenyList, JWTMgr, JWT, UserMgr, UserModel
 
 
 class JWTAuthSchema(OAuth2PasswordBearer):
@@ -46,23 +40,16 @@ class JWTAuthSchema(OAuth2PasswordBearer):
         await deny_list.load()
         if deny_list.includes(raw_token):
             raise HTTPException(
-                status_code=401,
-                detail="Token has been revoked"
+                status_code=401, detail="Token has been revoked"
             )
         # - Does the user exist?
         user_mgr = UserMgr(state.gstate.store)
         user: Optional[UserModel] = await user_mgr.get(str(raw_token.sub))
         if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="User does not exist"
-            )
+            raise HTTPException(status_code=401, detail="User does not exist")
         # - Is user disabled?
         if user.disabled:
-            raise HTTPException(
-                status_code=401,
-                detail="User is disabled"
-            )
+            raise HTTPException(status_code=401, detail="User is disabled")
         return raw_token
 
 

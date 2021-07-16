@@ -19,13 +19,7 @@ import time
 
 from io import StringIO
 from logging import Logger
-from typing import (
-    Callable,
-    IO,
-    List,
-    Optional,
-    Tuple
-)
+from typing import Callable, IO, List, Optional, Tuple
 
 import pydantic
 from pydantic.tools import parse_obj_as
@@ -37,7 +31,7 @@ from .models import (
     NodeCPULoadModel,
     NodeInfoModel,
     NodeMemoryInfoModel,
-    VolumeDeviceModel
+    VolumeDeviceModel,
 )
 
 
@@ -49,7 +43,6 @@ class CephadmError(Exception):
 
 
 class Cephadm:
-
     def __init__(self):
         if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
@@ -58,17 +51,15 @@ class Cephadm:
             # deployment environment
             self.cephadm = ["sudo", "cephadm"]
 
-    async def call(self, cmd: List[str],
-                   outcb: Optional[Callable[[str], None]] = None
-                   ) -> Tuple[str, str, int]:
+    async def call(
+        self, cmd: List[str], outcb: Optional[Callable[[str], None]] = None
+    ) -> Tuple[str, str, int]:
 
         logger.debug(f"call: {cmd}")
         cmd = self.cephadm + cmd
 
         process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         assert process.stdout
         assert process.stderr
@@ -83,8 +74,11 @@ class Cephadm:
     async def run_in_background(self, cmd: List[str]) -> None:
         pass
 
-    async def _tee(self, reader: asyncio.StreamReader,
-                   cb: Optional[Callable[[str], None]] = None) -> str:
+    async def _tee(
+        self,
+        reader: asyncio.StreamReader,
+        cb: Optional[Callable[[str], None]] = None,
+    ) -> str:
         collected = StringIO()
         async for line in reader:
             msg = line.decode("utf-8")
@@ -97,9 +91,9 @@ class Cephadm:
     # command wrappers
     #
 
-    async def bootstrap(self, addr: str,
-                        percentcb: Optional[Callable[[int], None]] = None
-                        ) -> Tuple[str, str, int]:
+    async def bootstrap(
+        self, addr: str, percentcb: Optional[Callable[[int], None]] = None
+    ) -> Tuple[str, str, int]:
 
         if not addr:
             raise CephadmError("address not specified")
@@ -116,7 +110,7 @@ class Cephadm:
             ("enabling cephadm module", 60),
             ("setting orchestrator backend to cephadm", 70),
             ("adding host", 80),
-            ("bootstrap complete", 100)
+            ("bootstrap complete", 100),
         ]
 
         def outcb_handler(msg: str) -> None:
@@ -128,17 +122,13 @@ class Cephadm:
                     percentcb(p)
 
         def get_default_ceph_conf() -> str:
-            s = (
-                "[global]",
-                "osd_pool_default_size = 2",
-                ""
-            )
+            s = ("[global]", "osd_pool_default_size = 2", "")
             return "\n".join(s)
 
         def write_tmp(s: str) -> IO[str]:
             t = tempfile.NamedTemporaryFile(
-                prefix='aquarium-',
-                mode='w',
+                prefix="aquarium-",
+                mode="w",
             )
             t.write(s)
             t.flush()
@@ -148,8 +138,10 @@ class Cephadm:
         cmd: List[str] = [
             "bootstrap",
             "--skip-prepare-host",
-            "--mon-ip", addr,
-            "--config", tmp_config.name,
+            "--mon-ip",
+            addr,
+            "--config",
+            tmp_config.name,
             "--skip-dashboard",
             "--skip-monitoring-stack",
         ]
@@ -207,16 +199,16 @@ class Cephadm:
                 load=NodeCPULoadModel(
                     one_min=facts.cpu_load["1min"],
                     five_min=facts.cpu_load["5min"],
-                    fifteen_min=facts.cpu_load["15min"]
-                )
+                    fifteen_min=facts.cpu_load["15min"],
+                ),
             ),
             nics=facts.interfaces,
             memory=NodeMemoryInfoModel(
                 available_kb=facts.memory_available_kb,
                 free_kb=facts.memory_free_kb,
-                total_kb=facts.memory_total_kb
+                total_kb=facts.memory_total_kb,
             ),
-            disks=inventory
+            disks=inventory,
         )
 
     async def pull_images(self) -> None:

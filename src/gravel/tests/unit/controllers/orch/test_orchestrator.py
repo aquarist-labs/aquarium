@@ -30,7 +30,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 def test_device_ls(
     get_data_contents: Callable[[str, str], str],
     mocker: MockerFixture,
-    gstate: GlobalState
+    gstate: GlobalState,
 ) -> None:
 
     orch = Orchestrator(gstate.ceph_mgr)
@@ -46,9 +46,8 @@ def test_device_ls(
 def test_devices_assimilated(
     get_data_contents: Callable[[str, str], str],
     mocker: MockerFixture,
-    gstate: GlobalState
+    gstate: GlobalState,
 ) -> None:
-
     def device_ls_gen():
         raw = json.loads(
             get_data_contents(DATA_DIR, "device_ls_not_available.json")
@@ -63,12 +62,8 @@ def test_devices_assimilated(
     orch = Orchestrator(gstate.ceph_mgr)
 
     devicegen = device_ls_gen()
-    orch.devices_ls = mocker.MagicMock(
-        return_value=next(devicegen)
-    )
+    orch.devices_ls = mocker.MagicMock(return_value=next(devicegen))
     assert orch.devices_assimilated("asd", ["/dev/vdb", "/dev/vdc"])
 
-    orch.devices_ls = mocker.MagicMock(
-        return_value=next(devicegen)
-    )
+    orch.devices_ls = mocker.MagicMock(return_value=next(devicegen))
     assert not orch.devices_assimilated("asd", ["/dev/vdc"])

@@ -13,12 +13,7 @@
 
 from __future__ import annotations
 import asyncio
-from typing import (
-    Tuple,
-    Optional,
-    Any,
-    cast
-)
+from typing import Tuple, Optional, Any, cast
 from logging import Logger
 
 import websockets
@@ -57,9 +52,7 @@ class ConnMgr:
         return self._is_incoming_started
 
     async def on_incoming_receive(
-        self,
-        conn: IncomingConnection,
-        msg: MessageModel
+        self, conn: IncomingConnection, msg: MessageModel
     ) -> None:
         logger.debug(f"connmgr -- incoming recv: {conn}, {msg}")
 
@@ -70,7 +63,7 @@ class ConnMgr:
         logger.debug(f"connmgr -- queue len: {self._incoming_queue.qsize()}")
 
     async def wait_incoming_msg(
-        self
+        self,
     ) -> Tuple[IncomingConnection, MessageModel]:
         return await self._incoming_queue.get()
 
@@ -96,9 +89,7 @@ class IncomingConnection(WebSocketEndpoint):
         await websocket.accept()
 
     async def on_disconnect(
-        self,
-        websocket: WebSocket,
-        close_code: int
+        self, websocket: WebSocket, close_code: int
     ) -> None:
         logger.debug(f"incoming -- disconnect from {websocket.client}")
         self._ws = None
@@ -118,7 +109,9 @@ class IncomingConnection(WebSocketEndpoint):
     @property
     def address(self) -> str:
         assert self._ws
-        return cast(str, self._ws.client.host)  # pyright: reportUnknownMemberType=false
+        return cast(
+            str, self._ws.client.host
+        )  # pyright: reportUnknownMemberType=false
 
 
 class OutgoingConnection:
