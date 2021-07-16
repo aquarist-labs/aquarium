@@ -17,32 +17,22 @@ from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
-from gravel.controllers.nodes.mgr import (
-    NodeMgr
-)
+from gravel.controllers.nodes.mgr import NodeMgr
 
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
 from gravel.controllers.orch.models import (
     CephFSListEntryModel,
-    CephOSDPoolEntryModel
+    CephOSDPoolEntryModel,
 )
 from gravel.controllers.orch.nfs import (
     NFSBackingStoreEnum,
     NFSError,
     NFSExport,
-    NFSService
+    NFSService,
 )
-from gravel.controllers.gstate import (
-    Ticker,
-    GlobalState
-)
-from gravel.controllers.resources.devices import (
-    DeviceHostModel,
-    Devices
-)
-from gravel.controllers.resources.storage import (
-    Storage, StoragePoolModel
-)
+from gravel.controllers.gstate import Ticker, GlobalState
+from gravel.controllers.resources.devices import DeviceHostModel, Devices
+from gravel.controllers.resources.storage import Storage, StoragePoolModel
 
 
 logger: Logger = fastapi_logger
@@ -109,12 +99,15 @@ class AllocationConstraints(BaseModel):
 
 
 class ConstraintsModel(BaseModel):
-    allocations: AllocationConstraints = \
-        Field(AllocationConstraints(), title="allocations constraints")
-    redundancy: RedundancyConstraints = \
-        Field(RedundancyConstraints(), title="redundancy constraints")
-    availability: AvailabilityConstraints = \
-        Field(AvailabilityConstraints(), title="availability constraints")
+    allocations: AllocationConstraints = Field(
+        AllocationConstraints(), title="allocations constraints"
+    )
+    redundancy: RedundancyConstraints = Field(
+        RedundancyConstraints(), title="redundancy constraints"
+    )
+    availability: AvailabilityConstraints = Field(
+        AvailabilityConstraints(), title="availability constraints"
+    )
 
 
 class ServiceStorageModel(BaseModel):
@@ -132,10 +125,7 @@ class Services(Ticker):
     _state_watcher_id: Optional[int]
 
     def __init__(
-        self,
-        probe_interval: float,
-        gstate: GlobalState,
-        nodemgr: NodeMgr
+        self, probe_interval: float, gstate: GlobalState, nodemgr: NodeMgr
     ):
         super().__init__(probe_interval)
         self.gstate = gstate
@@ -164,11 +154,7 @@ class Services(Ticker):
             await self.gstate.store.cancel_watch(self._state_watcher_id)
 
     async def create(
-        self,
-        name: str,
-        type: ServiceTypeEnum,
-        size: int,
-        replicas: int
+        self, name: str, type: ServiceTypeEnum, size: int, replicas: int
     ) -> ServiceModel:
 
         if not self._is_ready():
@@ -187,7 +173,7 @@ class Services(Ticker):
             type=type,
             pools=[],
             replicas=replicas,
-            raw_size=size*replicas
+            raw_size=size * replicas,
         )
 
         if svc.type == ServiceTypeEnum.CEPHFS:
@@ -220,14 +206,14 @@ class Services(Ticker):
     def total_raw_allocation(self) -> int:
         total: int = 0
         for service in self._services.values():
-            total += (service.allocation * service.replicas)
+            total += service.allocation * service.replicas
         return total
 
     @property
     def available_space(self) -> int:
         storage: Storage = self.gstate.storage
         total_storage: int = storage.total
-        return (total_storage - self.total_raw_allocation)
+        return total_storage - self.total_raw_allocation
 
     def __contains__(self, name: str) -> bool:
         return name in self._services
@@ -244,17 +230,20 @@ class Services(Ticker):
         tied to any particular service's requirements.
         """
         devices_ctrl: Devices = self.gstate.devices
-        devs_per_host: Dict[str, DeviceHostModel] = \
-            devices_ctrl.devices_per_host
+        devs_per_host: Dict[
+            str, DeviceHostModel
+        ] = devices_ctrl.devices_per_host
 
         logger.debug(f"get constraints, hosts = {devs_per_host}")
 
-        hosts: List[str] = \
-            [h for h, d in devs_per_host.items() if len(d.devices) > 0]
+        hosts: List[str] = [
+            h for h, d in devs_per_host.items() if len(d.devices) > 0
+        ]
         num_hosts: int = len(hosts)
 
-        availability: AvailabilityConstraints = \
-            AvailabilityConstraints(hosts=num_hosts)
+        availability: AvailabilityConstraints = AvailabilityConstraints(
+            hosts=num_hosts
+        )
 
         max_devs: int = 0
         min_devs: int = -1
@@ -279,27 +268,24 @@ class Services(Ticker):
         redundancy.max_replicas = max_devs if num_hosts == 1 else num_hosts
 
         allocations: AllocationConstraints = AllocationConstraints(
-            allocated=self.total_raw_allocation,
-            available=self.available_space
+            allocated=self.total_raw_allocation, available=self.available_space
         )
 
         return ConstraintsModel(
             allocations=allocations,
             redundancy=redundancy,
-            availability=availability
+            availability=availability,
         )
 
     def check_requirements(
         self, size: int, replicas: int
     ) -> Tuple[bool, ServiceRequirementsModel]:
-        required: int = size*replicas
+        required: int = size * replicas
         allocated: int = self.total_raw_allocation
         available: int = self.available_space
-        feasible: bool = (required <= available)
+        feasible: bool = required <= available
         requirements = ServiceRequirementsModel(
-            allocated=allocated,
-            available=available,
-            required=required
+            allocated=allocated, available=available, required=required
         )
         return feasible, requirements
 
@@ -339,7 +325,7 @@ class Services(Ticker):
                 used=used_bytes,
                 avail=available,
                 allocated=allocated,
-                utilization=utilization
+                utilization=utilization,
             )
 
         return services
@@ -399,21 +385,19 @@ class Services(Ticker):
         self._create_cephfs(svc)
 
         # create an generic NFS service
-        nfs_svc_id = 'gravel'
-        nfs_svc_placement = '*'
+        nfs_svc_id = "gravel"
+        nfs_svc_placement = "*"
         if nfs_svc_id in NFSService(self.gstate.ceph_mgr).ls():
             try:
                 NFSService(self.gstate.ceph_mgr).update(
-                    nfs_svc_id,
-                    placement=nfs_svc_placement
+                    nfs_svc_id, placement=nfs_svc_placement
                 )
             except NFSError as e:
                 raise ServiceError("unable to update nfs service") from e
         else:
             try:
                 NFSService(self.gstate.ceph_mgr).create(
-                    nfs_svc_id,
-                    placement=nfs_svc_placement
+                    nfs_svc_id, placement=nfs_svc_placement
                 )
             except NFSError as e:
                 raise ServiceError("unable to create nfs service") from e
@@ -424,7 +408,7 @@ class Services(Ticker):
                 service_id=nfs_svc_id,
                 binding=svc.name,
                 fs_type=NFSBackingStoreEnum.CEPHFS,
-                fs_name=svc.name
+                fs_name=svc.name,
             )
         except NFSError as e:
             raise ServiceError("unable to create nfs export") from e
@@ -459,5 +443,6 @@ class Services(Ticker):
                 return
             self._load_state(value)
 
-        self._state_watcher_id = \
-            await self.gstate.store.watch("/services/state", _cb)
+        self._state_watcher_id = await self.gstate.store.watch(
+            "/services/state", _cb
+        )

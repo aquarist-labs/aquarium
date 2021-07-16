@@ -27,13 +27,13 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 async def test_set_hostname(
     mocker: MockerFixture,
     fs: fake_filesystem.FakeFilesystem,
-    get_data_contents: Callable[[str, str], str]
+    get_data_contents: Callable[[str, str], str],
 ) -> None:
 
     called_set_hostname = False
 
     async def mock_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         nonlocal called_set_hostname
         called_set_hostname = True
@@ -43,7 +43,7 @@ async def test_set_hostname(
         return 0, None, None
 
     async def mock_call_fail(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         return 1, None, "oops"
 
@@ -63,9 +63,7 @@ async def test_set_hostname(
     assert throws
     assert not fs.exists("/etc/hosts")
 
-    mocker.patch(
-        "gravel.controllers.nodes.host.aqr_run_cmd", new=mock_call
-    )
+    mocker.patch("gravel.controllers.nodes.host.aqr_run_cmd", new=mock_call)
     fs.create_file("/etc/hosts")
     hosts = get_data_contents(DATA_DIR, "hosts.raw")
     with open("/etc/hosts", "w") as f:

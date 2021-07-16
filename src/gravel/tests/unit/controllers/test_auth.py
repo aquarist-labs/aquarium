@@ -15,13 +15,7 @@
 
 import pytest
 
-from gravel.controllers.auth import (
-    JWT,
-    JWTDenyList,
-    JWTMgr,
-    UserModel,
-    UserMgr
-)
+from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserModel, UserMgr
 from gravel.controllers.config import AuthOptionsModel
 from gravel.controllers.gstate import GlobalState
 
@@ -44,17 +38,9 @@ def test_user_model_verify_password():
 async def test_user_mgr(gstate: GlobalState):
     await gstate.store.ensure_connection()
     user_mgr = UserMgr(gstate.store)
-    user1 = UserModel(
-        username="foo",
-        password="test1",
-        full_name="foo loo"
-    )
+    user1 = UserModel(username="foo", password="test1", full_name="foo loo")
     user1.hash_password()
-    user2 = UserModel(
-        username="bar",
-        password="test2",
-        full_name="bar baz"
-    )
+    user2 = UserModel(username="bar", password="test2", full_name="bar baz")
     user2.hash_password()
     await user_mgr.put(user1)
     await user_mgr.put(user2)
@@ -79,11 +65,13 @@ def test_jwt_mgr_create_access_token():
 def test_jwt_mgr_get_raw_access_token():
     config = AuthOptionsModel(jwt_secret="m[>\\Ura3,C`<NV^m\ryG0-^ik")
     jwt_mgr = JWTMgr(config)
-    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJBcXVhcml1b"\
-            "SIsInN1YiI6ImZvbyIsImlhdCI6MTYyNTE1MjQ4OSwibmJmIjoxNjI1MTU"\
-            "yNDg5LCJleHAiOjE2MjUxODg0ODksImp0aSI6Ijg3YmYzMWJjLWI5Y2MtN"\
-            "DNlOC05MDFmLWU2MDdlNWU5ODY5MiJ9.PsNLQLfMTW5QT5GPS2sam_ReIt"\
-            "erTZ_NKTO4rBhLcdI"
+    token = (
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJBcXVhcml1b"
+        "SIsInN1YiI6ImZvbyIsImlhdCI6MTYyNTE1MjQ4OSwibmJmIjoxNjI1MTU"
+        "yNDg5LCJleHAiOjE2MjUxODg0ODksImp0aSI6Ijg3YmYzMWJjLWI5Y2MtN"
+        "DNlOC05MDFmLWU2MDdlNWU5ODY5MiJ9.PsNLQLfMTW5QT5GPS2sam_ReIt"
+        "erTZ_NKTO4rBhLcdI"
+    )
     raw_token = jwt_mgr.get_raw_access_token(token, verify=False)
     assert isinstance(raw_token, JWT)
     assert raw_token.sub == "foo"
@@ -96,12 +84,12 @@ async def test_jwt_deny_list(gstate: GlobalState):
     await jwt_deny_list.load()
     assert not len(jwt_deny_list._jti_dict)
     jwt = JWT(
-        iss='Aquarium',
-        sub='foo',
+        iss="Aquarium",
+        sub="foo",
         iat=1625152489,
         nbf=1625152489,
         exp=1625188489,
-        jti='87bf31bc-b9cc-43e8-901f-e607e5e98692'
+        jti="87bf31bc-b9cc-43e8-901f-e607e5e98692",
     )
     jwt_deny_list.add(jwt)
     assert jwt_deny_list.includes(jwt)

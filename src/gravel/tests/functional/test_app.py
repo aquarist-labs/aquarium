@@ -21,6 +21,7 @@ async def test_simple_app_response(async_client):
     assert response.status_code == 200
     assert '{"inited":false,"node_stage":0}' == response.text
     import asyncio
+
     await asyncio.sleep(5)
 
     response = await async_client.get("/api/local/status")

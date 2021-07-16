@@ -12,25 +12,17 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import (
-    Dict,
-    List
-)
+from typing import Dict, List
 from fastapi.logger import logger as fastapi_logger
-from pydantic import (
-    Field,
-    BaseModel
-)
+from pydantic import Field, BaseModel
 
 from gravel.controllers.gstate import Ticker
-from gravel.controllers.nodes.mgr import (
-    NodeMgr
-)
+from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.ceph import Mgr, Mon
 from gravel.cephadm.models import VolumeDeviceModel
 from gravel.controllers.orch.models import (
     CephOSDDFModel,
-    OrchDevicesPerHostModel
+    OrchDevicesPerHostModel,
 )
 from gravel.controllers.orch.orchestrator import Orchestrator
 
@@ -56,8 +48,9 @@ class DeviceModel(BaseModel):
 
 
 class DeviceHostModel(BaseModel):
-    utilization: DeviceUtilizationModel = Field(DeviceUtilizationModel(),
-                                                title="Host's utilization")
+    utilization: DeviceUtilizationModel = Field(
+        DeviceUtilizationModel(), title="Host's utilization"
+    )
     devices: List[DeviceModel] = Field([], title="Host's devices")
 
 
@@ -66,7 +59,13 @@ class Devices(Ticker):
     _osds_per_host: Dict[str, List[int]] = {}
     _osd_entries: Dict[int, DeviceModel] = {}
 
-    def __init__(self, probe_interval: float, nodemgr: NodeMgr, ceph_mgr: Mgr, ceph_mon: Mon):
+    def __init__(
+        self,
+        probe_interval: float,
+        nodemgr: NodeMgr,
+        ceph_mgr: Mgr,
+        ceph_mon: Mon,
+    ):
         super().__init__(probe_interval)
         self.nodemgr = nodemgr
         self.ceph_mon = ceph_mon
@@ -77,8 +76,8 @@ class Devices(Ticker):
 
     async def _should_tick(self) -> bool:
         return (
-            self.nodemgr.deployment_state.deployed or
-            self.nodemgr.deployment_state.ready
+            self.nodemgr.deployment_state.deployed
+            or self.nodemgr.deployment_state.ready
         ) and self.nodemgr.started
 
     async def probe(self) -> None:
@@ -116,7 +115,7 @@ class Devices(Ticker):
                         path=dev.path,
                         rotational=dev.sys_api.rotational,
                         vendor=dev.sys_api.vendor,
-                        model=dev.sys_api.model
+                        model=dev.sys_api.model,
                     )
                     osds.append(lv.osd_id)
 
@@ -130,7 +129,7 @@ class Devices(Ticker):
                 total_kb=osd.kb,
                 avail_kb=osd.kb_avail,
                 used_kb=osd.kb_used,
-                utilization=osd.utilization
+                utilization=osd.utilization,
             )
 
         self._osds_per_host = osds_per_host
@@ -166,11 +165,10 @@ class Devices(Ticker):
                 total_kb=total_kb,
                 avail_kb=avail_kb,
                 used_kb=used_kb,
-                utilization=utilization
+                utilization=utilization,
             )
             host_entry = DeviceHostModel(
-                utilization=host_utilization,
-                devices=devices
+                utilization=host_utilization, devices=devices
             )
             devs_per_host[host] = host_entry
 

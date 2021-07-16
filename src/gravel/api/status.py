@@ -25,16 +25,13 @@ from gravel.controllers.resources.status import (
     CephStatusNotAvailableError,
     ClientIORateNotAvailableError,
     OverallClientIORateModel,
-    Status
+    Status,
 )
 
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(
-    prefix="/status",
-    tags=["status"]
-)
+router: APIRouter = APIRouter(prefix="/status", tags=["status"])
 
 
 class StatusModel(BaseModel):
@@ -42,7 +39,9 @@ class StatusModel(BaseModel):
 
 
 @router.get("/", response_model=StatusModel)
-async def get_status(request: Request, _=Depends(jwt_auth_scheme)) -> StatusModel:
+async def get_status(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> StatusModel:
 
     status_ctrl: Status = request.app.state.gstate.status
     cluster: Optional[CephStatusModel] = None
@@ -53,9 +52,7 @@ async def get_status(request: Request, _=Depends(jwt_auth_scheme)) -> StatusMode
         logger.warn("unable to obtain ceph cluster status")
         cluster = None
 
-    status: StatusModel = StatusModel(
-        cluster=cluster
-    )
+    status: StatusModel = StatusModel(cluster=cluster)
     return status
 
 
@@ -71,11 +68,10 @@ async def get_logs(_=Depends(jwt_auth_scheme)) -> str:
 @router.get(
     "/client-io-rates",
     name="Obtain Client I/O rates for the cluster and individual services",
-    response_model=OverallClientIORateModel
+    response_model=OverallClientIORateModel,
 )
 async def get_client_io_rates(
-    request: Request,
-    _=Depends(jwt_auth_scheme)
+    request: Request, _=Depends(jwt_auth_scheme)
 ) -> OverallClientIORateModel:
     """
     Obtain the cluster's overal IO rates, and service-specific IO rates.
@@ -94,5 +90,5 @@ async def get_client_io_rates(
     except ClientIORateNotAvailableError:
         raise HTTPException(
             status_code=status.HTTP_412_PRECONDITION_FAILED,
-            detail="Client IO rates not available at the moment"
+            detail="Client IO rates not available at the moment",
         )

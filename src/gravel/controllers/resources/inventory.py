@@ -14,12 +14,7 @@
 from __future__ import annotations
 from logging import Logger
 import time
-from typing import (
-    Awaitable,
-    Callable,
-    List,
-    Optional
-)
+from typing import Awaitable, Callable, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import Ticker, GlobalState
@@ -49,10 +44,7 @@ class Inventory(Ticker):
     _gstate: GlobalState
 
     def __init__(
-        self,
-        probe_interval: float,
-        nodemgr: NodeMgr,
-        gstate: GlobalState
+        self, probe_interval: float, nodemgr: NodeMgr, gstate: GlobalState
     ):
         super().__init__(1.0)
         self._latest = None
@@ -85,9 +77,7 @@ class Inventory(Ticker):
         return self._latest
 
     async def subscribe(
-        self,
-        cb: Callable[[NodeInfoModel], Awaitable[None]],
-        once: bool
+        self, cb: Callable[[NodeInfoModel], Awaitable[None]], once: bool
     ) -> Optional[Subscriber]:
         # if we have available state, call back immediately.
         if self._latest:

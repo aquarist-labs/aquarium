@@ -23,7 +23,7 @@ from gravel.api import jwt_auth_scheme
 from gravel.controllers.orch.cephfs import (
     CephFS,
     CephFSError,
-    CephFSNoAuthorizationError
+    CephFSNoAuthorizationError,
 )
 from gravel.controllers.orch.models import CephFSAuthorizationModel
 from gravel.controllers.services import (
@@ -35,15 +35,12 @@ from gravel.controllers.services import (
     ServiceRequirementsModel,
     ServiceStorageModel,
     ServiceTypeEnum,
-    UnknownServiceError
+    UnknownServiceError,
 )
 
 
 logger: Logger = fastapi_logger
-router: APIRouter = APIRouter(
-    prefix="/services",
-    tags=["services"]
-)
+router: APIRouter = APIRouter(prefix="/services", tags=["services"])
 
 
 class RequirementsRequest(BaseModel):
@@ -70,40 +67,45 @@ class CreateResponse(BaseModel):
 @router.get(
     "/constraints",
     name="Obtain service constraints",
-    response_model=ConstraintsModel
+    response_model=ConstraintsModel,
 )
-async def get_constraints(request: Request, _=Depends(jwt_auth_scheme)) -> ConstraintsModel:
+async def get_constraints(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> ConstraintsModel:
     services = request.app.state.gstate.services
     return services.constraints
 
 
 @router.get("/", response_model=List[ServiceModel])
-async def get_services(request: Request, _=Depends(jwt_auth_scheme)) -> List[ServiceModel]:
+async def get_services(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> List[ServiceModel]:
     services = request.app.state.gstate.services
     return services.ls()
 
 
-@router.get("/get/{service_name}",
-            name="Get service by name",
-            response_model=ServiceModel)
+@router.get(
+    "/get/{service_name}",
+    name="Get service by name",
+    response_model=ServiceModel,
+)
 async def get_service(
-    service_name: str,
-    request: Request,
-    _=Depends(jwt_auth_scheme)
+    service_name: str, request: Request, _=Depends(jwt_auth_scheme)
 ) -> ServiceModel:
     services = request.app.state.gstate.services
     try:
         return services.get(service_name)
     except UnknownServiceError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
 
 
 @router.post("/check-requirements", response_model=RequirementsResponse)
 async def check_requirements(
     requirements: RequirementsRequest,
     request: Request,
-    _=Depends(jwt_auth_scheme)
+    _=Depends(jwt_auth_scheme),
 ) -> RequirementsResponse:
 
     size: int = requirements.size
@@ -112,7 +114,7 @@ async def check_requirements(
     if size == 0 or replicas == 0:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            detail="requires positive 'size' and number of 'replicas'"
+            detail="requires positive 'size' and number of 'replicas'",
         )
 
     services = request.app.state.gstate.services
@@ -122,29 +124,28 @@ async def check_requirements(
 
 @router.post("/create", response_model=CreateResponse)
 async def create_service(
-    req: CreateRequest,
-    request: Request,
-    _=Depends(jwt_auth_scheme)
+    req: CreateRequest, request: Request, _=Depends(jwt_auth_scheme)
 ) -> CreateResponse:
 
     services = request.app.state.gstate.services
     try:
         await services.create(req.name, req.type, req.size, req.replicas)
     except NotImplementedError as e:
-        raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED,
-                            detail=str(e))
+        raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED, detail=str(e))
     except NotEnoughSpaceError:
         raise HTTPException(status.HTTP_507_INSUFFICIENT_STORAGE)
     except ServiceError as e:
-        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED,
-                            detail=str(e))
+        raise HTTPException(
+            status.HTTP_428_PRECONDITION_REQUIRED, detail=str(e)
+        )
     except Exception as e:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=str(e))
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except NotReadyError:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="node not ready yet"
+            detail="node not ready yet",
         )
     return CreateResponse(success=True)
 
@@ -152,11 +153,10 @@ async def create_service(
 @router.get(
     "/stats",
     name="Obtain services statistics",
-    response_model=Dict[str, ServiceStorageModel]
+    response_model=Dict[str, ServiceStorageModel],
 )
 async def get_statistics(
-    request: Request,
-    _=Depends(jwt_auth_scheme)
+    request: Request, _=Depends(jwt_auth_scheme)
 ) -> Dict[str, ServiceStorageModel]:
     """
     Returns a dictionary of service names to a dictionary containing the
@@ -169,20 +169,20 @@ async def get_statistics(
     except NotReadyError:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="node not ready yet"
+            detail="node not ready yet",
         )
 
 
 @router.get(
     "/cephfs/auth/{name}",
     name="Obtain authentication details for a cephfs service",
-    response_model=CephFSAuthorizationModel
+    response_model=CephFSAuthorizationModel,
 )
 async def get_authorization(
     request: Request,
     name: str,
     clientid: Optional[str] = None,
-    _=Depends(jwt_auth_scheme)
+    _=Depends(jwt_auth_scheme),
 ) -> CephFSAuthorizationModel:
     """
     Obtain authorization credentials for a given service `name`. In case of
@@ -191,17 +191,17 @@ async def get_authorization(
     exists.
     """
     cephfs: CephFS = CephFS(
-        request.app.state.gstate.ceph_mgr, request.app.state.gstate.ceph_mon)
+        request.app.state.gstate.ceph_mgr, request.app.state.gstate.ceph_mon
+    )
     try:
         result = cephfs.get_authorization(name, clientid)
         return result
     except CephFSNoAuthorizationError:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
-            detail="No authorization found for service"
+            detail="No authorization found for service",
         )
     except CephFSError as e:
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )

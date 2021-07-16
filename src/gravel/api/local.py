@@ -16,26 +16,17 @@ from typing import List
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from fastapi import Depends, HTTPException, Request, status
-from pydantic import (
-    BaseModel,
-    Field
-)
+from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
-from gravel.cephadm.models import (
-    NodeInfoModel,
-    VolumeDeviceModel
-)
+from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.deployment import NodeStageEnum
 
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(
-    prefix="/local",
-    tags=["local"]
-)
+router: APIRouter = APIRouter(prefix="/local", tags=["local"])
 
 
 class NodeStatusReplyModel(BaseModel):
@@ -46,9 +37,11 @@ class NodeStatusReplyModel(BaseModel):
 @router.get(
     "/volumes",
     name="Obtain local volumes",
-    response_model=List[VolumeDeviceModel]
+    response_model=List[VolumeDeviceModel],
 )
-async def get_volumes(request: Request, _=Depends(jwt_auth_scheme)) -> List[VolumeDeviceModel]:
+async def get_volumes(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
 
@@ -58,17 +51,21 @@ async def get_volumes(request: Request, _=Depends(jwt_auth_scheme)) -> List[Volu
     inventory = request.app.state.gstate.inventory
     latest = inventory.latest
     if not latest:
-        raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
-                            detail="Volume list not yet available")
+        raise HTTPException(
+            status_code=status.HTTP_425_TOO_EARLY,
+            detail="Volume list not yet available",
+        )
     return latest.disks
 
 
 @router.get(
     "/nodeinfo",
     name="Obtain local node information",
-    response_model=NodeInfoModel
+    response_model=NodeInfoModel,
 )
-async def get_node_info(request: Request, _=Depends(jwt_auth_scheme)) -> NodeInfoModel:
+async def get_node_info(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> NodeInfoModel:
     """
     Obtain this node's information and facts.
 
@@ -86,9 +83,11 @@ async def get_node_info(request: Request, _=Depends(jwt_auth_scheme)) -> NodeInf
 @router.get(
     "/inventory",
     name="Obtain local node inventory",
-    response_model=NodeInfoModel
+    response_model=NodeInfoModel,
 )
-async def get_inventory(request: Request, _=Depends(jwt_auth_scheme)) -> NodeInfoModel:
+async def get_inventory(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> NodeInfoModel:
     """
     Obtain this node's inventory.
 
@@ -105,17 +104,21 @@ async def get_inventory(request: Request, _=Depends(jwt_auth_scheme)) -> NodeInf
     inventory = request.app.state.gstate.inventory
     latest = inventory.latest
     if not latest:
-        raise HTTPException(status_code=status.HTTP_425_TOO_EARLY,
-                            detail="Inventory not available")
+        raise HTTPException(
+            status_code=status.HTTP_425_TOO_EARLY,
+            detail="Inventory not available",
+        )
     return latest
 
 
 @router.get(
     "/status",
     name="Obtain local node's status",
-    response_model=NodeStatusReplyModel
+    response_model=NodeStatusReplyModel,
 )
-async def get_status(request: Request, _=Depends(jwt_auth_scheme)) -> NodeStatusReplyModel:
+async def get_status(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> NodeStatusReplyModel:
     """
     Obtain this node's current status.
 
@@ -126,6 +129,5 @@ async def get_status(request: Request, _=Depends(jwt_auth_scheme)) -> NodeStatus
     nodemgr: NodeMgr = request.app.state.nodemgr
 
     return NodeStatusReplyModel(
-        inited=nodemgr.available,
-        node_stage=nodemgr.deployment_state.stage
+        inited=nodemgr.available, node_stage=nodemgr.deployment_state.stage
     )

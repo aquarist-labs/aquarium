@@ -11,5 +11,4 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-def run(app, **kwargs) -> None:
-    ...
+def run(app, **kwargs) -> None: ...

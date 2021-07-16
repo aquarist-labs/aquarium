@@ -37,5 +37,7 @@ async def set_ntp_addr(addr: str) -> None:
 
     ret, _, err = await aqr_run_cmd(["systemctl", "restart", "chronyd.service"])
     if ret:
-        raise NodeChronyRestartError(f"Unable to restart chronyd.service: {err}")
+        raise NodeChronyRestartError(
+            f"Unable to restart chronyd.service: {err}"
+        )
     logger.info("NTP address set")

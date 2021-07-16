@@ -20,16 +20,12 @@ from typing import Dict, List
 
 from gravel.api import jwt_auth_scheme
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
-from gravel.controllers.orch.orchestrator \
-    import Orchestrator
+from gravel.controllers.orch.orchestrator import Orchestrator
 
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(
-    prefix="/orch",
-    tags=["orch"]
-)
+router: APIRouter = APIRouter(prefix="/orch", tags=["orch"])
 
 
 class HostModel(BaseModel):
@@ -65,7 +61,9 @@ def get_hosts(request: Request, _=Depends(jwt_auth_scheme)) -> List[HostModel]:
 
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
-def get_devices(request: Request, _=Depends(jwt_auth_scheme)) -> Dict[str, HostsDevicesModel]:
+def get_devices(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> Dict[str, HostsDevicesModel]:
     orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
     host_devs: Dict[str, HostsDevicesModel] = {}
@@ -82,14 +80,12 @@ def get_devices(request: Request, _=Depends(jwt_auth_scheme)) -> Dict[str, Hosts
                     human_readable_type=dev.human_readable_type,
                     size=int(dev.sys_api.size),
                     path=dev.path,
-                    rejected_reasons=dev.rejected_reasons
+                    rejected_reasons=dev.rejected_reasons,
                 )
             )
 
         host: HostsDevicesModel = HostsDevicesModel(
-            address=orch_host.addr,
-            hostname=orch_host.name,
-            devices=devices
+            address=orch_host.addr, hostname=orch_host.name, devices=devices
         )
         host_devs[orch_host.name] = host
 
@@ -102,5 +98,6 @@ async def get_pubkey(request: Request, _=Depends(jwt_auth_scheme)) -> str:
         orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         return orch.get_public_key()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

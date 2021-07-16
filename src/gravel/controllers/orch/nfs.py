@@ -33,8 +33,8 @@ class NFSServiceModel(BaseModel):
 
 
 class NFSBackingStoreEnum(str, Enum):
-    CEPHFS = 'cephfs'
-    RGW = 'rgw'
+    CEPHFS = "cephfs"
+    RGW = "rgw"
 
 
 class NFSExportModel(BaseModel):
@@ -70,86 +70,88 @@ class NFS:
 class NFSService(NFS):
     def create(self, service_id: str, placement: Optional[str]) -> str:
         cmd = {
-            'prefix': 'nfs cluster create',
-            'type': 'cephfs',  # TODO: pending https://github.com/ceph/ceph/pull/40411
-            'clusterid': service_id,
+            "prefix": "nfs cluster create",
+            "type": "cephfs",  # TODO: pending https://github.com/ceph/ceph/pull/40411
+            "clusterid": service_id,
         }
         if placement:
-            cmd['placement'] = placement
-        return self._call(cmd)['result']
+            cmd["placement"] = placement
+        return self._call(cmd)["result"]
 
     def update(self, service_id: str, placement: str) -> str:
-        res = self._call({
-            'prefix': 'nfs cluster update',
-            'clusterid': service_id,
-            'placement': placement,
-        })
-        return res['result']
+        res = self._call(
+            {
+                "prefix": "nfs cluster update",
+                "clusterid": service_id,
+                "placement": placement,
+            }
+        )
+        return res["result"]
 
     def delete(self, service_id: str) -> str:
-        res = self._call({
-            'prefix': 'nfs cluster delete',
-            'clusterid': service_id,
-        })
-        return res['result']
+        res = self._call(
+            {
+                "prefix": "nfs cluster delete",
+                "clusterid": service_id,
+            }
+        )
+        return res["result"]
 
     def ls(self) -> List[str]:
-        res = self._call({
-            'prefix': 'nfs cluster ls',
-            'format': 'json',
-        })
-        return res['result'].split() if res.get('result') else []
+        res = self._call(
+            {
+                "prefix": "nfs cluster ls",
+                "format": "json",
+            }
+        )
+        return res["result"].split() if res.get("result") else []
 
     def info(self, service_id: Optional[str] = None) -> List[NFSServiceModel]:
         cmd = {
-            'prefix': 'nfs cluster info',
-            'format': 'json',
+            "prefix": "nfs cluster info",
+            "format": "json",
         }
         if service_id:
-            cmd['clusterid'] = service_id
+            cmd["clusterid"] = service_id
 
         res = self._call(cmd)
 
         ret: List[NFSServiceModel] = []
         for service_id in res:
             daemons = parse_obj_as(List[NFSDaemonModel], res[service_id])
-            ret.append(
-                NFSServiceModel(
-                    service_id=service_id,
-                    daemons=daemons
-                )
-            )
+            ret.append(NFSServiceModel(service_id=service_id, daemons=daemons))
         return ret
 
 
 class NFSExport(NFS):
     def create(
-            self,
-            service_id: str,
-            binding: str,
-            fs_type: NFSBackingStoreEnum,
-            fs_name: str,
-            fs_path: Optional[str] = None,
-            readonly: bool = False) -> NFSExportModel:
-        binding = str(Path('/').joinpath(binding))
+        self,
+        service_id: str,
+        binding: str,
+        fs_type: NFSBackingStoreEnum,
+        fs_name: str,
+        fs_path: Optional[str] = None,
+        readonly: bool = False,
+    ) -> NFSExportModel:
+        binding = str(Path("/").joinpath(binding))
         cmd = {
             # TODO: fix upstream: prefix contains `fs_type`
             # TODO: fix upstream: `rgw` is not currently supported
-            'prefix': f'nfs export create {fs_type}',
-            'fsname': fs_name,
-            'clusterid': service_id,
-            'binding': binding,
-            'readonly': readonly,
+            "prefix": f"nfs export create {fs_type}",
+            "fsname": fs_name,
+            "clusterid": service_id,
+            "binding": binding,
+            "readonly": readonly,
         }
         if fs_path:
-            cmd['path'] = fs_path
+            cmd["path"] = fs_path
 
         # TODO: fix upstream: add json formatter?
         #       output is sometimes json, sometimes str
         res = self._call(cmd)
-        if 'result' in res:
+        if "result" in res:
             # TODO: fix upstream: return proper errno
-            raise NFSError(res['result'])
+            raise NFSError(res["result"])
 
         # find the newly created export
         # TODO: fix upstream: return `export_id` in the create response?
@@ -159,41 +161,39 @@ class NFSExport(NFS):
                 return export
 
         # cannot find the export, did an error occur?
-        if 'result' in res:
-            raise NFSError(res['result'])
-        raise NFSError(f'failed to create nfs export: {res}')
+        if "result" in res:
+            raise NFSError(res["result"])
+        raise NFSError(f"failed to create nfs export: {res}")
 
     def delete(self, service_id: str, export_id: int):
         for export in self.info(service_id):
             if export.export_id == export_id:
-                res = self._call({
-                    'prefix': 'nfs export delete',
-                    'clusterid': service_id,
-                    # TODO: fix upstream: delete by `export_id`?
-                    'binding': str(Path('/').joinpath(export.pseudo)),
-                })
-                return res['result']
+                res = self._call(
+                    {
+                        "prefix": "nfs export delete",
+                        "clusterid": service_id,
+                        # TODO: fix upstream: delete by `export_id`?
+                        "binding": str(Path("/").joinpath(export.pseudo)),
+                    }
+                )
+                return res["result"]
         # TODO: return errno to create HTTP 404
-        raise NFSError('export not found')
+        raise NFSError("export not found")
 
     def ls(self, service_id: str) -> List[int]:
         return sorted([e.export_id for e in self.info(service_id)])
 
     def info(self, service_id: str) -> List[NFSExportModel]:
         cmd = {
-            'prefix': 'nfs export ls',
-            'clusterid': service_id,
-            'detailed': True,  # TODO: fix upstream: `detailed` -> `detail`?
-            'format': 'json',
+            "prefix": "nfs export ls",
+            "clusterid": service_id,
+            "detailed": True,  # TODO: fix upstream: `detailed` -> `detail`?
+            "format": "json",
         }
 
         res = self._call(cmd)
 
         ret: List[NFSExportModel] = []
         for export in res:
-            ret.append(
-                NFSExportModel(
-                    **export
-                )
-            )
+            ret.append(NFSExportModel(**export))
         return ret

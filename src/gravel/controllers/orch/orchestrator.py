@@ -18,13 +18,10 @@ import yaml
 from logging import Logger
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
-from gravel.controllers.orch.ceph import (
-    CephCommandError,
-    Mgr
-)
+from gravel.controllers.orch.ceph import CephCommandError, Mgr
 from gravel.controllers.orch.models import (
     OrchDevicesPerHostModel,
-    OrchHostListModel
+    OrchHostListModel,
 )
 
 
@@ -60,8 +57,7 @@ class Orchestrator:
             await asyncio.sleep(1.0)
 
     def devices_ls(
-        self,
-        hostname: Optional[str] = None
+        self, hostname: Optional[str] = None
     ) -> List[OrchDevicesPerHostModel]:
         cmd: Dict[str, Any] = {"prefix": "orch device ls"}
         if hostname and len(hostname) > 0:
@@ -74,19 +70,13 @@ class Orchestrator:
         spec = {
             "service_type": "osd",
             "service_id": "default_drive_group",
-            "placement": {
-                "hosts": [host]
-            },
-            "data_devices": {
-                "paths": devices
-            }
+            "placement": {"hosts": [host]},
+            "data_devices": {"paths": devices},
         }
         specstr: Optional[str] = yaml.dump(spec)  # type: ignore
         assert specstr is not None
         specbuf: bytes = specstr.encode("utf-8")
-        cmd = {
-            "prefix": "orch apply osd"
-        }
+        cmd = {"prefix": "orch apply osd"}
         res = self.call(cmd, inbuf=specbuf)
         assert "result" in res
 
@@ -118,16 +108,11 @@ class Orchestrator:
         return True
 
     def apply_mds(self, fsname: str) -> None:
-        cmd = {
-            "prefix": "orch apply mds",
-            "fs_name": fsname
-        }
+        cmd = {"prefix": "orch apply mds", "fs_name": fsname}
         self.call(cmd)
 
     def get_public_key(self) -> str:
-        cmd = {
-            "prefix": "cephadm get-pub-key"
-        }
+        cmd = {"prefix": "cephadm get-pub-key"}
         res = self.call(cmd)
         assert "result" in res
         return res["result"]
@@ -136,16 +121,10 @@ class Orchestrator:
         assert hostname
         assert address
 
-        cmd = {
-            "prefix": "orch host add",
-            "hostname": hostname,
-            "addr": address
-        }
+        cmd = {"prefix": "orch host add", "hostname": hostname, "addr": address}
         try:
             self.call(cmd)
         except CephCommandError:
-            logger.error(
-                f"host add > unable to add {hostname} {address}"
-            )
+            logger.error(f"host add > unable to add {hostname} {address}")
             return False
         return True

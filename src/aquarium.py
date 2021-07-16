@@ -73,25 +73,28 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
         gstate.config.options.devices.probe_interval,
         nodemgr,
         ceph_mgr,
-        ceph_mon
+        ceph_mon,
     )
     gstate.add_devices(devices)
 
-    status: Status = Status(gstate.config.options.status.probe_interval, gstate, nodemgr)
+    status: Status = Status(
+        gstate.config.options.status.probe_interval, gstate, nodemgr
+    )
     gstate.add_status(status)
 
     inventory: Inventory = Inventory(
-        gstate.config.options.inventory.probe_interval,
-        nodemgr,
-        gstate
+        gstate.config.options.inventory.probe_interval, nodemgr, gstate
     )
     gstate.add_inventory(inventory)
 
-    storage: Storage = Storage(gstate.config.options.storage.probe_interval, nodemgr, ceph_mon)
+    storage: Storage = Storage(
+        gstate.config.options.storage.probe_interval, nodemgr, ceph_mon
+    )
     gstate.add_storage(storage)
 
     services: Services = Services(
-        gstate.config.options.services.probe_interval, gstate, nodemgr)
+        gstate.config.options.services.probe_interval, gstate, nodemgr
+    )
     gstate.add_services(services)
 
     await nodemgr.start()
@@ -112,51 +115,52 @@ async def aquarium_shutdown(_: FastAPI, aquarium_api: FastAPI):
 def aquarium_factory(
     startup_method=aquarium_startup,
     shutdown_method=aquarium_shutdown,
-    static_dir=None
+    static_dir=None,
 ):
     api_tags_metadata = [
         {
             "name": "local",
-            "description": "Operations local to the node where the endpoint is being invoked."
+            "description": "Operations local to the node where the endpoint is being invoked.",
         },
         {
             "name": "orch",
-            "description": "Operations related to Ceph cluster orchestration."
+            "description": "Operations related to Ceph cluster orchestration.",
         },
         {
             "name": "status",
-            "description": "Allows obtaining operation status information."
+            "description": "Allows obtaining operation status information.",
         },
         {
             "name": "services",
-            "description": "Create, destroy, and operate Aquarium Services."
+            "description": "Create, destroy, and operate Aquarium Services.",
         },
         {
             "name": "nodes",
-            "description": "Perform Aquarium Cluster node operations"
+            "description": "Perform Aquarium Cluster node operations",
         },
         {
             "name": "devices",
-            "description": "Obtain and perform operations on cluster devices"
+            "description": "Obtain and perform operations on cluster devices",
         },
         {
             "name": "auth",
-            "description": "Operations related to user authentication"
+            "description": "Operations related to user authentication",
         },
         {
             "name": "user",
-            "description": "Operations related to user management"
-        }
+            "description": "Operations related to user management",
+        },
     ]
 
     aquarium_app = FastAPI(docs_url=None)
     aquarium_api = FastAPI(
         title="Project Aquarium",
-        description="Project Aquarium is a SUSE-sponsored open source project " +
-                    "aiming at becoming an easy to use, rock solid storage " +
-                    "appliance based on Ceph.",
+        description="Project Aquarium is a SUSE-sponsored open source project "
+        + "aiming at becoming an easy to use, rock solid storage "
+        + "appliance based on Ceph.",
         version="1.0.0",
-        openapi_tags=api_tags_metadata)
+        openapi_tags=api_tags_metadata,
+    )
 
     @aquarium_app.on_event("startup")  # type: ignore
     async def on_startup():
@@ -182,17 +186,11 @@ def aquarium_factory(
     #   everything that comes before.
     #
     # api calls go here.
-    aquarium_app.mount(
-        "/api",
-        aquarium_api,
-        name="api"
-    )
+    aquarium_app.mount("/api", aquarium_api, name="api")
     # mounting root "/" must be the last thing, so it does not override "/api".
     if static_dir:
         aquarium_app.mount(
-            "/",
-            StaticFiles(directory=static_dir, html=True),
-            name="static"
+            "/", StaticFiles(directory=static_dir, html=True), name="static"
         )
 
     return aquarium_app
@@ -200,8 +198,7 @@ def aquarium_factory(
 
 def app_factory():
     static_dir = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'glass/dist/'
+        os.path.dirname(os.path.realpath(__file__)), "glass/dist/"
     )
     return aquarium_factory(aquarium_startup, aquarium_shutdown, static_dir)
 

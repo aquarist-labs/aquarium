@@ -22,19 +22,15 @@ from gravel.controllers.resources.devices import DeviceHostModel
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(
-    prefix="/devices",
-    tags=["devices"]
-)
+router: APIRouter = APIRouter(prefix="/devices", tags=["devices"])
 
 
 @router.get(
     "/",
     name="Obtain devices being used for storage, per host",
-    response_model=Dict[str, DeviceHostModel]
+    response_model=Dict[str, DeviceHostModel],
 )
 def get_per_host_devices(
-    request: Request,
-    _=Depends(jwt_auth_scheme)
+    request: Request, _=Depends(jwt_auth_scheme)
 ) -> Dict[str, DeviceHostModel]:
     return request.app.state.gstate.devices.devices_per_host
