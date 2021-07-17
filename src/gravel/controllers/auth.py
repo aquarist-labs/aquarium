@@ -35,10 +35,14 @@ class UserModel(BaseModel):
 
     def hash_password(self) -> None:
         salt = bcrypt.gensalt()
-        self.password = bcrypt.hashpw(self.password.encode("utf8"), salt).decode("utf8")
+        self.password = bcrypt.hashpw(
+            self.password.encode("utf8"), salt
+        ).decode("utf8")
 
     def verify_password(self, password) -> bool:
-        result = bcrypt.checkpw(password.encode("utf8"), self.password.encode("utf8"))
+        result = bcrypt.checkpw(
+            password.encode("utf8"), self.password.encode("utf8")
+        )
         return result
 
 
@@ -101,28 +105,33 @@ class JWTMgr:
             iat=now,
             nbf=now,
             exp=now + self._config.jwt_ttl,
-            jti=str(uuid.uuid4())
+            jti=str(uuid.uuid4()),
         )._asdict()
         encoded_token = jwt.encode(
-            payload,
-            self._config.jwt_secret,
-            algorithm=self.JWT_ALGORITHM)
+            payload, self._config.jwt_secret, algorithm=self.JWT_ALGORITHM
+        )
         return encoded_token
 
     def get_raw_access_token(self, token, verify=True) -> JWT:
         options = {}
         if not verify:
             options = {"verify_signature": False}
-        raw_token = jwt.decode(token,
-                               self._config.jwt_secret,
-                               algorithms=[self.JWT_ALGORITHM],
-                               options=options)
+        raw_token = jwt.decode(
+            token,
+            self._config.jwt_secret,
+            algorithms=[self.JWT_ALGORITHM],
+            options=options,
+        )
         return JWT(**raw_token)
 
     @staticmethod
     def set_token_cookie(response: Response, token: str) -> None:
-        response.set_cookie(key=JWTMgr.COOKIE_KEY, value=f"Bearer {token}",
-                            httponly=True, samesite="strict")
+        response.set_cookie(
+            key=JWTMgr.COOKIE_KEY,
+            value=f"Bearer {token}",
+            httponly=True,
+            samesite="strict",
+        )
 
     @staticmethod
     def get_token_from_cookie(request: Request) -> Optional[str]:
@@ -147,7 +156,9 @@ class JWTDenyList:
         self._jti_dict: Dict[str, int] = {}
 
     def _cleanup(self, now: int) -> None:
-        self._jti_dict = {jti: exp for jti, exp in self._jti_dict.items() if exp > now}
+        self._jti_dict = {
+            jti: exp for jti, exp in self._jti_dict.items() if exp > now
+        }
 
     async def load(self) -> None:
         self._jti_dict = {}

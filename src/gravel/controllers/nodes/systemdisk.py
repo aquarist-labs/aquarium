@@ -22,10 +22,7 @@ from pathlib import Path
 from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
 
-from gravel.cephadm.models import (
-    NodeInfoModel,
-    VolumeDeviceModel
-)
+from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.utils import aqr_run_cmd
@@ -87,11 +84,9 @@ class SystemDisk:
         "logs": "/var/log",
         "etcd": "/var/lib/etcd",
         "containers": "/var/lib/containers",
-        "roothome": "/root"
+        "roothome": "/root",
     }
-    _bindmounts: Dict[str, str] = {
-        "ceph": "/var/lib/ceph"
-    }
+    _bindmounts: Dict[str, str] = {"ceph": "/var/lib/ceph"}
 
     def __init__(self, gstate: GlobalState) -> None:
         self._gstate = gstate
@@ -100,8 +95,10 @@ class SystemDisk:
     def mounted(self):
         mounts: List[MountEntry] = get_mounts()
         for entry in mounts:
-            if entry.source == "/dev/mapper/aquarium-systemdisk" and \
-               entry.dest == "/aquarium":
+            if (
+                entry.source == "/dev/mapper/aquarium-systemdisk"
+                and entry.dest == "/aquarium"
+            ):
                 return True
         return False
 
@@ -118,8 +115,9 @@ class SystemDisk:
         inventory: Optional[NodeInfoModel] = self._gstate.inventory.latest
         assert inventory is not None
 
-        device: Optional[VolumeDeviceModel] = \
-            next((d for d in inventory.disks if d.path == devicestr), None)
+        device: Optional[VolumeDeviceModel] = next(
+            (d for d in inventory.disks if d.path == devicestr), None
+        )
 
         # ascertain whether we can use this device
         if not device:
@@ -205,9 +203,11 @@ class SystemDisk:
                 raise OverlayError(msg=e.message)
 
         async def _overlay(lower: str, upper: str, work: str):
-            mntcmd = "mount -t overlay " \
-                     f"-o lowerdir={lower},upperdir={upper},workdir={work} " \
-                     f"overlay {lower}"
+            mntcmd = (
+                "mount -t overlay "
+                f"-o lowerdir={lower},upperdir={upper},workdir={work} "
+                f"overlay {lower}"
+            )
             await aqr_run_cmd(shlex.split(mntcmd))
 
         for upper, lower in self._overlaydirs.items():
@@ -224,9 +224,7 @@ class SystemDisk:
 
             try:
                 await _overlay(
-                    lower,
-                    overlaypath.as_posix(),
-                    temppath.as_posix()
+                    lower, overlaypath.as_posix(), temppath.as_posix()
                 )
             except Exception as e:
                 raise OverlayError(
@@ -240,12 +238,14 @@ class SystemDisk:
             theirpath.mkdir(parents=True, exist_ok=True)
 
             try:
-                await aqr_run_cmd([
-                    "mount",
-                    "--bind",
-                    ourpath.as_posix(),
-                    theirpath.as_posix()
-                ])
+                await aqr_run_cmd(
+                    [
+                        "mount",
+                        "--bind",
+                        ourpath.as_posix(),
+                        theirpath.as_posix(),
+                    ]
+                )
             except Exception as e:
                 raise MountError(
                     f"unable to bind mount {ourpath} to {theirpath}: {str(e)}"

@@ -12,32 +12,18 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import (
-    Dict, List,
-    Optional
-)
+from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
-from pydantic import (
-    BaseModel,
-    Field
-)
+from pydantic import BaseModel, Field
 
-from gravel.controllers.gstate import (
-    Ticker,
-    GlobalState
-)
+from gravel.controllers.gstate import Ticker, GlobalState
 from gravel.controllers.orch.ceph import Mon
 from gravel.controllers.orch.models import (
     CephOSDPoolStatsModel,
-    CephStatusModel
+    CephStatusModel,
 )
-from gravel.controllers.nodes.mgr import (
-    NodeMgr
-)
-from gravel.controllers.services import (
-    ServiceTypeEnum,
-    Services
-)
+from gravel.controllers.nodes.mgr import NodeMgr
+from gravel.controllers.services import ServiceTypeEnum, Services
 
 
 logger: Logger = fastapi_logger
@@ -75,7 +61,9 @@ class Status(Ticker):
     _latest_cluster: Optional[CephStatusModel]
     _latest_pools_stats: Dict[int, CephOSDPoolStatsModel]
 
-    def __init__(self, probe_interval: float, gstate: GlobalState, nodemgr: NodeMgr):
+    def __init__(
+        self, probe_interval: float, gstate: GlobalState, nodemgr: NodeMgr
+    ):
         super().__init__(probe_interval)
         self.gstate = gstate
         self.nodemgr = nodemgr
@@ -88,8 +76,8 @@ class Status(Ticker):
 
     async def _should_tick(self) -> bool:
         return (
-            self.nodemgr.deployment_state.deployed or
-            self.nodemgr.deployment_state.ready
+            self.nodemgr.deployment_state.deployed
+            or self.nodemgr.deployment_state.ready
         ) and self.nodemgr.started
 
     async def probe(self) -> None:
@@ -133,7 +121,7 @@ class Status(Ticker):
                 ServiceIORateModel(
                     service_name=svc_name,
                     service_type=svc_type,
-                    io_rate=svc_io_rate
+                    io_rate=svc_io_rate,
                 )
             )
 
@@ -141,10 +129,9 @@ class Status(Ticker):
             read=self._latest_cluster.pgmap.read_bytes_sec,
             write=self._latest_cluster.pgmap.write_bytes_sec,
             read_ops=self._latest_cluster.pgmap.read_op_per_sec,
-            write_ops=self._latest_cluster.pgmap.write_op_per_sec
+            write_ops=self._latest_cluster.pgmap.write_op_per_sec,
         )
 
         return OverallClientIORateModel(
-            cluster=cluster_rates,
-            services=services_rates
+            cluster=cluster_rates, services=services_rates
         )

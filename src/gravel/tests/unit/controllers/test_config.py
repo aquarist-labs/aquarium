@@ -30,17 +30,18 @@ def test_config_options(fs: fake_filesystem.FakeFilesystem):
 
 def test_config_path(fs: fake_filesystem.FakeFilesystem):
     config = Config()
-    assert config.confpath == Path('/etc/aquarium/config.json')
-    assert (config.options.service_state_path ==
-            Path('/etc/aquarium/storage.json'))
+    assert config.confpath == Path("/etc/aquarium/config.json")
+    assert config.options.service_state_path == Path(
+        "/etc/aquarium/storage.json"
+    )
 
-    config = Config(path='foo')
-    assert config.confpath == Path('foo/config.json')
-    assert config.options.service_state_path == Path('foo/storage.json')
+    config = Config(path="foo")
+    assert config.confpath == Path("foo/config.json")
+    assert config.options.service_state_path == Path("foo/storage.json")
 
     # dirname(config.json) != dirname(storage.json)
-    config = Config(path='bar')
-    config.options.service_state_path = Path('baz')
+    config = Config(path="bar")
+    config.options.service_state_path = Path("baz")
     config._saveConfig(config.config)  # pyright: reportPrivateUsage=false
-    config = Config(path='bar')
-    assert config.options.service_state_path == Path('baz')
+    config = Config(path="bar")
+    assert config.options.service_state_path == Path("baz")

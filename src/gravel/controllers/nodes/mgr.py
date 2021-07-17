@@ -35,12 +35,9 @@ from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
     DeploymentDisksConfig,
     DeploymentState,
-    NodeDeployment
+    NodeDeployment,
 )
-from gravel.controllers.orch.ceph import (
-    CephCommandError,
-    Mon
-)
+from gravel.controllers.orch.ceph import CephCommandError, Mon
 
 from gravel.controllers.nodes.errors import (
     NodeCantJoinError,
@@ -50,12 +47,12 @@ from gravel.controllers.nodes.errors import (
     NodeShuttingDownError,
     NodeAlreadyJoiningError,
     NodeCantDeployError,
-    NodeError
+    NodeError,
 )
 from gravel.controllers.nodes.conn import (
     ConnMgr,
     get_conn_mgr,
-    IncomingConnection
+    IncomingConnection,
 )
 from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
@@ -65,7 +62,11 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel,
     MessageTypeEnum,
 )
-from gravel.controllers.nodes.etcd import ContainerFetchError, etcd_pull_image, spawn_etcd
+from gravel.controllers.nodes.etcd import (
+    ContainerFetchError,
+    etcd_pull_image,
+    spawn_etcd,
+)
 from gravel.controllers.orch.orchestrator import (
     Orchestrator,
     OrchHostListModel,
@@ -184,9 +185,7 @@ class NodeMgr:
             self._state = self.gstate.config.read_model("node", NodeStateModel)
         except FileNotFoundError:
             self._state = NodeStateModel(
-                uuid=uuid4(),
-                address=None,
-                hostname=None
+                uuid=uuid4(), address=None, hostname=None
             )
             try:
                 self.gstate.config.write_model("node", self._state)
@@ -215,7 +214,7 @@ class NodeMgr:
                 new=False,
                 token=None,
                 hostname=self._state.hostname,
-                address=self._state.address
+                address=self._state.address,
             )
             await self._start_ceph()
             await self._node_start()
@@ -227,8 +226,7 @@ class NodeMgr:
         cephadm = self.gstate.cephadm
         try:
             await asyncio.gather(
-                cephadm.pull_images(),
-                etcd_pull_image(self.gstate)
+                cephadm.pull_images(), etcd_pull_image(self.gstate)
             )
         except ContainerFetchError as e:
             logger.error(f"unable to fetch containers: {e.message}")
@@ -239,7 +237,6 @@ class NodeMgr:
         return True
 
     async def _node_prepare(self) -> None:
-
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
             assert nodeinfo
@@ -252,8 +249,7 @@ class NodeMgr:
                 # xxx: find way to shutdown here?
                 return
             self._inventory_sub = await self.gstate.inventory.subscribe(
-                _inventory_subscriber,
-                once=False
+                _inventory_subscriber, once=False
             )
 
         self._init_stage = NodeInitStage.PREPARE
@@ -282,13 +278,13 @@ class NodeMgr:
         await self._save_state()
 
     async def _node_prestart(self):
-        """ sets hostname and addresses; allows bootstrap, join. """
+        """sets hostname and addresses; allows bootstrap, join."""
         assert self.deployment_state.nostage
         assert self._init_stage == NodeInitStage.PREPARE
         self._init_stage = NodeInitStage.AVAILABLE
 
     async def _node_start(self) -> None:
-        """ node is ready to accept incoming messages """
+        """node is ready to accept incoming messages"""
         assert self._state
         assert self.deployment_state.ready or self.deployment_state.deployed
 
@@ -304,33 +300,28 @@ class NodeMgr:
         self._connmgr.start_receiving()
 
     async def _start_ceph(self) -> None:
-        """ Start ceph's systemd target """
+        """Start ceph's systemd target"""
         ret, _, err = await aqr_run_cmd(["systemctl", "start", "ceph.target"])
         if ret:
             raise NodeError(f"Unable to start Ceph target: {err}")
         logger.info("Started ceph target")
 
     def _node_shutdown(self) -> None:
-        """ shutting down, stop node """
+        """shutting down, stop node"""
         self._init_stage = NodeInitStage.STOPPING
         self._incoming_task.cancel()
 
     def _generate_token(self) -> str:
         def gen() -> str:
-            return ''.join(random.choice("0123456789abcdef") for _ in range(4))
+            return "".join(random.choice("0123456789abcdef") for _ in range(4))
 
-        tokenstr = '-'.join(gen() for _ in range(4))
+        tokenstr = "-".join(gen() for _ in range(4))
         return tokenstr
 
     async def join(
-        self,
-        leader_address: str,
-        token: str,
-        params: JoinParamsModel
+        self, leader_address: str, token: str, params: JoinParamsModel
     ) -> bool:
-        logger.debug(
-            f"join > with leader {leader_address}, token: {token}"
-        )
+        logger.debug(f"join > with leader {leader_address}, token: {token}")
 
         if self._init_stage < NodeInitStage.AVAILABLE:
             raise NodeNotStartedError()
@@ -363,7 +354,7 @@ class NodeMgr:
                 self._state.uuid,
                 params.hostname,
                 self._state.address,
-                disks
+                disks,
             )
 
             if not res:
@@ -420,10 +411,10 @@ class NodeMgr:
                 address=self._state.address,
                 token=self._token,
                 ntp_addr=params.ntpaddr,
-                disks=disks
+                disks=disks,
             ),
             self._post_bootstrap_finisher,
-            self._finish_deployment
+            self._finish_deployment,
         )
         await self._save_token()
         await self._save_ntp_addr(params.ntpaddr)
@@ -434,9 +425,7 @@ class NodeMgr:
         await user_mgr.put(admin_user)
 
     async def _post_bootstrap_finisher(
-        self,
-        success: bool,
-        error: Optional[str]
+        self, success: bool, error: Optional[str]
     ) -> None:
         """
         Called asynchronously, presumes bootstrap was successful.
@@ -449,9 +438,7 @@ class NodeMgr:
         await self._post_bootstrap_config()
 
     async def _finish_deployment(
-        self,
-        success: bool,
-        error: Optional[str]
+        self, success: bool, error: Optional[str]
     ) -> None:
         assert self._init_stage == NodeInitStage.AVAILABLE
         self._deployment.finish_deployment()
@@ -479,17 +466,13 @@ class NodeMgr:
             logger.error("unable to set default ruleset")
 
         res = mon.config_set(
-            "mgr",
-            "mgr/cephadm/manage_etc_ceph_ceph_conf",
-            "true"
+            "mgr", "mgr/cephadm/manage_etc_ceph_ceph_conf", "true"
         )
         if not res:
             logger.error("unable to enable managed ceph.conf by cephadm")
 
         res = mon.config_set(
-            "global",
-            "auth_allow_insecure_global_id_reclaim",
-            "false"
+            "global", "auth_allow_insecure_global_id_reclaim", "false"
         )
         if not res:
             logger.error("unable to disable insecure global id reclaim")
@@ -545,7 +528,6 @@ class NodeMgr:
         return self._token
 
     async def _obtain_state(self) -> None:
-
         def _watcher(key: str, value: str) -> None:
             if key == "/nodes/token":
                 logger.info(f"got updated token: {value}")
@@ -590,9 +572,7 @@ class NodeMgr:
         logger.info("stop handling incoming messages")
 
     async def _handle_incoming_msg(
-        self,
-        conn: IncomingConnection,
-        msg: MessageModel
+        self, conn: IncomingConnection, msg: MessageModel
     ) -> None:
         logger.debug(f"handle msg > type: {msg.type}")
         if msg.type == MessageTypeEnum.JOIN:
@@ -601,15 +581,12 @@ class NodeMgr:
         elif msg.type == MessageTypeEnum.READY_TO_ADD:
             logger.debug("handle ready to add")
             await self._handle_ready_to_add(
-                conn,
-                ReadyToAddMessageModel.parse_obj(msg.data)
+                conn, ReadyToAddMessageModel.parse_obj(msg.data)
             )
         pass
 
     async def _handle_join(
-        self,
-        conn: IncomingConnection,
-        msg: JoinMessageModel
+        self, conn: IncomingConnection, msg: JoinMessageModel
     ) -> None:
         logger.debug(f"handle join {msg}")
         assert self._state is not None
@@ -620,24 +597,21 @@ class NodeMgr:
                 MessageModel(
                     type=MessageTypeEnum.ERROR,
                     data=ErrorMessageModel(
-                        what="bad token",
-                        code=status.HTTP_401_UNAUTHORIZED
-                    )
+                        what="bad token", code=status.HTTP_401_UNAUTHORIZED
+                    ),
                 )
             )
             return
 
         if not msg.address or not msg.hostname:
-            logger.info(
-                f"handle join > missing address or host from {conn}"
-            )
+            logger.info(f"handle join > missing address or host from {conn}")
             await conn.send_msg(
                 MessageModel(
                     type=MessageTypeEnum.ERROR,
                     data=ErrorMessageModel(
                         what="missing address or hostname",
-                        code=status.HTTP_400_BAD_REQUEST
-                    )
+                        code=status.HTTP_400_BAD_REQUEST,
+                    ),
                 )
             )
             return
@@ -667,39 +641,39 @@ class NodeMgr:
         assert nodes is not None
         assert len(nodes) > 0
 
-        member_urls: str = ",".join([
-            f"{m.name}={m.peer_urls[0]}" for m in nodes if (
-                len(m.peer_urls) > 0 and len(m.name) > 0
-            )
-        ])
-        logger.debug(f"{member_urls=}, member: {member.name}={member.peer_urls[0]}")
+        member_urls: str = ",".join(
+            [
+                f"{m.name}={m.peer_urls[0]}"
+                for m in nodes
+                if (len(m.peer_urls) > 0 and len(m.name) > 0)
+            ]
+        )
+        logger.debug(
+            f"{member_urls=}, member: {member.name}={member.peer_urls[0]}"
+        )
 
         welcome = WelcomeMessageModel(
             pubkey=pubkey,
             cephconf=cephconf,
             keyring=keyring,
-            etcd_peer=member_urls
+            etcd_peer=member_urls,
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")
             await conn.send_msg(
-                MessageModel(
-                    type=MessageTypeEnum.WELCOME,
-                    data=welcome.dict()
-                )
+                MessageModel(type=MessageTypeEnum.WELCOME, data=welcome.dict())
             )
         except Exception as e:
             logger.error(f"handle join > error: {str(e)}")
             return
 
         logger.debug(f"handle join > welcome sent: {welcome}")
-        self._joining[conn.address] = \
-            JoiningNodeModel(address=msg.address, hostname=msg.hostname)
+        self._joining[conn.address] = JoiningNodeModel(
+            address=msg.address, hostname=msg.hostname
+        )
 
     async def _handle_ready_to_add(
-        self,
-        conn: IncomingConnection,
-        msg: ReadyToAddMessageModel
+        self, conn: IncomingConnection, msg: ReadyToAddMessageModel
     ) -> None:
         logger.debug(f"handle ready to add from {conn}")
         address: str = conn.address
@@ -711,15 +685,17 @@ class NodeMgr:
                     type=MessageTypeEnum.ERROR,
                     data=ErrorMessageModel(
                         what="node not joining",
-                        code=status.HTTP_428_PRECONDITION_REQUIRED
-                    )
+                        code=status.HTTP_428_PRECONDITION_REQUIRED,
+                    ),
                 )
             )
             return
 
         node: JoiningNodeModel = self._joining[address]
-        logger.info("handle ready to add > "
-                    f"hostname: {node.hostname}, address: {node.address}")
+        logger.info(
+            "handle ready to add > "
+            f"hostname: {node.hostname}, address: {node.address}"
+        )
         orch = Orchestrator(self.gstate.ceph_mgr)
         if not orch.host_add(node.hostname, node.address):
             logger.error("handle ready > failed adding host to orch")
@@ -729,12 +705,13 @@ class NodeMgr:
         mon = self.gstate.ceph_mon
         if not mon.set_replicated_ruleset():
             logger.error(
-                "handle ready to add > unable to set replicated ruleset")
+                "handle ready to add > unable to set replicated ruleset"
+            )
 
         await self._set_pool_default_size()
 
     async def _set_pool_default_size(self) -> None:
-        """ reset the osd pool default size """
+        """reset the osd pool default size"""
         assert self._init_stage == NodeInitStage.STARTED
 
         def get_target_size():

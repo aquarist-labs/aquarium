@@ -21,7 +21,6 @@ from gravel.tests.unit.asyncio import FakeProcess
 
 @pytest.mark.asyncio
 async def test_aqr_run_cmd(mocker: MockerFixture) -> None:
-
     async def mock_subprocess(
         *args: List[str], stdout: int, stderr: int
     ) -> FakeProcess:
@@ -33,6 +32,7 @@ async def test_aqr_run_cmd(mocker: MockerFixture) -> None:
 
     mocker.patch("asyncio.create_subprocess_exec", new=mock_subprocess)
     from gravel.controllers.utils import aqr_run_cmd
+
     ret, out, err = await aqr_run_cmd(["foo", "bar"])
     assert ret == 0
     assert out == "mystdout"

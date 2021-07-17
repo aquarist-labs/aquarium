@@ -14,16 +14,7 @@
 # pyright: reportPrivateUsage=false, reportMissingTypeStubs=false
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    cast
-)
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
 import pytest
 from pytest_mock import MockerFixture
 from pyfakefs import fake_filesystem
@@ -43,7 +34,7 @@ def nodemgr(gstate: GlobalState) -> NodeMgr:
     nodemgr._state = NodeStateModel(
         uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
         address="1.2.3.4",
-        hostname="foobar"
+        hostname="foobar",
     )
     yield nodemgr
 
@@ -69,9 +60,7 @@ def test_fail_ctor(
     fs.rmdir("/etc/aquarium/node.json")
 
 
-def test_ctor(
-    gstate: GlobalState, fs: fake_filesystem.FakeFilesystem
-) -> None:
+def test_ctor(gstate: GlobalState, fs: fake_filesystem.FakeFilesystem) -> None:
 
     NodeMgr(gstate)
     assert fs.exists("/etc/aquarium/node.json")
@@ -115,7 +104,7 @@ def test_init_state_fail(
 async def test_mgr_start(
     gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
-    mocker: MockerFixture
+    mocker: MockerFixture,
 ) -> None:
 
     from gravel.controllers.nodes.mgr import NodeError, NodeStateModel
@@ -145,7 +134,7 @@ async def test_mgr_start(
     nodemgr._state = NodeStateModel(
         uuid="bba35d93-d4a5-48b3-804b-99c406555c89",
         address="1.2.3.4",
-        hostname="foobar"
+        hostname="foobar",
     )
 
     called_etcd_spawn = False
@@ -156,7 +145,7 @@ async def test_mgr_start(
         token: Optional[str],
         hostname: str,
         address: str,
-        initial_cluster: Optional[str] = None
+        initial_cluster: Optional[str] = None,
     ) -> None:
         assert not new
         assert token is None
@@ -166,9 +155,7 @@ async def test_mgr_start(
         nonlocal called_etcd_spawn
         called_etcd_spawn = True
 
-    mocker.patch(
-        "gravel.controllers.nodes.mgr.spawn_etcd", new=mock_spawn_etcd
-    )
+    mocker.patch("gravel.controllers.nodes.mgr.spawn_etcd", new=mock_spawn_etcd)
     nodemgr._start_ceph = mocker.AsyncMock()
     nodemgr._node_start = mocker.AsyncMock()
 
@@ -237,7 +224,7 @@ async def test_node_start(
     gstate: GlobalState,
     mocker: MockerFixture,
     fs: fake_filesystem.FakeFilesystem,
-    nodemgr: NodeMgr
+    nodemgr: NodeMgr,
 ) -> None:
 
     from gravel.controllers.nodes.mgr import NodeInitStage
@@ -267,7 +254,7 @@ async def test_start_ceph(gstate: GlobalState, mocker: MockerFixture) -> None:
     called = False
 
     async def mock_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         nonlocal called
         called = True
@@ -285,7 +272,7 @@ async def test_start_ceph(gstate: GlobalState, mocker: MockerFixture) -> None:
     called = False
 
     async def fail_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         nonlocal called
         called = True
@@ -340,7 +327,7 @@ async def test_join_checks(gstate: GlobalState) -> None:
         NodeNotStartedError,
         NodeError,
         NodeInitStage,
-        JoinParamsModel
+        JoinParamsModel,
     )
 
     nodemgr = NodeMgr(gstate)
@@ -349,9 +336,7 @@ async def test_join_checks(gstate: GlobalState) -> None:
     nodemgr._init_stage = NodeInitStage.NONE
     try:
         await nodemgr.join(
-            "1.2.3.4",
-            "751b-51fd-10d7-f7b4",
-            JoinParamsModel(hostname="foobar")
+            "1.2.3.4", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
         )
     except NodeNotStartedError:
         throws = True
@@ -361,9 +346,7 @@ async def test_join_checks(gstate: GlobalState) -> None:
     nodemgr._init_stage = NodeInitStage.STARTED
     try:
         await nodemgr.join(
-            "1.2.3.4",
-            "751b-51fd-10d7-f7b4",
-            JoinParamsModel(hostname="foobar")
+            "1.2.3.4", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
         )
     except NodeCantJoinError:
         throws = True
@@ -373,9 +356,7 @@ async def test_join_checks(gstate: GlobalState) -> None:
     nodemgr._init_stage = NodeInitStage.AVAILABLE
     try:
         await nodemgr.join(
-            "1.2.3.4",
-            "751b-51fd-10d7-f7b4",
-            JoinParamsModel(hostname="")
+            "1.2.3.4", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="")
         )
     except NodeError as e:
         throws = True
@@ -391,7 +372,7 @@ async def test_join_check_disk_solution(
     from gravel.controllers.nodes.mgr import (
         NodeCantJoinError,
         NodeInitStage,
-        JoinParamsModel
+        JoinParamsModel,
     )
     from gravel.controllers.nodes.disks import DiskSolution
 
@@ -407,9 +388,7 @@ async def test_join_check_disk_solution(
     throws = False
     try:
         await nodemgr.join(
-            "1.2.3.4",
-            "751b-51fd-10d7-f7b4",
-            JoinParamsModel(hostname="foobar")
+            "1.2.3.4", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
         )
     except NodeCantJoinError as e:
         assert e.message == "no disk deployment solution found"
@@ -426,9 +405,7 @@ async def test_join_check_disk_solution(
     throws = False
     try:
         await nodemgr.join(
-            "1.2.3.4",
-            "751b-51fd-10d7-f7b4",
-            JoinParamsModel(hostname="foobar")
+            "1.2.3.4", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
         )
     except AssertionError:
         throws = True
@@ -441,10 +418,7 @@ async def test_join(
 ) -> None:
 
     from uuid import UUID
-    from gravel.controllers.nodes.mgr import (
-        NodeInitStage,
-        JoinParamsModel
-    )
+    from gravel.controllers.nodes.mgr import NodeInitStage, JoinParamsModel
     from gravel.controllers.nodes.disks import DiskSolution, DiskModel
     from gravel.controllers.nodes.deployment import DeploymentDisksConfig
 
@@ -453,10 +427,10 @@ async def test_join(
             systemdisk=DiskModel(path="/dev/foo", size=1000),
             storage=[
                 DiskModel(path="/dev/bar", size=2000),
-                DiskModel(path="/dev/baz", size=2000)
+                DiskModel(path="/dev/baz", size=2000),
             ],
             storage_size=4000,
-            possible=True
+            possible=True,
         )
 
     async def mock_join(
@@ -465,7 +439,7 @@ async def test_join(
         uuid: UUID,
         hostname: str,
         address: str,
-        disks: DeploymentDisksConfig
+        disks: DeploymentDisksConfig,
     ) -> bool:
         assert leader_address == "10.1.2.3"
         assert token == "751b-51fd-10d7-f7b4"
@@ -490,7 +464,7 @@ async def test_join(
         await nodemgr.join(
             "10.1.2.3",
             "751b-51fd-10d7-f7b4",
-            JoinParamsModel(hostname="foobar")
+            JoinParamsModel(hostname="foobar"),
         )
     except Exception:
         throws = True
@@ -499,9 +473,7 @@ async def test_join(
 
     nodemgr._deployment.join = mocker.AsyncMock(return_value=False)
     res = await nodemgr.join(
-        "10.1.2.3",
-        "751b-51fd-10d7-f7b4",
-        JoinParamsModel(hostname="foobar")
+        "10.1.2.3", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
     )
     assert not res
     nodemgr._deployment.join.assert_called_once()  # type: ignore
@@ -510,9 +482,7 @@ async def test_join(
     nodemgr._node_start = mocker.AsyncMock()
     nodemgr._deployment.join = mock_join
     res = await nodemgr.join(
-        "10.1.2.3",
-        "751b-51fd-10d7-f7b4",
-        JoinParamsModel(hostname="foobar")
+        "10.1.2.3", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
     )
     assert res
     assert nodemgr._token == "751b-51fd-10d7-f7b4"
@@ -527,7 +497,7 @@ async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
         NodeInitStage,
         NodeNotStartedError,
         NodeCantDeployError,
-        DeployParamsModel
+        DeployParamsModel,
     )
     from gravel.controllers.nodes.deployment import NodeStageEnum
 
@@ -575,9 +545,7 @@ async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
 
     throws = False
     try:
-        await nodemgr.deploy(
-            DeployParamsModel(hostname="barbaz", ntpaddr="")
-        )
+        await nodemgr.deploy(DeployParamsModel(hostname="barbaz", ntpaddr=""))
     except NodeCantDeployError as e:
         assert e.message == "missing ntp server address"
         throws = True
@@ -588,10 +556,7 @@ async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
 async def test_deploy_check_disk_solution(
     gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
-    from gravel.controllers.nodes.mgr import (
-        NodeInitStage,
-        NodeCantDeployError
-    )
+    from gravel.controllers.nodes.mgr import NodeInitStage, NodeCantDeployError
     from gravel.controllers.nodes.disks import DiskSolution
 
     nodemgr._init_stage = NodeInitStage.AVAILABLE
@@ -645,16 +610,16 @@ async def test_deploy(
             systemdisk=DiskModel(path="/dev/foo", size=1000),
             storage=[
                 DiskModel(path="/dev/bar", size=2000),
-                DiskModel(path="/dev/baz", size=2000)
+                DiskModel(path="/dev/baz", size=2000),
             ],
             storage_size=4000,
-            possible=True
+            possible=True,
         )
 
     async def mock_deploy(
         config: DeploymentConfig,
         post_bootstrap_cb: Callable[[bool, Optional[str]], Awaitable[None]],
-        finisher: Callable[[bool, Optional[str]], Awaitable[None]]
+        finisher: Callable[[bool, Optional[str]], Awaitable[None]],
     ) -> None:
 
         import inspect
@@ -729,17 +694,11 @@ async def test_bootstrap_finisher_cb(
     from gravel.controllers.nodes.mgr import NodeInitStage
 
     nodemgr._init_stage = NodeInitStage.NONE
-    assert await expect_assertion(
-        nodemgr._post_bootstrap_finisher(True, None)
-    )
+    assert await expect_assertion(nodemgr._post_bootstrap_finisher(True, None))
     nodemgr._init_stage = NodeInitStage.PREPARE
-    assert await expect_assertion(
-        nodemgr._post_bootstrap_finisher(True, None)
-    )
+    assert await expect_assertion(nodemgr._post_bootstrap_finisher(True, None))
     nodemgr._init_stage = NodeInitStage.STARTED
-    assert await expect_assertion(
-        nodemgr._post_bootstrap_finisher(True, None)
-    )
+    assert await expect_assertion(nodemgr._post_bootstrap_finisher(True, None))
 
     nodemgr._init_stage = NodeInitStage.AVAILABLE
     nodemgr._save_state = mocker.AsyncMock()
@@ -759,17 +718,11 @@ async def test_finish_deployment_cb(
     from gravel.controllers.nodes.mgr import NodeInitStage
 
     nodemgr._init_stage = NodeInitStage.NONE
-    assert await expect_assertion(
-        nodemgr._finish_deployment(True, None)
-    )
+    assert await expect_assertion(nodemgr._finish_deployment(True, None))
     nodemgr._init_stage = NodeInitStage.PREPARE
-    assert await expect_assertion(
-        nodemgr._finish_deployment(True, None)
-    )
+    assert await expect_assertion(nodemgr._finish_deployment(True, None))
     nodemgr._init_stage = NodeInitStage.STARTED
-    assert await expect_assertion(
-        nodemgr._finish_deployment(True, None)
-    )
+    assert await expect_assertion(nodemgr._finish_deployment(True, None))
 
     nodemgr._init_stage = NodeInitStage.AVAILABLE
     nodemgr._deployment.finish_deployment = mocker.MagicMock()
@@ -785,8 +738,7 @@ async def test_finish_deployment_cb(
 
 @pytest.mark.asyncio
 async def test_postbootstrap_config(
-    mocker: MockerFixture,
-    gstate: GlobalState
+    mocker: MockerFixture, gstate: GlobalState
 ) -> None:
 
     config_keys: Dict[str, Tuple[str, str]] = {}
@@ -803,6 +755,7 @@ async def test_postbootstrap_config(
 
     from gravel.controllers.nodes.mgr import NodeMgr
     from gravel.controllers.orch.ceph import Mon
+
     mocker.patch.object(NodeMgr, "_init_state")
     mocker.patch.object(Mon, "config_set", new=config_set)
     mocker.patch.object(Mon, "call")
@@ -824,7 +777,7 @@ async def test_finish_deployment(
 
     from gravel.controllers.nodes.mgr import (
         NodeAlreadyJoiningError,
-        NodeNotDeployedError
+        NodeNotDeployedError,
     )
     from gravel.controllers.nodes.deployment import NodeStageEnum
 
@@ -860,7 +813,6 @@ async def test_finish_deployment(
 
 
 def fake_conn(cb: Callable[[MessageModel], None]) -> IncomingConnection:
-
     class FakeConn(IncomingConnection):
 
         checker: Callable[[MessageModel], None]
@@ -883,7 +835,7 @@ async def test_handle_join(
     gstate: GlobalState,
     mocker: MockerFixture,
     fs: fake_filesystem.FakeFilesystem,
-    nodemgr: NodeMgr
+    nodemgr: NodeMgr,
 ) -> None:
 
     from fastapi import status
@@ -892,7 +844,7 @@ async def test_handle_join(
         JoinMessageModel,
         ErrorMessageModel,
         WelcomeMessageModel,
-        MessageTypeEnum
+        MessageTypeEnum,
     )
 
     nodemgr._token = "751b-51fd-10d7-f7b4"
@@ -910,12 +862,15 @@ async def test_handle_join(
         failed_token = True
 
     fail_conn = fake_conn(fail_token)
-    await nodemgr._handle_join(fail_conn, JoinMessageModel(
-        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
-        hostname="barbaz",
-        address="5.6.7.8",
-        token="failtoken"
-    ))
+    await nodemgr._handle_join(
+        fail_conn,
+        JoinMessageModel(
+            uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+            hostname="barbaz",
+            address="5.6.7.8",
+            token="failtoken",
+        ),
+    )
     assert failed_token
 
     # test missing address and hostname
@@ -931,22 +886,28 @@ async def test_handle_join(
         failed_bad_addr_hostname = True
 
     fail_conn = fake_conn(bad_addr_hostname)
-    await nodemgr._handle_join(fail_conn, JoinMessageModel(
-        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
-        hostname="",
-        address="5.6.7.8",
-        token=nodemgr._token
-    ))
+    await nodemgr._handle_join(
+        fail_conn,
+        JoinMessageModel(
+            uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+            hostname="",
+            address="5.6.7.8",
+            token=nodemgr._token,
+        ),
+    )
     assert failed_bad_addr_hostname
 
     failed_bad_addr_hostname = False
     fail_conn = fake_conn(bad_addr_hostname)
-    await nodemgr._handle_join(fail_conn, JoinMessageModel(
-        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
-        hostname="barbaz",
-        address="",
-        token=nodemgr._token
-    ))
+    await nodemgr._handle_join(
+        fail_conn,
+        JoinMessageModel(
+            uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+            hostname="barbaz",
+            address="",
+            token=nodemgr._token,
+        ),
+    )
     assert failed_bad_addr_hostname
 
     # test add new member
@@ -976,7 +937,7 @@ async def test_handle_join(
 
     mocker.patch(
         "gravel.controllers.orch.orchestrator.Orchestrator.get_public_key",
-        new=mocker.MagicMock(return_value="mypubkey")  # type: ignore
+        new=mocker.MagicMock(return_value="mypubkey"),  # type: ignore
     )
 
     fs.create_file("/etc/ceph/ceph.conf")
@@ -987,7 +948,6 @@ async def test_handle_join(
         f.write("mycephkeyring")
 
     class FakeAETCD:
-
         async def add_member(
             self, urls: List[str]
         ) -> Tuple[Member, List[Member]]:
@@ -999,12 +959,15 @@ async def test_handle_join(
     mocker.patch("aetcd3.client", new=FakeAETCD)
 
     conn = fake_conn(conn_cb)
-    await nodemgr._handle_join(conn, JoinMessageModel(
-        uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
-        hostname="barbaz",
-        address="5.6.7.8",
-        token=nodemgr._token
-    ))
+    await nodemgr._handle_join(
+        conn,
+        JoinMessageModel(
+            uuid="aaaaaaaa-d4a5-48b3-804b-99c406555c89",
+            hostname="barbaz",
+            address="5.6.7.8",
+            token=nodemgr._token,
+        ),
+    )
     assert called_add_member
     assert called_conn_cb
     assert "placeholder" in nodemgr._joining

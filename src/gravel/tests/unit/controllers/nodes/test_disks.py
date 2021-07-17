@@ -26,7 +26,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 def test_solution(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str],
-    gstate: GlobalState
+    gstate: GlobalState,
 ) -> None:
 
     from gravel.cephadm.models import NodeInfoModel
@@ -47,15 +47,14 @@ def test_solution(
 
 
 def test_device_to_disk(
-    mocker: MockerFixture,
-    get_data_contents: Callable[[str, str], str]
+    mocker: MockerFixture, get_data_contents: Callable[[str, str], str]
 ) -> None:
 
     from gravel.cephadm.models import VolumeDeviceModel
     from gravel.controllers.nodes.disks import (
         _device_to_disk,
         DiskModel,
-        DiskTypeEnum
+        DiskTypeEnum,
     )
 
     device: VolumeDeviceModel = VolumeDeviceModel.parse_raw(
@@ -70,7 +69,7 @@ def test_device_to_disk(
 def test_solution_with_ssd(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str],
-    gstate: GlobalState
+    gstate: GlobalState,
 ) -> None:
     from gravel.cephadm.models import NodeInfoModel
     from gravel.controllers.nodes.disks import Disks

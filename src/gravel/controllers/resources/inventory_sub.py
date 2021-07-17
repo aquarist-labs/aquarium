@@ -21,9 +21,7 @@ class Subscriber:
     once: bool
 
     def __init__(
-        self,
-        cb: Callable[[NodeInfoModel], Awaitable[None]],
-        once: bool
+        self, cb: Callable[[NodeInfoModel], Awaitable[None]], once: bool
     ):
         # mypy is picking on type signature issues with the first argument of
         # the callable, while neither pyright nor visual inspection do. I'm

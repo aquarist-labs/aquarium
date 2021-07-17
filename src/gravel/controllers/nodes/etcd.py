@@ -45,7 +45,6 @@ logger: Logger = fastapi_logger
 # we need to have the functions at the top-level scope.
 #
 def _bootstrap_etcd_process(cmd: List[str]):
-
     async def _run_etcd():
         process = await asyncio.create_subprocess_exec(*cmd)
         await process.wait()
@@ -64,7 +63,7 @@ async def spawn_etcd(
     token: Optional[str],
     hostname: str,
     address: str,
-    initial_cluster: Optional[str] = None
+    initial_cluster: Optional[str] = None,
 ) -> None:
 
     assert hostname
@@ -85,13 +84,20 @@ async def spawn_etcd(
             initial_cluster = f"{hostname}={peer_url}"
 
         args: List[str] = [
-            "--name", hostname,
-            "--initial-advertise-peer-urls", peer_url,
-            "--listen-peer-urls", peer_url,
-            "--listen-client-urls", f"{client_url},http://127.0.0.1:2379",
-            "--advertise-client-urls", client_url,
-            "--initial-cluster", initial_cluster,
-            "--data-dir", str(data_dir),
+            "--name",
+            hostname,
+            "--initial-advertise-peer-urls",
+            peer_url,
+            "--listen-peer-urls",
+            peer_url,
+            "--listen-client-urls",
+            f"{client_url},http://127.0.0.1:2379",
+            "--advertise-client-urls",
+            client_url,
+            "--initial-cluster",
+            initial_cluster,
+            "--data-dir",
+            str(data_dir),
         ]
 
         if new:
@@ -108,24 +114,25 @@ async def spawn_etcd(
         version = gstate.config.options.etcd.version
 
         return [
-            'podman', 'run',
-            '--rm',
-            '--replace',
-            '--net=host',
-            '--entrypoint', '/usr/local/bin/etcd',
-            '-v', f'{data_dir}:{data_dir}',
-            '--name', f'etcd.{hostname}',
-            f'{registry}:{version}',
+            "podman",
+            "run",
+            "--rm",
+            "--replace",
+            "--net=host",
+            "--entrypoint",
+            "/usr/local/bin/etcd",
+            "-v",
+            f"{data_dir}:{data_dir}",
+            "--name",
+            f"etcd.{hostname}",
+            f"{registry}:{version}",
         ] + _get_etcd_args()
 
     cmd = _get_container_cmd()
 
     ctx = multiprocessing.get_context("spawn")
     logger.debug("spawn etcd: " + shlex.join(cmd))
-    process = ctx.Process(
-        target=_bootstrap_etcd_process,
-        args=(cmd,)
-    )
+    process = ctx.Process(target=_bootstrap_etcd_process, args=(cmd,))
     process.start()
 
     logger.info(f"started etcd process pid = {process.pid}")
@@ -140,9 +147,7 @@ async def etcd_pull_image(gstate: GlobalState) -> None:
 
     cmd = shlex.split(f"podman pull {registry}:{version}")
     process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
 
     try:

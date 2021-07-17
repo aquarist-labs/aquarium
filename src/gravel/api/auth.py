@@ -19,20 +19,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
-from gravel.controllers.auth import (
-    JWTDenyList,
-    JWTMgr,
-    JWT,
-    UserMgr
-)
+from gravel.controllers.auth import JWTDenyList, JWTMgr, JWT, UserMgr
 
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(
-    prefix="/auth",
-    tags=["auth"]
-)
+router: APIRouter = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class LoginReplyModel(BaseModel):
@@ -42,15 +34,19 @@ class LoginReplyModel(BaseModel):
 
 @router.post("/login", response_model=LoginReplyModel)
 async def login(
-        request: Request, response: Response,
-        form_data: OAuth2PasswordRequestForm = Depends()
+    request: Request,
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> LoginReplyModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
-    authenticated = await user_mgr.authenticate(form_data.username,
-                                                form_data.password)
+    authenticated = await user_mgr.authenticate(
+        form_data.username, form_data.password
+    )
     if not authenticated:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Bad username or password")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bad username or password",
+        )
     jwt_mgr = JWTMgr(request.app.state.gstate.config.options.auth)
     access_token = jwt_mgr.create_access_token(subject=form_data.username)
     jwt_mgr.set_token_cookie(response, access_token)
@@ -58,7 +54,9 @@ async def login(
 
 
 @router.post("/logout")
-async def logout(request: Request, token: JWT = Depends(jwt_auth_scheme)) -> None:
+async def logout(
+    request: Request, token: JWT = Depends(jwt_auth_scheme)
+) -> None:
     deny_list = JWTDenyList(request.app.state.gstate.store)
     await deny_list.load()
     deny_list.add(token)

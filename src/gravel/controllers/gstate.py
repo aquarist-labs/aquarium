@@ -27,6 +27,7 @@ from gravel.controllers.kv import KV
 from gravel.controllers.orch.ceph import Mgr, Mon
 
 import typing
+
 if typing.TYPE_CHECKING:
     from gravel.controllers.resources.inventory import Inventory
     from gravel.controllers.resources.devices import Devices
@@ -44,13 +45,13 @@ def setup_logging(console_level: str) -> None:
         "formatters": {
             "simple": {
                 "format": "[%(levelname)-5s] %(asctime)s -- %(module)s -- %(message)s",
-                "datefmt": "%Y-%m-%dT%H:%M:%S"
+                "datefmt": "%Y-%m-%dT%H:%M:%S",
             },
             "colorized": {
                 "()": "uvicorn.logging.ColourizedFormatter",
                 "format": "%(levelprefix)s %(asctime)s -- %(module)s -- %(message)s",
-                "datefmt": "%Y-%m-%d %H:%M:%S"
-            }
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
         },
         "handlers": {
             "console": {
@@ -64,27 +65,23 @@ def setup_logging(console_level: str) -> None:
                 "formatter": "simple",
                 "filename": "/tmp/aquarium.log",
                 "maxBytes": 10485760,
-                "backupCount": 1
-            }
+                "backupCount": 1,
+            },
         },
         "loggers": {
             "uvicorn": {
                 "level": "DEBUG",
                 "handlers": ["console", "log_file"],
-                "propagate": "no"
+                "propagate": "no",
             }
         },
-        "root": {
-            "level": "DEBUG",
-            "handlers": ["console", "log_file"]
-        }
+        "root": {"level": "DEBUG", "handlers": ["console", "log_file"]},
     }
 
     logging.config.dictConfig(logging_config)
 
 
 class Ticker(ABC):
-
     def __init__(self, probe_interval: float):
         self._last_tick: float = 0
         self._tick_interval: float = probe_interval
@@ -100,7 +97,7 @@ class Ticker(ABC):
 
     async def tick(self) -> None:
         now: float = time.monotonic()
-        diff: float = (now - self._last_tick)
+        diff: float = now - self._last_tick
         if diff < self._tick_interval or self._is_ticking:
             return
 
@@ -151,23 +148,23 @@ class GlobalState:
 
     def add_devices(self, devices: Devices):
         self.devices = devices
-        self.add_ticker('devices', devices)
+        self.add_ticker("devices", devices)
 
     def add_status(self, status: Status):
         self.status = status
-        self.add_ticker('status', status)
+        self.add_ticker("status", status)
 
     def add_inventory(self, inventory: Inventory):
         self.inventory = inventory
-        self.add_ticker('inventory', inventory)
+        self.add_ticker("inventory", inventory)
 
     def add_storage(self, storage: Storage):
         self.storage = storage
-        self.add_ticker('storage', storage)
+        self.add_ticker("storage", storage)
 
     def add_services(self, services: Services):
         self.services = services
-        self.add_ticker('services', services)
+        self.add_ticker("services", services)
 
     async def start(self) -> None:
         if self._is_shutting_down:

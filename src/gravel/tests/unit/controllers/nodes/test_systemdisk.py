@@ -30,16 +30,17 @@ def test_get_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
 
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_with_aquarium.raw"),
-        target_path="/proc/mounts"
+        target_path="/proc/mounts",
     )
 
     from gravel.controllers.nodes.systemdisk import get_mounts, MountEntry
+
     lst: List[MountEntry] = get_mounts()
     found = False
     for entry in lst:
         if (
-            entry.source == "/dev/mapper/aquarium-systemdisk" and
-            entry.dest == "/aquarium"
+            entry.source == "/dev/mapper/aquarium-systemdisk"
+            and entry.dest == "/aquarium"
         ):
             found = True
             break
@@ -49,10 +50,11 @@ def test_get_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
 def test_silly_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_silly.raw"),
-        target_path="/proc/mounts"
+        target_path="/proc/mounts",
     )
 
     from gravel.controllers.nodes.systemdisk import get_mounts, MountEntry
+
     lst: List[MountEntry] = get_mounts()
     assert len(lst) == 2
     assert lst[0].source == "foo" and lst[0].dest == "bar"
@@ -65,10 +67,11 @@ def test_mounted(
 
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_with_aquarium.raw"),
-        target_path="/proc/mounts"
+        target_path="/proc/mounts",
     )
 
     from gravel.controllers.nodes.systemdisk import SystemDisk
+
     systemdisk = SystemDisk(gstate)
     assert systemdisk.mounted
 
@@ -79,10 +82,11 @@ def test_not_mounted(
 
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_without_aquarium.raw"),
-        target_path="/proc/mounts"
+        target_path="/proc/mounts",
     )
 
     from gravel.controllers.nodes.systemdisk import SystemDisk
+
     systemdisk = SystemDisk(gstate)
     assert not systemdisk.mounted
 
@@ -94,7 +98,7 @@ async def test_lvm(mocker: MockerFixture, gstate: GlobalState) -> None:
     called_lvm_failure = False
 
     async def mock_success_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         assert "lvm" in cmd
         nonlocal called_lvm_success
@@ -102,7 +106,7 @@ async def test_lvm(mocker: MockerFixture, gstate: GlobalState) -> None:
         return 0, None, None
 
     async def mock_failure_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         assert "lvm" in cmd
         nonlocal called_lvm_failure
@@ -110,17 +114,16 @@ async def test_lvm(mocker: MockerFixture, gstate: GlobalState) -> None:
         return 1, None, "foobar"
 
     mocker.patch(
-        "gravel.controllers.nodes.systemdisk.aqr_run_cmd",
-        new=mock_success_call
+        "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_success_call
     )
     from gravel.controllers.nodes.systemdisk import SystemDisk, LVMError
+
     systemdisk = SystemDisk(gstate)
     await systemdisk.lvm("foo bar baz")
     assert called_lvm_success
 
     mocker.patch(
-        "gravel.controllers.nodes.systemdisk.aqr_run_cmd",
-        new=mock_failure_call
+        "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_failure_call
     )
     try:
         await systemdisk.lvm("foo bar baz")
@@ -134,11 +137,10 @@ async def test_create(
     gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
     mocker: MockerFixture,
-    get_data_contents: Callable[[str, str], str]
+    get_data_contents: Callable[[str, str], str],
 ) -> None:
-
     async def mock_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         return 0, None, None
 
@@ -149,7 +151,7 @@ async def test_create(
     from gravel.controllers.nodes.systemdisk import (
         SystemDisk,
         UnknownDeviceError,
-        UnavailableDeviceError
+        UnavailableDeviceError,
     )
     from gravel.controllers.resources.inventory import Inventory, NodeInfoModel
 
@@ -191,11 +193,10 @@ async def test_create(
 async def test_mount_error(
     gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
-    mocker: MockerFixture
+    mocker: MockerFixture,
 ) -> None:
-
     async def mock_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         raise Exception("failed mount")
 
@@ -226,11 +227,10 @@ async def test_mount_error(
 async def test_unmount_error(
     gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
-    mocker: MockerFixture
+    mocker: MockerFixture,
 ) -> None:
-
     async def mock_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
         raise Exception("failed unmount")
 
@@ -262,13 +262,13 @@ async def test_unmount_error(
 async def test_enable(
     gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
-    mocker: MockerFixture
+    mocker: MockerFixture,
 ) -> None:
 
     from gravel.controllers.nodes.systemdisk import (
         SystemDisk,
         MountError,
-        OverlayError
+        OverlayError,
     )
 
     async def mount_fail() -> None:
@@ -278,7 +278,7 @@ async def test_enable(
     bindmounts = []
 
     async def mock_call(
-        cmd: List[str]
+        cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
 
         if cmd[2] == "overlay":
@@ -296,7 +296,7 @@ async def test_enable(
     # ensure we don't have a mounted fs
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_without_aquarium.raw"),
-        target_path="/proc/mounts"
+        target_path="/proc/mounts",
     )
 
     systemdisk = SystemDisk(gstate)

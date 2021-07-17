@@ -55,7 +55,7 @@ class KV:
         self._is_closing = False
 
     async def ensure_connection(self) -> None:
-        """ Open k/v store connection """
+        """Open k/v store connection"""
         # try getting the status, loop until we make it.
         opened = False
         while not self._is_closing:
@@ -74,7 +74,7 @@ class KV:
             logger.info("opened kvstore connection")
 
     async def close(self) -> None:
-        """ Close k/v store connection """
+        """Close k/v store connection"""
         self._is_closing = True
         if not self._client:
             self._is_open = False
@@ -84,12 +84,12 @@ class KV:
         self._is_open = False
 
     async def put(self, key: str, value: str) -> None:
-        """ Put key/value pair """
+        """Put key/value pair"""
         assert self._client
         await self._client.put(key, value)
 
     async def get(self, key: str) -> Optional[str]:
-        """ Get value for provided key """
+        """Get value for provided key"""
         assert self._client
         value, _ = await self._client.get(key)
         if not value:
@@ -97,7 +97,7 @@ class KV:
         return value.decode("utf-8")
 
     async def get_prefix(self, key: str) -> List[str]:
-        """ Get a range of keys with a prefix """
+        """Get a range of keys with a prefix"""
         assert self._client
         values = []
         async for value, _ in self._client.get_prefix(key):  # type: ignore[attr-defined]
@@ -105,32 +105,32 @@ class KV:
         return values
 
     async def rm(self, key: str) -> None:
-        """ Remove key from store """
+        """Remove key from store"""
         assert self._client
         await self._client.delete(key)
 
     async def lock(self, key: str) -> Lock:
-        """ Lock a given key. Requires compliant consumers. """
+        """Lock a given key. Requires compliant consumers."""
         assert self._client
         return Lock(self._client.lock(key))
 
     async def watch(
-        self,
-        key: str,
-        callback: Callable[[str, str], None]
+        self, key: str, callback: Callable[[str, str], None]
     ) -> int:
-        """ Watch updates on a given key """
+        """Watch updates on a given key"""
         assert self._client
 
         async def _cb(what: aetcd3.events.Event) -> None:
-            if not what or \
-               type(what) == grpclib.exceptions.StreamTerminatedError:
+            if (
+                not what
+                or type(what) == grpclib.exceptions.StreamTerminatedError
+            ):
                 return
             callback(what.key.decode("utf-8"), what.value.decode("utf-8"))
 
         return await self._client.add_watch_callback(key, _cb)
 
     async def cancel_watch(self, watch_id: int) -> None:
-        """ Cancel a watch """
+        """Cancel a watch"""
         assert self._client
         await self._client.cancel_watch(watch_id)

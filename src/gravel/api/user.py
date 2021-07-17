@@ -23,69 +23,77 @@ from gravel.controllers.auth import JWT, UserMgr, UserModel
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(
-    prefix="/user",
-    tags=["user"]
-)
+router: APIRouter = APIRouter(prefix="/user", tags=["user"])
 
 
 @router.get("/", name="Get list of users", response_model=List[UserModel])
-async def enumerate_users(request: Request,
-                          _=Depends(jwt_auth_scheme)) -> List[UserModel]:
+async def enumerate_users(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> List[UserModel]:
     user_mgr = UserMgr(request.app.state.gstate.store)
     return await user_mgr.enumerate()
 
 
 @router.post("/create", name="Create a new user")
-async def create_user(user: UserModel,
-                      request: Request,
-                      _=Depends(jwt_auth_scheme)) -> None:
+async def create_user(
+    user: UserModel, request: Request, _=Depends(jwt_auth_scheme)
+) -> None:
     user_mgr = UserMgr(request.app.state.gstate.store)
     if await user_mgr.exists(user.username):
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="User already exists")
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail="User already exists"
+        )
     user.hash_password()
     await user_mgr.put(user)
 
 
 @router.get("/{username}", name="Get a user by name", response_model=UserModel)
-async def get_user(username: str,
-                   request: Request,
-                   _=Depends(jwt_auth_scheme)) -> UserModel:
+async def get_user(
+    username: str, request: Request, _=Depends(jwt_auth_scheme)
+) -> UserModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
     if not await user_mgr.exists(username):
-        raise HTTPException(status.HTTP_404_NOT_FOUND,
-                            detail="User does not exist")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="User does not exist"
+        )
     return await user_mgr.get(username)  # type: ignore[return-value]
 
 
 @router.delete("/{username}", name="Delete a user by name")
-async def delete_user(username: str,
-                      request: Request,
-                      token: JWT = Depends(jwt_auth_scheme)) -> None:
+async def delete_user(
+    username: str, request: Request, token: JWT = Depends(jwt_auth_scheme)
+) -> None:
     user_mgr = UserMgr(request.app.state.gstate.store)
     if not await user_mgr.exists(username):
-        raise HTTPException(status.HTTP_404_NOT_FOUND,
-                            detail="User does not exist")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="User does not exist"
+        )
     if token.sub == username:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            detail="Cannot delete current user")
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, detail="Cannot delete current user"
+        )
     await user_mgr.remove(username)
 
 
-@router.patch("/{username}", name="Update a user by name", response_model=UserModel)
-async def patch_user(username: str,
-                     update_user: UserModel,
-                     request: Request,
-                     token: JWT = Depends(jwt_auth_scheme)) -> UserModel:
+@router.patch(
+    "/{username}", name="Update a user by name", response_model=UserModel
+)
+async def patch_user(
+    username: str,
+    update_user: UserModel,
+    request: Request,
+    token: JWT = Depends(jwt_auth_scheme),
+) -> UserModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
     user = await user_mgr.get(username)
     if user is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND,
-                            detail="User does not exist")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="User does not exist"
+        )
     if token.sub == username and update_user.disabled:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            detail="Cannot disable current user")
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, detail="Cannot disable current user"
+        )
     if update_user.password:
         update_user.hash_password()
     update_data = update_user.dict(exclude_unset=True, exclude_none=True)

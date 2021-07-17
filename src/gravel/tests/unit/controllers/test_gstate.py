@@ -19,7 +19,7 @@ from gravel.controllers.gstate import GlobalState
 
 def test_gstate_inst(gstate: GlobalState):
     print(type(gstate))
-    assert type(gstate).__name__ == 'GlobalState'
+    assert type(gstate).__name__ == "GlobalState"
 
 
 @pytest.mark.asyncio

@@ -30,7 +30,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 async def test_inventory_subs(
     mocker: MockerFixture,
     gstate: GlobalState,
-    get_data_contents: Callable[[str, str], str]
+    get_data_contents: Callable[[str, str], str],
 ):
 
     nodeinfo: NodeInfoModel = NodeInfoModel.parse_raw(

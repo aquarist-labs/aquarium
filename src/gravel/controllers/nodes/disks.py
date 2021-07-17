@@ -58,7 +58,6 @@ class DiskSolution(BaseModel):
 
 
 def _device_to_disk(device: VolumeDeviceModel) -> DiskModel:
-
     def _get_disk_type(rotational: bool) -> DiskTypeEnum:
         return DiskTypeEnum.HDD if rotational else DiskTypeEnum.SSD
 
@@ -67,14 +66,12 @@ def _device_to_disk(device: VolumeDeviceModel) -> DiskModel:
         size=device.sys_api.size,
         type=_get_disk_type(device.sys_api.rotational),
         info=DiskInfoModel(
-            vendor=device.sys_api.vendor,
-            model=device.sys_api.model
-        )
+            vendor=device.sys_api.vendor, model=device.sys_api.model
+        ),
     )
 
 
 class Disks:
-
     def __init__(self) -> None:
         pass
 
@@ -99,7 +96,7 @@ class Disks:
                 ssds.append(device)
 
         def _get_candidates(
-            lst: List[VolumeDeviceModel]
+            lst: List[VolumeDeviceModel],
         ) -> Tuple[Optional[VolumeDeviceModel], List[VolumeDeviceModel]]:
             systemdisk: Optional[VolumeDeviceModel] = None
             storage: List[VolumeDeviceModel] = []
@@ -132,13 +129,15 @@ class Disks:
             assert len(candidate_storage) + 1 == len(hdds) + len(ssds)
 
         solution = DiskSolution()
-        solution.possible = (candidate_systemdisk is not None)
+        solution.possible = candidate_systemdisk is not None
 
         for device in rejected:
-            solution.rejected.append(RejectedDiskModel(
-                disk=_device_to_disk(device),
-                reasons=device.rejected_reasons
-            ))
+            solution.rejected.append(
+                RejectedDiskModel(
+                    disk=_device_to_disk(device),
+                    reasons=device.rejected_reasons,
+                )
+            )
 
         if not candidate_systemdisk:
             return solution

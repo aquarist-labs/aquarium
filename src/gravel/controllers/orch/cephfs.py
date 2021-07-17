@@ -18,9 +18,10 @@ from pydantic.tools import parse_obj_as
 from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 
 from gravel.controllers.orch.models import (
-    CephFSAuthorizationModel, CephFSListEntryModel,
+    CephFSAuthorizationModel,
+    CephFSListEntryModel,
     CephFSNameModel,
-    CephFSVolumeListModel
+    CephFSVolumeListModel,
 )
 from gravel.controllers.orch.orchestrator import Orchestrator
 
@@ -44,10 +45,7 @@ class CephFS:
 
     def create(self, name: str) -> None:
 
-        cmd = {
-            "prefix": "fs volume create",
-            "name": name
-        }
+        cmd = {"prefix": "fs volume create", "name": name}
         try:
             # this is expected to be a silent command
             self.mgr.call(cmd)
@@ -60,10 +58,7 @@ class CephFS:
 
     def volume_ls(self) -> CephFSVolumeListModel:
 
-        cmd = {
-            "prefix": "fs volume ls",
-            "format": "json"
-        }
+        cmd = {"prefix": "fs volume ls", "format": "json"}
         try:
             res = self.mgr.call(cmd)
         except CephCommandError as e:
@@ -73,10 +68,7 @@ class CephFS:
         )
 
     def ls(self) -> List[CephFSListEntryModel]:
-        cmd = {
-            "prefix": "fs ls",
-            "format": "json"
-        }
+        cmd = {"prefix": "fs ls", "format": "json"}
         try:
             res = self.mon.call(cmd)
         except CephCommandError as e:
@@ -90,18 +82,14 @@ class CephFS:
                 return fs
         raise CephFSError(f"unknown filesystem {name}")
 
-    def authorize(
-        self,
-        fsname: str,
-        clientid: str
-    ) -> CephFSAuthorizationModel:
+    def authorize(self, fsname: str, clientid: str) -> CephFSAuthorizationModel:
         assert fsname and clientid
         cmd = {
             "prefix": "fs authorize",
             "filesystem": fsname,
             "entity": f"client.{fsname}-{clientid}",
             "caps": ["/", "rw"],
-            "format": "json"
+            "format": "json",
         }
         try:
             res = self.mon.call(cmd)
@@ -112,9 +100,7 @@ class CephFS:
         return lst[0]
 
     def get_authorization(
-        self,
-        fsname: str,
-        clientid: Optional[str]
+        self, fsname: str, clientid: Optional[str]
     ) -> CephFSAuthorizationModel:
 
         if not clientid:
@@ -123,7 +109,7 @@ class CephFS:
         cmd = {
             "prefix": "auth get",
             "entity": f"client.{fsname}-{clientid}",
-            "format": "json"
+            "format": "json",
         }
         try:
             res = self.mon.call(cmd)
