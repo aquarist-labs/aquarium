@@ -13,6 +13,7 @@ routines:
       command: |
         cd aquarium
         ./tools/setup-dev.sh
+        sudo adduser ubuntu kvm  
     # the next step is needed for current user to be able to access libvirt
     - reconnect
     - name: make sure libvirtd is running
