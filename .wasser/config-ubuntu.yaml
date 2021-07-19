@@ -13,16 +13,16 @@ routines:
       command: |
         cd aquarium
         ./tools/setup-dev.sh
-    - name: building image
-      command: |
-        cd aquarium
-        source venv/bin/activate
-        ./tools/build-image.sh
     # the next step is needed for current user to be able to access libvirt
     - reconnect
     - name: make sure libvirtd is running
       command: |
         sudo systemctl start libvirtd
+    - name: building image
+      command: |
+        cd aquarium
+        source venv/bin/activate
+        ./tools/build-image.sh
     - name: create deployment
       command: |
         cd aquarium
