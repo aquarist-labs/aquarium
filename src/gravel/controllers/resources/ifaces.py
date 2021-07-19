@@ -138,6 +138,26 @@ class InterfaceStatsModel(BaseModel):
     ts: int = Field(0, title="Reading timestamp")
 
 
+def _get_speed(v: Optional[str]) -> int:
+    """Obtain speed in bytes from string"""
+    if not v:
+        return 0
+    power = 0
+    if v.lower().endswith("gbit/s"):
+        power = 3
+    elif v.lower().endswith("mbit/s"):
+        power = 2
+    elif v.lower().endswith("kbit/s"):
+        power = 1
+    vstr = ""
+    for c in v:
+        if c.isdigit():
+            vstr += c
+    if len(vstr) == 0:
+        raise ValueError()
+    return int(vstr) * pow(1000, power)
+
+
 class Interfaces(Ticker):
 
     sysconf = "/etc/sysconfig/network"
@@ -211,7 +231,7 @@ class Interfaces(Ticker):
             ),
             name=raw.logicalname,
             address=raw.configuration.ip,
-            speed=self._get_speed(raw.configuration.speed),
+            speed=_get_speed(raw.configuration.speed),
             link=_get_bool(raw.configuration.link),
             caps=InterfaceCapsModel(
                 autonegotiation=_get_bool(raw.configuration.autonegotiation),
@@ -320,23 +340,6 @@ class Interfaces(Ticker):
         ]
         for iface in to_remove:
             del self._statistics_by_name[iface]
-
-    def _get_speed(self, v: Optional[str]) -> int:
-        """Obtain speed in bytes from string"""
-        if not v:
-            return 0
-        power = 0
-        if v.endswith("Gbit/s"):
-            power = 3
-        elif v.endswith("MBit/s"):
-            power = 2
-        elif v.endswith("Kbit/s"):
-            power = 1
-        vstr = ""
-        for c in v:
-            if c.isdigit():
-                vstr += c
-        return int(vstr) * pow(1000, power)
 
     @property
     def stats(self) -> Dict[str, List[InterfaceStatsModel]]:

@@ -271,3 +271,33 @@ async def test_statistics(
         assert "foobar" in e.message
         throws = True
     assert throws
+
+
+def test_get_speed() -> None:
+
+    from gravel.controllers.resources.ifaces import _get_speed
+
+    s = _get_speed("")
+    assert s == 0
+    s = _get_speed("1bit/s")
+    assert s == 1
+    s = _get_speed("1Kbit/s")
+    assert s == 1000
+    s = _get_speed("1Mbit/s")
+    assert s == 1000000
+    s = _get_speed("1Gbit/s")
+    assert s == 1000000000
+
+    throws = False
+    try:
+        _get_speed("foobar")
+    except ValueError:
+        throws = True
+    assert throws
+
+    throws = False
+    try:
+        _get_speed("mbit/s")
+    except ValueError:
+        throws = True
+    assert throws
