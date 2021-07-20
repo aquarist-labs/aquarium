@@ -39,6 +39,20 @@ cypress_opensuse_tumbleweed=(
   "alsa"
 )
 
+cypress_debian_ubuntu=(
+  "libgtk2.0-0"
+  "libgtk-3-0"
+  "libgbm-dev"
+  "libnotify-dev"
+  "libgconf-2-4"
+  "libnss3"
+  "libxss1"
+  "libasound2"
+  "libxtst6"
+  "xauth"
+  "xvfb"
+)
+
 dependencies_debian=(
   "btrfs-progs"
   "git"
@@ -247,6 +261,11 @@ if ! ${skip_install_deps} ; then
           exit 1
         }
       fi
+      echo "=> try installing dependencies for cypress"
+      sudo apt-get install -q -y ${cypress_debian_ubuntu[*]} || {
+	  echo "Dependency installation for cypress failed"
+          exit 1
+      }
       ;;
     ubuntu)
       echo "=> installing nodejs16.x repo to apt source"
@@ -263,6 +282,11 @@ if ! ${skip_install_deps} ; then
           exit 1
         }
       fi
+      echo "=> try installing dependencies for cypress"
+      sudo apt-get install -q -y ${cypress_debian_ubuntu[*]} || {
+	  echo "Dependency installation for cypress failed"
+          exit 1
+      }
       ;;
     *)
       echo "error: unsupported distribution ($osid)"
