@@ -109,7 +109,4 @@ baseInsertService aquarium-boot
 baseInsertService sshd
 baseInsertService aquarium
 
-# Not compatible with set -e
-baseCleanMount || true
-
 exit 0
