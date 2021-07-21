@@ -1,5 +1,6 @@
 <glass-widget [loadData]="loadData.bind(this)"
               title="Health"
+              [setStatus]="setHealthStatusIndicator.bind(this)"
               (loadDataEvent)="setHealthStatus($event)">
   <div class="glass-health-dashboard-widget"
        [class.glass-color-theme-ok]="isOkay"

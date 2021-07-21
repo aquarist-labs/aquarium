@@ -1,7 +1,14 @@
 @import 'styles.scss';
 
-.glass-dashboard-widget {
+mat-card.glass-dashboard-widget {
   padding: unset;
+
+  // Needed for box shadow
+  margin: 5px;
+  height: calc(100% - 10px) !important;
+  min-height: calc(100% - 10px) !important;
+  width: calc(100% - 10px) !important;
+  min-width: calc(100% - 10px) !important;
 
   .mat-card-title-group {
     height: 52px;
@@ -11,10 +18,21 @@
   .mat-card-content {
     height: calc(100% - 52px);
   }
-}
-.glass-dashboard-widget.error {
-  @extend .glass-color-theme-error;
-  .mat-card-content {
-    padding: 16px;
+
+  &.info {
+    box-shadow: 0 0 5px 2px $glass-color-info !important;
+  }
+
+  &.success {
+    box-shadow: 0 0 5px 2px $glass-color-success !important;
+  }
+
+  &.warning {
+    box-shadow: 0 0 5px 2px $glass-color-warning !important;
+  }
+
+  &.error {
+    @extend .glass-color-theme-error;
+    box-shadow: 0 0 5px 2px $glass-color-error !important;
   }
 }
