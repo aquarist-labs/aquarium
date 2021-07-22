@@ -123,7 +123,7 @@ srcdir=${rootdir}/src
 
 profile=""
 case ${imgtype} in
-  vagrant) profile="Ceph-Vagrant" type="oem";;
+  vagrant) profile="Ceph-Vagrant-libvirt" type="oem";;
   vagrant-virtualbox) profile="Ceph-Vagrant-VirtualBox" type="oem";;
   self-install) profile="Ceph" type="oem";;
   live-iso) profile="Ceph" type="iso";;
@@ -206,13 +206,11 @@ case $osid in
     ;;
   debian | ubuntu)
     (set -o pipefail
-    sudo kiwi-ng ${kiwiargs} --debug --profile=${profile} --type ${type}\
-      system boxbuild --box tumbleweed --no-update-check -- --description ${build} \
+    kiwi-ng ${kiwiargs} --debug --profile=${profile} --type ${type}\
+      system boxbuild --box leap -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
     [ $? -eq 0 ] || error_exit "Kiwi build failed"
-    # make sure images in _out can be read
-    sudo chmod -R a+r ${build}/_out
     ;;
   *)
     error_exit "unsupported distribution ($osid) kiwi-ng may not work"
