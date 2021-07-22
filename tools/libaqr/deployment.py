@@ -79,6 +79,7 @@ class Deployment:
         cls,
         name: str,
         box: str,
+        provider: str,
         num_nodes: int,
         num_disks: int,
         num_nics: int,
@@ -93,8 +94,9 @@ class Deployment:
         if path.exists():
             raise DeploymentExistsError()
 
-        if box not in vagrant.Vagrant.box_list():
-            raise BoxDoesNotExistError(box)
+        if (box, provider) not in vagrant.Vagrant.box_list():
+            logger.debug(f"boxlist: '{vagrant.Vagrant.box_list()}'")
+            raise BoxDoesNotExistError(box, provider)
 
         try:
             logger.debug(f"creating deployment '{name}'")
@@ -104,7 +106,7 @@ class Deployment:
             raise AqrError(f"error creating deployment '{name}': {str(e)}")
 
         vagrantfile_text = _gen_vagrantfile(
-            box, mount_path,
+            box, provider, mount_path,
             num_nodes, num_disks, num_nics
         )
         vagrantfile = path.joinpath("Vagrantfile")
@@ -201,6 +203,7 @@ class Deployment:
 
 def _gen_vagrantfile(
     boxname: str,
+    provider: str,
     rootdir: Optional[Path],
     nodes: int,
     disks: int,
@@ -211,18 +214,40 @@ def _gen_vagrantfile(
         f"generate template: nodes={nodes}, disks={disks}, nics={nics}"
     )
 
-    without_nfs_str: str = "true" if not rootdir else "false"
+    without_shared_folder_str: str = "true" if not rootdir else "false"
     rootdir = rootdir if rootdir else Path(".")
+
+    """ template for node storage, libvirt and virtualbox use different format """
+    create_node_storage: str = ""
+    if provider == "virtualbox":
+        create_node_storage = \
+                f"""
+vb_config = `VBoxManage list systemproperties`.split(/\\n/).grep(/Default machine folder/).first
+diskpath = vb_config.split(':', 2)[1].strip() """
+        for nid in range(1, nodes+1):
+            for did in range(1, disks+1):
+                create_node_storage += \
+                        f"""
+N{nid}DISK{did} = File.join(diskpath, '{boxname}-node{nid}', 'node{nid}-disk{did}.vdi') """
+
 
     template: str = \
         f"""
 # -*- mode: ruby -*-
 # vim: set ft=ruby
+{create_node_storage}
 
 Vagrant.configure("2") do |config|
     config.vm.box = "{boxname}"
     config.vm.synced_folder ".", "/vagrant", disabled: true
-    config.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_nfs_str}
+
+    config.vm.provider :virtualbox do |_, override|
+        override.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "virtualbox", disabled: {without_shared_folder_str}
+    end
+    config.vm.provider :libvirt do |_, override|
+        override.vm.synced_folder "{rootdir}", "/srv/aquarium", type: "nfs", nfs_udp: false, disabled: {without_shared_folder_str}
+    end
+
     config.vm.guest = "suse"
 
         """
@@ -238,7 +263,25 @@ Vagrant.configure("2") do |config|
                 """
 
         node_storage: str = ""
-        for _ in range(disks):
+        if provider == "virtualbox":
+            node_storage += \
+                    f"""
+            lv.customize ['storagectl', :id, '--name', 'SATA Controller', '--portcount', '6'] """
+
+        for did in range(1, disks+1):
+            if provider == "libvirt":
+                serial = "".join(random.choice("0123456789") for _ in range(8))
+                node_storage += \
+                        f"""
+            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}" """
+            elif provider == "virtualbox":
+                node_storage += \
+                        f"""
+            unless File.exist?(N{nid}DISK{did})
+                lv.customize ['createhd', '--filename', N{nid}DISK{did}, '--format', 'VDI', '--size', '20000' ]
+            end
+            lv.customize ['storageattach', :id,  '--storagectl', 'SATA Controller', '--port', {did}, '--device', 0, '--type', 'hdd', '--medium', N{nid}DISK{did}] """
+
             serial = "".join(random.choice("0123456789") for _ in range(8))
             node_storage += \
                 f"""
@@ -250,7 +293,7 @@ Vagrant.configure("2") do |config|
             f"""
     config.vm.define :"node{nid}", primary: {is_primary_str} do |node|
         node.vm.hostname = "node{nid}"
-        node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
+        node.vm.network "forwarded_port", guest: 1337, host: {host_port}
         {node_networks}
 
         node.vm.provider "libvirt" do |lv|

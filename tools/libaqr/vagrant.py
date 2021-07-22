@@ -86,39 +86,43 @@ class Vagrant:
         return retcode
 
     @classmethod
-    def box_list(cls) -> List[str]:
-        """ List all known vagrant boxes, including unrelated to aquarium. """
+    def box_list(cls) -> List[Tuple[str,str]]:
+        """ List all known vagrant boxes with the provider, including unrelated to aquarium. """
 
         cmd = "vagrant box list --machine-readable"
         retcode, out, err = cls.run(None, cmd, interactive=False)
         if retcode != 0:
             raise VagrantError(msg=err, errno=retcode)
 
-        boxes = (name for name in out.splitlines()
-                 if name.count("box-name") > 0)
-        boxnames = [entry.split(",")[3] for entry in boxes]
-        return boxnames
+        boxes = [name for name in out.splitlines() if name.count("box-name") > 0]
+        providers = [provider for provider in out.splitlines() if provider.count("box-provider") > 0]
+        boxlist: List[Tuple[str,str]] = []
+        for box_entry, provider_entry in zip(boxes, providers):
+            boxname = box_entry.split(",")[3]
+            provider = provider_entry.split(",")[3]
+            boxlist.append((boxname, provider))
+        return boxlist
 
     @classmethod
-    def box_remove(cls, name: str) -> None:
+    def box_remove(cls, name: str, provider: str='libvirt') -> None:
         """ Remove an existing box """
-        if name not in cls.box_list():
+        if [name, provider] not in cls.box_list():
             return
 
-        cmd = f"vagrant box remove {name}"
+        cmd = f"vagrant box remove {name} --provider {provider}"
         retcode, _, err = cls.run(None, cmd, interactive=False)
         if retcode != 0:
             raise VagrantError(
-                msg=f"failed removing box '{name}': {err}",
+                msg=f"failed removing box '{name}' ({provider}): {err}",
                 errno=retcode
             )
 
     @classmethod
-    def box_add(cls, name: str, path: Path) -> None:
-        """ Add image from 'path' as box 'name' """
+    def box_add(cls, name: str, path: Path, provider: str='libvirt') -> None:
+        """ Add image from 'path' as box 'name', different 'provider' could have the same 'name' """
 
-        avail_boxes: List[str] = cls.box_list()
-        if name in avail_boxes:
+        avail_boxes = cls.box_list()
+        if [name, provider] in avail_boxes:
             raise BoxAlreadyExistsError()
 
         cmd = f"vagrant box add {name} {path}"
