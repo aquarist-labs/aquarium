@@ -241,7 +241,7 @@ def cmd_create(
     if not box and image:
         click.secho(f"Using image '{image}' to create box and deployment", fg="green")
 
-        if image not in [img_obj.name for img_obj in avail_images]:
+        if image not in [i.name for i in avail_images]:
             click.secho(f"Image '{image}' not found", fg="red")
             sys.exit(errno.ENOENT)
 
@@ -263,7 +263,7 @@ def cmd_create(
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
             builds_path = ctx.builds_path
 
-            imgobj = Image.add(builds_path, image)
+            Image.add(builds_path, image)
             avail_boxes = Vagrant.box_list()
             box = image
             click.secho(
