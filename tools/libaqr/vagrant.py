@@ -94,9 +94,30 @@ class Vagrant:
         if retcode != 0:
             raise VagrantError(msg=err, errno=retcode)
 
-        boxes = [name for name in out.splitlines() if name.count("box-name") > 0]
-        providers = [provider for provider in out.splitlines() if provider.count("box-provider") > 0]
+        """ 
+        example of vagrant box list with different provider
+
+        1627277891,,ui,info,aquarium (libvirt%!(VAGRANT_COMMA) 0)
+        1627277891,,box-name,aquarium
+        1627277891,,box-provider,libvirt
+        1627277891,,box-version,0
+        1627277891,,ui,info,aquarium (virtualbox%!(VAGRANT_COMMA) 0)
+        1627277891,,box-name,aquarium
+        1627277891,,box-provider,virtualbox
+        1627277891,,box-version,0
+        """
+        boxes = [name for name in out.splitlines() if "box-name" in name ]
+        providers = [provider for provider in out.splitlines() if "box-provider" in provider ]
         boxlist: List[Tuple[str,str]] = []
+        """
+        Now both box-name and box-provider together. As above example 
+        1627277891,,box-name,aquarium
+        1627277891,,box-provider,libvirt
+        Turn into [aquarium, libvirt]
+        1627277891,,box-name,aquarium
+        1627277891,,box-provider,virtualbox
+        Turn into [aquarium, virtualbox]
+        """
         for box_entry, provider_entry in zip(boxes, providers):
             boxname = box_entry.split(",")[3]
             provider = provider_entry.split(",")[3]
