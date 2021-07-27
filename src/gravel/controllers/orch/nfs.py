@@ -23,7 +23,7 @@ from gravel.controllers.orch.ceph import CephCommandError, Mgr
 
 class NFSDaemonModel(BaseModel):
     hostname: str
-    ip: List[str]
+    ip: str
     port: int
 
 
@@ -118,7 +118,9 @@ class NFSService(NFS):
 
         ret: List[NFSServiceModel] = []
         for service_id in res:
-            daemons = parse_obj_as(List[NFSDaemonModel], res[service_id])
+            daemons = parse_obj_as(
+                List[NFSDaemonModel], res[service_id]["backend"]
+            )
             ret.append(NFSServiceModel(service_id=service_id, daemons=daemons))
         return ret
 
