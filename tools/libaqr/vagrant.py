@@ -106,23 +106,13 @@ class Vagrant:
         1627277891,,box-provider,virtualbox
         1627277891,,box-version,0
         """
-        boxes = [name for name in out.splitlines() if "box-name" in name ]
-        providers = [provider for provider in out.splitlines() if "box-provider" in provider ]
-        boxlist: List[Tuple[str,str]] = []
-        """
-        Now both box-name and box-provider together. As above example 
-        1627277891,,box-name,aquarium
-        1627277891,,box-provider,libvirt
-        Turn into [aquarium, libvirt]
-        1627277891,,box-name,aquarium
-        1627277891,,box-provider,virtualbox
-        Turn into [aquarium, virtualbox]
-        """
-        for box_entry, provider_entry in zip(boxes, providers):
-            boxname = box_entry.split(",")[3]
-            provider = provider_entry.split(",")[3]
-            boxlist.append((boxname, provider))
-        return boxlist
+        def vagrant_k_v(s: str) -> Tuple[str, str]:
+            return tuple(s.split(',')[2:4])
+
+        names = (value for key, value in (vagrant_k_v(_) for _ in out.splitlines()) if key == 'box-name')
+        providers = (value for key, value in (vagrant_k_v(_) for _ in out.splitlines()) if key == 'box-provider')
+
+        return list(zip(names, providers))
 
     @classmethod
     def box_remove(cls, name: str, provider: str='libvirt') -> None:
