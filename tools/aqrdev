@@ -202,9 +202,11 @@ def cmd_create(
 
     """
     User did not assign box or image
-    1) search for existing default aquarium box and provider type, then flag it
-    2) look up available image name and provider type, then flag it 
-    3) if neither exist, error out
+    1) search for existing default aquarium box and provider type, 
+       then flag it aquarium_box_exist to True
+    2) look up available image name and provider type, 
+       then flag it aquarium_image_exist to True
+    3) if neither exist, then error out exit 
     """
     if not box and not image:
         click.secho(f"Using default 'aquarium' as box name and image name", fg="green")
