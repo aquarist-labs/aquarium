@@ -117,7 +117,7 @@ class Vagrant:
     @classmethod
     def box_remove(cls, name: str, provider: str='libvirt') -> None:
         """ Remove an existing box """
-        if [name, provider] not in cls.box_list():
+        if (name, provider) not in cls.box_list():
             return
 
         cmd = f"vagrant box remove {name} --provider {provider}"
@@ -133,7 +133,7 @@ class Vagrant:
         """ Add image from 'path' as box 'name', different 'provider' could have the same 'name' """
 
         avail_boxes = cls.box_list()
-        if [name, provider] in avail_boxes:
+        if (name, provider) in avail_boxes:
             raise BoxAlreadyExistsError()
 
         cmd = f"vagrant box add {name} {path}"
