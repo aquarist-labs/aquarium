@@ -86,39 +86,54 @@ class Vagrant:
         return retcode
 
     @classmethod
-    def box_list(cls) -> List[str]:
-        """ List all known vagrant boxes, including unrelated to aquarium. """
+    def box_list(cls) -> List[Tuple[str,str]]:
+        """ List all known vagrant boxes with the provider, including unrelated to aquarium. """
 
         cmd = "vagrant box list --machine-readable"
         retcode, out, err = cls.run(None, cmd, interactive=False)
         if retcode != 0:
             raise VagrantError(msg=err, errno=retcode)
 
-        boxes = (name for name in out.splitlines()
-                 if name.count("box-name") > 0)
-        boxnames = [entry.split(",")[3] for entry in boxes]
-        return boxnames
+        """ 
+        example of vagrant box list with different provider
+
+        1627277891,,ui,info,aquarium (libvirt%!(VAGRANT_COMMA) 0)
+        1627277891,,box-name,aquarium
+        1627277891,,box-provider,libvirt
+        1627277891,,box-version,0
+        1627277891,,ui,info,aquarium (virtualbox%!(VAGRANT_COMMA) 0)
+        1627277891,,box-name,aquarium
+        1627277891,,box-provider,virtualbox
+        1627277891,,box-version,0
+        """
+        def vagrant_k_v(s: str) -> Tuple[str, str]:
+            return tuple(s.split(',')[2:4])
+
+        names = (value for key, value in (vagrant_k_v(_) for _ in out.splitlines()) if key == 'box-name')
+        providers = (value for key, value in (vagrant_k_v(_) for _ in out.splitlines()) if key == 'box-provider')
+
+        return list(zip(names, providers))
 
     @classmethod
-    def box_remove(cls, name: str) -> None:
+    def box_remove(cls, name: str, provider: str='libvirt') -> None:
         """ Remove an existing box """
-        if name not in cls.box_list():
+        if (name, provider) not in cls.box_list():
             return
 
-        cmd = f"vagrant box remove {name}"
+        cmd = f"vagrant box remove {name} --provider {provider}"
         retcode, _, err = cls.run(None, cmd, interactive=False)
         if retcode != 0:
             raise VagrantError(
-                msg=f"failed removing box '{name}': {err}",
+                msg=f"failed removing box '{name}' ({provider}): {err}",
                 errno=retcode
             )
 
     @classmethod
-    def box_add(cls, name: str, path: Path) -> None:
-        """ Add image from 'path' as box 'name' """
+    def box_add(cls, name: str, path: Path, provider: str='libvirt') -> None:
+        """ Add image from 'path' as box 'name', different 'provider' could have the same 'name' """
 
-        avail_boxes: List[str] = cls.box_list()
-        if name in avail_boxes:
+        avail_boxes = cls.box_list()
+        if (name, provider) in avail_boxes:
             raise BoxAlreadyExistsError()
 
         cmd = f"vagrant box add {name} {path}"

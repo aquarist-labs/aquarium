@@ -211,6 +211,9 @@
         <package name="gawk"/>
         <package name="issue-generator"/>
 
+	<!-- groupadd is no longer in base package -->
+        <package name="shadow"/>
+
         <!-- network utilities -->
         <package name="iputils"/>
         <package name="iproute2"/>
