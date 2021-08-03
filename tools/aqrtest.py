@@ -38,11 +38,13 @@ def app() -> None:
 @click.option("-t", "--test", required=False, type=str)
 @click.option("-s", "--suite", required=False, type=str)
 @click.option("--suites-path", required=False, type=Path)
+@click.option("--skip-adding-box", is_flag=True)
 def cmd_run(
     image: str,
     test: Optional[str],
     suite: Optional[str],
-    suites_path: Optional[Path]
+    suites_path: Optional[Path],
+    skip_adding_box: Optional[bool]
 ) -> None:
     """ Run a test or a suite against a given image """
 
@@ -67,20 +69,21 @@ def cmd_run(
     sys.path.append(suitesdir.parent.as_posix())
 
     # prepare image
-    try:
-        Image.add(find_builds_path(), image)
-    except ImageNotFoundError as e:
-        click.secho(
-            f"error: unable to find image '{image}': {e.message}",
-            fg="red"
-        )
-        sys.exit(e.errno)
-    except VagrantError as e:
-        click.secho(f"error: {e.message}", fg="red")
-        sys.exit(e.errno)
-    except BoxAlreadyExistsError:
-        # we are going to reuse that box
-        pass
+    if not skip_adding_box:
+        try:
+            Image.add(find_builds_path(), image)
+        except ImageNotFoundError as e:
+            click.secho(
+                f"error: unable to find image '{image}': {e.message}",
+                fg="red"
+            )
+            sys.exit(e.errno)
+        except VagrantError as e:
+            click.secho(f"error: {e.message}", fg="red")
+            sys.exit(e.errno)
+        except BoxAlreadyExistsError:
+            # we are going to reuse that box
+            pass
 
     deployments_path = Path("aqrtest-deployments")
     deployments_path.mkdir(exist_ok=True)
