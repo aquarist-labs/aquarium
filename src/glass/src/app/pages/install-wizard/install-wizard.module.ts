@@ -26,7 +26,6 @@ import { HostnameStepComponent } from '~/app/pages/install-wizard/steps/hostname
 import { LocalDevicesStepComponent } from '~/app/pages/install-wizard/steps/local-devices-step/local-devices-step.component';
 import { NtpStepComponent } from '~/app/pages/install-wizard/steps/ntp-step/ntp-step.component';
 import { RegistrationStepComponent } from '~/app/pages/install-wizard/steps/registration-step/registration-step.component';
-import { ServicesStepComponent } from '~/app/pages/install-wizard/steps/services-step/services-step.component';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
@@ -36,7 +35,6 @@ import { SharedModule } from '~/app/shared/shared.module';
     NtpStepComponent,
     HostnameStepComponent,
     LocalDevicesStepComponent,
-    ServicesStepComponent,
     RegistrationStepComponent
   ],
   imports: [

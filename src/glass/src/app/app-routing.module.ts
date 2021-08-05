@@ -27,7 +27,6 @@ import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/ins
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
-import { ServicesPageComponent } from '~/app/pages/services-page/services-page.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
@@ -47,11 +46,6 @@ const routes: Routes = [
         canActivateChild: [AuthGuardService],
         children: [
           { path: '', component: DashboardPageComponent },
-          {
-            path: 'services',
-            component: ServicesPageComponent,
-            data: { breadcrumb: TEXT('Services') }
-          },
           { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } },
           { path: 'users', component: UsersPageComponent, data: { breadcrumb: TEXT('Users') } }
         ]
