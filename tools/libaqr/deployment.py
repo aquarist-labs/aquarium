@@ -269,12 +269,13 @@ Vagrant.configure("2") do |config|
                     f"""
             lv.customize ['storagectl', :id, '--name', 'SATA Controller', '--portcount', '6'] """
 
+        disk_size = '8G'
         for did in range(1, disks+1):
             if provider == "libvirt":
                 serial = "".join(random.choice("0123456789") for _ in range(8))
                 node_storage += \
                         f"""
-            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}" """
+            lv.storage :file, size: "{disk_size}", type: "qcow2", serial: "{serial}" """
             elif provider == "virtualbox":
                 node_storage += \
                         f"""
@@ -283,11 +284,6 @@ Vagrant.configure("2") do |config|
             end
             lv.customize ['storageattach', :id,  '--storagectl', 'SATA Controller', '--port', {did}, '--device', 0, '--type', 'hdd', '--medium', N{nid}DISK{did}] """
 
-            serial = "".join(random.choice("0123456789") for _ in range(8))
-            node_storage += \
-                f"""
-            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}"
-                """
 
         is_primary_str = "true" if nid == 1 else "false"
         node_str: str = \
