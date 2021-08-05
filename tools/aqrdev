@@ -49,11 +49,13 @@ from libaqr.vagrant import Vagrant
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger("aquarium")
 
+from functools import partial
+click.option = partial(click.option, show_default=True)
+
 
 class AppCtx:
 
     _json_output: bool
-
     _root_path: Path
     _builds_path: Optional[Path]
     _deployments_path: Optional[Path]
@@ -160,9 +162,12 @@ def _get_deployment(ctx: AppCtx, name: str) -> Deployment:
 @click.option("-b", "--box", type=str, required=False)
 @click.option("-i", "--image", type=str, required=False)
 @click.option("-f", "--force", flag_value=True)
-@click.option("--num-nodes", required=False, type=int)
-@click.option("--num-disks", required=False, type=int)
-@click.option("--num-nics", required=False, type=int)
+@click.option("--num-nodes", required=False, type=int, default=2, show_default=True,
+              help="Number of nodes in deployment")
+@click.option("--num-disks", required=False, type=int, default=4, show_default=True,
+              help="Number of disks per node")
+@click.option("--num-nics", required=False, type=int, default=1, show_default=True,
+              help="Number of networks in deployment")
 @click.argument("name", required=True, type=str)
 @pass_appctx
 def cmd_create(
@@ -179,10 +184,6 @@ def cmd_create(
     Create a new deployment
     """
     logger.debug(f"create: ctx = {ctx}, name: {name}, box: {box}, img: {image}")
-
-    num_disks = num_disks if num_disks is not None else 4
-    num_nics = num_nics if num_nics is not None else 1
-    num_nodes = num_nodes if num_nodes is not None else 2
 
     avail_images: Optional[List[str]] = None
     avail_boxes = Vagrant.box_list()
