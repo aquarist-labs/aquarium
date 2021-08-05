@@ -92,6 +92,7 @@ class Deployment:
 
         path = deployments_path.joinpath(name)
         if path.exists():
+            logger.debug(f"deployment path exists: '{path}'")
             raise DeploymentExistsError()
 
         if (box, provider) not in vagrant.Vagrant.box_list():
