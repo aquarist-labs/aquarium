@@ -92,6 +92,7 @@ class Deployment:
 
         path = deployments_path.joinpath(name)
         if path.exists():
+            logger.debug(f"deployment path exists: '{path}'")
             raise DeploymentExistsError()
 
         if (box, provider) not in vagrant.Vagrant.box_list():
@@ -268,12 +269,13 @@ Vagrant.configure("2") do |config|
                     f"""
             lv.customize ['storagectl', :id, '--name', 'SATA Controller', '--portcount', '6'] """
 
+        disk_size = '8G'
         for did in range(1, disks+1):
             if provider == "libvirt":
                 serial = "".join(random.choice("0123456789") for _ in range(8))
                 node_storage += \
                         f"""
-            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}" """
+            lv.storage :file, size: "{disk_size}", type: "qcow2", serial: "{serial}" """
             elif provider == "virtualbox":
                 node_storage += \
                         f"""
@@ -282,18 +284,13 @@ Vagrant.configure("2") do |config|
             end
             lv.customize ['storageattach', :id,  '--storagectl', 'SATA Controller', '--port', {did}, '--device', 0, '--type', 'hdd', '--medium', N{nid}DISK{did}] """
 
-            serial = "".join(random.choice("0123456789") for _ in range(8))
-            node_storage += \
-                f"""
-            lv.storage :file, size: "8G", type: "qcow2", serial: "{serial}"
-                """
 
         is_primary_str = "true" if nid == 1 else "false"
         node_str: str = \
             f"""
     config.vm.define :"node{nid}", primary: {is_primary_str} do |node|
         node.vm.hostname = "node{nid}"
-        node.vm.network "forwarded_port", guest: 1337, host: {host_port}
+        node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
         {node_networks}
 
         node.vm.provider "libvirt" do |lv|
