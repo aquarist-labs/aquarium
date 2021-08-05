@@ -290,7 +290,7 @@ Vagrant.configure("2") do |config|
             f"""
     config.vm.define :"node{nid}", primary: {is_primary_str} do |node|
         node.vm.hostname = "node{nid}"
-        node.vm.network "forwarded_port", guest: 1337, host: {host_port}
+        node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
         {node_networks}
 
         node.vm.provider "libvirt" do |lv|
