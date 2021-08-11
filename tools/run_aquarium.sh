@@ -12,6 +12,7 @@ options:
   -d|--debug          Enable debug logging to stdout
   -c|--config PATH    Set config directory to PATH
   -n|--new            Run as new deployment; blows config path if it exists
+  -p|--port           Bind to a socket with this port
   --use-venv          Run inside a python virtualenv
   -h|--help           This message
 
