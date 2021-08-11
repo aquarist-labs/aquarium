@@ -33,8 +33,4 @@ describe('WidgetComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  it('should set info as default status', () => {
-    expect(component.setStatus({})).toBe('info');
-  });
 });
