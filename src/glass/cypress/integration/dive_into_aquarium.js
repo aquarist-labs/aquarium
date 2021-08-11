@@ -9,7 +9,6 @@ describe('Dive into Aquarium', () => {
     cy.contains('Time')
     cy.contains('Devices')
     cy.contains('Installation')
-    cy.contains('Services')
     cy.contains('Finish')
     cy.contains('Next')
     cy.contains('Next').click()
@@ -22,4 +21,3 @@ describe('Dive into Aquarium', () => {
     cy.get('button:contains("Install")').filter(':visible').click()
   })
 })
-

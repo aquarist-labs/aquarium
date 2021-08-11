@@ -60,8 +60,7 @@ export class InstallCreateWizardPageComponent implements OnInit {
     ntp: 2,
     localDevices: 3,
     installation: 4,
-    services: 5,
-    finish: 6
+    finish: 5
   };
 
   constructor(
@@ -83,14 +82,14 @@ export class InstallCreateWizardPageComponent implements OnInit {
           case StatusStageEnum.bootstrapped:
             this.context.stage = 'bootstrapped';
             this.context.stepperVisible = true;
-            // Jump to the 'Services' step.
-            this.stepper!.selectedIndex = this.pageIndex.services;
+            // Jump to the 'Finish' step.
+            this.stepper!.selectedIndex = this.pageIndex.finish;
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'deployed';
             this.context.stepperVisible = true;
-            // Jump to the 'Services' step.
-            this.stepper!.selectedIndex = this.pageIndex.services;
+            // Jump to the 'Finish' step.
+            this.stepper!.selectedIndex = this.pageIndex.finish;
             break;
           default:
             this.context.stepperVisible = true;
@@ -111,8 +110,8 @@ export class InstallCreateWizardPageComponent implements OnInit {
                 break;
               case NodeStageEnum.deployed:
                 this.context.stage = 'bootstrapped';
-                // Jump to the 'Services' step.
-                this.stepper!.selectedIndex = this.pageIndex.services;
+                // Jump to the 'Finish' step.
+                this.stepper!.selectedIndex = this.pageIndex.finish;
                 break;
               case NodeStageEnum.none:
                 // Force linear mode.
@@ -264,7 +263,7 @@ export class InstallCreateWizardPageComponent implements OnInit {
               this.context.stage = 'bootstrapped';
               this.context.stepperVisible = true;
               this.blockUI.stop();
-              this.stepper!.next();
+              this.finishDeployment();
               break;
           }
         },

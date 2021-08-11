@@ -15,32 +15,17 @@
         <ng-template [ngSwitchCase]="'performance'">
           <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
         </ng-template>
-        <ng-template [ngSwitchCase]="'allocations'">
-          <glass-allocations-dashboard-widget></glass-allocations-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'capacity'">
-          <glass-capacity-dashboard-widget></glass-capacity-dashboard-widget>
-        </ng-template>
         <ng-template [ngSwitchCase]="'volumes'">
           <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
         </ng-template>
         <ng-template [ngSwitchCase]="'health'">
           <glass-health-dashboard-widget></glass-health-dashboard-widget>
         </ng-template>
-        <ng-template [ngSwitchCase]="'services'">
-          <glass-services-dashboard-widget></glass-services-dashboard-widget>
-        </ng-template>
         <ng-template [ngSwitchCase]="'sysInfo'">
           <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
         </ng-template>
         <ng-template [ngSwitchCase]="'hosts'">
           <glass-hosts-dashboard-widget></glass-hosts-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'services-capacity'">
-          <glass-services-capacity-dashboard-widget></glass-services-capacity-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'services-utilization'">
-          <glass-services-utilization-dashboard-widget></glass-services-utilization-dashboard-widget>
         </ng-template>
       </ng-container>
     </gridster-item>

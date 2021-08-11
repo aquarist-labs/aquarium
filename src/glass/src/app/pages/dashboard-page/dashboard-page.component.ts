@@ -77,32 +77,11 @@ export class DashboardPageComponent {
       enabledByDefault: true
     },
     {
-      id: 'allocations',
-      title: TEXT('Allocated Storage'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: true
-    },
-    {
-      id: 'capacity',
-      title: TEXT('Capacity'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: true
-    },
-    {
       id: 'performance',
       title: TEXT('Performance'),
       cols: 6,
       rows: 4,
       enabledByDefault: true
-    },
-    {
-      id: 'services',
-      title: TEXT('Services'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: false
     },
     {
       id: 'volumes',
@@ -124,20 +103,6 @@ export class DashboardPageComponent {
       cols: 6,
       rows: 4,
       enabledByDefault: false
-    },
-    {
-      id: 'services-capacity',
-      title: TEXT('Services Capacity'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: true
-    },
-    {
-      id: 'services-utilization',
-      title: TEXT('Services Utilization'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: true
     }
   ];
 
