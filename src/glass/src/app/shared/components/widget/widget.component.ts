@@ -9,22 +9,31 @@ export type WidgetAction = {
   action: () => void;
 };
 
+export enum WidgetHealthStatus {
+  info = 'info',
+  success = 'success',
+  warning = 'warning',
+  error = 'error'
+}
+
 @Component({
   selector: 'glass-widget',
   templateUrl: './widget.component.html',
   styleUrls: ['./widget.component.scss']
 })
 export class WidgetComponent implements OnInit, OnDestroy {
-  @Output()
-  readonly loadDataEvent = new EventEmitter<any>();
-
   @Input()
   title = '';
   @Input()
   loadData?: () => Observable<any>;
   @Input()
   actionMenu?: WidgetAction[];
+  @Input()
+  setStatus?: (data: any) => WidgetHealthStatus;
+  @Output()
+  readonly loadDataEvent = new EventEmitter<any>();
 
+  status: WidgetHealthStatus = WidgetHealthStatus.info;
   error = false;
   loading = false;
   firstLoadComplete = false;
@@ -33,7 +42,6 @@ export class WidgetComponent implements OnInit, OnDestroy {
   private loadingWithoutError = true;
   private loadDataSubscription?: Subscription;
   private timerSubscription?: Subscription;
-
   private readonly reloadTime = 15000;
 
   ngOnInit(): void {
@@ -58,6 +66,7 @@ export class WidgetComponent implements OnInit, OnDestroy {
           if (_.isFunction(err.preventDefault)) {
             err.preventDefault();
           }
+          this.status = WidgetHealthStatus.error;
           this.loadingWithoutError = false;
           return EMPTY;
         }),
@@ -75,6 +84,7 @@ export class WidgetComponent implements OnInit, OnDestroy {
       )
       .subscribe((data) => {
         this.data = data;
+        this.status = this.setStatus ? this.setStatus(this.data) : WidgetHealthStatus.info;
         this.loadDataEvent.emit(data);
       });
   }
