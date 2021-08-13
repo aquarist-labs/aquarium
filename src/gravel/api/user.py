@@ -12,14 +12,14 @@
 # GNU General Public License for more details.
 
 from logging import Logger
+from typing import List
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import Depends, HTTPException, Request, status
-from typing import List
 
 from gravel.api import jwt_auth_scheme
 from gravel.controllers.auth import JWT, UserMgr, UserModel
-
 
 logger: Logger = fastapi_logger
 

@@ -15,9 +15,10 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
+
 import pytest
-from pytest_mock import MockerFixture
 from pyfakefs import fake_filesystem
+from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.conn import IncomingConnection
@@ -107,8 +108,8 @@ async def test_mgr_start(
     mocker: MockerFixture,
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeError, NodeStateModel
     from gravel.controllers.nodes.deployment import NodeStageEnum
+    from gravel.controllers.nodes.mgr import NodeError, NodeStateModel
 
     nodemgr = NodeMgr(gstate)
     assert nodemgr._state
@@ -227,8 +228,8 @@ async def test_node_start(
     nodemgr: NodeMgr,
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeInitStage
     from gravel.controllers.nodes.deployment import NodeStageEnum
+    from gravel.controllers.nodes.mgr import NodeInitStage
 
     nodemgr._deployment._state._stage = NodeStageEnum.READY
 
@@ -292,7 +293,7 @@ async def test_start_ceph(gstate: GlobalState, mocker: MockerFixture) -> None:
 
 def test_node_shutdown(gstate: GlobalState, mocker: MockerFixture) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeMgr, NodeInitStage
+    from gravel.controllers.nodes.mgr import NodeInitStage, NodeMgr
 
     class FakeTask:
         called = False
@@ -323,11 +324,11 @@ def test_generate_token(gstate: GlobalState) -> None:
 async def test_join_checks(gstate: GlobalState) -> None:
 
     from gravel.controllers.nodes.mgr import (
+        JoinParamsModel,
         NodeCantJoinError,
-        NodeNotStartedError,
         NodeError,
         NodeInitStage,
-        JoinParamsModel,
+        NodeNotStartedError,
     )
 
     nodemgr = NodeMgr(gstate)
@@ -369,12 +370,12 @@ async def test_join_check_disk_solution(
     gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
+    from gravel.controllers.nodes.disks import DiskSolution
     from gravel.controllers.nodes.mgr import (
+        JoinParamsModel,
         NodeCantJoinError,
         NodeInitStage,
-        JoinParamsModel,
     )
-    from gravel.controllers.nodes.disks import DiskSolution
 
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
@@ -418,9 +419,10 @@ async def test_join(
 ) -> None:
 
     from uuid import UUID
-    from gravel.controllers.nodes.mgr import NodeInitStage, JoinParamsModel
-    from gravel.controllers.nodes.disks import DiskSolution, DiskModel
+
     from gravel.controllers.nodes.deployment import DeploymentDisksConfig
+    from gravel.controllers.nodes.disks import DiskModel, DiskSolution
+    from gravel.controllers.nodes.mgr import JoinParamsModel, NodeInitStage
 
     def mock_solution(gstate: GlobalState) -> DiskSolution:
         return DiskSolution(
@@ -493,13 +495,13 @@ async def test_join(
 @pytest.mark.asyncio
 async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
 
+    from gravel.controllers.nodes.deployment import NodeStageEnum
     from gravel.controllers.nodes.mgr import (
+        DeployParamsModel,
+        NodeCantDeployError,
         NodeInitStage,
         NodeNotStartedError,
-        NodeCantDeployError,
-        DeployParamsModel,
     )
-    from gravel.controllers.nodes.deployment import NodeStageEnum
 
     nodemgr._init_stage = NodeInitStage.NONE
     throws = False
@@ -556,8 +558,8 @@ async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
 async def test_deploy_check_disk_solution(
     gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
-    from gravel.controllers.nodes.mgr import NodeInitStage, NodeCantDeployError
     from gravel.controllers.nodes.disks import DiskSolution
+    from gravel.controllers.nodes.mgr import NodeCantDeployError, NodeInitStage
 
     nodemgr._init_stage = NodeInitStage.AVAILABLE
 
@@ -598,10 +600,10 @@ async def test_deploy(
     gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
-    from gravel.controllers.nodes.mgr import NodeInitStage
-    from gravel.controllers.nodes.disks import DiskSolution, DiskModel
-    from gravel.controllers.nodes.deployment import DeploymentConfig
     from gravel.controllers.auth import UserMgr, UserModel
+    from gravel.controllers.nodes.deployment import DeploymentConfig
+    from gravel.controllers.nodes.disks import DiskModel, DiskSolution
+    from gravel.controllers.nodes.mgr import NodeInitStage
 
     called_mock_deploy = False
 
@@ -775,11 +777,11 @@ async def test_finish_deployment(
     gstate: GlobalState, mocker: MockerFixture, nodemgr: NodeMgr
 ) -> None:
 
+    from gravel.controllers.nodes.deployment import NodeStageEnum
     from gravel.controllers.nodes.mgr import (
         NodeAlreadyJoiningError,
         NodeNotDeployedError,
     )
-    from gravel.controllers.nodes.deployment import NodeStageEnum
 
     orig_mark_ready = nodemgr._deployment._state.mark_ready
     nodemgr._deployment._state.mark_ready = mocker.MagicMock()
@@ -839,12 +841,13 @@ async def test_handle_join(
 ) -> None:
 
     from fastapi import status
+
     from gravel.controllers.nodes.messages import (
-        MessageModel,
-        JoinMessageModel,
         ErrorMessageModel,
-        WelcomeMessageModel,
+        JoinMessageModel,
+        MessageModel,
         MessageTypeEnum,
+        WelcomeMessageModel,
     )
 
     nodemgr._token = "751b-51fd-10d7-f7b4"

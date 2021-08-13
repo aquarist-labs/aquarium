@@ -15,8 +15,8 @@ import errno
 from typing import List, Optional
 
 from pydantic.tools import parse_obj_as
-from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 
+from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
 from gravel.controllers.orch.models import (
     CephFSAuthorizationModel,
     CephFSListEntryModel,

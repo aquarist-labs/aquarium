@@ -15,13 +15,13 @@
 
 import os
 from typing import Callable
+
 import pytest
 from pytest_mock import MockerFixture
 
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.resources.inventory import Inventory
-
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

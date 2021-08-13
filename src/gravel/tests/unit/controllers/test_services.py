@@ -13,9 +13,9 @@
 
 # pyright: reportPrivateUsage=false
 
-import pytest
 from typing import List
 
+import pytest
 from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
@@ -47,7 +47,7 @@ async def test_create(services: Services, gstate: GlobalState):
 
 @pytest.mark.asyncio
 async def test_create_fail_allocation(services: Services):
-    from gravel.controllers.services import ServiceTypeEnum, NotEnoughSpaceError
+    from gravel.controllers.services import NotEnoughSpaceError, ServiceTypeEnum
 
     with pytest.raises(NotEnoughSpaceError):
         await services.create("foobar", ServiceTypeEnum.CEPHFS, 3000, 2)
@@ -55,7 +55,7 @@ async def test_create_fail_allocation(services: Services):
 
 @pytest.mark.asyncio
 async def test_create_exists(services: Services):
-    from gravel.controllers.services import ServiceTypeEnum, ServiceExistsError
+    from gravel.controllers.services import ServiceExistsError, ServiceTypeEnum
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 1)
     with pytest.raises(ServiceExistsError):
@@ -64,7 +64,7 @@ async def test_create_exists(services: Services):
 
 @pytest.mark.asyncio
 async def test_create_over_allocated(services: Services):
-    from gravel.controllers.services import ServiceTypeEnum, NotEnoughSpaceError
+    from gravel.controllers.services import NotEnoughSpaceError, ServiceTypeEnum
 
     await services.create("foobar", ServiceTypeEnum.CEPHFS, 1000, 2)
     with pytest.raises(NotEnoughSpaceError):
@@ -76,7 +76,7 @@ async def test_create_over_allocated(services: Services):
 async def test_create_not_ready(
     mocker: MockerFixture, services: Services
 ) -> None:
-    from gravel.controllers.services import ServiceTypeEnum, NotReadyError
+    from gravel.controllers.services import NotReadyError, ServiceTypeEnum
 
     services._is_ready = mocker.MagicMock(return_value=False)  # type: ignore
     try:

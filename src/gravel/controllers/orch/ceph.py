@@ -13,21 +13,15 @@
 
 from __future__ import annotations
 
-from json.decoder import JSONDecodeError
-from pydantic.tools import parse_obj_as
 import json
-from pathlib import Path
-from typing import (
-    Callable,
-    Dict,
-    Any,
-    List,
-    Optional,
-    Union,
-)
-from logging import Logger
-from fastapi.logger import logger as fastapi_logger
 import sys
+from json.decoder import JSONDecodeError
+from logging import Logger
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from fastapi.logger import logger as fastapi_logger
+from pydantic.tools import parse_obj_as
 
 from gravel.controllers.orch.models import (
     CephDFModel,

@@ -15,8 +15,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic.tools import parse_obj_as
 from pydantic import BaseModel
+from pydantic.tools import parse_obj_as
 
 from gravel.controllers.orch.ceph import CephCommandError, Mgr
 

@@ -13,6 +13,7 @@
 
 from logging import Logger
 from typing import List, Optional
+
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
@@ -25,7 +26,7 @@ from gravel.controllers.nodes.deployment import (
     DeploymentState,
     NodeStageEnum,
 )
-from gravel.controllers.nodes.disks import DiskSolution, Disks
+from gravel.controllers.nodes.disks import Disks, DiskSolution
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeCantDeployError,
@@ -38,7 +39,6 @@ from gravel.controllers.nodes.mgr import (
     JoinParamsModel,
     NodeMgr,
 )
-
 
 logger: Logger = fastapi_logger
 router = APIRouter(prefix="/nodes", tags=["nodes"])

@@ -11,14 +11,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import bcrypt
 import json
-import jwt
 import uuid
-
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Union, NamedTuple
+from typing import Dict, List, NamedTuple, Optional, Union
 
+import bcrypt
+import jwt
 from fastapi import Request, Response
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel, Field

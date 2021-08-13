@@ -14,11 +14,13 @@
 from __future__ import annotations
 
 import asyncio
-import time
-from abc import ABC, abstractmethod
 import logging.config
+import time
+import typing
+from abc import ABC, abstractmethod
 from logging import Logger
 from typing import Dict
+
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
@@ -26,11 +28,9 @@ from gravel.controllers.config import Config
 from gravel.controllers.kv import KV
 from gravel.controllers.orch.ceph import Mgr, Mon
 
-import typing
-
 if typing.TYPE_CHECKING:
-    from gravel.controllers.resources.inventory import Inventory
     from gravel.controllers.resources.devices import Devices
+    from gravel.controllers.resources.inventory import Inventory
     from gravel.controllers.resources.status import Status
     from gravel.controllers.resources.storage import Storage
     from gravel.controllers.services import Services

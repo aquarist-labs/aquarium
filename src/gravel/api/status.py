@@ -12,11 +12,12 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Optional
 from pathlib import Path
+from typing import Optional
+
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.routing import APIRouter
 from fastapi.logger import logger as fastapi_logger
+from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
@@ -27,7 +28,6 @@ from gravel.controllers.resources.status import (
     OverallClientIORateModel,
     Status,
 )
-
 
 logger: Logger = fastapi_logger
 

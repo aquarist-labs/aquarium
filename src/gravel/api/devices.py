@@ -13,6 +13,7 @@
 
 from logging import Logger
 from typing import Dict
+
 from fastapi import Depends, Request
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter

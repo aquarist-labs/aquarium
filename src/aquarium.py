@@ -16,32 +16,32 @@
 import logging
 import logging.config
 import os
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.logger import logger as fastapi_logger
-import uvicorn
 
+import uvicorn
+from fastapi import FastAPI
+from fastapi.logger import logger as fastapi_logger
+from fastapi.staticfiles import StaticFiles
+
+from gravel.api import (
+    auth,
+    devices,
+    local,
+    nfs,
+    nodes,
+    orch,
+    services,
+    status,
+    user,
+)
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
-from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.devices import Devices
+from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
 from gravel.controllers.services import Services
-
-from gravel.api import (
-    orch,
-    status,
-    services,
-    nodes,
-    local,
-    devices,
-    nfs,
-    auth,
-    user,
-)
 
 logger: logging.Logger = fastapi_logger
 

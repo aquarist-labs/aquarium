@@ -13,16 +13,16 @@
 
 from logging import Logger
 from typing import List
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
 from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
-from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.deployment import NodeStageEnum
-
+from gravel.controllers.nodes.mgr import NodeMgr
 
 logger: Logger = fastapi_logger
 

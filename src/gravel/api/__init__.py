@@ -11,11 +11,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from fastapi import HTTPException, Request
-from fastapi.security import OAuth2PasswordBearer
 from typing import Optional
 
-from gravel.controllers.auth import JWTDenyList, JWTMgr, JWT, UserMgr, UserModel
+from fastapi import HTTPException, Request
+from fastapi.security import OAuth2PasswordBearer
+
+from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr, UserModel
 
 
 class JWTAuthSchema(OAuth2PasswordBearer):

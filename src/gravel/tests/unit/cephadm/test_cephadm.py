@@ -11,11 +11,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import Any, Callable, Dict, List, Optional, Tuple
 import json
 import os
-import pytest
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import pytest
 from pytest_mock import MockerFixture
 
 from gravel.cephadm.cephadm import Cephadm, CephadmError
@@ -24,7 +24,6 @@ from gravel.cephadm.models import (
     NodeInfoModel,
     VolumeDeviceModel,
 )
-
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

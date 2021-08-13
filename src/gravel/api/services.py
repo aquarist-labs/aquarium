@@ -13,9 +13,10 @@
 
 from logging import Logger
 from typing import Dict, List, Optional
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from pydantic.fields import Field
 
@@ -37,7 +38,6 @@ from gravel.controllers.services import (
     ServiceTypeEnum,
     UnknownServiceError,
 )
-
 
 logger: Logger = fastapi_logger
 router: APIRouter = APIRouter(prefix="/services", tags=["services"])

@@ -12,13 +12,15 @@
 # GNU General Public License for more details.
 
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 from logging import Logger
+from typing import Dict, List, Optional, Tuple
+
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.fields import Field
-from gravel.controllers.nodes.mgr import NodeMgr
 
+from gravel.controllers.gstate import GlobalState, Ticker
+from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.cephfs import CephFS, CephFSError
 from gravel.controllers.orch.models import (
     CephFSListEntryModel,
@@ -30,10 +32,8 @@ from gravel.controllers.orch.nfs import (
     NFSExport,
     NFSService,
 )
-from gravel.controllers.gstate import Ticker, GlobalState
 from gravel.controllers.resources.devices import DeviceHostModel, Devices
 from gravel.controllers.resources.storage import Storage, StoragePoolModel
-
 
 logger: Logger = fastapi_logger
 

@@ -16,9 +16,10 @@
 
 
 from typing import Callable, List, cast
+
 import pytest
-from pytest_mock import MockerFixture
 from pyfakefs import fake_filesystem
+from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
 from gravel.tests.unit.asyncio import FakeProcess
@@ -129,8 +130,8 @@ async def test_fail_etcd_pull_image(
 
     mocker.patch("asyncio.create_subprocess_exec", new=mock_subprocess)
     from gravel.controllers.nodes.etcd import (
-        etcd_pull_image,
         ContainerFetchError,
+        etcd_pull_image,
     )
 
     try:

@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 from typing import Any, Dict, List
+
 from pydantic import BaseModel, Field
 
 from gravel.cephadm.models import VolumeDeviceModel

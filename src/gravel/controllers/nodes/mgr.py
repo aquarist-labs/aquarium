@@ -12,69 +12,61 @@
 # GNU General Public License for more details.
 
 import asyncio
+import random
 from enum import Enum
 from logging import Logger
-from uuid import UUID, uuid4
-import random
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
 from pathlib import Path
+from typing import Dict, List, Optional
+from uuid import UUID, uuid4
 
 import aetcd3
-from pydantic import BaseModel, Field
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
+from pydantic import BaseModel, Field
+
 from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
-from gravel.controllers.auth import UserModel, UserMgr
+from gravel.controllers.auth import UserMgr, UserModel
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.nodes.conn import (
+    ConnMgr,
+    IncomingConnection,
+    get_conn_mgr,
+)
 from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
     DeploymentDisksConfig,
     DeploymentState,
     NodeDeployment,
 )
-from gravel.controllers.orch.ceph import CephCommandError, Mon
-
+from gravel.controllers.nodes.disks import Disks
 from gravel.controllers.nodes.errors import (
+    NodeAlreadyJoiningError,
+    NodeCantDeployError,
     NodeCantJoinError,
+    NodeError,
     NodeNetworkAddressNotAvailable,
     NodeNotDeployedError,
     NodeNotStartedError,
     NodeShuttingDownError,
-    NodeAlreadyJoiningError,
-    NodeCantDeployError,
-    NodeError,
-)
-from gravel.controllers.nodes.conn import (
-    ConnMgr,
-    get_conn_mgr,
-    IncomingConnection,
-)
-from gravel.controllers.nodes.messages import (
-    ErrorMessageModel,
-    MessageModel,
-    JoinMessageModel,
-    ReadyToAddMessageModel,
-    WelcomeMessageModel,
-    MessageTypeEnum,
 )
 from gravel.controllers.nodes.etcd import (
     ContainerFetchError,
     etcd_pull_image,
     spawn_etcd,
 )
-from gravel.controllers.orch.orchestrator import (
-    Orchestrator,
-    OrchHostListModel,
+from gravel.controllers.nodes.messages import (
+    ErrorMessageModel,
+    JoinMessageModel,
+    MessageModel,
+    MessageTypeEnum,
+    ReadyToAddMessageModel,
+    WelcomeMessageModel,
 )
+from gravel.controllers.orch.ceph import CephCommandError, Mon
+from gravel.controllers.orch.orchestrator import Orchestrator, OrchHostListModel
 from gravel.controllers.resources.inventory_sub import Subscriber
-from gravel.controllers.nodes.disks import Disks
 from gravel.controllers.utils import aqr_run_cmd
-
 
 logger: Logger = fastapi_logger
 

@@ -15,10 +15,10 @@
 
 import os
 from typing import Callable, List, Optional, Tuple
-import pytest
-from pytest_mock import MockerFixture
-from pyfakefs import fake_filesystem
 
+import pytest
+from pyfakefs import fake_filesystem
+from pytest_mock import MockerFixture
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -47,7 +47,7 @@ async def test_set_hostname(
     ) -> Tuple[int, Optional[str], Optional[str]]:
         return 1, None, "oops"
 
-    from gravel.controllers.nodes.host import set_hostname, HostnameCtlError
+    from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 
     mocker.patch("socket.gethostname", return_value="myhostname")
 

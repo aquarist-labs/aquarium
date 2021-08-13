@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 from pathlib import Path
+
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 
 from gravel.controllers.config import Config

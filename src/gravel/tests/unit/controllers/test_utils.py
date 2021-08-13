@@ -11,10 +11,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import asyncio
 from typing import List
+
 import pytest
 from pytest_mock import MockerFixture
-import asyncio
 
 from gravel.tests.unit.asyncio import FakeProcess
 

@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 from pydantic.fields import Field
 

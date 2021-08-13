@@ -16,13 +16,13 @@
 import json
 import os
 from typing import Callable, List
+
 from pydantic import parse_obj_as
 from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.orch.models import OrchDevicesPerHostModel
 from gravel.controllers.orch.orchestrator import Orchestrator
-
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

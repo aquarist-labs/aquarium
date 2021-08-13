@@ -16,6 +16,7 @@
 
 import os
 from typing import Callable
+
 from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
@@ -30,8 +31,7 @@ def test_solution(
 ) -> None:
 
     from gravel.cephadm.models import NodeInfoModel
-    from gravel.controllers.nodes.disks import Disks
-    from gravel.controllers.nodes.disks import DiskSolution
+    from gravel.controllers.nodes.disks import Disks, DiskSolution
 
     fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
         get_data_contents(DATA_DIR, "disks_local_inventory.json")
@@ -52,9 +52,9 @@ def test_device_to_disk(
 
     from gravel.cephadm.models import VolumeDeviceModel
     from gravel.controllers.nodes.disks import (
-        _device_to_disk,
         DiskModel,
         DiskTypeEnum,
+        _device_to_disk,
     )
 
     device: VolumeDeviceModel = VolumeDeviceModel.parse_raw(
@@ -72,8 +72,7 @@ def test_solution_with_ssd(
     gstate: GlobalState,
 ) -> None:
     from gravel.cephadm.models import NodeInfoModel
-    from gravel.controllers.nodes.disks import Disks
-    from gravel.controllers.nodes.disks import DiskSolution
+    from gravel.controllers.nodes.disks import Disks, DiskSolution
 
     fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
         get_data_contents(DATA_DIR, "disks_local_inventory_with_ssd.json")

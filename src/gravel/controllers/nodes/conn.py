@@ -12,9 +12,10 @@
 # GNU General Public License for more details.
 
 from __future__ import annotations
+
 import asyncio
-from typing import Tuple, Optional, Any, cast
 from logging import Logger
+from typing import Any, Optional, Tuple, cast
 
 import websockets
 from fastapi import status
