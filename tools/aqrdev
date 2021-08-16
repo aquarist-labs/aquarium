@@ -511,14 +511,18 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
         click.secho("No deployments found", fg="cyan")
         return
 
-    json_lst: List[Dict[str, Any]] = []
-    for deployment in deployments:
 
-        if ctx.json:
-            json_lst.append(
-                json.loads(deployment.meta.json())
-            )
-            continue
+    if ctx.json:
+        json_list = [json.loads(_.meta.json()) for _ in deployments]
+        print(json.dumps(json_list))
+        return
+
+    if not verbose:
+        for _ in deployments:
+            print(_.name)
+        return
+
+    for deployment in deployments:
 
         header = chr(0x25cf)
         click.secho("{} {}".format(
@@ -533,16 +537,12 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
                 click.style(value, fg="white")
             ))
 
-        if verbose:
-            treeline = chr(0x251c)
-            treeend = chr(0x2514)
+        treeline = chr(0x251c)
+        treeend = chr(0x2514)
 
-            boxname = deployment.box if deployment.box else "unknown"
-            _print(treeline, "created on", str(deployment.created_on))
-            _print(treeend, "box", boxname)
-
-    if ctx.json:
-        print(json.dumps(json_lst))
+        boxname = deployment.box if deployment.box else "unknown"
+        _print(treeline, "created on", str(deployment.created_on))
+        _print(treeend, "box", boxname)
 
 
 #
