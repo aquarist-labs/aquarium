@@ -87,9 +87,6 @@ class Deployment:
         mount_path: Optional[Path] = None
     ) -> Deployment:
 
-        if not deployments_path.exists():
-            raise FileNotFoundError(deployments_path)
-
         path = deployments_path.joinpath(name)
         if path.exists():
             logger.debug(f"deployment path exists: '{path}'")
@@ -101,7 +98,7 @@ class Deployment:
 
         try:
             logger.debug(f"creating deployment '{name}'")
-            path.mkdir()
+            path.mkdir(parents=True)
         except Exception as e:
             logger.error(f"unable to create deployment: {str(e)}")
             raise AqrError(f"error creating deployment '{name}': {str(e)}")

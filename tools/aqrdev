@@ -315,14 +315,9 @@ def cmd_create(
         return
 
     try:
-        deployment_path = ctx.deployments_path
-        if not deployment_path.exists():
-            deployment_path.mkdir()
-        assert deployment_path.exists()
-
         Deployment.create(
             name, box, provider, num_nodes, num_disks, num_nics,
-            deployment_path, find_root()
+            ctx.deployments_path, find_root()
         )
     except DeploymentPathNotFoundError:
         click.secho("Unable to find deployments path", fg="red")
