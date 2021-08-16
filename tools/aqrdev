@@ -46,8 +46,7 @@ from libaqr.misc import (
 )
 from libaqr.vagrant import Vagrant
 
-logging.basicConfig(level=logging.INFO)
-logger: logging.Logger = logging.getLogger("aquarium")
+logger: logging.Logger = None
 
 from functools import partial
 click.option = partial(click.option, show_default=True)
@@ -108,12 +107,21 @@ pass_appctx = make_pass_decorator(AppCtx)
 
 @click.group()
 @click.option("-d", "--debug", flag_value=True)
+@click.option("-t", "--trace", flag_value=True)
 @click.option("--json", flag_value=True)
 @click.pass_context
-def app(ctx: click.Context, debug: bool, json: bool) -> None:
+def app(ctx: click.Context, debug: bool, json: bool, trace: bool) -> None:
 
     if debug:
-        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG)
+    elif trace:
+        format_str = '%(asctime)s %(levelname)s:%(module)s:%(funcName)s:%(lineno)s:%(message)s'
+        logging.basicConfig(level=logging.DEBUG, format=format_str)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    global logger
+    logger = logging.getLogger("aquarium")
 
     rootpath: Optional[Path] = None
 
