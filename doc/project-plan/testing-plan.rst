@@ -61,7 +61,7 @@ Smoke tests
 -----------
 
 These are a handful of tests that check operation works in a real deployment.
-These can be written as part of `aqrtest` and is probably in most need of
+These can be written as part of `aquatest` and is probably in most need of
 expansion.
 
 A pull request could include a relevant smoke test with it. However we likely
@@ -125,9 +125,8 @@ Jenkins
 Jenkins is configured to run `wasser` on each PR. The jobs are defined in 
 https://github.com/aquarist-labs/wasser/blob/main/examples/jjb/aquarium.yaml
 
-aqrtest
+aquatest
 -------
 
-This is not run as part of any CI yet.
+TODO: This is not run as part of any CI yet.
 
-TODO

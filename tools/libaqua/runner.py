@@ -145,7 +145,7 @@ class Runner(multiprocessing.Process):
         def _gen_name() -> str:
             from datetime import datetime as dt
             now = dt.now().isoformat().replace(":", "").split(".")[0]
-            return f"aqrtest-{self._test.name}-{now}"
+            return f"aquatest-{self._test.name}-{now}"
 
         self._run_name = _gen_name()
         try:

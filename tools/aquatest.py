@@ -85,7 +85,7 @@ def cmd_run(
             # we are going to reuse that box
             pass
 
-    deployments_path = Path("aqrtest-deployments")
+    deployments_path = Path("aquatest-deployments")
     deployments_path.mkdir(exist_ok=True)
 
     has_failures = False
