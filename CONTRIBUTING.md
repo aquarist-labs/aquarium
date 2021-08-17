@@ -145,6 +145,15 @@ Before submitting your change, you should test it. You can run unit tests with t
 	cd src
 	tox
 
+The above will run the python unit tests (pytest), static type checker (mypy), and
+linting (black and isort).
+
+You can also use black and isort to automatically format your code and fix any
+potential linting problems:
+
+	cd src
+	tox -e fixlint
+
 ## Automated CI Testing
 
 There are GitHub actions configured to run unit tests automatically
