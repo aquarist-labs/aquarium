@@ -143,17 +143,17 @@ environment upon booting the image.
 Assuming we've succesfully built a MicroOS image, getting a `Vagrant` setup up
 and running should not be much of a hurdle.
 
-1. run `./tools/aqrdev create [--box BOXNAME] [--image IMAGENAME] <NAME>`
+1. run `./tools/aqua create [--box BOXNAME] [--image IMAGENAME] <NAME>`
 
     This will create a vagrant deployment under `tests/vagrant/deployments/` with
     name `NAME`. If omitted, `BOXNAME` defaults to `aquarium`. If `IMAGENAME` is
     provided, then the tool will attempt to find an existing image with said
     name and import it as a Vagrant box to be used for this deployment. As an
-    example, let's assume we run `./tools/aqrdev create foobar`.
+    example, let's assume we run `./tools/aqua create foobar`.
 
 2. to start the deployment we just created, we'll run:
 
-    `./tools/aqrdev start --conservative foobar`
+    `./tools/aqua start --conservative foobar`
 
    which will bring up your machines one by one. (Once you are happy
    this works, you can drop the last option and bring all your machines up in
@@ -167,7 +167,7 @@ and running should not be much of a hurdle.
      if you wish to avoid this); and
 
    - on some systems one might have to open NFS ports prior to running
-     `aqrdev start`, or it just might get stuck trying to reach a server
+     `aqua start`, or it just might get stuck trying to reach a server
      that is unreachable.
 
    - if you see an error such as
@@ -188,7 +188,7 @@ and running should not be much of a hurdle.
 
 3. This break has the perfect length for an espresso.
 
-4. `./tools/aqrdev shell foobar [--node NODE]`
+4. `./tools/aqua shell foobar [--node NODE]`
 
     If `NODE` is not specified, the shell will be dropped by default on
     `node1`. You can always choose to drop into `node2` by specifying that

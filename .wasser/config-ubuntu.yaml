@@ -28,12 +28,12 @@ routines:
       command: |
         cd aquarium
         source venv/bin/activate
-        ./tools/aqrdev create foo
+        ./tools/aqua create foo
     - name: start deployment
       command: |
         cd aquarium
         source venv/bin/activate
-        ./tools/aqrdev start foo --conservative
+        ./tools/aqua start foo --conservative
     - name: dump aquarium service log
       command: |
         cd aquarium/tests/vagrant/deployments/foo

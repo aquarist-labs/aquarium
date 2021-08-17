@@ -84,10 +84,10 @@ Currently we have components in place that are capable of running linting
 tests, unit tests, integration tests, functional tests, and smoke/end-to-end
 tests. They are achieved with the following components:
 
-aqrdev
+aqua
 ------
-aqrdev is our developer tooling used to build and run aquarium on top of
-vagrant VM's.
+aqua is our developer tool used to build and run aquarium in virtualized
+environment.
 
 flake8
 ------
@@ -118,7 +118,7 @@ inside a VM on each pull request. Our Jenkins instance executes this and uses
 the wasser instructions from [.wasser/config.yaml](https://github.com/aquarist-labs/aquarium/blob/main/.wasser/config.yaml).
 
 Currently wasser is configured to build aquarium much like the developer docs,
-and validates the build by launching aquarium in vagrant using `aqrdev`.
+and validates the build by launching aquarium in vagrant using `aqua`.
 
 Jenkins
 -------

@@ -647,7 +647,3 @@ def cmd_images_list(ctx: AppCtx) -> None:
             ))
     if ctx.json:
         print(json.dumps(lst))
-
-
-if __name__ == "__main__":
-    app()

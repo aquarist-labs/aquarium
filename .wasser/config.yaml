@@ -56,11 +56,11 @@ routines:
     - name: create foo
       command: |
         source aquarium/venv/bin/activate
-        cd aquarium && ./tools/aqrdev create foo
+        cd aquarium && ./tools/aqua create foo
     - name: start foo
       command: |
         source aquarium/venv/bin/activate
-        cd aquarium && ./tools/aqrdev start foo --conservative
+        cd aquarium && ./tools/aqua start foo --conservative
     - name: dump aquarium service log
       command: |
         cd aquarium/tests/vagrant/deployments/foo
