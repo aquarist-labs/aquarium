@@ -16,8 +16,8 @@ import os
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from libaqr.vagrant import Vagrant
-from libaqr.errors import (
+from libaqua.vagrant import Vagrant
+from libaqua.errors import (
     BoxAlreadyExistsError,
     ImageNotFoundError,
     VagrantError

@@ -19,14 +19,14 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
-from libaqr.errors import (
+from libaqua.errors import (
     AqrError,
     BoxDoesNotExistError,
     DeploymentExistsError
 )
-from libaqr.suites import SuiteEntry
-from libaqr.deployment import Deployment
-from libaqr.testing import (
+from libaqua.suites import SuiteEntry
+from libaqua.deployment import Deployment
+from libaqua.testing import (
     Requirements,
     TestCase,
     get_test_cases

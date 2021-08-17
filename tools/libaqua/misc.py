@@ -14,7 +14,7 @@
 from pathlib import Path
 import logging
 
-from libaqr.errors import (
+from libaqua.errors import (
     BuildsPathNotFoundError,
     DeploymentNotFoundError,
     DeploymentPathNotFoundError,
