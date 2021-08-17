@@ -79,6 +79,7 @@ class SystemDisk:
         "etc": "/etc",
         "logs": "/var/log",
         "etcd": "/var/lib/etcd",
+        "aquarium": "/var/lib/aquarium",
         "containers": "/var/lib/containers",
         "roothome": "/root",
     }

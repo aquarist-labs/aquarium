@@ -51,6 +51,7 @@ mount /dev/mapper/aquarium-systemdisk /aquarium
 overlay /etc etc || exit 1
 overlay /var/log logs || exit 1
 overlay /var/lib/etcd etcd || exit 1
+overlay /var/lib/aquarium aquarium || exit 1
 overlay /var/lib/containers containers || exit 1
 overlay /root roothome || exit 1
 
