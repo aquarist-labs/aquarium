@@ -46,8 +46,7 @@ from libaqr.misc import (
 )
 from libaqr.vagrant import Vagrant
 
-logging.basicConfig(level=logging.INFO)
-logger: logging.Logger = logging.getLogger("aquarium")
+logger: logging.Logger = None
 
 from functools import partial
 click.option = partial(click.option, show_default=True)
@@ -108,12 +107,21 @@ pass_appctx = make_pass_decorator(AppCtx)
 
 @click.group()
 @click.option("-d", "--debug", flag_value=True)
+@click.option("-t", "--trace", flag_value=True)
 @click.option("--json", flag_value=True)
 @click.pass_context
-def app(ctx: click.Context, debug: bool, json: bool) -> None:
+def app(ctx: click.Context, debug: bool, json: bool, trace: bool) -> None:
 
     if debug:
-        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG)
+    elif trace:
+        format_str = '%(asctime)s %(levelname)s:%(module)s:%(funcName)s:%(lineno)s:%(message)s'
+        logging.basicConfig(level=logging.DEBUG, format=format_str)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    global logger
+    logger = logging.getLogger("aquarium")
 
     rootpath: Optional[Path] = None
 
@@ -307,14 +315,9 @@ def cmd_create(
         return
 
     try:
-        deployment_path = ctx.deployments_path
-        if not deployment_path.exists():
-            deployment_path.mkdir()
-        assert deployment_path.exists()
-
         Deployment.create(
             name, box, provider, num_nodes, num_disks, num_nics,
-            deployment_path, find_root()
+            ctx.deployments_path, find_root()
         )
     except DeploymentPathNotFoundError:
         click.secho("Unable to find deployments path", fg="red")
@@ -508,14 +511,18 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
         click.secho("No deployments found", fg="cyan")
         return
 
-    json_lst: List[Dict[str, Any]] = []
-    for deployment in deployments:
 
-        if ctx.json:
-            json_lst.append(
-                json.loads(deployment.meta.json())
-            )
-            continue
+    if ctx.json:
+        json_list = [json.loads(_.meta.json()) for _ in deployments]
+        print(json.dumps(json_list))
+        return
+
+    if not verbose:
+        for _ in deployments:
+            print(_.name)
+        return
+
+    for deployment in deployments:
 
         header = chr(0x25cf)
         click.secho("{} {}".format(
@@ -530,16 +537,12 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
                 click.style(value, fg="white")
             ))
 
-        if verbose:
-            treeline = chr(0x251c)
-            treeend = chr(0x2514)
+        treeline = chr(0x251c)
+        treeend = chr(0x2514)
 
-            boxname = deployment.box if deployment.box else "unknown"
-            _print(treeline, "created on", str(deployment.created_on))
-            _print(treeend, "box", boxname)
-
-    if ctx.json:
-        print(json.dumps(json_lst))
+        boxname = deployment.box if deployment.box else "unknown"
+        _print(treeline, "created on", str(deployment.created_on))
+        _print(treeend, "box", boxname)
 
 
 #
