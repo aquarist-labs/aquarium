@@ -13,11 +13,11 @@ and others continuously update.
 
 You can clone from github with:
 
-	git clone git@github.com:aquarist-labs/aquarium
+   git clone git@github.com:aquarist-labs/aquarium
 
 Or:
 
-	git clone git://github.com/aquarist-labs/aquarium
+   git clone git://github.com/aquarist-labs/aquarium
 
 ### Submitting Bugs and Requesting New Features
 
@@ -42,8 +42,8 @@ sure they are not merging changes that do not have the needed updates to documen
 
 Before submitting your change, you should test it. You can run unit tests with tox:
 
-	cd src
-	tox
+   cd src
+   tox
 
 The above will run the python unit tests (pytest), static type checker (mypy), and
 linting (black and isort).
@@ -51,8 +51,8 @@ linting (black and isort).
 You can also use black and isort to automatically format your code and fix any
 potential linting problems:
 
-	cd src
-	tox -e fixlint
+   cd src
+   tox -e fixlint
 
 ## Writing Commit Messages
 
