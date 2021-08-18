@@ -348,6 +348,10 @@ class NodeDeployment:
         keyring_path.chmod(0o600)
         cephconf_path.chmod(0o644)
 
+        # We've got ceph.conf and the admin keyring now, kick the kvstore
+        # to get a connection.
+        await self._gstate.store.ensure_connection()
+
         # get NTP address
         ntp_addr = await self._gstate.store.get("/nodes/ntp_addr")
         assert ntp_addr

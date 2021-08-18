@@ -85,13 +85,28 @@ class KV:
         self._next_watch_id = 1
 
     async def ensure_connection(self) -> None:
-        """Open k/v store connection"""
-        # nothing to do here, the connection thread is started
-        # automatically in __init__(), but I do kinda wonder if we
-        # should wait here a bit, at least, to give it time to
-        # connect initially, assuming the cluster exists...?
-        await asyncio.sleep(2)
-
+        """Try to ensure we have a connection to the k/v store in the cluster"""
+        # Most of the time, the cluster connect thread will be sleeping.
+        # In case we don't have a connection to the cluster, calling this will
+        # force the connect thread to go through its loop up to five times at
+        # one second intervals, in order to try to connect.  Does not actually
+        # *ensure* a connection, but it'll give it its best shot.  Useful during
+        # startup and node bootstrap.
+        tries: int = 0
+        while tries < 5:
+            if self._cluster and self._cluster.state == "connected":
+                break
+            self._event.set()
+            await asyncio.sleep(1)
+            tries += 1
+        if self._cluster:
+            logger.info(
+                f"ensure_connection: cluster state '{self._cluster.state}' after {tries} tries"
+            )
+        else:
+            logger.info(
+                f"ensure_connection: no cluster exists yet after {tries} tries"
+            )
 
     def _cluster_connect(self):
         logger.debug("Starting cluster connection thread")
@@ -151,6 +166,7 @@ class KV:
                 # this makes the log pretty messy prior to bootstrap (errors every 10 seconds)
                 logger.error(str(e))
 
+            # TODO: Should we sleep for longer?  A minute instead of 10 seconds?  This is pretty arbitrary...
             logger.debug("Cluster connection thread sleeping for 10 seconds")
             self._event.wait(10)
             self._event.clear()
