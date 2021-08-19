@@ -467,6 +467,12 @@ class NodeDeployment:
                 self._progress = ProgressEnum.DONE
                 await finisher(True, None)
 
+            # By now, the KV store connection thread will have well and
+            # truly found the cluster and connected to it.  Still, for the
+            # sake of completeness, let's give it a kick here to make it
+            # explicit.
+            await self._gstate.store.ensure_connection()
+
         async def _assimilate_devices() -> None:
             devices = config.disks.storage
             if len(devices) == 0:
