@@ -173,6 +173,7 @@ class GlobalState:
 
     async def shutdown(self) -> None:
         self._is_shutting_down = True
+        await self._kvstore.close()
         logger.info("shutdown!")
         await self.tick_task
 
