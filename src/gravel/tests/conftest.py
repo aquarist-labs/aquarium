@@ -52,27 +52,6 @@ def mock_ceph_modules(mocker: MockerFixture):
     )
 
 
-def mock_aetcd_modules(mocker: MockerFixture):
-    class MockAetcd3Error(Exception):
-        def __init__(self, message: str, errno: Optional[int] = None):
-            super().__init__(message)
-            self.errno = errno
-
-        def __str__(self):
-            msg = super().__str__()
-            if self.errno is None:
-                return msg
-            return f"[errno {self.errno}] {msg}"
-
-    sys.modules.update(
-        {
-            "aetcd3.etcdrpc": mocker.MagicMock(
-                Error=MockAetcd3Error, OSError=MockAetcd3Error
-            )
-        }
-    )
-
-
 @pytest.fixture(params=["default_ceph.conf"])
 def ceph_conf_file_fs(request: SubRequest, fs: fake_filesystem.FakeFilesystem):
     """This fixture uses pyfakefs to stub filesystem calls and return
@@ -213,17 +192,8 @@ async def aquarium_startup(
         logger: logging.Logger = fastapi_logger
 
         class FakeNodeDeployment(NodeDeployment):
-            async def _prepare_etcd(
-                self, hostname: str, address: str, token: str
-            ) -> None:
-                assert self._state
-                if self._state.bootstrapping:
-                    raise NodeCantDeployError("node bootstrapping")
-                elif not self._state.nostage:
-                    raise NodeCantDeployError("node can't be bootstrapped")
-
-                # We don't need to spawn etcd, just allow gstate to init store
-                await self._gstate.init_store()
+            # Do we still need this thing since removing etcd?
+            pass
 
         class FakeNodeMgr(NodeMgr):
             def __init__(self, gstate: GlobalState):
@@ -248,7 +218,6 @@ async def aquarium_startup(
                     )
                     assert self._state.hostname
                     assert self._state.address
-                    # We don't need to spawn etcd, just allow gstate to init store
                     await self.gstate.init_store()
 
             async def _obtain_images(self) -> bool:

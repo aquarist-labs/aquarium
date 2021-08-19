@@ -138,30 +138,10 @@ async def test_mgr_start(
         hostname="foobar",
     )
 
-    called_etcd_spawn = False
-
-    async def mock_spawn_etcd(
-        gstate: GlobalState,
-        new: bool,
-        token: Optional[str],
-        hostname: str,
-        address: str,
-        initial_cluster: Optional[str] = None,
-    ) -> None:
-        assert not new
-        assert token is None
-        assert hostname == "foobar"
-        assert address == "1.2.3.4"
-        assert initial_cluster is None
-        nonlocal called_etcd_spawn
-        called_etcd_spawn = True
-
-    mocker.patch("gravel.controllers.nodes.mgr.spawn_etcd", new=mock_spawn_etcd)
     nodemgr._start_ceph = mocker.AsyncMock()
     nodemgr._node_start = mocker.AsyncMock()
 
     await nodemgr.start()
-    assert called_etcd_spawn
     nodemgr._start_ceph.assert_called_once()  # type: ignore
     nodemgr._node_start.assert_called_once()  # type: ignore
 
@@ -171,15 +151,6 @@ async def test_obtain_images(
     gstate: GlobalState, mocker: MockerFixture
 ) -> None:
 
-    called_etcd_pull_image = False
-
-    async def mock_etcd_pull_img(gstate: GlobalState) -> None:
-        nonlocal called_etcd_pull_image
-        called_etcd_pull_image = True
-
-    mocker.patch(
-        "gravel.controllers.nodes.mgr.etcd_pull_image", new=mock_etcd_pull_img
-    )
     orig_cephadm_pull_img = gstate.cephadm.pull_images
     gstate.cephadm.pull_images = mocker.AsyncMock()
 
@@ -187,7 +158,6 @@ async def test_obtain_images(
     ret = await nodemgr._obtain_images()
     assert ret
     gstate.cephadm.pull_images.assert_called_once()  # type: ignore
-    assert called_etcd_pull_image
 
     from gravel.cephadm.cephadm import CephadmError
 
@@ -196,25 +166,6 @@ async def test_obtain_images(
     )
     ret = await nodemgr._obtain_images()
     assert not ret
-    gstate.cephadm.pull_images.assert_called_once()  # type: ignore
-
-    from gravel.controllers.nodes.etcd import ContainerFetchError
-
-    called_etcd_pull_image_fail = False
-
-    async def fail_etcd_pull_img(gstate: GlobalState) -> None:
-        nonlocal called_etcd_pull_image_fail
-        called_etcd_pull_image_fail = True
-        raise ContainerFetchError("barbaz")
-
-    mocker.patch(
-        "gravel.controllers.nodes.mgr.etcd_pull_image", new=fail_etcd_pull_img
-    )
-    gstate.cephadm.pull_images = mocker.AsyncMock()
-
-    ret = await nodemgr._obtain_images()
-    assert not ret
-    assert called_etcd_pull_image_fail
     gstate.cephadm.pull_images.assert_called_once()  # type: ignore
 
     gstate.cephadm.pull_images = orig_cephadm_pull_img
@@ -916,17 +867,7 @@ async def test_handle_join(
     # test add new member
     #
 
-    class Member:
-        name: str = "asd"
-        peer_urls: List[str] = ["10.11.12.13"]
-
-    called_add_member = False
     called_conn_cb = False
-
-    async def mock_add_member(urls: List[str]) -> Tuple[Member, List[Member]]:
-        nonlocal called_add_member
-        called_add_member = True
-        return Member(), [Member()]
 
     def conn_cb(data: MessageModel) -> None:
         assert data.type == MessageTypeEnum.WELCOME
@@ -934,7 +875,6 @@ async def test_handle_join(
         assert msg.pubkey == "mypubkey"
         assert msg.cephconf == "mycephconf"
         assert msg.keyring == "mycephkeyring"
-        assert msg.etcd_peer == "asd=10.11.12.13"
         nonlocal called_conn_cb
         called_conn_cb = True
 
@@ -950,17 +890,6 @@ async def test_handle_join(
     with open("/etc/ceph/ceph.client.admin.keyring", mode="w") as f:
         f.write("mycephkeyring")
 
-    class FakeAETCD:
-        async def add_member(
-            self, urls: List[str]
-        ) -> Tuple[Member, List[Member]]:
-            return await mock_add_member(urls)
-
-        async def close(self) -> None:
-            pass
-
-    mocker.patch("aetcd3.client", new=FakeAETCD)
-
     conn = fake_conn(conn_cb)
     await nodemgr._handle_join(
         conn,
@@ -971,7 +900,6 @@ async def test_handle_join(
             token=nodemgr._token,
         ),
     )
-    assert called_add_member
     assert called_conn_cb
     assert "placeholder" in nodemgr._joining
     assert nodemgr._joining["placeholder"].address == "5.6.7.8"
