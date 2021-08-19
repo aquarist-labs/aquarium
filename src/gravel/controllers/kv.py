@@ -124,6 +124,7 @@ class KV:
                     self._cluster.connect()
                     has_aquarium_pool = "aquarium" in self._cluster.list_pools()
                     if not has_aquarium_pool:
+                        logger.info("Creating aquarium pool")
                         # consider setting pg_num 1 as with device_health_metrics pool
                         # also need to do the equivalent of
                         # `ceph osd pool application enable aquarium aquarium`
@@ -148,7 +149,9 @@ class KV:
                     values = list(self._db[k] for k in keys)
                     if keys and not has_aquarium_pool:
                         with rados.WriteOpCtx() as op:
-                            logger.debug(f"pushing {keys} to newly created aquarium pool")
+                            logger.info(
+                                f"Pushing {keys} to newly created aquarium pool"
+                            )
                             self._ioctx.set_omap(op, keys, values)  # type: ignore
                             self._ioctx.operate_write_op(op, "kvstore")
                     # TODO: need timeouts, error handlers etc on watch
