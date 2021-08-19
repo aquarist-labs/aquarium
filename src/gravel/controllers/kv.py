@@ -190,7 +190,8 @@ class KV:
             self._config_watch = None
         if self._ioctx:
             self._ioctx.close()
-        self._cluster.shutdown()
+        if self._cluster:
+            self._cluster.shutdown()
         logger.debug("Cluster connection is shut down")
 
     def _config_notify(
