@@ -17,10 +17,10 @@ import string
 from logging import Logger
 from pathlib import Path
 from typing import List, Optional, Tuple, Type, TypeVar
+
+from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel
 from pydantic.tools import parse_file_as
-from fastapi.logger import logger as fastapi_logger
-
 
 logger: Logger = fastapi_logger
 

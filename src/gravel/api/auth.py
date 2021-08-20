@@ -12,15 +12,15 @@
 # GNU General Public License for more details.
 
 from logging import Logger
+
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
-from fastapi import HTTPException, Request, Response, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
-from gravel.controllers.auth import JWTDenyList, JWTMgr, JWT, UserMgr
-
+from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr
 
 logger: Logger = fastapi_logger
 

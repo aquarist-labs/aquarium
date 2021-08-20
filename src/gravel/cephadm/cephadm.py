@@ -16,14 +16,13 @@ import json
 import os
 import tempfile
 import time
-
 from io import StringIO
 from logging import Logger
-from typing import Callable, IO, List, Optional, Tuple
+from typing import IO, Callable, List, Optional, Tuple
 
 import pydantic
-from pydantic.tools import parse_obj_as
 from fastapi.logger import logger as fastapi_logger
+from pydantic.tools import parse_obj_as
 
 from .models import (
     HostFactsModel,
@@ -33,7 +32,6 @@ from .models import (
     NodeMemoryInfoModel,
     VolumeDeviceModel,
 )
-
 
 logger: Logger = fastapi_logger
 

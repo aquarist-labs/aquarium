@@ -12,18 +12,18 @@
 # GNU General Public License for more details.
 
 import asyncio
-from typing import Any, Dict, List, Optional
-import yaml
-
 from logging import Logger
+from typing import Any, Dict, List, Optional
+
+import yaml
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
+
 from gravel.controllers.orch.ceph import CephCommandError, Mgr
 from gravel.controllers.orch.models import (
     OrchDevicesPerHostModel,
     OrchHostListModel,
 )
-
 
 logger: Logger = fastapi_logger
 

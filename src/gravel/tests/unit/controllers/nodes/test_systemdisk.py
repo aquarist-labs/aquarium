@@ -16,12 +16,12 @@
 
 import os
 from typing import Callable, List, Optional, Tuple
+
 import pytest
-from pytest_mock import MockerFixture
 from pyfakefs import fake_filesystem
+from pytest_mock import MockerFixture
 
 from gravel.controllers.gstate import GlobalState
-
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -33,7 +33,7 @@ def test_get_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
         target_path="/proc/mounts",
     )
 
-    from gravel.controllers.nodes.systemdisk import get_mounts, MountEntry
+    from gravel.controllers.nodes.systemdisk import MountEntry, get_mounts
 
     lst: List[MountEntry] = get_mounts()
     found = False
@@ -53,7 +53,7 @@ def test_silly_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
         target_path="/proc/mounts",
     )
 
-    from gravel.controllers.nodes.systemdisk import get_mounts, MountEntry
+    from gravel.controllers.nodes.systemdisk import MountEntry, get_mounts
 
     lst: List[MountEntry] = get_mounts()
     assert len(lst) == 2
@@ -116,7 +116,7 @@ async def test_lvm(mocker: MockerFixture, gstate: GlobalState) -> None:
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_success_call
     )
-    from gravel.controllers.nodes.systemdisk import SystemDisk, LVMError
+    from gravel.controllers.nodes.systemdisk import LVMError, SystemDisk
 
     systemdisk = SystemDisk(gstate)
     await systemdisk.lvm("foo bar baz")
@@ -150,8 +150,8 @@ async def test_create(
 
     from gravel.controllers.nodes.systemdisk import (
         SystemDisk,
-        UnknownDeviceError,
         UnavailableDeviceError,
+        UnknownDeviceError,
     )
     from gravel.controllers.resources.inventory import Inventory, NodeInfoModel
 
@@ -203,7 +203,7 @@ async def test_mount_error(
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_call
     )
-    from gravel.controllers.nodes.systemdisk import SystemDisk, MountError
+    from gravel.controllers.nodes.systemdisk import MountError, SystemDisk
 
     systemdisk = SystemDisk(gstate)
     asserted = False
@@ -237,7 +237,7 @@ async def test_unmount_error(
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_call
     )
-    from gravel.controllers.nodes.systemdisk import SystemDisk, MountError
+    from gravel.controllers.nodes.systemdisk import MountError, SystemDisk
 
     systemdisk = SystemDisk(gstate)
     throws = False
@@ -266,9 +266,9 @@ async def test_enable(
 ) -> None:
 
     from gravel.controllers.nodes.systemdisk import (
-        SystemDisk,
         MountError,
         OverlayError,
+        SystemDisk,
     )
 
     async def mount_fail() -> None:

@@ -18,24 +18,25 @@ from logging import Logger
 from pathlib import Path
 from typing import Awaitable, Callable, List, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+
 from fastapi.logger import logger as fastapi_logger
+from pydantic import BaseModel, Field
 
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError
 from gravel.controllers.nodes.conn import ConnMgr
-
 from gravel.controllers.nodes.errors import (
     NodeAlreadyJoiningError,
     NodeBootstrappingError,
     NodeCantDeployError,
     NodeCantJoinError,
+    NodeChronyRestartError,
     NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError,
-    NodeChronyRestartError,
 )
+from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
@@ -46,10 +47,8 @@ from gravel.controllers.nodes.messages import (
     WelcomeMessageModel,
 )
 from gravel.controllers.nodes.ntp import set_ntp_addr
-from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.systemdisk import SystemDisk
 from gravel.controllers.orch.orchestrator import Orchestrator
-
 
 logger: Logger = fastapi_logger
 

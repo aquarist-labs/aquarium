@@ -15,12 +15,12 @@ import asyncio
 from enum import Enum
 from logging import Logger
 from typing import Awaitable, Callable, Optional
+
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
-
 
 logger: Logger = fastapi_logger  # required to provide type-hint to pylance
 

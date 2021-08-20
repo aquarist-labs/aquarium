@@ -13,9 +13,9 @@
 
 import json
 import os
-import pytest
-
 from typing import Any, Callable, Dict, Generator
+
+import pytest
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from pytest_mock import MockerFixture
 

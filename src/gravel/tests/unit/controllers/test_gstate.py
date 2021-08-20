@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 import asyncio
+
 import pytest
 
 from gravel.controllers.gstate import GlobalState

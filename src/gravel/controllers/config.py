@@ -14,11 +14,10 @@
 import os
 from logging import Logger
 from pathlib import Path
-from typing import Type, TypeVar
-from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Type, TypeVar
 
 from fastapi.logger import logger as fastapi_logger
+from pydantic import BaseModel, Field
 
 from . import utils
 

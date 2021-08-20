@@ -12,13 +12,13 @@
 # GNU General Public License for more details.
 
 import asyncio
-from typing import Callable, Optional, List
-import aetcd3
-import aetcd3.locks
-import aetcd3.events
-import grpclib.exceptions
-
 from logging import Logger
+from typing import Callable, List, Optional
+
+import aetcd3
+import aetcd3.events
+import aetcd3.locks
+import grpclib.exceptions
 from fastapi.logger import logger as fastapi_logger
 
 logger: Logger = fastapi_logger

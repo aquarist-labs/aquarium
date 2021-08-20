@@ -13,14 +13,15 @@
 
 import asyncio
 import multiprocessing
-from pathlib import Path
 import shlex
-from typing import List, Optional
 from logging import Logger
+from pathlib import Path
+from typing import List, Optional
+
 from fastapi.logger import logger as fastapi_logger
 
-from gravel.controllers.gstate import GlobalState
 from gravel.controllers.errors import GravelError
+from gravel.controllers.gstate import GlobalState
 
 
 class ContainerFetchError(GravelError):

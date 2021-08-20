@@ -12,7 +12,9 @@
 # GNU General Public License for more details.
 
 from __future__ import annotations
+
 from typing import Awaitable, Callable
+
 from gravel.cephadm.models import NodeInfoModel
 
 

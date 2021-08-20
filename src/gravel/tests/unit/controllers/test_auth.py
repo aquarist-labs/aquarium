@@ -15,7 +15,7 @@
 
 import pytest
 
-from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserModel, UserMgr
+from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr, UserModel
 from gravel.controllers.config import AuthOptionsModel
 from gravel.controllers.gstate import GlobalState
 

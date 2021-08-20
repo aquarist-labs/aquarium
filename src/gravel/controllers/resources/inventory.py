@@ -12,16 +12,18 @@
 # GNU General Public License for more details.
 
 from __future__ import annotations
-from logging import Logger
+
 import time
+from logging import Logger
 from typing import Awaitable, Callable, List, Optional
+
 from fastapi.logger import logger as fastapi_logger
-from gravel.cephadm.models import NodeInfoModel
-from gravel.controllers.gstate import Ticker, GlobalState
+
 from gravel.cephadm.cephadm import Cephadm
+from gravel.cephadm.models import NodeInfoModel
+from gravel.controllers.gstate import GlobalState, Ticker
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.resources.inventory_sub import Subscriber
-
 
 logger: Logger = fastapi_logger
 

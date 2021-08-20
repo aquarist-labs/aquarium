@@ -12,13 +12,10 @@
 # GNU General Public License for more details.
 
 import shlex
-from typing import (
-    Dict,
-    Optional,
-    List,
-)
 from logging import Logger
 from pathlib import Path
+from typing import Dict, List, Optional
+
 from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
 
@@ -26,7 +23,6 @@ from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.utils import aqr_run_cmd
-
 
 logger: Logger = fastapi_logger
 

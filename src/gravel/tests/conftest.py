@@ -11,33 +11,22 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import httpx
 import logging
 import os
-import pytest
 import sys
+from types import SimpleNamespace
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
 
+import httpx
+import pytest
+from _pytest.fixtures import SubRequest
 from asgi_lifespan import LifespanManager
+from fastapi import FastAPI
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from pytest_mock import MockerFixture
-from types import SimpleNamespace
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    cast,
-)
-from _pytest.fixtures import SubRequest
-
-from fastapi import FastAPI
 
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
-
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -204,21 +193,22 @@ async def aquarium_startup(
     get_data_contents: Callable[[str, str], str], mocker: MockerFixture
 ):
     async def startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
+        from fastapi.logger import logger as fastapi_logger
+
         from gravel.cephadm.cephadm import Cephadm
-        from gravel.controllers.nodes.mgr import (
-            NodeMgr,
-            NodeError,
-            NodeInitStage,
-        )
-        from gravel.controllers.resources.inventory import Inventory
-        from gravel.controllers.resources.devices import Devices
-        from gravel.controllers.resources.status import Status
-        from gravel.controllers.resources.storage import Storage
-        from gravel.controllers.services import Services, ServiceModel
-        from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
         from gravel.controllers.nodes.deployment import NodeDeployment
         from gravel.controllers.nodes.errors import NodeCantDeployError
-        from fastapi.logger import logger as fastapi_logger
+        from gravel.controllers.nodes.mgr import (
+            NodeError,
+            NodeInitStage,
+            NodeMgr,
+        )
+        from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
+        from gravel.controllers.resources.devices import Devices
+        from gravel.controllers.resources.inventory import Inventory
+        from gravel.controllers.resources.status import Status
+        from gravel.controllers.resources.storage import Storage
+        from gravel.controllers.services import ServiceModel, Services
 
         logger: logging.Logger = fastapi_logger
 

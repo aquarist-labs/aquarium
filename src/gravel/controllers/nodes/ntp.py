@@ -16,6 +16,7 @@ from logging import Logger
 from pathlib import Path
 
 from fastapi.logger import logger as fastapi_logger
+
 from gravel.controllers.nodes.errors import NodeChronyRestartError
 from gravel.controllers.utils import aqr_run_cmd
 

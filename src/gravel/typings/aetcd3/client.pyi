@@ -3,13 +3,13 @@
 
 # pyright: reportMissingTypeStubs=false
 from typing import (
+    IO,
     Any,
     AsyncIterator,
     Awaitable,
     Callable,
     Dict,
     Generator,
-    IO,
     List,
     Optional,
     Tuple,

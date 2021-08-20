@@ -15,6 +15,7 @@
 # pyright: reportUnknownVariableType=false
 
 from typing import Awaitable, Callable, List, Optional, cast
+
 import pytest
 from pytest_mock import MockerFixture
 
@@ -25,9 +26,9 @@ from gravel.controllers.nodes.deployment import DeploymentDisksConfig
 @pytest.mark.asyncio
 async def test_state(mocker: MockerFixture, gstate: GlobalState):
     from gravel.controllers.nodes.deployment import (
+        DeploymentErrorEnum,
         DeploymentState,
         NodeStageEnum,
-        DeploymentErrorEnum,
     )
 
     mocker.patch.object(DeploymentState, "_load_stage")
@@ -101,8 +102,8 @@ async def test_deployment_progress(mocker: MockerFixture, gstate: GlobalState):
 
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import (
-        NodeDeployment,
         DeploymentErrorEnum,
+        NodeDeployment,
         ProgressEnum,
     )
 
@@ -157,14 +158,14 @@ async def test_deployment_progress(mocker: MockerFixture, gstate: GlobalState):
 
 @pytest.mark.asyncio
 async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
+    from gravel.controllers.nodes.bootstrap import Bootstrap
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import (
-        NodeDeployment,
         DeploymentConfig,
+        NodeDeployment,
     )
-    from gravel.controllers.nodes.bootstrap import Bootstrap
-    from gravel.controllers.orch.orchestrator import Orchestrator
     from gravel.controllers.nodes.systemdisk import SystemDisk
+    from gravel.controllers.orch.orchestrator import Orchestrator
 
     def mock_devices_assimilated(
         cls, hostname: str, devs: List[str]  # type: ignore

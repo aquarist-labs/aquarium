@@ -14,12 +14,12 @@
 from enum import Enum
 from logging import Logger
 from typing import List, Optional, Tuple
+
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
 from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.gstate import GlobalState
-
 
 logger: Logger = fastapi_logger
 

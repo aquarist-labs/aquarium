@@ -3,6 +3,7 @@
 
 # pyright: reportMissingTypeStubs=false
 from typing import Optional
+
 import aetcd3
 from aetcd3.etcdrpc.rpc_pb2 import LeaseKeepAliveResponse
 
