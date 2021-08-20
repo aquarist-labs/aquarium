@@ -45,7 +45,7 @@ Before submitting your change, you should test it. You can run unit tests with t
    cd src
    tox
 
-The above will run the python unit tests (pytest), static type checker (mypy), and
+The above will run the Python unit tests (pytest), static type checker (mypy), and
 linting (black and isort).
 
 You can also use black and isort to automatically format your code and fix any
@@ -127,7 +127,7 @@ contributions. Consider the following aspects when performing a review:
 - Have the CI tests run and passed?
 - Does this code require documentation? If so, does it have documentation
   in the commit?
-- Are the comments (if there are any) are clear and useful?
+- Are the comments (if there are any) clear and useful?
 
 All pull requests should be reviewed, even if the request is
 tagged with the label `needs-rebase`. At this time, it is imperative that
