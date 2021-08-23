@@ -171,6 +171,8 @@ class FakeKV(KV):
 async def aquarium_startup(
     get_data_contents: Callable[[str, str], str], mocker: MockerFixture
 ):
+    mock_ceph_modules(mocker)
+
     async def startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
         from fastapi.logger import logger as fastapi_logger
 
@@ -280,6 +282,11 @@ async def aquarium_startup(
             total = 2000  # type: ignore
 
         gstate: GlobalState = GlobalState()
+        # gstate's KV store will start a thread to try to connect to the
+        # cluster.  This can't work in a test environment, so tell it to
+        # close (otherwise the thread will spin forever and the tests will
+        # never complete)
+        await gstate._kvstore.close()
         gstate._kvstore = FakeKV()  # pyright: reportPrivateUsage=false
 
         # init node mgr
