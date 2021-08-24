@@ -1,43 +1,59 @@
 <div class="glass-install-mode-page"
      fxLayout="column"
      fxLayoutAlign="center center">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title translate>Choose installation mode</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div fxLayout="row"
-           fxLayoutGap="16px">
-        <div fxFlex="50"
-             fxLayout="column">
-          <button mat-button
-                  routerLink="/installer/create">
-            <mat-icon svgIcon="mdi:plus"></mat-icon>
-            <span translate>Create new cluster</span>
-          </button>
-          <p class="glass-install-mode-description">
-            <span translate>Setup will create a new deployment from scratch, configuring this node as a standalone storage solution.</span>
-          </p>
-        </div>
-        <div fxFlex="50"
-             fxLayout="column">
-          <button mat-button
-                  routerLink="/installer/join">
-            <mat-icon svgIcon="mdi:vector-combine"></mat-icon>
-            <span translate>Join existing cluster</span>
-          </button>
-          <p class="glass-install-mode-description">
-            <span translate>Setup will search for existing deployments in the network and be assimilated.</span>
-          </p>
+  <div fxLayout="row"
+       fxLayoutGap="16px">
+    <div class="card"
+         fxFlex="50"
+         fxLayout="column">
+      <div class="card-header">
+        <div class="card-title"
+             translate>
+          Create new cluster
         </div>
       </div>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-icon-button
-              matTooltip="{{ 'Back' | translate }}"
-              routerLink="/installer/welcome">
-        <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-      </button>
-    </mat-card-actions>
-  </mat-card>
+      <div class="card-body">
+        <p class="card-text"
+           translate>
+          Setup will create a new deployment from scratch, configuring this node as a standalone storage solution.
+        </p>
+      </div>
+      <div class="card-footer">
+        <div class="card-actions">
+          <button type="button"
+                  class="btn btn-warning"
+                  routerLink="/installer/create">
+            <i class="mdi mdi-plus"></i>
+            <span translate>Create</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card"
+         fxFlex="50"
+         fxLayout="column">
+      <div class="card-header">
+        <div class="card-title"
+             translate>
+          Join existing cluster
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-text"
+           translate>
+          Setup will search for existing deployments in the network and be assimilated.
+        </p>
+      </div>
+      <div class="card-footer">
+        <div class="card-actions">
+          <button type="button"
+                  class="btn btn-warning"
+                  routerLink="/installer/join">
+            <i class="mdi mdi-merge"></i>
+            <span translate>Join</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

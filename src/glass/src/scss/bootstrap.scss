@@ -1,0 +1,119 @@
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+@use './defaults/colors' as dc;
+@use './defaults/variables' as dv;
+
+$primary: dc.$glass-color-theme-primary !default;
+$secondary: dc.$glass-color-theme-accent !default;
+$success: dc.$glass-color-success !default;
+$info: dc.$glass-color-info !default;
+$warning: dc.$glass-color-warning !default;
+$danger: dc.$glass-color-danger !default;
+$card-bg: dc.$eos-bc-gray-50;
+
+$h1-font-size: 2em !default;
+$h2-font-size: 1.75em !default;
+$h3-font-size: 1.5em !default;
+$h4-font-size: 1.3em !default;
+$h5-font-size: 1.15em !default;
+$h6-font-size: 1em !default;
+
+@import '~bootstrap/scss/bootstrap';
+
+//////////////////////////////////////////////////////////////////////////////
+// Alert
+.alert {
+  padding: dv.$glass-padding;
+}
+
+.alert-success,
+.alert-info,
+.alert-warning,
+.alert-danger {
+  color: dc.$glass-color-white;
+}
+
+.alert-success {
+  background-color: dc.$glass-color-success;
+}
+
+.alert-info {
+  background-color: dc.$glass-color-info;
+}
+
+.alert-warning {
+  background-color: dc.$glass-color-warning;
+}
+
+.alert-danger {
+  background-color: dc.$glass-color-danger;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Button
+.btn-submit {
+  @extend .btn-warning;
+}
+
+.btn-outline-default {
+  @include button-outline-variant($input-border-color);
+  color: $gray-900;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Card
+.card,
+.card-header,
+.card-body,
+.card-footer {
+  background-color: dc.$glass-color-card-background;
+}
+
+.card {
+  border: 0;
+  border-radius: 0;
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-footer {
+  border-top: 0;
+}
+
+.card-actions {
+  @extend .float-right;
+
+  button {
+    @extend .btn-sm;
+
+    &.btn-warning {
+      color: dc.$glass-color-white;
+    }
+  }
+}
+
+.card-title {
+  @extend .h5;
+
+  margin-bottom: unset;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Forms
+.invalid-feedback {
+  display: block;
+}

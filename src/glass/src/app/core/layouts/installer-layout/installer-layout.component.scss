@@ -1,0 +1,46 @@
+@import 'styles.scss';
+
+.glass-installer-layout {
+  .main {
+    margin: $glass-margin;
+
+    .content {
+      margin-top: $glass-margin;
+    }
+  }
+
+  .sidebar {
+    background-color: $glass-color-theme-primary;
+    color: $glass-color-theme-primary-complementary;
+    padding: $glass-padding;
+    width: 12.5rem;
+    min-width: 12.5rem;
+
+    .header {
+      .logo {
+        height: 3rem;
+        width: 3rem;
+        background-image: url('/assets/images/aquarium-logo.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+
+      .title {
+        font-size: 1.75rem;
+        font-weight: 500;
+
+        &:after {
+          content: 'Aquarium';
+        }
+      }
+    }
+
+    .footer {
+      font-size: 0.75rem;
+
+      &:after {
+        content: '@2021 SUSE, LLC.';
+      }
+    }
+  }
+}
