@@ -12,53 +12,101 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { AfterViewInit, Component, Input, OnDestroy, ViewChild } from '@angular/core';
+import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 
 import { InstallWizardContext } from '~/app/pages/install-wizard/models/install-wizard-context.type';
-import { GlassValidators } from '~/app/shared/forms/validators';
+import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
+import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 
 @Component({
   selector: 'glass-ntp-step',
   templateUrl: './ntp-step.component.html',
   styleUrls: ['./ntp-step.component.scss']
 })
-export class NtpStepComponent implements OnInit, OnDestroy {
+export class NtpStepComponent implements AfterViewInit, OnDestroy {
   @Input()
   context?: InstallWizardContext;
 
-  public formGroup: FormGroup;
-  public ntpDefault = 'pool.ntp.org';
-  public useDefault = true;
+  @ViewChild(DeclarativeFormComponent, { static: true })
+  form?: DeclarativeFormComponent;
 
+  public config: DeclarativeFormConfig = {
+    // eslint-disable-next-line max-len
+    subtitle: TEXT(
+      // eslint-disable-next-line max-len
+      'Your cluster environment needs to have the time synchronized with a reliable time source. You do have two options in order to configure the time synchronization:'
+    ),
+    fields: [
+      {
+        name: 'useDefault',
+        type: 'radio',
+        label: TEXT('Use your own NTP host'),
+        value: false,
+        hint: TEXT(
+          'If you do have your own NTP host configured on the network, please add it below.'
+        )
+      },
+      {
+        name: 'ntpAddress',
+        type: 'text',
+        label: TEXT('NTP host IP/FQDN'),
+        groupClass: 'ml-4',
+        hint: TEXT('The IP address or FQDN of the NTP host.'),
+        validators: {
+          patternType: 'hostAddress',
+          requiredIf: {
+            useDefault: { operator: 'falsy' }
+          }
+        }
+      },
+      {
+        name: 'useDefault',
+        type: 'radio',
+        label: TEXT('Use an NTP host on the Internet'),
+        value: true,
+        hint: TEXT(
+          // eslint-disable-next-line max-len
+          'If you don not have your own NTP host configured, you can use an NTP server pool (pool.ntp.org) on the internet.<br><b>Please note:</b> This option requires access to the internet.'
+        )
+      }
+    ]
+  };
+
+  private defaultNtpAddress = 'pool.ntp.org';
   private subscription?: Subscription;
 
-  constructor(private formBuilder: FormBuilder) {
-    this.formGroup = this.formBuilder.group({
-      ntpAddress: [null, [GlassValidators.hostAddress()]]
-    });
-    this.subscription = this.formGroup.valueChanges.subscribe(() => this.updateContext());
-  }
-
-  ngOnInit(): void {
-    this.updateContext();
+  ngAfterViewInit(): void {
+    if (this.context && this.form) {
+      // Populate form fields with current values.
+      const useDefault = [undefined, this.defaultNtpAddress].includes(
+        this.context.config.ntpAddress
+      );
+      this.form.patchValues({
+        useDefault,
+        ntpAddress: useDefault ? '' : this.defaultNtpAddress
+      });
+    }
+    if (this.form?.formGroup) {
+      this.subscription = this.form.formGroup.valueChanges.subscribe(() => this.updateContext());
+    }
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
   }
 
-  selectionChange(useDefault: boolean): void {
-    this.useDefault = useDefault;
-    this.updateContext();
+  get completed(): boolean {
+    return this.form?.formGroup?.valid ?? false;
   }
 
   private updateContext(): void {
     if (this.context) {
+      const values = this.form!.values;
       _.merge(this.context.config, {
-        ntpAddress: this.useDefault ? this.ntpDefault : this.formGroup.value.ntpAddress
+        ntpAddress: values.useDefault ? this.defaultNtpAddress : values.ntpAddress
       });
     }
   }

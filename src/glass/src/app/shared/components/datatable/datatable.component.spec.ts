@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
@@ -10,7 +11,7 @@ describe('DatatableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ComponentsModule, NoopAnimationsModule]
+      imports: [ComponentsModule, NoopAnimationsModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 

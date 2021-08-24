@@ -28,7 +28,6 @@ import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/insta
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
-import { WelcomePageComponent } from '~/app/pages/welcome-page/welcome-page.component';
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 
@@ -57,16 +56,21 @@ const routes: Routes = [
     component: InstallerLayoutComponent,
     canActivateChild: [StatusRouteGuardService],
     children: [
-      { path: '', redirectTo: 'welcome', pathMatch: 'full' },
-      { path: 'install-mode', component: InstallModePageComponent },
-      { path: 'welcome', component: WelcomePageComponent },
+      { path: '', redirectTo: 'install-mode', pathMatch: 'full' },
+      {
+        path: 'install-mode',
+        component: InstallModePageComponent,
+        data: { breadcrumb: TEXT('Installer mode') }
+      },
       {
         path: 'create',
-        component: InstallCreateWizardPageComponent
+        component: InstallCreateWizardPageComponent,
+        data: { breadcrumb: TEXT('Create new cluster') }
       },
       {
         path: 'join',
-        component: InstallJoinWizardPageComponent
+        component: InstallJoinWizardPageComponent,
+        data: { breadcrumb: TEXT('Join existing cluster') }
       }
     ]
   },

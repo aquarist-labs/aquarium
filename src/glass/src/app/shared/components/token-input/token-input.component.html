@@ -1,31 +1,50 @@
 <div role="group"
+     class="input-group"
      [formGroup]="formGroup"
      fxLayout="row"
      fxLayoutAlign="start center">
   <input #segment1
+         class="form-control"
+         [ngClass]="{'is-invalid': errorState}"
+         type="text"
          formControlName="segment1"
          maxLength="4"
          size="4"
          (input)="doInput(formGroup.controls.segment1, segment2)"
          (paste)="onPaste($event)">
-  <span>&ndash;</span>
+  <i class="mlr-2"
+     [class]="icons.minus">
+  </i>
   <input #segment2
+         class="form-control"
+         [ngClass]="{'is-invalid': errorState}"
+         type="text"
          formControlName="segment2"
          maxLength="4"
          size="4"
          (input)="doInput(formGroup.controls.segment2, segment3)"
          (keyup.backspace)="autoFocusPrev(formGroup.controls.segment2, segment1)"
          (paste)="onPaste($event)">
-  <span>&ndash;</span>
+  <i class="mlr-2"
+     [class]="icons.minus">
+  </i>
   <input #segment3
+         class="form-control"
+         [ngClass]="{'is-invalid': errorState}"
+         type="text"
          formControlName="segment3"
          maxLength="4"
          size="4"
          (input)="doInput(formGroup.controls.segment3, segment4)"
          (keyup.backspace)="autoFocusPrev(formGroup.controls.segment3, segment2)"
          (paste)="onPaste($event)">
-  <span>&ndash;</span>
+  <i class="mlr-2"
+     [class]="icons.minus">
+  </i>
   <input #segment4
+         class="form-control"
+         [ngClass]="{'is-invalid': errorState}"
+         type="text"
          formControlName="segment4"
          maxLength="4"
          size="4"

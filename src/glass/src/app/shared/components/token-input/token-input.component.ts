@@ -31,6 +31,8 @@ import { MatFormFieldControl } from '@angular/material/form-field';
 import * as _ from 'lodash';
 import { Subject, Subscription } from 'rxjs';
 
+import { Icon } from '~/app/shared/enum/icon.enum';
+
 let nextUniqueId = 0;
 
 type TokenFormat = {
@@ -128,6 +130,7 @@ export class TokenInputComponent
   // @ts-ignore
   @Input() errorStateMatcher: ErrorStateMatcher;
 
+  public icons = Icon;
   public controlType = 'glass-token-input';
   public _value: string | null = null;
   public _placeholder = '';

@@ -17,6 +17,7 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import {
@@ -50,14 +51,9 @@ export class LocalDevicesStepComponent implements OnInit {
   @ViewChild('availableTpl', { static: true })
   public availableTpl!: TemplateRef<any>;
 
-  disks: TableEntry[] = [];
-  devicesColumns: DatatableColumn[] = [
-    {
-      name: '',
-      prop: '_',
-      cellTemplateName: 'icon',
-      cellTemplateConfig: { name: 'mdi:server' }
-    },
+  public icons = Icon;
+  public disks: TableEntry[] = [];
+  public devicesColumns: DatatableColumn[] = [
     {
       name: TEXT('Path'),
       prop: 'path',
@@ -84,7 +80,7 @@ export class LocalDevicesStepComponent implements OnInit {
   constructor(private nodesService: NodesService) {}
 
   ngOnInit(): void {
-    this.devicesColumns.push({
+    this.devicesColumns.unshift({
       name: TEXT('Available'),
       prop: 'isAvailable',
       sortable: true,

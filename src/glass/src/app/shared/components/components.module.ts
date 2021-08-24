@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { FormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { MaterialModule } from '~/app/material.modules';
@@ -40,7 +42,9 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     CommonModule,
     DirectivesModule,
     FlexLayoutModule,
+    FormsModule,
     MaterialModule,
+    NgbModule,
     PipesModule,
     TranslateModule.forChild()
   ]

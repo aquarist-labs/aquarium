@@ -33,6 +33,6 @@ mat-card.glass-dashboard-widget {
 
   &.error {
     @extend .glass-color-theme-error;
-    box-shadow: 0 0 5px 2px $glass-color-error !important;
+    box-shadow: 0 0 5px 2px $glass-color-danger !important;
   }
 }

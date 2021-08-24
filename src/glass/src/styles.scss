@@ -1,5 +1,7 @@
 @use '~@angular/material' as mat;
-@import 'defaults.scss';
+
+@import 'src/scss/defaults';
+@import 'src/scss/bootstrap';
 
 @include mat.core();
 
@@ -18,18 +20,13 @@ $glass-light-theme-inverse: mat.define-light-theme(
 
 $mat-typography-config: mat.define-typography-config();
 
-$glass-color-primary: mat.get-color-from-palette(map-get($glass-light-theme, primary));
-$glass-color-primary-complementary: white;
-$glass-color-accent: mat.get-color-from-palette(map-get($glass-light-theme, accent));
-$glass-color-accent-complementary: white;
-
 .glass-color-theme-primary {
-  color: $glass-color-primary-complementary;
-  background-color: $glass-color-primary;
+  color: $glass-color-theme-primary-complementary;
+  background-color: $glass-color-theme-primary;
 }
 .glass-color-theme-accent {
-  color: $glass-color-accent-complementary;
-  background-color: $glass-color-accent;
+  color: $glass-color-theme-accent-complementary;
+  background-color: $glass-color-theme-accent;
 }
 .glass-color-theme-white {
   color: $glass-color-white;
@@ -38,11 +35,11 @@ $glass-color-accent-complementary: white;
 .glass-color-theme-error,
 .glass-color-theme-danger {
   color: $glass-color-white;
-  background-color: $glass-color-error;
+  background-color: $glass-color-danger;
 }
 .glass-color-theme-ok {
   color: $glass-color-white;
-  background-color: $glass-color-primary;
+  background-color: $glass-color-theme-primary;
 }
 .glass-color-theme-warn {
   color: $glass-color-black;
@@ -58,17 +55,17 @@ $glass-color-accent-complementary: white;
 }
 
 .glass-background-color-primary {
-  background-color: $glass-color-primary;
+  background-color: $glass-color-theme-primary;
 }
 .glass-background-color-accent {
-  background-color: $glass-color-accent;
+  background-color: $glass-color-theme-accent;
 }
 
 .glass-color-primary {
-  color: $glass-color-primary;
+  color: $glass-color-theme-primary;
 }
 .glass-color-accent {
-  color: $glass-color-accent;
+  color: $glass-color-theme-accent;
 }
 .glass-color-green,
 .glass-color-success {
@@ -76,7 +73,7 @@ $glass-color-accent-complementary: white;
 }
 .glass-color-red,
 .glass-color-error {
-  color: $glass-color-error;
+  color: $glass-color-danger;
 }
 
 .glass-text-pre-wrap {
@@ -102,13 +99,19 @@ $glass-color-accent-complementary: white;
   cursor: help;
 }
 
+.glass-icon-2x,
+.glass-icon-3x,
+.glass-icon-4x {
+  line-height: 1;
+}
 .glass-icon-2x {
-  height: 48px;
-  width: 48px;
+  font-size: 2em;
+}
+.glass-icon-3x {
+  font-size: 3em;
 }
 .glass-icon-4x {
-  height: 96px;
-  width: 96px;
+  font-size: 4em;
 }
 
 html,
@@ -117,6 +120,7 @@ body {
 }
 body {
   margin: 0;
+  background-color: $glass-color-body-background;
 }
 
 // BlockUI
@@ -169,7 +173,7 @@ ngx-charts-advanced-pie-chart .advanced-pie-legend {
   }
 }
 .toast-error {
-  background-color: $glass-color-error;
+  background-color: $glass-color-danger;
 }
 .toast-success {
   background-color: $glass-color-success;

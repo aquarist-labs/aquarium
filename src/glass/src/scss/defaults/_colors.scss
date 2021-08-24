@@ -1,6 +1,17 @@
-$glass-color-transparent: transparent;
-$glass-color-transparent-black: rgba(0, 0, 0, 0.54);
-
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 $eos-bc-red-500: #dc3545;
 $eos-bc-green-500: #30ba78;
 $eos-bc-yellow-500: #ffc107;
@@ -9,12 +20,21 @@ $eos-bc-gray-300: #b6b4b4;
 $eos-bc-cerulean-900: #008acf;
 $eos-bc-cerulean-500: #00b2e2;
 
+$glass-color-transparent: transparent;
+$glass-color-transparent-black: rgba(0, 0, 0, 0.54);
 $glass-color-white: white;
 $glass-color-black: black;
 $glass-color-success: $eos-bc-green-500;
 $glass-color-info: $eos-bc-cerulean-500;
 $glass-color-warning: $eos-bc-yellow-500;
-$glass-color-error: $eos-bc-red-500;
+$glass-color-danger: $eos-bc-red-500;
+
+$glass-color-theme-primary: $eos-bc-cerulean-500;
+$glass-color-theme-primary-complementary: $glass-color-white;
+$glass-color-theme-accent: $eos-bc-green-500;
+$glass-color-theme-accent-complementary: $glass-color-white;
+$glass-color-body-background: $glass-color-white;
+$glass-color-card-background: $eos-bc-gray-50;
 
 $eos-green-palette: (
   50: #e6f7ef,
