@@ -1,6 +1,8 @@
 {
   "name": "glass",
   "version": "0.0.0",
+  "legacy-bundling": true,
+  "lockfileVersion": 1,
   "scripts": {
     "ng": "ng",
     "postinstall": "patch-package; ngcc",
