@@ -57,7 +57,12 @@ class KV:
         # Or, do we only open it when reading/writing in individual methods?
         # That would probably be better... (but would still have problems due to
         # simultaneous access, but we can always raise an exception in that case I guess?)
-        self._db = dbm.open(f"{var_lib_aquarium}/kvstore", "c")
+        try:
+            self._db = dbm.open(f"{var_lib_aquarium}/kvstore", "c")
+        except Exception as e:
+            # Only raise exceptions opening db file when *not* running unit tests
+            if "pytest" not in sys.modules:
+                raise e
         self._cluster: Optional[rados.Rados] = None
         self._connector_thread = threading.Thread(target=self._cluster_connect)
         self._run = True

@@ -169,9 +169,13 @@ class FakeKV(KV):
 @pytest.fixture()
 @pytest.mark.asyncio
 async def aquarium_startup(
-    get_data_contents: Callable[[str, str], str], mocker: MockerFixture
+    get_data_contents: Callable[[str, str], str],
+    mocker: MockerFixture,
+    fs: fake_filesystem.FakeFilesystem,
 ):
+    # Need the following to fake up KV
     mock_ceph_modules(mocker)
+    fs.create_dir("/var/lib/aquarium")
 
     async def startup(aquarium_app: FastAPI, aquarium_api: FastAPI):
         from fastapi.logger import logger as fastapi_logger
