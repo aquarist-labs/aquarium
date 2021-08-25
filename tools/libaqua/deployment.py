@@ -22,8 +22,8 @@ import shutil
 
 from pydantic import BaseModel, Field
 
-import libaqr.vagrant as vagrant
-from libaqr.errors import (
+import libaqua.vagrant as vagrant
+from libaqua.errors import (
     AqrError,
     BoxDoesNotExistError,
     DeploymentExistsError,

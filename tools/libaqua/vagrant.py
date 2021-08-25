@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from contextlib import contextmanager
 
-from libaqr.errors import (
+from libaqua.errors import (
     BoxAlreadyExistsError,
     DeploymentNodeDoesNotExistError,
     DeploymentNodeNotRunningError,

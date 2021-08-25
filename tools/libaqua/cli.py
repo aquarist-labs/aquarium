@@ -22,9 +22,9 @@ import logging
 from click.decorators import make_pass_decorator
 from pathlib import Path
 
-from libaqr.images import Image
-from libaqr.deployment import Deployment, DeploymentModel, get_deployments
-from libaqr.errors import (
+from libaqua.images import Image
+from libaqua.deployment import Deployment, DeploymentModel, get_deployments
+from libaqua.errors import (
     AqrError,
     BoxAlreadyExistsError,
     BuildsPathNotFoundError,
@@ -39,12 +39,12 @@ from libaqr.errors import (
     RootNotFoundError,
     VagrantError
 )
-from libaqr.misc import (
+from libaqua.misc import (
     find_builds_path,
     find_deployments_path,
     find_root
 )
-from libaqr.vagrant import Vagrant
+from libaqua.vagrant import Vagrant
 
 logger: logging.Logger = None
 
@@ -647,7 +647,3 @@ def cmd_images_list(ctx: AppCtx) -> None:
             ))
     if ctx.json:
         print(json.dumps(lst))
-
-
-if __name__ == "__main__":
-    app()

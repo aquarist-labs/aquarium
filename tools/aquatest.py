@@ -15,15 +15,15 @@
 import sys
 import errno
 from pathlib import Path
-from libaqr.errors import BoxAlreadyExistsError, ImageNotFoundError, VagrantError
-from libaqr.images import Image
-from libaqr.runner import Runner, RunnerResult
-from libaqr.suites import (
+from libaqua.errors import BoxAlreadyExistsError, ImageNotFoundError, VagrantError
+from libaqua.images import Image
+from libaqua.runner import Runner, RunnerResult
+from libaqua.suites import (
     SuiteEntry,
     get_available_suites,
     get_suite_tests
 )
-from libaqr.misc import find_builds_path
+from libaqua.misc import find_builds_path
 from typing import List, Optional, Tuple
 import click
 
@@ -85,7 +85,7 @@ def cmd_run(
             # we are going to reuse that box
             pass
 
-    deployments_path = Path("aqrtest-deployments")
+    deployments_path = Path("aquatest-deployments")
     deployments_path.mkdir(exist_ok=True)
 
     has_failures = False

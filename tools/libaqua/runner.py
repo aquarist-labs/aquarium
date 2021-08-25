@@ -19,14 +19,14 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
-from libaqr.errors import (
+from libaqua.errors import (
     AqrError,
     BoxDoesNotExistError,
     DeploymentExistsError
 )
-from libaqr.suites import SuiteEntry
-from libaqr.deployment import Deployment
-from libaqr.testing import (
+from libaqua.suites import SuiteEntry
+from libaqua.deployment import Deployment
+from libaqua.testing import (
     Requirements,
     TestCase,
     get_test_cases
@@ -145,7 +145,7 @@ class Runner(multiprocessing.Process):
         def _gen_name() -> str:
             from datetime import datetime as dt
             now = dt.now().isoformat().replace(":", "").split(".")[0]
-            return f"aqrtest-{self._test.name}-{now}"
+            return f"aquatest-{self._test.name}-{now}"
 
         self._run_name = _gen_name()
         try:
