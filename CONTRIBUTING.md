@@ -13,11 +13,11 @@ and others continuously update.
 
 You can clone from github with:
 
-	git clone git@github.com:aquarist-labs/aquarium
+   git clone git@github.com:aquarist-labs/aquarium
 
 Or:
 
-	git clone git://github.com/aquarist-labs/aquarium
+   git clone git://github.com/aquarist-labs/aquarium
 
 ### Submitting Bugs and Requesting New Features
 
@@ -30,52 +30,29 @@ We use GitHub templates to manage the requests. You will either select:
 
 Ensure the appropriate label is selected before submitting your issue.
 
-## Pull Requests
+## Document Your Changes
 
-### Reviewing Pull Requests
+If you have added or modified any user-facing functionality, such as CLI commands or their output,
+then the pull request must include appropriate updates to documentation.
 
-Each pull request requires at least *one* review and approval from an active
-contributor. The primary function of reviews is to ensure ensure quality. However,
-we want pull requests to be viewed quickly to avoid code contributors being blocked.
+It is the submitter's responsibility to make the changes, and the reviewer's responsibility to make
+sure they are not merging changes that do not have the needed updates to documentation.
 
-We ask that reviewers perform a basic sanity check on all code and documentation
-contributions. Consider the following aspects when performing a review:
+## Running Unit Tests
 
-- Does this make sense?
-- Does this code perform what the code contributor has described in the commit message?
-- Have the CI tests run and passed?
-- Does this code require documentation? If so, does it have documentation
-  in the commit?
-- Are the comments (if there are any) are clear and useful?
+Before submitting your change, you should test it. You can run unit tests with tox:
 
-All pull requests should be reviewed, even if the request is
-tagged with the label `needs-rebase`. At this time, it is imperative that
-code contributions move swiftly, and without minor blockers.
+   cd src
+   tox
 
-Note: If the pull request requires a rebase, it is suitable to approve the
-pull request, the pull request will not merge automatically.
+The above will run the Python unit tests (pytest), static type checker (mypy), and
+linting (black and isort).
 
-If your pull request is not yet in the state where it can be meaningfully
-reviewed and merged, please leave it in draft status or tag with the `WIP`
-label. You can of course still ask for feedback by manually assigning a
-reviewer or pinging them directly at this stage.
+You can also use black and isort to automatically format your code and fix any
+potential linting problems:
 
-### Merging Pull Requests
-
-Before merging, check the following:
-
-- Ensure all CI has run and is passing
-- The pull request has been open for 24 hours for an appropriate feedback loop time
-- At least one reviewer has approved
-- There is no outstanding change requests
-
-If all of these are complete, you can merge your own pull request. Please do
-not merge a pull request that is not your own unless this action has been
-previously discussed with the pull request author. 
-
-## Contributor Guidelines
-
-Do not merge directly into the `main` branch. It is protected for a reason.
+   cd src
+   tox -e fixlint
 
 ## Writing Commit Messages
 
@@ -121,7 +98,9 @@ For example:
    Signed-off-by: Random Developer <random@developer.io>
 ```
 
-## Pull Request Best Practices
+## Pull Requests
+
+### Pull Request Best Practices
 
 PRs should be opened on branches contained in your fork of `aquarist-labs/aquarium.git`. PRs should
 target the `main` branch.
@@ -130,20 +109,50 @@ If your PR has only one commit, the PR title can be the same as the commit title
 suggest this). If the PR has multiple commits, do not accept the title GitHub suggests. Either use
 the title of the most relevant commit, or write your own title.
 
-## Document Your Changes
+## Contributor Guidelines
 
-If you have added or modified any user-facing functionality, such as CLI commands or their output,
-then the pull request must include appropriate updates to documentation.
+Do not merge directly into the `main` branch. It is protected for a reason.
 
-It is the submitter's responsibility to make the changes, and the reviewer's responsibility to make
-sure they are not merging changes that do not have the needed updates to documentation.
+### Reviewing Pull Requests
 
-## Running Unit Tests
+Each pull request requires at least *one* review and approval from an active
+contributor. The primary function of reviews is to ensure ensure quality. However,
+we want pull requests to be viewed quickly to avoid code contributors being blocked.
 
-Before submitting your change, you should test it. You can run unit tests with tox:
+We ask that reviewers perform a basic sanity check on all code and documentation
+contributions. Consider the following aspects when performing a review:
 
-	cd src
-	tox
+- Does this make sense?
+- Does this code perform what the code contributor has described in the commit message?
+- Have the CI tests run and passed?
+- Does this code require documentation? If so, does it have documentation
+  in the commit?
+- Are the comments (if there are any) clear and useful?
+
+All pull requests should be reviewed, even if the request is
+tagged with the label `needs-rebase`. At this time, it is imperative that
+code contributions move swiftly, and without minor blockers.
+
+Note: If the pull request requires a rebase, it is suitable to approve the
+pull request, the pull request will not merge automatically.
+
+If your pull request is not yet in the state where it can be meaningfully
+reviewed and merged, please leave it in draft status or tag with the `WIP`
+label. You can of course still ask for feedback by manually assigning a
+reviewer or pinging them directly at this stage.
+
+### Merging Pull Requests
+
+Before merging, check the following:
+
+- Ensure all CI has run and is passing
+- The pull request has been open for 24 hours for an appropriate feedback loop time
+- At least one reviewer has approved
+- There is no outstanding change requests
+
+If all of these are complete, you can merge your own pull request. Please do
+not merge a pull request that is not your own unless this action has been
+previously discussed with the pull request author. 
 
 ## Automated CI Testing
 
