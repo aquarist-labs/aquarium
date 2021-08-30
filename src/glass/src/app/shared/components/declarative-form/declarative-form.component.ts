@@ -14,7 +14,14 @@
  */
 import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
 
@@ -138,5 +145,20 @@ export class DeclarativeFormComponent implements OnInit {
       control?.markAsUntouched();
       control?.setErrors(null);
     });
+  }
+
+  /**
+   * Reports whether the control with the given path has the error specified.
+   */
+  showError(
+    path: Array<string | number> | string,
+    fgd: FormGroupDirective,
+    errorCode?: string
+  ): boolean {
+    const control = fgd.form.get(path);
+    return control
+      ? (fgd.submitted || control.dirty) &&
+          (errorCode ? control.hasError(errorCode) : control.invalid)
+      : false;
   }
 }
