@@ -111,7 +111,7 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateContext(): void {
-    if (this.context) {
+    if (this.context && this.completed) {
       const values = this.form!.values;
       _.merge(this.context.config, values);
     }
