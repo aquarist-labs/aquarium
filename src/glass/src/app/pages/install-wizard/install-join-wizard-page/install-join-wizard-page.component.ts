@@ -45,8 +45,7 @@ export class InstallJoinWizardPageComponent implements OnInit {
   public activeId = 1;
   public context: InstallJoinWizardContext = {
     config: {},
-    stage: 'unknown',
-    stepperVisible: false
+    stage: 'unknown'
   };
   public pageIndex = {
     start: 1,
@@ -72,7 +71,6 @@ export class InstallJoinWizardPageComponent implements OnInit {
         switch (res.node_stage) {
           case StatusStageEnum.joining:
             this.context.stage = 'joining';
-            this.context.stepperVisible = false;
             // Jump to the 'Summary' step.
             this.activeId = this.pageIndex.join;
             // Immediately show the progress message.
@@ -83,12 +81,10 @@ export class InstallJoinWizardPageComponent implements OnInit {
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'joined';
-            this.context.stepperVisible = true;
             // Jump to the 'Finish' step.
             this.activeId = this.pageIndex.finish;
             break;
           default:
-            this.context.stepperVisible = true;
             break;
         }
       },
@@ -98,7 +94,6 @@ export class InstallJoinWizardPageComponent implements OnInit {
 
   doJoin(): void {
     this.context.stage = 'joining';
-    this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, start joining existing cluster ...')));
     this.nodesService
       .join({
@@ -122,7 +117,6 @@ export class InstallJoinWizardPageComponent implements OnInit {
   }
 
   private handleError(err: any): void {
-    this.context.stepperVisible = true;
     this.blockUI.stop();
     this.notificationService.show(err.toString(), {
       type: 'error'
@@ -149,7 +143,6 @@ export class InstallJoinWizardPageComponent implements OnInit {
               break;
             case StatusStageEnum.ready:
               this.context.stage = 'joined';
-              this.context.stepperVisible = true;
               this.blockUI.stop();
               this.activeId++;
               break;

@@ -8,10 +8,10 @@
      [innerHTML]="config?.subtitle! | translate | sanitize:'html'">
   </p>
   <form *ngIf="formGroup && config"
+        #frm="ngForm"
         [formGroup]="formGroup"
         [attr.id]="config.id"
-        fxLayout="column"
-        novalidate>
+        fxLayout="column">
     <ng-container *ngFor="let field of config.fields; let i = index">
       <ng-container [ngSwitch]="field.type">
         <ng-template [ngSwitchCase]="'password'">
@@ -48,26 +48,26 @@
                 </button>
               </div>
             </div>
-            <small *ngIf="field.hint && field.hint.length > 0 && formGroup.get(field.name)!.valid"
+            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                    class="form-text text-muted"
                    [innerHTML]="field.hint | translate | sanitize:'html'">
             </small>
-            <span *ngIf="formGroup.hasError('required', field.name)"
+            <span *ngIf="showError(field.name, frm, 'required')"
                   class="invalid-feedback"
                   translate>
               This field is required.
             </span>
-            <span *ngIf="formGroup.hasError('pattern', field.name)"
+            <span *ngIf="showError(field.name, frm, 'pattern')"
                   class="invalid-feedback"
                   translate>
               The value is invalid.
             </span>
-            <span *ngIf="formGroup.hasError('minLength', field.name)"
+            <span *ngIf="showError(field.name, frm, 'minLength')"
                   class="invalid-feedback"
                   translate>
               Minimum length is {{ field.validators?.minLength }} characters.
             </span>
-            <span *ngIf="formGroup.hasError('maxLength', field.name)"
+            <span *ngIf="showError(field.name, frm, 'maxLength')"
                   class="invalid-feedback"
                   translate>
               Maximum length is {{ field.validators?.maxLength }} characters.
@@ -100,31 +100,31 @@
                 </button>
               </div>
             </div>
-            <small *ngIf="field.hint && field.hint.length > 0 && formGroup.get(field.name)!.valid"
+            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                    class="form-text text-muted"
                    [innerHTML]="field.hint | translate | sanitize:'html'">
             </small>
-            <span *ngIf="formGroup.hasError('required', field.name)"
+            <span *ngIf="showError(field.name, frm, 'required')"
                   class="invalid-feedback"
                   translate>
               This field is required.
             </span>
-            <span *ngIf="formGroup.hasError('pattern', field.name)"
+            <span *ngIf="showError(field.name, frm, 'pattern')"
                   class="invalid-feedback"
                   translate>
               The value is invalid.
             </span>
-            <span *ngIf="formGroup.hasError('hostAddress', field.name)"
+            <span *ngIf="showError(field.name, frm, 'hostAddress')"
                   class="invalid-feedback"
                   translate>
               This field must be an IP address or FQDN.
             </span>
-            <span *ngIf="formGroup.hasError('minLength', field.name)"
+            <span *ngIf="showError(field.name, frm, 'minLength')"
                   class="invalid-feedback"
                   translate>
               Minimum length is {{ field.validators?.minLength }} characters.
             </span>
-            <span *ngIf="formGroup.hasError('maxLength', field.name)"
+            <span *ngIf="showError(field.name, frm, 'maxLength')"
                   class="invalid-feedback"
                   translate>
               Maximum length is {{ field.validators?.maxLength }} characters.
@@ -158,21 +158,21 @@
                 </button>
               </div>
             </div>
-            <small *ngIf="field.hint && field.hint.length > 0 && formGroup.get(field.name)!.valid"
+            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                    class="form-text text-muted"
                    [innerHTML]="field.hint | translate | sanitize:'html'">
             </small>
-            <span *ngIf="formGroup.hasError('required', field.name)"
+            <span *ngIf="showError(field.name, frm, 'required')"
                   class="invalid-feedback"
                   translate>
               This field is required.
             </span>
-            <span *ngIf="formGroup.hasError('min', field.name)"
+            <span *ngIf="showError(field.name, frm, 'min')"
                   class="invalid-feedback"
                   translate>
               The value must be at least {{ field.validators?.min }}.
             </span>
-            <span *ngIf="formGroup.hasError('max', field.name)"
+            <span *ngIf="showError(field.name, frm, 'max')"
                   class="invalid-feedback"
                   translate>
               The value cannot exceed {{ field.validators?.max }}.
@@ -191,11 +191,11 @@
                                [required]="field.validators?.required!"
                                (paste)="onPaste(field, $event)">
             </glass-token-input>
-            <small *ngIf="field.hint && field.hint.length > 0 && formGroup.get(field.name)!.valid"
+            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                    class="form-text text-muted"
                    [innerHTML]="field.hint | translate | sanitize:'html'">
             </small>
-            <span *ngIf="formGroup.hasError('required', field.name)"
+            <span *ngIf="showError(field.name, frm, 'required')"
                   class="invalid-feedback"
                   translate>
               This field is required.
@@ -218,11 +218,11 @@
                      [for]="field.name">
                 {{ field.label! | translate }}
               </label>
-              <small *ngIf="field.hint && field.hint.length > 0 && formGroup.get(field.name)!.valid"
+              <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                      class="form-text text-muted"
                      [innerHTML]="field.hint | translate | sanitize:'html'">
               </small>
-              <span *ngIf="formGroup.hasError('required', field.name)"
+              <span *ngIf="showError(field.name, frm, 'required')"
                     class="invalid-feedback"
                     translate>
                 This field is required.
@@ -245,7 +245,7 @@
                      [for]="field.name + i">
                 {{ field.label! | translate }}
               </label>
-              <small *ngIf="field.hint && field.hint.length > 0 && formGroup.get(field.name)!.valid"
+              <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                      class="form-text text-muted"
                      [innerHTML]="field.hint | translate | sanitize:'html'">
               </small>

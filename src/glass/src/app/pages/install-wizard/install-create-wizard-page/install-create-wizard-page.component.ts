@@ -49,8 +49,7 @@ export class InstallCreateWizardPageComponent implements OnInit {
   public activeId = 1;
   public context: InstallCreateWizardContext = {
     config: {},
-    stage: 'unknown',
-    stepperVisible: false
+    stage: 'unknown'
   };
   public pageIndex = {
     start: 1,
@@ -79,18 +78,15 @@ export class InstallCreateWizardPageComponent implements OnInit {
         switch (res.nodeStatus.node_stage) {
           case StatusStageEnum.bootstrapped:
             this.context.stage = 'bootstrapped';
-            this.context.stepperVisible = true;
             // Jump to the 'Finish' step.
             this.activeId = this.pageIndex.finish;
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'deployed';
-            this.context.stepperVisible = true;
             // Jump to the 'Finish' step.
             this.activeId = this.pageIndex.finish;
             break;
           default:
-            this.context.stepperVisible = true;
             switch (res.deploymentStatusReply.stage) {
               case NodeStageEnum.bootstrapping:
                 this.context.stage = 'bootstrapping';
@@ -132,12 +128,10 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   finishDeployment(): void {
-    this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT(`Please wait, finishing deployment ...`)));
     this.nodesService.markDeploymentFinished().subscribe(
       (success: boolean) => {
         this.blockUI.stop();
-        this.context.stepperVisible = true;
         if (success) {
           this.activeId++;
         } else {
@@ -152,7 +146,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   private handleError(message: string): void {
-    this.context.stepperVisible = true;
     this.blockUI.stop();
     this.notificationService.show(message, {
       type: 'error'
@@ -185,7 +178,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   private doBootstrap(): void {
-    this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
     this.nodesService
       .deploymentStart({
@@ -212,7 +204,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   private pollBootstrapStatus(): void {
-    this.context.stepperVisible = false;
     this.nodesService
       .deploymentStatus()
       .pipe(
@@ -241,7 +232,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
                 )
               );
               this.context.stage = 'bootstrapped';
-              this.context.stepperVisible = true;
               this.blockUI.stop();
               this.finishDeployment();
               break;
