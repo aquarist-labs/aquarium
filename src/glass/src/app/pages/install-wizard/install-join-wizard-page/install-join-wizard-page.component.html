@@ -52,13 +52,13 @@
         <div class="nav-actions">
           <button type="button"
                   class="btn btn-outline-dark"
-                  (click)="nav.select(pageIndex.start)">
+                  (click)="networkingStep.updateContext(); nav.select(pageIndex.start)">
             <span translate>Previous</span>
           </button>
           <button type="button"
                   class="btn btn-submit ml-2"
                   [disabled]="!networkingStep.completed"
-                  (click)="nav.select(pageIndex.devices)">
+                  (click)="networkingStep.updateContext(); nav.select(pageIndex.devices)">
             <span translate>Next</span>
           </button>
         </div>
@@ -111,13 +111,13 @@
         <div class="nav-actions">
           <button type="button"
                   class="btn btn-outline-dark"
-                  (click)="nav.select(pageIndex.devices)">
+                  (click)="registrationStep.updateContext(); nav.select(pageIndex.devices)">
             <span translate>Previous</span>
           </button>
           <button type="button"
                   class="btn btn-submit ml-2"
                   [disabled]="!registrationStep.completed"
-                  (click)="nav.select(pageIndex.join)">
+                  (click)="registrationStep.updateContext(); nav.select(pageIndex.join)">
             <span translate>Next</span>
           </button>
         </div>

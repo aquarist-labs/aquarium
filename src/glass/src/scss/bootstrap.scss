@@ -95,15 +95,6 @@ $h6-font-size: 1em !default;
 }
 
 .card-actions {
-  @extend .float-right;
-
-  button {
-    @extend .btn-sm;
-
-    &.btn-warning {
-      color: dc.$glass-color-white;
-    }
-  }
 }
 
 .card-title {
