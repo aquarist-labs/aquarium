@@ -52,8 +52,17 @@ export class DeclarativeFormComponent implements OnInit {
       if (_.isNumber(field.validators.max)) {
         validators.push(Validators.max(field.validators.max));
       }
+      if (_.isNumber(field.validators.minLength)) {
+        validators.push(Validators.minLength(field.validators.minLength));
+      }
+      if (_.isNumber(field.validators.maxLength)) {
+        validators.push(Validators.maxLength(field.validators.maxLength));
+      }
       if (_.isBoolean(field.validators.required) && field.validators.required) {
         validators.push(Validators.required);
+      }
+      if (_.isPlainObject(field.validators.requiredIf)) {
+        validators.push(GlassValidators.requiredIf(field.validators.requiredIf!));
       }
       if (_.isString(field.validators.pattern) || _.isRegExp(field.validators.pattern)) {
         validators.push(Validators.pattern(field.validators.pattern));
@@ -107,6 +116,27 @@ export class DeclarativeFormComponent implements OnInit {
   }
 
   get values(): Record<string, any> {
-    return this.formGroup ? this.formGroup.value : {};
+    return this.formGroup?.value ?? {};
+  }
+
+  get valid(): boolean {
+    return this.formGroup?.valid ?? false;
+  }
+
+  patchValues(values: Record<string, any>): void {
+    this.formGroup?.patchValue(values);
+  }
+
+  /**
+   * Mark all fields as pristine and untouched. Additionally reset
+   * the errors.
+   */
+  markAllAsValid() {
+    _.forEach(this.config?.fields, (field: FormFieldConfig) => {
+      const control = this.formGroup?.get(field.name);
+      control?.markAsPristine();
+      control?.markAsUntouched();
+      control?.setErrors(null);
+    });
   }
 }

@@ -40,7 +40,6 @@ export class HostnameStepComponent implements AfterViewInit, OnDestroy {
         name: 'hostname',
         type: 'text',
         label: TEXT('Hostname'),
-        value: '',
         autofocus: true,
         validators: {
           required: true
@@ -53,6 +52,10 @@ export class HostnameStepComponent implements AfterViewInit, OnDestroy {
   private subscription?: Subscription;
 
   ngAfterViewInit(): void {
+    if (this.context && this.form) {
+      // Populate form fields with current values.
+      this.form.patchValues(this.context.config);
+    }
     if (this.form?.formGroup) {
       this.subscription = this.form.formGroup.valueChanges.subscribe(() => this.updateContext());
     }
@@ -68,7 +71,8 @@ export class HostnameStepComponent implements AfterViewInit, OnDestroy {
 
   private updateContext(): void {
     if (this.context) {
-      _.merge(this.context.config, this.form!.values);
+      const values = this.form!.values;
+      _.merge(this.context.config, values);
     }
   }
 }

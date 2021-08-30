@@ -1,5 +1,19 @@
+/* eslint-disable no-underscore-dangle */
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   Input,
@@ -12,10 +26,10 @@ import {
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 
@@ -24,7 +38,7 @@ import { DatatableData } from '~/app/shared/models/datatable-data.type';
   templateUrl: './datatable.component.html',
   styleUrls: ['./datatable.component.scss']
 })
-export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DatatableComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator)
   paginator?: MatPaginator;
 
@@ -41,10 +55,10 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   get data(): DatatableData[] {
-    return this.dataSource.data;
+    return this._data;
   }
   set data(data: DatatableData[]) {
-    this.dataSource.data = data;
+    this._data = data;
   }
 
   @Input()
@@ -67,10 +81,12 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
   loadData = new EventEmitter();
 
   // Internal
-  cellTemplates: Record<string, TemplateRef<any>> = {};
-  displayedColumns: string[] = [];
-  dataSource = new MatTableDataSource<DatatableData>([]);
+  public icons = Icon;
+  public page = 1;
+  public cellTemplates: Record<string, TemplateRef<any>> = {};
+  public displayedColumns: string[] = [];
 
+  protected _data: Array<DatatableData> = [];
   protected subscriptions: Subscription = new Subscription();
 
   constructor(private ngZone: NgZone) {}
@@ -109,12 +125,6 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  ngAfterViewInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
-  }
-
   initTemplates() {
     this.cellTemplates = {
       icon: this.iconTpl!,
@@ -142,5 +152,12 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   reloadData(): void {
     this.loadData.emit();
+  }
+
+  get filteredData(): DatatableData[] {
+    return this.data.slice(
+      (this.page - 1) * this.pageSize,
+      (this.page - 1) * this.pageSize + this.pageSize
+    );
   }
 }

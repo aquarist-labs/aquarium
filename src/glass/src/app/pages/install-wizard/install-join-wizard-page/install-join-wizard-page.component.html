@@ -1,7 +1,198 @@
+<div class="glass-install-wizard-page"
+     [ngClass]="{hidden: !context.stepperVisible}"
+     fxLayout="column"
+     fxLayoutAlign="start start">
+  <ul ngbNav
+      #nav="ngbNav"
+      [(activeId)]="activeId"
+      class="nav-tabs">
+    <li [ngbNavItem]="pageIndex.start"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.start }}-circle glass-icon-2x"></i>
+        <span class="ml-1"
+              translate>
+          Start
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <b translate>Welcome!</b>
+        <p translate>This wizard will guide you through the process to join this node with an existing cluster.</p>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-dark"
+                  routerLink="/installer/install-mode">
+            <span translate>Cancel</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  (click)="nav.select(pageIndex.networking)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+
+    <li [ngbNavItem]="pageIndex.networking"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.networking }}-circle glass-icon-2x"></i>
+        <span class="ml-1"
+              translate>
+          Networking
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-hostname-step #networkingStep
+                             [context]="context">
+        </glass-hostname-step>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-dark"
+                  (click)="nav.select(pageIndex.start)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  [disabled]="!networkingStep.completed"
+                  (click)="nav.select(pageIndex.devices)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+
+    <li [ngbNavItem]="pageIndex.devices"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.devices }}-circle glass-icon-2x"></i>
+        <span class="ml-1"
+              translate>
+          Devices
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-local-devices-step></glass-local-devices-step>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-dark"
+                  (click)="nav.select(pageIndex.networking)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  (click)="nav.select(pageIndex.registration)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+
+    <li [ngbNavItem]="pageIndex.registration"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.registration }}-circle glass-icon-2x"></i>
+        <span class="ml-1"
+              translate>
+          Registration
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-registration-step #registrationStep
+                                 [context]="context">
+        </glass-registration-step>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-dark"
+                  (click)="nav.select(pageIndex.devices)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  [disabled]="!registrationStep.completed"
+                  (click)="nav.select(pageIndex.join)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+
+    <li [ngbNavItem]="pageIndex.join"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.join }}-circle glass-icon-2x"></i>
+        <span class="ml-1"
+              translate>
+          Join
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-alert-panel type="info"
+                           noColor>
+          <span translate>The system can now join the existing cluster.</span>
+        </glass-alert-panel>
+        <div class="nav-actions mt-3">
+          <button *ngIf="!['joining', 'joined'].includes(context.stage)"
+                  type="button"
+                  class="btn btn-outline-dark"
+                  (click)="nav.select(pageIndex.registration)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  (click)="doJoin()">
+            <span translate>Join</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+
+    <li [ngbNavItem]="pageIndex.finish"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.finish }}-circle glass-icon-2x"></i>
+        <span class="ml-1"
+              translate>
+          Finish
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-alert-panel type="success"
+                           noColor>
+          <span translate>The node was successfully integrated into the cluster and is now ready to use. You can now open your dashboard by clicking the button below.</span>
+        </glass-alert-panel>
+        <div class="nav-actions mt-3">
+          <button type="button"
+                  class="btn btn-submit"
+                  routerLink="/dashboard">
+            <span translate>Go to Dashboard</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+  </ul>
+
+  <div [ngbNavOutlet]="nav"
+       fxFill
+       class="mt-3">
+  </div>
+</div>
+<!--
 <div class="glass-install-join-wizard-page"
      fxLayout="column"
      fxLayoutAlign="center center">
-  <div class="glass-install-wizard-page-background"></div>
   <div class="glass-install-wizard-page-content"
        [ngClass]="{hidden: !context.stepperVisible}"
        fxLayout="column"
@@ -143,3 +334,4 @@
     </mat-card>
   </div>
 </div>
+-->

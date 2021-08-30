@@ -81,4 +81,54 @@ describe('GlassValidators', () => {
       expect(control?.errors).toEqual({ notUnique: true });
     }));
   });
+
+  describe('requiredIf', () => {
+    let emailControl: AbstractControl;
+    let enabledControl: AbstractControl;
+    const validator = GlassValidators.requiredIf({
+      enabled: {
+        operator: 'equal',
+        arg0: true
+      }
+    });
+    const validator2 = GlassValidators.requiredIf({
+      enabled: {
+        operator: 'truthy'
+      }
+    });
+
+    beforeEach(() => {
+      formGroup = new FormGroup({
+        enabled: new FormControl(false),
+        email: new FormControl('')
+      });
+      emailControl = formGroup.get('email')!;
+      enabledControl = formGroup.get('enabled')!;
+    });
+
+    it('should not validate requiredIf (1)', () => {
+      expect(validator(emailControl)).toBeNull();
+    });
+
+    it('should not validate requiredIf (2)', () => {
+      emailControl.setValue('foo@bar.com');
+      expect(validator(emailControl)).toBeNull();
+    });
+
+    it('should not validate requiredIf (3)', () => {
+      enabledControl.setValue(true);
+      emailControl.setValue('foo@bar.com');
+      expect(validator(emailControl)).toBeNull();
+    });
+
+    it('should validate requiredIf (1)', () => {
+      enabledControl.setValue(true);
+      expect(validator(emailControl)).toEqual({ required: true });
+    });
+
+    it('should validate requiredIf (2)', () => {
+      enabledControl.setValue(true);
+      expect(validator2(emailControl)).toEqual({ required: true });
+    });
+  });
 });

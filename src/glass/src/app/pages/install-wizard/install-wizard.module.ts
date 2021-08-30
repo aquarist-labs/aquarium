@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
+import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { MaterialModule } from '~/app/material.modules';
@@ -41,6 +42,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     CommonModule,
     FlexLayoutModule,
     MaterialModule,
+    NgbNavModule,
     RouterModule,
     SharedModule,
     TranslateModule.forChild()

@@ -93,7 +93,7 @@ describe('StatusRouteGuardService', () => {
 
   it('should redirect [bootstrapped]', (done) => {
     expectRouting(
-      '/installer/welcome',
+      '/installer/install-mode',
       StatusStageEnum.bootstrapped,
       urlTree('/installer/create'),
       done
@@ -105,14 +105,10 @@ describe('StatusRouteGuardService', () => {
   });
 
   it('should not redirect [none,1]', (done) => {
-    expectRouting('/installer/welcome', StatusStageEnum.none, true, done);
-  });
-
-  it('should not redirect [none,2]', (done) => {
     expectRouting('/installer/install-mode', StatusStageEnum.none, true, done);
   });
 
-  it('should not redirect [none,3]', (done) => {
+  it('should not redirect [none,2]', (done) => {
     expectRouting('/installer/create/wizard', StatusStageEnum.none, true, done);
   });
 
