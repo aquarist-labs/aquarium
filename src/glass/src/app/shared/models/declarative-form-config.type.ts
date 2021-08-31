@@ -36,4 +36,5 @@ export type DeclarativeFormConfig = {
   subtitle?: string;
   fields: FormFieldConfig[];
   buttons?: Array<FormButtonConfig>;
+  buttonAlign?: 'start' | 'center' | 'end';
 };

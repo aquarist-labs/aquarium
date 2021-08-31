@@ -28,6 +28,7 @@ import * as _ from 'lodash';
 import { GlassValidators } from '~/app/shared/forms/validators';
 import {
   DeclarativeFormConfig,
+  FormButtonConfig,
   FormFieldConfig
 } from '~/app/shared/models/declarative-form-config.type';
 import { NotificationService } from '~/app/shared/services/notification.service';
@@ -122,6 +123,12 @@ export class DeclarativeFormComponent implements OnInit {
     }
   }
 
+  onButtonClick(buttonConfig: FormButtonConfig) {
+    if (_.isFunction(buttonConfig.click)) {
+      buttonConfig.click(buttonConfig, this.values);
+    }
+  }
+
   get values(): Record<string, any> {
     return this.formGroup?.value ?? {};
   }
@@ -132,19 +139,6 @@ export class DeclarativeFormComponent implements OnInit {
 
   patchValues(values: Record<string, any>): void {
     this.formGroup?.patchValue(values);
-  }
-
-  /**
-   * Mark all fields as pristine and untouched. Additionally reset
-   * the errors.
-   */
-  markAllAsValid() {
-    _.forEach(this.config?.fields, (field: FormFieldConfig) => {
-      const control = this.formGroup?.get(field.name);
-      control?.markAsPristine();
-      control?.markAsUntouched();
-      control?.setErrors(null);
-    });
   }
 
   /**

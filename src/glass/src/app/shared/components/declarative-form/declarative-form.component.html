@@ -27,7 +27,7 @@
                      type="password"
                      autocorrect="off"
                      autocapitalize="none"
-                     [ngClass]="{'is-invalid': !formGroup.get(field.name)!.pristine && formGroup.get(field.name)!.invalid}"
+                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [formControlName]="field.name"
                      [readonly]="field.readonly"
                      [required]="field.validators?.required!"
@@ -85,7 +85,7 @@
             <div class="input-group">
               <input class="form-control"
                      type="text"
-                     [ngClass]="{'is-invalid': !formGroup.get(field.name)!.pristine && formGroup.get(field.name)!.invalid}"
+                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [formControlName]="field.name"
                      [readonly]="field.readonly"
                      [required]="field.validators?.required!"
@@ -143,7 +143,7 @@
               <input class="form-control"
                      type="text"
                      inputmode="numeric"
-                     [ngClass]="{'is-invalid': !formGroup.get(field.name)!.pristine && formGroup.get(field.name)!.invalid}"
+                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [formControlName]="field.name"
                      [readonly]="field.readonly"
                      [required]="field.validators?.required!"
@@ -209,7 +209,7 @@
             <div class="form-check">
               <input class="form-check-input"
                      type="checkbox"
-                     [ngClass]="{'is-invalid': !formGroup.get(field.name)!.pristine && formGroup.get(field.name)!.invalid}"
+                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [id]="field.name"
                      [formControlName]="field.name"
                      [checked]="field.value"
@@ -237,7 +237,7 @@
             <div class="custom-control custom-radio">
               <input class="custom-control-input"
                      type="radio"
-                     [ngClass]="{'is-invalid': !formGroup.get(field.name)!.pristine && formGroup.get(field.name)!.invalid}"
+                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [id]="field.name + i"
                      [formControlName]="field.name"
                      [value]="field.value">
@@ -257,20 +257,22 @@
 
     <div class="form-actions"
          fxLayout="row"
-         fxLayoutAlign="end center">
+         fxLayoutAlign="{{ config.buttonAlign ?? 'start' }} center">
       <ng-container *ngFor="let button of config.buttons">
         <ng-container [ngSwitch]="button.type">
           <ng-template [ngSwitchCase]="'default'">
             <button type="button"
                     class="btn btn-outline-dark"
-                    [class]="button.class">
+                    [class]="button.class"
+                    (click)="onButtonClick(button)">
               {{ button.text! | translate }}
             </button>
           </ng-template>
 
           <ng-template [ngSwitchCase]="'submit'">
             <glass-submit-button [form]="formGroup"
-                                 [formId]="config.id">
+                                 [formId]="config.id"
+                                 (buttonClick)="onButtonClick(button)">
               {{ button.text! | translate }}
             </glass-submit-button>
           </ng-template>

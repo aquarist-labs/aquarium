@@ -56,9 +56,6 @@ export class HostnameStepComponent implements AfterViewInit, OnDestroy {
       // Populate form fields with current values.
       this.form.patchValues(this.context.config);
     }
-    if (this.form?.formGroup) {
-      this.subscription = this.form.formGroup.valueChanges.subscribe(() => this.updateContext());
-    }
   }
 
   ngOnDestroy(): void {
@@ -69,7 +66,7 @@ export class HostnameStepComponent implements AfterViewInit, OnDestroy {
     return this.form?.formGroup?.valid ?? false;
   }
 
-  private updateContext(): void {
+  updateContext(): void {
     if (this.context && this.completed) {
       const values = this.form!.values;
       _.merge(this.context.config, values);
