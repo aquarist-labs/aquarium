@@ -1,21 +1,23 @@
-<h1 mat-dialog-title>{{ config.title }}</h1>
-<mat-dialog-content class="mat-typography">
-  <glass-declarative-form [config]="config"></glass-declarative-form>
-</mat-dialog-content>
-<mat-dialog-actions align="end"
-                    fxLayout="row"
-                    fxLayoutGap="10px">
-  <button *ngIf="config.cancelButtonVisible"
-          mat-flat-button
-          [class]="config.cancelButtonClass"
-          [mat-dialog-close]="config.cancelButtonResult">
-    {{ config.cancelButtonText! | translate }}
-  </button>
-  <glass-submit-button *ngIf="config.submitButtonVisible"
-                       [form]="form?.formGroup"
-                       [formId]="config.id"
-                       cdkFocusInitial
-                       (buttonClick)="onOK()">
-    {{ config.submitButtonText! | translate }}
-  </glass-submit-button>
-</mat-dialog-actions>
+<div class="modal-header">
+  <h1 class="modal-title">{{ config.title }}</h1>
+</div>
+<div class="modal-body">
+  <glass-declarative-form [config]="config.formConfig"></glass-declarative-form>
+</div>
+<div class="modal-footer">
+  <div class="modal-actions">
+    <button *ngIf="config.cancelButtonVisible"
+            type="button"
+            class="btn btn-outline-dark mr-2"
+            [class]="config.cancelButtonClass"
+            (click)="onCancel()">
+      {{ config.cancelButtonText! | translate }}
+    </button>
+    <glass-submit-button *ngIf="config.submitButtonVisible"
+                         [form]="form?.formGroup"
+                         [formId]="config.formConfig.id"
+                         (buttonClick)="onSubmit()">
+      {{ config.submitButtonText! | translate }}
+    </glass-submit-button>
+  </div>
+</div>

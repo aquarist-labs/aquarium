@@ -1,6 +1,6 @@
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 
-export type DeclarativeFormModalConfig = DeclarativeFormConfig & {
+export type DeclarativeFormModalConfig = {
   title: string;
   subtitle?: string;
   submitButtonVisible?: boolean; // Defaults to `true`
@@ -10,4 +10,5 @@ export type DeclarativeFormModalConfig = DeclarativeFormConfig & {
   cancelButtonText?: string; // Defaults to `Cancel`
   cancelButtonResult?: any; // Defaults to `false`
   cancelButtonClass?: string;
+  formConfig: DeclarativeFormConfig;
 };
