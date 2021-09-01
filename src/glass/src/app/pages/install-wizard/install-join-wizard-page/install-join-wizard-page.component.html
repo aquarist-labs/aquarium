@@ -21,7 +21,7 @@
         <p translate>This wizard will guide you through the process to join this node with an existing cluster.</p>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   routerLink="/installer/install-mode">
             <span translate>Cancel</span>
           </button>
@@ -51,7 +51,7 @@
         </glass-hostname-step>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="networkingStep.updateContext(); nav.select(pageIndex.start)">
             <span translate>Previous</span>
           </button>
@@ -80,7 +80,7 @@
         <glass-local-devices-step></glass-local-devices-step>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="nav.select(pageIndex.networking)">
             <span translate>Previous</span>
           </button>
@@ -110,7 +110,7 @@
         </glass-registration-step>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="registrationStep.updateContext(); nav.select(pageIndex.devices)">
             <span translate>Previous</span>
           </button>
@@ -143,7 +143,7 @@
         <div class="nav-actions mt-3">
           <button *ngIf="!['joining', 'joined'].includes(context.stage)"
                   type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="nav.select(pageIndex.registration)">
             <span translate>Previous</span>
           </button>
