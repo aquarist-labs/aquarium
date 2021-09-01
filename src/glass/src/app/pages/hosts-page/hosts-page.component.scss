@@ -3,15 +3,11 @@
 .glass-hosts-page {
   margin: 24px;
 
-  .glass-hosts-page-actions {
+  .page-actions {
     margin-bottom: 8px;
+
     button {
-      @extend .glass-color-theme-primary;
-    }
-  }
-  .glass-hosts-page-content {
-    .mat-card {
-      padding: unset;
+      @extend .btn-outline-dark;
     }
   }
 }
