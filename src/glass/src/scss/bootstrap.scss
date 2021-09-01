@@ -111,8 +111,19 @@ $h6-font-size: 1em !default;
 
 //////////////////////////////////////////////////////////////////////////////
 // Modal
+.modal-title {
+  @extend .h5;
+
+  i {
+    vertical-align: middle;
+  }
+}
 .modal-actions {
   @extend .float-right;
+
+  *:not(:first-child) {
+    @extend .ml-2;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////

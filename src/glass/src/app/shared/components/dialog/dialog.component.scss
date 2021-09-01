@@ -1,8 +1,7 @@
-.mat-dialog-title {
-  display: flex;
-  align-items: center;
+@import 'styles.scss';
 
-  .mat-icon {
-    margin-right: 10px;
+.modal-body {
+  i {
+    @extend .glass-icon-2x;
   }
 }

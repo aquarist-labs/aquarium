@@ -40,12 +40,9 @@ export class TopBarComponent {
         }
       },
       {
-        width: '40%',
-        data: {
-          type: 'yesNo',
-          icon: 'question',
-          message: TEXT('Do you really want to logout?')
-        }
+        type: 'yesNo',
+        icon: 'question',
+        message: TEXT('Do you really want to logout?')
       }
     );
   }

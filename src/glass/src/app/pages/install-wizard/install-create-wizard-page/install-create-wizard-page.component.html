@@ -21,7 +21,7 @@
         <p translate>This wizard will guide you through the installation process to set up a node from scratch.</p>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   routerLink="/installer/install-mode">
             <span translate>Cancel</span>
           </button>
@@ -51,7 +51,7 @@
         </glass-hostname-step>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="networkingStep.updateContext(); nav.select(pageIndex.start)">
             <span translate>Previous</span>
           </button>
@@ -82,7 +82,7 @@
         </glass-ntp-step>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="timeStep.updateContext(); nav.select(pageIndex.networking)">
             <span translate>Previous</span>
           </button>
@@ -111,7 +111,7 @@
         <glass-local-devices-step></glass-local-devices-step>
         <div class="nav-actions">
           <button type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="nav.select(pageIndex.time)">
             <span translate>Previous</span>
           </button>
@@ -143,7 +143,7 @@
         <div class="nav-actions mt-3">
           <button *ngIf="!['bootstrapping', 'bootstrapped'].includes(context.stage)"
                   type="button"
-                  class="btn btn-outline-dark"
+                  class="btn btn-outline-default"
                   (click)="nav.select(pageIndex.devices)">
             <span translate>Previous</span>
           </button>

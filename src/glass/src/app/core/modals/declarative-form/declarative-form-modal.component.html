@@ -1,5 +1,5 @@
 <div class="modal-header">
-  <h1 class="modal-title">{{ config.title }}</h1>
+  <div class="modal-title">{{ config.title }}</div>
 </div>
 <div class="modal-body">
   <glass-declarative-form [config]="config.formConfig"></glass-declarative-form>
@@ -8,7 +8,7 @@
   <div class="modal-actions">
     <button *ngIf="config.cancelButtonVisible"
             type="button"
-            class="btn btn-outline-dark mr-2"
+            class="btn btn-outline-default"
             [class]="config.cancelButtonClass"
             (click)="onCancel()">
       {{ config.cancelButtonText! | translate }}
