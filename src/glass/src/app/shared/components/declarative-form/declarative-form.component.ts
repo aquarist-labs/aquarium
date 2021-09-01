@@ -33,6 +33,8 @@ import {
 } from '~/app/shared/models/declarative-form-config.type';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
+let nextUniqueId = 0;
+
 @Component({
   selector: 'glass-declarative-form',
   templateUrl: './declarative-form.component.html',
@@ -89,6 +91,9 @@ export class DeclarativeFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.config = _.defaultsDeep(this.config, {
+      id: `glass-declarative-form-${++nextUniqueId}`
+    });
     _.forEach(this.config?.fields, (field: FormFieldConfig) => {
       _.defaultsDeep(field, {
         hasCopyToClipboardButton: false

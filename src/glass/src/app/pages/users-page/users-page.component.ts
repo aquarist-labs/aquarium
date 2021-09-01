@@ -189,14 +189,9 @@ export class UsersPageComponent {
               }
             },
             {
-              width: '40%',
-              data: {
-                type: 'yesNo',
-                icon: 'question',
-                message: TEXT(
-                  `Do you really want to delete user <strong>${data.username}</strong>?`
-                )
-              }
+              type: 'yesNo',
+              icon: 'question',
+              message: TEXT(`Do you really want to delete user <strong>${data.username}</strong>?`)
             }
           );
         }

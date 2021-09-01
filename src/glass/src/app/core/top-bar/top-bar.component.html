@@ -1,54 +1,58 @@
 <mat-toolbar class="glass-top-bar"
              color="primary">
-  <button mat-icon-button
-          matTooltip="{{ 'Toggle navigation' | translate }}"
+  <button class="btn btn-link"
+          title="{{ 'Toggle navigation' | translate }}"
           (click)="onToggleNavigationBar()">
-    <mat-icon svgIcon="mdi:menu"></mat-icon>
+    <i class="mdi mdi-menu"></i>
   </button>
   <glass-breadcrumbs></glass-breadcrumbs>
   <span fxFlex></span>
   <glass-language-button></glass-language-button>
-  <button mat-icon-button
-          matTooltip="{{ 'Help' | translate }}"
-          [matMenuTriggerFor]="helpMenu">
-    <mat-icon svgIcon="mdi:help"></mat-icon>
-  </button>
-  <button mat-icon-button
-          matTooltip="{{ 'Logged in user' | translate }}"
-          [matMenuTriggerFor]="userMenu">
-    <mat-icon svgIcon="mdi:account"></mat-icon>
-  </button>
+  <div ngbDropdown>
+    <button class="btn btn-link"
+            title="{{ 'Help' | translate }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-help"></i>
+    </button>
+    <div ngbDropdownMenu>
+      <a ngbDropdownItem
+         href="https://aquarist-labs.io/"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-web mr-2"></i>
+          <span translate>Website</span>
+        </div>
+      </a>
+      <a ngbDropdownItem
+         href="https://github.com/aquarist-labs/forum/discussions/"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-forum mr-2"></i>
+          <span translate>Discussions</span>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div ngbDropdown>
+    <button class="btn btn-link"
+            title="{{ 'Logged in user' | translate }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-account"></i>
+    </button>
+    <div ngbDropdownMenu>
+      <div ngbDropdownItem
+           disabled>
+        <i class="mdi mdi-account mr-2"></i>
+        <span translate>Signed in as <b>{{ username }}</b></span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <button ngbDropdownItem
+              (click)="onLogout()">
+        <div>
+          <i class="mdi mdi-logout mr-2"></i>
+          <span translate>Logout</span>
+        </div>
+      </button>
+    </div>
+  </div>
 </mat-toolbar>
-
-<mat-menu #helpMenu="matMenu">
-  <a href="https://aquarist-labs.io/"
-     target="_blank"
-     class="glass-text-no-decoration">
-    <button mat-menu-item>
-      <mat-icon svgIcon="mdi:web"></mat-icon>
-      <span translate>Website</span>
-    </button>
-  </a>
-  <a href="https://github.com/aquarist-labs/forum/discussions/"
-     target="_blank"
-     class="glass-text-no-decoration">
-    <button mat-menu-item>
-      <mat-icon svgIcon="mdi:forum"></mat-icon>
-      <span translate>Discussions</span>
-    </button>
-  </a>
-</mat-menu>
-
-<mat-menu #userMenu="matMenu">
-  <button mat-menu-item
-          disabled>
-    <mat-icon svgIcon="mdi:account"></mat-icon>
-    <span translate>Signed in as <b>{{ username }}</b></span>
-  </button>
-  <mat-divider></mat-divider>
-  <button mat-menu-item
-          (click)="onLogout()">
-    <mat-icon svgIcon="mdi:logout"></mat-icon>
-    <span translate>Logout</span>
-  </button>
-</mat-menu>

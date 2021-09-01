@@ -1,23 +1,14 @@
-@use '~@angular/material' as mat;
 @import 'styles.scss';
 
-$mat-typography-config: mat.define-typography-config();
-
 .glass-top-bar {
-  ::ng-deep &.mat-toolbar {
-    .mat-icon {
-      color: $glass-color-theme-primary-complementary;
-    }
-    .mat-divider {
-      height: 24px;
-      background-color: $glass-color-theme-primary-complementary;
-    }
+  ::ng-deep .btn-outline-default,
+  .btn-link {
+    color: $glass-color-white;
   }
 
-  .username {
-    color: $glass-color-theme-primary-complementary;
-    font-size: mat.font-size($mat-typography-config, body-1);
-    font-weight: mat.font-weight($mat-typography-config, body-1);
-    padding: 16px;
+  .btn-link {
+    &:focus {
+      box-shadow: unset;
+    }
   }
 }
