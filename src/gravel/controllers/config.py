@@ -49,10 +49,6 @@ class StatusOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Status Probe Interval")
 
 
-class ServicesOptionsModel(BaseModel):
-    probe_interval: float = Field(1.0, title="Services Probe Interval")
-
-
 class AuthOptionsModel(BaseModel):
     jwt_secret: str = Field(
         title="The access token secret",
@@ -64,15 +60,10 @@ class AuthOptionsModel(BaseModel):
 
 
 class OptionsModel(BaseModel):
-    service_state_path: Path = Field(
-        Path(_get_default_confdir()).joinpath("storage.json"),
-        title="Path to Service State file",
-    )
     inventory: InventoryOptionsModel = Field(InventoryOptionsModel())
     storage: StorageOptionsModel = Field(StorageOptionsModel())
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
-    services: ServicesOptionsModel = Field(ServicesOptionsModel())
     auth: AuthOptionsModel = Field(AuthOptionsModel())
 
 
@@ -94,9 +85,6 @@ class Config:
 
         if not self.confpath.exists():
             initconf: ConfigModel = ConfigModel(version=1, name="")
-            initconf.options.service_state_path = Path(path).joinpath(
-                "storage.json"
-            )
             self._saveConfig(initconf)
 
         self.config: ConfigModel = ConfigModel.parse_file(self.confpath)

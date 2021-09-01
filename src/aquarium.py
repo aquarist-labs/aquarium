@@ -22,17 +22,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
 
-from gravel.api import (
-    auth,
-    devices,
-    local,
-    nfs,
-    nodes,
-    orch,
-    services,
-    status,
-    user,
-)
+from gravel.api import auth, devices, local, nodes, orch, status, user
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.nodes.mgr import NodeMgr
@@ -41,7 +31,6 @@ from gravel.controllers.resources.devices import Devices
 from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
-from gravel.controllers.services import Services
 
 logger: logging.Logger = fastapi_logger
 
@@ -92,11 +81,6 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     )
     gstate.add_storage(storage)
 
-    services: Services = Services(
-        gstate.config.options.services.probe_interval, gstate, nodemgr
-    )
-    gstate.add_services(services)
-
     await nodemgr.start()
     await gstate.start()
 
@@ -120,7 +104,8 @@ def aquarium_factory(
     api_tags_metadata = [
         {
             "name": "local",
-            "description": "Operations local to the node where the endpoint is being invoked.",
+            "description": "Operations local to the node "
+            "where the endpoint is being invoked.",
         },
         {
             "name": "orch",
@@ -129,10 +114,6 @@ def aquarium_factory(
         {
             "name": "status",
             "description": "Allows obtaining operation status information.",
-        },
-        {
-            "name": "services",
-            "description": "Create, destroy, and operate Aquarium Services.",
         },
         {
             "name": "nodes",
@@ -173,10 +154,8 @@ def aquarium_factory(
     aquarium_api.include_router(local.router)
     aquarium_api.include_router(orch.router)
     aquarium_api.include_router(status.router)
-    aquarium_api.include_router(services.router)
     aquarium_api.include_router(nodes.router)
     aquarium_api.include_router(devices.router)
-    aquarium_api.include_router(nfs.router)
     aquarium_api.include_router(auth.router)
     aquarium_api.include_router(user.router)
 
