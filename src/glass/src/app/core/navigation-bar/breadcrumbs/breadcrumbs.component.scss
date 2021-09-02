@@ -1,27 +1,27 @@
 @import 'styles.scss';
 
-.glass-breadcrumbs {
-  @extend .h1;
+.submenu {
+  a {
+    border-bottom: 3px solid;
+    border-color: transparent;
+    color: $glass-color-white;
 
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  & > li {
-    display: inline-block;
-    position: relative;
-
-    &.active {
-      color: $glass-color-theme-primary;
+    &.selected {
+      border-color: $glass-submenu-color-selected;
     }
 
-    a {
+    &:hover {
+      cursor: pointer;
       text-decoration: none;
-      color: inherit;
-    }
 
-    &:not(.active):hover {
-      color: $glass-color-black;
+      &:not(.selected) {
+        border-color: $glass-submenu-color-hover;
+      }
     }
+  }
+
+  .submenu-item {
+    display: inline-block;
+    padding: 12px 16px;
   }
 }

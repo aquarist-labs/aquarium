@@ -1,6 +1,7 @@
-<mat-toolbar class="glass-top-bar"
-             color="primary">
-  <button class="btn btn-link"
+<div class="glass-top-bar"
+     fxLayout="row"
+     fxLayoutAlign="start center">
+  <button class="btn btn-simple"
           title="{{ 'Toggle navigation' | translate }}"
           (click)="onToggleNavigationBar()">
     <i class="mdi mdi-menu"></i>
@@ -9,10 +10,10 @@
   <span fxFlex></span>
   <glass-language-button></glass-language-button>
   <div ngbDropdown>
-    <button class="btn btn-link"
+    <button class="btn btn-simple"
             title="{{ 'Help' | translate }}"
             ngbDropdownToggle>
-      <i class="mdi mdi-help"></i>
+      <i class="mdi mdi-help-circle"></i>
     </button>
     <div ngbDropdownMenu>
       <a ngbDropdownItem
@@ -34,15 +35,15 @@
     </div>
   </div>
   <div ngbDropdown>
-    <button class="btn btn-link"
+    <button class="btn btn-simple"
             title="{{ 'Logged in user' | translate }}"
             ngbDropdownToggle>
-      <i class="mdi mdi-account"></i>
+      <i class="mdi mdi-account-circle"></i>
     </button>
     <div ngbDropdownMenu>
       <div ngbDropdownItem
            disabled>
-        <i class="mdi mdi-account mr-2"></i>
+        <i class="mdi mdi-account-circle mr-2"></i>
         <span translate>Signed in as <b>{{ username }}</b></span>
       </div>
       <div class="dropdown-divider"></div>
@@ -55,4 +56,4 @@
       </button>
     </div>
   </div>
-</mat-toolbar>
+</div>

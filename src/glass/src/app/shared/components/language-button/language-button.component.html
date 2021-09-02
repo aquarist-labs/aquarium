@@ -1,9 +1,8 @@
-<div ngbDropdown
-     class="d-inline-block">
-  <button class="btn btn-outline-default"
-          ngbDropdownToggle
-          translate>
-    Language
+<div ngbDropdown>
+  <button class="btn btn-simple"
+          title="{{ 'Language' | translate }}"
+          ngbDropdownToggle>
+    <i class="mdi mdi-earth"></i>
   </button>
   <div ngbDropdownMenu>
     <button *ngFor="let language of languages | keyvalue"
