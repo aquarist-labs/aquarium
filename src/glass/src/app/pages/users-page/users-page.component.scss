@@ -1,10 +1,11 @@
 @import 'styles.scss';
 
 .glass-users-page {
-  margin: 24px;
+  margin: $glass-margin;
 
   .glass-users-page-actions {
     margin-bottom: 8px;
+
     button {
       @extend .glass-color-theme-primary;
     }

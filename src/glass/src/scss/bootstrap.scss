@@ -63,6 +63,15 @@ $h6-font-size: 1em !default;
 
 //////////////////////////////////////////////////////////////////////////////
 // Button
+.btn-simple {
+  @extend .btn-link;
+
+  &:focus,
+  &.focus {
+    box-shadow: unset;
+  }
+}
+
 .btn-submit {
   @extend .btn-warning;
 }

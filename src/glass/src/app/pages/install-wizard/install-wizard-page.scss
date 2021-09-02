@@ -5,9 +5,11 @@
     @extend .float-right;
   }
 
-  a.active {
-    & i {
-      color: $glass-color-theme-primary;
+  .nav-tabs {
+    a.active {
+      & i {
+        color: $glass-color-theme-primary;
+      }
     }
   }
 }

@@ -2,10 +2,24 @@
 
 .glass-installer-layout {
   .main {
-    margin: $glass-margin;
+    .header {
+      background-color: $glass-color-whitesmoke;
+      height: 3rem;
+
+      ::ng-deep .btn {
+        color: $glass-color-black;
+      }
+
+      ::ng-deep .submenu {
+        a {
+          color: $glass-color-black;
+          pointer-events: none;
+        }
+      }
+    }
 
     .content {
-      margin-top: $glass-margin;
+      margin: $glass-margin;
     }
   }
 

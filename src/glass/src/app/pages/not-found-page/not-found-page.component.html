@@ -2,14 +2,12 @@
      fxLayoutAlign="center center">
   <div fxLayout="column"
        fxLayoutAlign="center center">
-    <mat-icon class="glass-icon-3x"
-              svgIcon="mdi:fishbowl-outline">
-    </mat-icon>
+    <i class="mdi mdi-fishbowl-outline glass-icon-4x"></i>
     <h1 translate>Sorry, we could not find what you are looking for.</h1>
-    <button mat-icon-button
-            matTooltip="{{ 'Back' | translate }}"
+    <button type="button"
+            class="btn btn-submit"
             routerLink="/">
-      <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
+      <span translate>Back</span>
     </button>
   </div>
 </div>
