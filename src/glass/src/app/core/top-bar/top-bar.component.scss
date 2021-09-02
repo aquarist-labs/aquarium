@@ -1,14 +1,11 @@
 @import 'styles.scss';
 
 .glass-top-bar {
-  ::ng-deep .btn-outline-default,
-  .btn-link {
-    color: $glass-color-white;
-  }
+  @extend .bg-primary;
 
-  .btn-link {
-    &:focus {
-      box-shadow: unset;
-    }
+  height: 3rem;
+
+  ::ng-deep .btn {
+    color: $glass-color-white;
   }
 }

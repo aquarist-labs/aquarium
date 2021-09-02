@@ -1,13 +1,19 @@
 @use '~@angular/material' as mat;
+@import 'styles.scss';
 
 .glass-dashboard-page {
-  gridster {
-    margin: 24px;
-    background: unset;
+  margin: $glass-margin;
 
-    gridster-item {
-      @include mat.elevation(1);
-      box-shadow: unset;
+  .content {
+    margin-top: $glass-margin;
+
+    gridster {
+      background: unset;
+
+      gridster-item {
+        @include mat.elevation(1);
+        box-shadow: unset;
+      }
     }
   }
 }

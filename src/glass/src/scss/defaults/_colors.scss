@@ -23,6 +23,7 @@ $eos-bc-cerulean-500: #00b2e2;
 $glass-color-transparent: transparent;
 $glass-color-transparent-black: rgba(0, 0, 0, 0.54);
 $glass-color-white: white;
+$glass-color-whitesmoke: whitesmoke;
 $glass-color-black: black;
 $glass-color-success: $eos-bc-green-500;
 $glass-color-info: $eos-bc-cerulean-500;
@@ -35,6 +36,9 @@ $glass-color-theme-accent: $eos-bc-green-500;
 $glass-color-theme-accent-complementary: $glass-color-white;
 $glass-color-body-background: $glass-color-white;
 $glass-color-card-background: $eos-bc-gray-50;
+
+$glass-submenu-color-selected: $eos-bc-yellow-500;
+$glass-submenu-color-hover: $eos-bc-gray-300;
 
 $eos-green-palette: (
   50: #e6f7ef,
