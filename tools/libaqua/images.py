@@ -12,17 +12,30 @@
 
 from __future__ import annotations
 import errno
+import logging
 import os
+
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from libaqua.misc import find_root
 from libaqua.vagrant import Vagrant
 from libaqua.errors import (
     BoxAlreadyExistsError,
     ImageNotFoundError,
-    VagrantError
+    VagrantError,
+    AqrError
 )
 
+logger: logging.Logger = logging.getLogger("aquarium")
+
+def find_images_path() -> Path:
+    rootdir = find_root()
+    images: Path = rootdir.joinpath(".aqua/images")
+    if images.exists():
+        return images
+    else:
+        raise AqrError(f"Images directory [{images}] does not exist")
 
 class Image:
     _name: str
@@ -37,7 +50,10 @@ class Image:
 
     @classmethod
     def list(cls, buildspath: Path) -> List[Image]:
-
+        """
+        Return image list if present in the build output directory.
+        """
+        logger.debug(f'Looking for images in build path: {buildspath}')
         if not buildspath.exists():
             return []
 
@@ -45,19 +61,41 @@ class Image:
         for build in next(os.walk(buildspath))[1]:
             if build.startswith("."):
                 continue
-
             path = buildspath.joinpath(build)
             assert path.exists()
-            try:
-                provider, imgpath = cls._get_vagrant_image(path)
-            except FileNotFoundError:
+            vagrant_image = cls.find_vagrant_image(name=build, path=path)
+            if vagrant_image:
+                images.append(vagrant_image)
                 continue
-            assert provider
-            assert imgpath
-
-            images.append(Image(build, imgpath, provider))
+            install_image = cls.find_install_image(name=build, path=path)
+            if install_image:
+                images.append(install_image)
 
         return images
+
+    @classmethod
+    def find_vagrant_image(cls, name: str, path: Path) -> Image:
+        logger.debug(f'Looking for vagrant box in "{path}"')
+        try:
+            provider, imgpath = cls._get_vagrant_image(path)
+        except FileNotFoundError:
+            return
+        assert provider
+        assert imgpath
+
+        return Image(name, imgpath, provider)
+
+    @classmethod
+    def find_install_image(cls, name: str, path: Path) -> Image:
+        logger.debug(f'Looking for install image by the directory: {path}')
+        try:
+            provider, imgpath = cls._get_install_image(path)
+        except FileNotFoundError:
+            return
+        assert provider
+        assert imgpath
+
+        return Image(name, imgpath, provider)
 
     @classmethod
     def add(cls, buildpath: Path, name: str) -> Image:
@@ -86,6 +124,29 @@ class Image:
             raise e
 
         return Image(name, imgpath, imgtype)
+
+    @classmethod
+    def _get_install_image(cls, path: Path) -> Tuple[str, Path]:
+        """
+        Return install image provider and path if present below the `path`,
+        otherwise raises FileNotFoundError.
+
+        Possible values for image provider: 'unknown', 'libvirt', 'virtualbox'.
+        """
+        assert path.exists()
+        outdir = path.joinpath("_out")
+        if not outdir.exists():
+            raise FileNotFoundError()
+
+        # we are searching for vagrant box image file
+        _name = next((_ for _ in next(os.walk(outdir))[2]
+                                if _.startswith('project-aquarium') and
+                                   _.endswith('.install.iso')), None)
+        if _name:
+            _provider = 'any'
+            return _provider, outdir.joinpath(_name)
+        else:
+            raise FileNotFoundError()
 
     @classmethod
     def _get_vagrant_image(cls, path: Path) -> Tuple[str, Path]:
