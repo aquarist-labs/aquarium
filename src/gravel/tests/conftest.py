@@ -285,13 +285,7 @@ async def aquarium_startup(
             available = 2000  # type: ignore
             total = 2000  # type: ignore
 
-        gstate: GlobalState = GlobalState()
-        # gstate's KV store will start a thread to try to connect to the
-        # cluster.  This can't work in a test environment, so tell it to
-        # close (otherwise the thread will spin forever and the tests will
-        # never complete)
-        await gstate._kvstore.close()
-        gstate._kvstore = FakeKV()  # pyright: reportPrivateUsage=false
+        gstate: GlobalState = GlobalState(FakeKV)
 
         # init node mgr
         nodemgr: NodeMgr = FakeNodeMgr(gstate)
