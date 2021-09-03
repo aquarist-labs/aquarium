@@ -52,17 +52,11 @@ class KV:
         var_lib_aquarium: Path = Path("/var/lib/aquarium")
         if not var_lib_aquarium.exists():
             var_lib_aquarium.mkdir(0o700)
-        # this will fail with "_gdbm.error: [Errno 11] Resource temporarily unavailable: '/var/lib/aquarium/kvstore'
-        # if someone else has it open ... need KV to be a singleton?
-        # Or, do we only open it when reading/writing in individual methods?
-        # That would probably be better... (but would still have problems due to
-        # simultaneous access, but we can always raise an exception in that case I guess?)
-        try:
-            self._db = dbm.open(f"{var_lib_aquarium}/kvstore", "c")
-        except Exception as e:
-            # Only raise exceptions opening db file when *not* running unit tests
-            if "pytest" not in sys.modules:
-                raise e
+        # This will fail with "_gdbm.error: [Errno 11] Resource temporarily
+        # unavailable: '/var/lib/aquarium/kvstore'" if someone else has it
+        # open.  But, as there's only one KV ever instantiated inside the
+        # single GlobalState, this shouldn't ordinarily be a problem.
+        self._db = dbm.open(f"{var_lib_aquarium}/kvstore", "c")
         self._cluster: Optional[rados.Rados] = None
         self._connector_thread = threading.Thread(target=self._cluster_connect)
         self._run = True
@@ -144,7 +138,7 @@ class KV:
                             "utf-8"
                         ),
                     )
-                    # At this point, iff it's a new pool, new object, etc.
+                    # At this point, if it's a new pool, new object, etc.
                     # we need to push everything from our local cache to
                     # the omap on our kvstore, to populate it with whatever
                     # may have been set pre-bootstrap.
@@ -328,7 +322,7 @@ class KV:
         # Wraps _get() so we can use _get() outside asyncio in _config_notify()
         return self._get(key)
 
-    async def get_prefix(self, key: str) -> List[str]:
+    async def get_prefix(self, key_prefix: str) -> List[str]:
         """Get a range of keys with a prefix"""
         # This is ugly, because pulling it out of omap is nice (there's a prefix
         # arg), but getting it from dbm means iterating through everything.
@@ -345,7 +339,10 @@ class KV:
             try:
                 with rados.ReadOpCtx() as op:
                     omap_iter, ret = self._ioctx.get_omap_vals(
-                        op, start_after="", filter_prefix=key, max_return=1000
+                        op,
+                        start_after="",
+                        filter_prefix=key_prefix,
+                        max_return=1000,
                     )
                     assert ret == 0  # ???
                     # TODO: does this need to be async?
@@ -361,7 +358,7 @@ class KV:
         # but that seems pretty damn safe...
         k = self._db.firstkey()  # type: ignore
         while k != None:
-            if k.startswith(key.encode("utf-8")):  # type: ignore
+            if k.startswith(key_prefix.encode("utf-8")):  # type: ignore
                 values.append(self._db[k].decode("utf-8"))
             k = self._db.nextkey(k)  # type: ignore
         return values
