@@ -76,9 +76,6 @@ class KV:
         # clean shutdown
         self._event = threading.Event()
         self._connector_thread.start()
-        # TODO: arguably we really only need the config watch if any watches
-        # are requested on specific keys; having one here all the time is not
-        # strictly necessary.
         self._config_watch: Optional[rados.Watch] = None
         self._ioctx: Optional[rados.Ioctx] = None
         # Watches are setup by calls to watch(); this is a hash of keys to
@@ -90,6 +87,9 @@ class KV:
         # This structure makes it trivial to invoke all registered callbacks
         # on a given key, but makes it somewhat irritating to cancel a watch
         # (you have to iterate through all keys to find the watch id to delete)
+        # Possible solutions:
+        # - Create an additional map of ID to key
+        # - Make the cancel method supply the key being watched
         self._watches = {}
         # Watch IDs increment forever.  This is probably stupid (surely it'll
         # break eventually, given a long enough runtime and enough watches...)
@@ -165,6 +165,9 @@ class KV:
                             )
                             self._ioctx.set_omap(op, keys, values)  # type: ignore
                             self._ioctx.operate_write_op(op, "kvstore")
+                    # Arguably we really only need the config watch if any watches are
+                    # requested on specific keys; having one here all the time is not
+                    # strictly necessary, but makes the implementation simpler.
                     # TODO: need timeouts, error handlers etc on watch
                     self._config_watch = self._ioctx.watch(
                         "kvstore", self._config_notify
