@@ -17,6 +17,7 @@ import asyncio
 # already used by ceph, but dbm is already approximately
 # part of python core, so once less dependency.
 import dbm
+import errno
 import sys
 import threading
 from logging import Logger
@@ -152,17 +153,33 @@ class KV:
                     # we need to push everything from our local cache to
                     # the omap on our kvstore, to populate it with whatever
                     # may have been set pre-bootstrap.
-                    # Probably want to lock the object here too, in case we get two
-                    # simultaenous starts (and thus omap population)
                     keys = self._db.keys()
                     values = list(self._db[k] for k in keys)
                     if keys and not has_aquarium_pool:
-                        with rados.WriteOpCtx() as op:
-                            logger.info(
-                                f"Pushing {keys} to newly created aquarium pool"
-                            )
-                            self._ioctx.set_omap(op, keys, values)  # type: ignore
-                            self._ioctx.operate_write_op(op, "kvstore")
+                        try:
+                            with rados.WriteOpCtx() as op:
+                                # This is a neat trick to make sure we've got version 1
+                                # of the kvstore object, which will only be the case with
+                                # a newly created object in a new pool.  If the object
+                                # somehow already exists with a greater version, an
+                                # exception will be raised with errno set to ERANGE when
+                                # we try to perform the write op.  I'm having an extremely
+                                # hard time seeing how this would be hit in normal operation
+                                # (it'd have to be a very bizarre race or bug somewhere),
+                                # but since we can handle it, let's do so.
+                                op.assert_version(1)
+                                self._ioctx.set_omap(op, keys, values)  # type: ignore
+                                self._ioctx.operate_write_op(op, "kvstore")
+                                logger.info(
+                                    f"Pushed {keys} to kvstore in newly created aquarium pool"
+                                )
+                        except rados.OSError as e:
+                            if e.errno == errno.ERANGE:
+                                logger.warning(
+                                    f"kvstore object already exists in aquarium pool, not pushing local cache"
+                                )
+                            else:
+                                raise
                     # Arguably we really only need the config watch if any watches are
                     # requested on specific keys; having one here all the time is not
                     # strictly necessary, but makes the implementation simpler.
