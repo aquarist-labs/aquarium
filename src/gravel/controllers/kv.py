@@ -136,12 +136,10 @@ class KV:
                     has_aquarium_pool = "aquarium" in self._cluster.list_pools()
                     if not has_aquarium_pool:
                         logger.info("Creating aquarium pool")
-                        # consider setting pg_num 1 as with device_health_metrics pool
-                        # also need to do the equivalent of
-                        # `ceph osd pool application enable aquarium aquarium`
-                        # (see devicehealth mgr module)
+                        # TODO: consider setting pg_num 1 as with device_health_metrics pool
                         self._cluster.create_pool("aquarium")
                     self._ioctx = self._cluster.open_ioctx("aquarium")
+                    self._ioctx.application_enable("aquarium")
                     # This actually seems to be safe (doesn't trash existing omap
                     # data if present, which is neat)
                     self._ioctx.write_full(
