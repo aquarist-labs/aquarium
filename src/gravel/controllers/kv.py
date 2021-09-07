@@ -43,7 +43,19 @@ class MissingSystemDependency(Exception):
 
 class KV:
 
-    # TODO: properly declare types of class variables (_db, _cluster, etc.)
+    # Deliberately not typing _db.  mypy seems happy with the following,
+    # but at runtime I get "AttributeError: module 'dbm' has no attribute
+    # '_Database'"".  Something to do with the way dbm imports different
+    # database providers...?
+    # _db: dbm._Database
+    # I've also left _cluster, _config_watch and _ioctx typing inside
+    # __init__() to handle the irritating case where rados isn't available
+    # during unit tests
+    _connector_thread: threading.Thread
+    _run: bool
+    _event: threading.Event
+    _watches: dict
+    _next_watch_id: int
 
     def __init__(self):
         if "rados" not in sys.modules:
@@ -67,7 +79,7 @@ class KV:
         # TODO: arguably we really only need the config watch if any watches
         # are requested on specific keys; having one here all the time is not
         # strictly necessary.
-        self._config_watch = None
+        self._config_watch: Optional[rados.Watch] = None
         self._ioctx: Optional[rados.Ioctx] = None
         # Watches are setup by calls to watch(); this is a hash of keys to
         # watch IDs and callbacks, e.g.:
@@ -107,7 +119,7 @@ class KV:
                 f"ensure_connection: no cluster exists yet after {tries} tries"
             )
 
-    def _cluster_connect(self):
+    def _cluster_connect(self) -> None:
         logger.debug("Starting cluster connection thread")
         while self._run:
             try:
