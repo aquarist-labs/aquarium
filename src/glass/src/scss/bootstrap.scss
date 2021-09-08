@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 @use './defaults/colors' as dc;
+@use './defaults/fonts' as df;
 @use './defaults/variables' as dv;
 
 $primary: dc.$glass-color-theme-primary !default;
@@ -29,6 +30,10 @@ $h3-font-size: 1.5em !default;
 $h4-font-size: 1.3em !default;
 $h5-font-size: 1.15em !default;
 $h6-font-size: 1em !default;
+
+$font-family-sans-serif: df.$glass-font-family-sans-serif !default;
+$font-family-monospace: df.$glass-font-family-monospace !default;
+$headings-font-family: df.$glass-font-family-headings !default;
 
 @import '~bootstrap/scss/bootstrap';
 

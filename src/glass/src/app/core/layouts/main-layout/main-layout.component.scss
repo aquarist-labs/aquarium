@@ -29,8 +29,9 @@
       }
 
       .title {
+        font-family: $glass-font-family-headings;
         font-size: 1.5rem;
-        font-weight: bold;
+        font-weight: lighter;
         padding-left: $glass-padding;
 
         &:after {
