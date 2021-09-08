@@ -1,11 +1,10 @@
 @import 'styles.scss';
 
 .glass-top-bar {
-  @extend .bg-primary;
-
-  height: 3rem;
+  background-color: $glass-color-menu-background;
+  height: $glass-menu-height;
 
   ::ng-deep .btn {
-    color: $glass-color-white;
+    color: $glass-color-submenu-item-text;
   }
 }

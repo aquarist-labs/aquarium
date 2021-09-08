@@ -2,17 +2,29 @@
 
 li {
   border-left: 5px solid transparent;
+  cursor: pointer;
 
-  &:hover,
+  a {
+    color: $glass-color-menu-item-text;
+  }
+
+  &:hover {
+    border-left: 5px solid $glass-color-menu-item-hover;
+  }
+
   &.selected {
-    border-left: 5px solid $eos-bc-yellow-500;
+    background-color: $glass-color-menu-item-selected;
+
+    a {
+      color: $glass-color-menu-item-selected-text;
+    }
   }
 
   &.has-subs {
     border-left: 5px solid transparent !important;
 
     &:hover {
-      border-left: 5px solid $eos-bc-yellow-500 !important;
+      border-left: 5px solid $glass-color-menu-item-hover !important;
     }
   }
 }
