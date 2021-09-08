@@ -1,16 +1,26 @@
 @import 'styles.scss';
 
-mat-icon {
-  margin-right: 12px;
+li {
+  border-left: 5px solid transparent;
+
+  &:hover,
+  &.selected {
+    border-left: 5px solid $eos-bc-yellow-500;
+  }
+
+  &.has-subs {
+    border-left: 5px solid transparent !important;
+
+    &:hover {
+      border-left: 5px solid $eos-bc-yellow-500 !important;
+    }
+  }
 }
 
-.mat-list-item {
-  border-left: 5px solid transparent;
-}
-.mat-list-item:hover {
-  border-left: 5px solid $eos-bc-cerulean-900;
+i {
+  margin-right: $glass-margin;
 }
 
 .rotated {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
