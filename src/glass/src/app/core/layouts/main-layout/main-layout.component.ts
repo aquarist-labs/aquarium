@@ -1,16 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDrawerMode } from '@angular/material/sidenav/drawer';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'glass-main-layout',
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
-export class MainLayoutComponent implements OnInit {
-  public sideNavMode: MatDrawerMode = 'side';
-  public sideNavOpened = true;
-
-  constructor() {}
-
-  ngOnInit(): void {}
+export class MainLayoutComponent {
+  public navigationVisible = true;
 }

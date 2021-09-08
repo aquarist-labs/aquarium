@@ -37,8 +37,14 @@ $glass-color-theme-accent-complementary: $glass-color-white;
 $glass-color-body-background: $glass-color-white;
 $glass-color-card-background: $eos-bc-gray-50;
 
-$glass-submenu-color-selected: $eos-bc-yellow-500;
-$glass-submenu-color-hover: $eos-bc-gray-300;
+$glass-color-menu-background: #00303d; // https://coolors.co/00303d
+$glass-color-menu-item-selected: $eos-bc-cerulean-500;
+$glass-color-menu-item-hover: $eos-bc-cerulean-500;
+$glass-color-menu-item-text: $glass-color-black;
+$glass-color-menu-item-selected-text: $glass-color-white;
+$glass-color-submenu-item-selected: $eos-bc-cerulean-500;
+$glass-color-submenu-item-hover: $eos-bc-gray-300;
+$glass-color-submenu-item-text: $glass-color-white;
 
 $eos-green-palette: (
   50: #e6f7ef,

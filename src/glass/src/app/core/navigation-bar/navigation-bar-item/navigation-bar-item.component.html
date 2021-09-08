@@ -1,23 +1,25 @@
-<li [ngbNavItem]="item.name"
+<li class="menu-item"
+    [ngbNavItem]="item.name"
     [routerLink]="item.route"
-    [ngStyle]="{'padding-left': (depth * 20) + 'px'}"
+    [ngStyle]="{'padding-left': (depth * 1.5) + 'rem'}"
     (click)="itemClicked(item)"
     [routerLinkActiveOptions]="{exact:true}"
     [ngClass]="{'has-subs': item.children && item.children.length}"
     routerLinkActive="selected"
     ngbNav>
-    <a ngbNavLink>
-      <div fxLayout="row">
-        <i [class]="item.icon"></i>
-        {{ item.name | translate}}
-        <div fxFlex
-             *ngIf="item.children && item.children.length">
-          <div fxFlex></div>
-          <i class="mdi mdi-chevron-right"
-             [ngClass]="{ 'rotated': showSub }"></i>
-        </div>
+  <a class="menu-title"
+     ngbNavLink>
+    <div fxLayout="row">
+      <i [class]="item.icon"></i>
+      {{ item.name | translate}}
+      <div fxFlex
+           *ngIf="item.children && item.children.length">
+        <div fxFlex></div>
+        <i class="mdi mdi-chevron-right"
+           [ngClass]="{'rotated': showSub}"></i>
       </div>
-    </a>
+    </div>
+  </a>
 </li>
 <div *ngIf="showSub">
   <glass-navigation-bar-item *ngFor="let child of item.children"
