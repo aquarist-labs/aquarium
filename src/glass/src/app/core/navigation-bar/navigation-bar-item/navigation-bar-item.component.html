@@ -3,7 +3,7 @@
     [routerLink]="item.route"
     [ngStyle]="{'padding-left': (depth * 1.5) + 'rem'}"
     (click)="itemClicked(item)"
-    [routerLinkActiveOptions]="{exact:true}"
+    [routerLinkActiveOptions]="{exact: true}"
     [ngClass]="{'has-subs': item.children && item.children.length}"
     routerLinkActive="selected"
     ngbNav>

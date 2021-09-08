@@ -40,7 +40,8 @@
                         (click)="passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'">
                   <i class="mdi mdi-eye-outline"></i>
                 </button>
-                <button type="button"
+                <button *ngIf="field.hasCopyToClipboardButton"
+                        type="button"
                         class="btn btn-outline-default"
                         title="{{ 'Copy to clipboard' | translate }}"
                         (click)="onCopyToClipboard(field)">
@@ -92,7 +93,8 @@
                      [autofocus]="field.autofocus"
                      (paste)="onPaste(field, $event)">
               <div class="input-group-append">
-                <button type="button"
+                <button *ngIf="field.hasCopyToClipboardButton"
+                        type="button"
                         class="btn btn-outline-default"
                         title="{{ 'Copy to clipboard' | translate }}"
                         (click)="onCopyToClipboard(field)">
@@ -150,7 +152,8 @@
                      [autofocus]="field.autofocus"
                      (paste)="onPaste(field, $event)">
               <div class="input-group-append">
-                <button type="button"
+                <button *ngIf="field.hasCopyToClipboardButton"
+                        type="button"
                         class="btn btn-outline-default"
                         title="{{ 'Copy to clipboard' | translate }}"
                         (click)="onCopyToClipboard(field)">

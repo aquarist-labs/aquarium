@@ -1,15 +1,19 @@
 @import 'styles.scss';
 
 .glass-install-wizard-page {
-  .nav-actions {
-    @extend .float-right;
-  }
-
   .nav-tabs {
     a.active {
       & i {
         color: $glass-color-theme-primary;
       }
+    }
+  }
+
+  .tab-content {
+    @extend .mt-3;
+
+    .nav-actions {
+      @extend .float-right;
     }
   }
 }
