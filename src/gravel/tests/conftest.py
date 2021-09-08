@@ -224,7 +224,7 @@ async def aquarium_startup(
                     )
                     assert self._state.hostname
                     assert self._state.address
-                    await self.gstate.init_store()
+                    await self.gstate.store.ensure_connection()
 
             async def _obtain_images(self) -> bool:
                 return True

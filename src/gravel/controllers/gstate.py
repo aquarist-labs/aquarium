@@ -207,9 +207,6 @@ class GlobalState:
     def get_ticker(self, desc: str) -> Ticker:
         return self._tickers[desc]
 
-    async def init_store(self) -> None:
-        await self._kvstore.ensure_connection()
-
     @property
     def config(self) -> Config:
         return self._config

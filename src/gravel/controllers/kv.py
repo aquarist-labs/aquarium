@@ -42,6 +42,10 @@ class MissingSystemDependency(Exception):
     pass
 
 
+class NoClusterExists(Exception):
+    pass
+
+
 class KV:
 
     # Deliberately not typing _db.  mypy seems happy with the following,
@@ -112,13 +116,16 @@ class KV:
             await asyncio.sleep(1)
             tries += 1
         if self._cluster:
+            # In this case the self._cluster object is valid, and we are
+            # hopefully connected, so we can proceed.
             logger.info(
                 f"ensure_connection: cluster state '{self._cluster.state}' after {tries} tries"
             )
         else:
-            logger.info(
-                f"ensure_connection: no cluster exists yet after {tries} tries"
-            )
+            # If self._cluster isn't there, something is really broken
+            # (e.g. /etc/ceph/ceph.conf somehow not present yet), so raise
+            # an exception
+            raise NoClusterExists(f"no cluster exists yet after {tries} tries")
 
     def _cluster_connect(self) -> None:
         logger.debug("Starting cluster connection thread")
@@ -220,6 +227,8 @@ class KV:
             #   File "rados.pyx", line 477, in rados.Rados.require_state
             # rados.RadosStateError: RADOS rados state (You cannot perform that operation on a Rados object in state shutdown.)
             self._config_watch = None
+            # Note: https://github.com/ceph/ceph/pull/43107 fixes the
+            # above, so we can get rid of this once that lands everywhere.
         if self._ioctx:
             self._ioctx.close()
         if self._cluster:
