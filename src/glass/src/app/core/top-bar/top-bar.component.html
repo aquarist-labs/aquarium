@@ -34,7 +34,9 @@
       </a>
     </div>
   </div>
-  <div ngbDropdown>
+  <div ngbDropdown
+       display="dynamic"
+       placement="bottom-right">
     <button class="btn btn-simple"
             title="{{ 'Logged in user' | translate }}"
             ngbDropdownToggle>
@@ -49,10 +51,8 @@
       <div class="dropdown-divider"></div>
       <button ngbDropdownItem
               (click)="onLogout()">
-        <div>
-          <i class="mdi mdi-logout mr-2"></i>
-          <span translate>Logout</span>
-        </div>
+        <i class="mdi mdi-logout mr-2"></i>
+        <span translate>Logout</span>
       </button>
     </div>
   </div>
