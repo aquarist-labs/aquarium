@@ -1,5 +1,42 @@
 @import 'styles.scss';
 
-.header {
-  background-color: $glass-color-whitesmoke;
+.glass-main-layout {
+  height: 100%;
+
+  .glass-navigation-menu {
+    background-color: $glass-color-whitesmoke;
+    margin-left: -15rem;
+    max-width: 15rem;
+    min-width: 15rem;
+    transition: all 0.3s;
+
+    &.visible {
+      margin-left: 0;
+    }
+
+    header {
+      color: $glass-color-white;
+      background-color: $glass-color-menu-background;
+      height: $glass-menu-height;
+      padding-left: 1.5rem;
+
+      .logo {
+        background-image: url('/assets/images/aquarium-logo.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 2rem;
+        width: 2rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        padding-left: $glass-padding;
+
+        &:after {
+          content: 'Aquarium';
+        }
+      }
+    }
+  }
 }
