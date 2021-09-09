@@ -8,6 +8,7 @@ dependencies_opensuse=(
   "make"
   "python3"
   "python3-kiwi"
+  "python3-libvirt-python"
   "python3-devel"
   "nodejs-common"
   "npm"
@@ -62,6 +63,7 @@ dependencies_debian=(
   "python3"
   "python3-pip"
   "python3-venv"
+  "python3-libvirt"
   "nodejs"
   "vagrant"
   "libvirt-daemon"
@@ -74,6 +76,7 @@ dependencies_ubuntu=(
   "python3"
   "python3-pip"
   "python3-venv"
+  "python3-libvirt"
   "nodejs"
   "vagrant"
   "libvirt-daemon"
@@ -93,6 +96,7 @@ dependencies_build_python_opensuse=(
   "zlib-devel"
   "libffi-devel"
   "sqlite3-devel"
+  "libvirt-devel"
 )
 
 dependencies_build_python_deb=(
@@ -113,6 +117,7 @@ dependencies_build_python_deb=(
   "libxmlsec1-dev"
   "libffi-dev"
   "liblzma-dev"
+  "libvirt-dev"
 )
 
 
