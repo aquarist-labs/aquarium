@@ -89,7 +89,7 @@ $mat-typography-config: mat.define-typography-config();
   font-weight: bold;
 }
 .glass-text-monospaced {
-  font-family: monospace !important;
+  font-family: $glass-font-family-monospace !important;
 }
 .glass-text-no-decoration {
   text-decoration: none;
@@ -121,6 +121,7 @@ body {
 body {
   margin: 0;
   background-color: $glass-color-body-background;
+  font-family: $glass-font-family-sans-serif;
 }
 
 // BlockUI

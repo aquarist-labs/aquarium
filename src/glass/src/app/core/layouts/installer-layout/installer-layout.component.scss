@@ -1,10 +1,52 @@
 @import 'styles.scss';
 
 .glass-installer-layout {
+  .sidebar {
+    background-color: $glass-color-theme-primary;
+    background-image: url('/assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg');
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    color: $glass-color-theme-primary-complementary;
+    max-width: 20rem;
+    min-width: 20rem;
+    padding: $glass-padding;
+
+    .header {
+      .logo {
+        background-image: url('/assets/images/aquarium-logo.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 3rem;
+        width: 3rem;
+      }
+
+      .title {
+        font-family: $glass-font-family-headings;
+        font-size: 2.5rem;
+        font-weight: lighter;
+        padding-left: $glass-padding;
+
+        &:after {
+          content: 'Aquarium';
+        }
+      }
+    }
+
+    .footer {
+      font-size: 0.75rem;
+
+      &:after {
+        content: '@2021 SUSE, LLC.';
+      }
+    }
+  }
+
   .main {
     .header {
       background-color: $glass-color-whitesmoke;
-      height: 3rem;
+      height: $glass-menu-height;
 
       ::ng-deep .btn {
         color: $glass-color-black;
@@ -20,41 +62,6 @@
 
     .content {
       margin: $glass-margin;
-    }
-  }
-
-  .sidebar {
-    background-color: $glass-color-theme-primary;
-    color: $glass-color-theme-primary-complementary;
-    padding: $glass-padding;
-    width: 12.5rem;
-    min-width: 12.5rem;
-
-    .header {
-      .logo {
-        height: 3rem;
-        width: 3rem;
-        background-image: url('/assets/images/aquarium-logo.svg');
-        background-repeat: no-repeat;
-        background-size: contain;
-      }
-
-      .title {
-        font-size: 1.5rem;
-        font-weight: bold;
-
-        &:after {
-          content: 'Aquarium';
-        }
-      }
-    }
-
-    .footer {
-      font-size: 0.75rem;
-
-      &:after {
-        content: '@2021 SUSE, LLC.';
-      }
     }
   }
 }
