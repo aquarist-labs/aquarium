@@ -8,7 +8,6 @@
     <button *ngFor="let language of languages | keyvalue"
             ngbDropdownItem
             [ngClass]="{'active': language.key === currentLanguage}"
-            [disabled]="language.key === currentLanguage"
             (click)="onSelectLanguage(language.key)">
       {{ language.value }}
     </button>

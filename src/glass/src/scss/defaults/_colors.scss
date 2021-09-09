@@ -12,6 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+@forward '../vendor/colors';
+
 $eos-bc-red-500: #dc3545;
 $eos-bc-green-500: #30ba78;
 $eos-bc-yellow-500: #ffc107;
@@ -38,11 +40,11 @@ $glass-color-body-background: $glass-color-white;
 $glass-color-card-background: $eos-bc-gray-50;
 
 $glass-color-menu-background: #00303d; // https://coolors.co/00303d
-$glass-color-menu-item-selected: $eos-bc-cerulean-500;
-$glass-color-menu-item-hover: $eos-bc-cerulean-500;
+$glass-color-menu-item-selected: $glass-color-theme-primary;
+$glass-color-menu-item-hover: $glass-color-theme-primary;
 $glass-color-menu-item-text: $glass-color-black;
 $glass-color-menu-item-selected-text: $glass-color-white;
-$glass-color-submenu-item-selected: $eos-bc-cerulean-500;
+$glass-color-submenu-item-selected: $glass-color-theme-primary;
 $glass-color-submenu-item-hover: $eos-bc-gray-300;
 $glass-color-submenu-item-text: $glass-color-white;
 

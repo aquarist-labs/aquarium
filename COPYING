@@ -1,3 +1,4 @@
+Format: http://dep.debian.net/deps/dep5
 Name: aquarium
 
 Files: *
@@ -8,6 +9,20 @@ Files: src/gravel/ceph.git
 Copyright: (c) Ceph and contributors
 Source: https://github.com/ceph/ceph
 License: LGPL-2.1 or LGPL-3 (see COPYING-LGPL2.1 and COPYING-LGPL3)
+
+Files: src/glass/src/assets/fonts/lato*
+Copyright: (c) 2010-2014 by tyPoland Lukasz Dziedzic (team@latofonts.com) with Reserved Font Name "Lato"
+Source: https://fonts.google.com/specimen/Lato
+License: Open Font License
+
+Files: src/glass/src/assets/fonts/poppins*
+Copyright: (c) 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)
+Source: https://fonts.google.com/specimen/Poppins
+License: Open Font License
+
+Files: src/glass/src/assets/fonts/roboto*
+Source: https://fonts.google.com/specimen/Roboto+Mono
+License: Apache-2.0
 
 Files: src/glass/src/assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg
 Source: https://unsplash.com/photos/pSmXVhWr9kE
