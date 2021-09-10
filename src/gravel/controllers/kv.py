@@ -211,9 +211,8 @@ class KV:
                     # will raise:
                     # rados.ObjectNotFound: [errno 2] RADOS object not found (watch error)
             except Exception as e:
-                # TODO: deal with this (log it? ignore it?)
-                # e.g. RADOS rados state (You cannot perform that operation on a Rados object in state configuring.)
-                logger.error(str(e))
+                # e.g. RADOS state (You cannot perform that operation on a Rados object in state configuring.)
+                logger.exception(str(e))
 
             # TODO: Should we sleep for longer?  A minute instead of 10 seconds?  This is pretty arbitrary...
             logger.debug("Cluster connection thread sleeping for 10 seconds")
@@ -321,9 +320,8 @@ class KV:
                     # This next notifies all watchers *INCLUDING* me!
                     self._ioctx.notify("kvstore", key)
             except Exception as e:
-                # TODO: deal with this (log it? ignore it?)
-                # e.g. RADOS rados state (You cannot perform that operation on a Rados object in state configuring.)
-                logger.error(str(e))
+                # e.g. RADOS state (You cannot perform that operation on a Rados object in state configuring.)
+                logger.exception(str(e))
 
         logger.debug(f"Writing {key}: {value} to local cache")
         self._db[key] = bvalue
@@ -358,8 +356,7 @@ class KV:
                             del self._db[key]
 
             except Exception as e:
-                # TODO: deal with this (log it? ignore it?)
-                logger.error(str(e))
+                logger.exception(str(e))
 
         value = self._db.get(key)
         if not value:
@@ -400,8 +397,7 @@ class KV:
                         self._db[k] = v
 
             except Exception as e:
-                # TODO: deal with this (log it? ignore it?)
-                logger.error(str(e))
+                logger.exception(str(e))
 
         # Note: firstkey/nextkey assumes the gdbm implementation,
         # but that seems pretty damn safe...
@@ -422,8 +418,7 @@ class KV:
                     self._ioctx.operate_write_op(op, "kvstore")
                     # seems to succeed just fine even if the key doesn't exist
             except Exception as e:
-                # TODO: deal with this (log it? ignore it?)
-                logger.error(str(e))
+                logger.exception(str(e))
 
         if key in self._db:
             del self._db[key]
