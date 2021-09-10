@@ -129,18 +129,29 @@ class KV:
 
     def _cluster_connect(self) -> None:
         logger.debug("Starting cluster connection thread")
+        logged_missing_config_file: bool = False
         while self._run:
             try:
                 if not self._cluster:
-                    # uses /etc/ceph/ceph.client.admin.keyring
-                    # really should do separate keys per node so they can be
-                    # evicted if necessary if nodes are decommisioned
-                    self._cluster = rados.Rados(conffile="/etc/ceph/ceph.conf")
-                logger.debug(f"cluster state: {self._cluster.state}")
-                if self._cluster.state != "connected":
+                    try:
+                        # uses /etc/ceph/ceph.client.admin.keyring
+                        # really should do separate keys per node so they can be
+                        # evicted if necessary if nodes are decommisioned
+                        self._cluster = rados.Rados(
+                            conffile="/etc/ceph/ceph.conf"
+                        )
+                        logger.info("Got cluster handle")
+                    except rados.ObjectNotFound as e:
+                        if not logged_missing_config_file:
+                            logger.info(
+                                f"Can't get cluster handle: '{e}' - will keep retrying"
+                            )
+                            logged_missing_config_file = True
+                if self._cluster and self._cluster.state != "connected":
                     # this can throw (auth failed, etc.)
-                    logger.debug("Connecting to cluster")
+                    logger.info("Connecting to cluster")
                     self._cluster.connect()
+                    logger.info("Cluster connected")
                     has_aquarium_pool = "aquarium" in self._cluster.list_pools()
                     if not has_aquarium_pool:
                         logger.info("Creating aquarium pool")
@@ -202,7 +213,6 @@ class KV:
             except Exception as e:
                 # TODO: deal with this (log it? ignore it?)
                 # e.g. RADOS rados state (You cannot perform that operation on a Rados object in state configuring.)
-                # this makes the log pretty messy prior to bootstrap (errors every 10 seconds)
                 logger.error(str(e))
 
             # TODO: Should we sleep for longer?  A minute instead of 10 seconds?  This is pretty arbitrary...
