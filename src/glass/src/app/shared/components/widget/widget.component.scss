@@ -1,8 +1,6 @@
 @import 'styles.scss';
 
-mat-card.glass-dashboard-widget {
-  padding: unset;
-
+div.glass-dashboard-widget {
   // Needed for box shadow
   margin: 5px;
   height: calc(100% - 10px) !important;
@@ -10,13 +8,26 @@ mat-card.glass-dashboard-widget {
   width: calc(100% - 10px) !important;
   min-width: calc(100% - 10px) !important;
 
-  .mat-card-title-group {
-    height: 52px;
-    padding: 16px 16px 8px 16px;
-  }
+  .card-body {
+    padding: unset;
+    background-color: $glass-color-theme-primary-complementary;
 
-  .mat-card-content {
-    height: calc(100% - 52px);
+    .card-title {
+      height: 52px;
+      padding: 16px 16px 16px 16px;
+
+      .btn {
+        color: $glass-color-black;
+      }
+
+      .dropdown-toggle::after {
+        display: none;
+      }
+    }
+
+    .card-text {
+      height: calc(100% - 52px);
+    }
   }
 
   &.info {
