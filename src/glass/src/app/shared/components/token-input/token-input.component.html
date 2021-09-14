@@ -12,9 +12,7 @@
          size="4"
          (input)="doInput(formGroup.controls.segment1, segment2)"
          (paste)="onPaste($event)">
-  <i class="mlr-2"
-     [class]="icons.minus">
-  </i>
+  <div class="separator"></div>
   <input #segment2
          class="form-control"
          [ngClass]="{'is-invalid': errorState}"
@@ -25,9 +23,7 @@
          (input)="doInput(formGroup.controls.segment2, segment3)"
          (keyup.backspace)="autoFocusPrev(formGroup.controls.segment2, segment1)"
          (paste)="onPaste($event)">
-  <i class="mlr-2"
-     [class]="icons.minus">
-  </i>
+  <div class="separator"></div>
   <input #segment3
          class="form-control"
          [ngClass]="{'is-invalid': errorState}"
@@ -38,9 +34,7 @@
          (input)="doInput(formGroup.controls.segment3, segment4)"
          (keyup.backspace)="autoFocusPrev(formGroup.controls.segment3, segment2)"
          (paste)="onPaste($event)">
-  <i class="mlr-2"
-     [class]="icons.minus">
-  </i>
+  <div class="separator"></div>
   <input #segment4
          class="form-control"
          [ngClass]="{'is-invalid': errorState}"
