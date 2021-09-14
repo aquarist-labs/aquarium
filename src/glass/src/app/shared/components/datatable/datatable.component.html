@@ -1,15 +1,23 @@
-<table class="table">
+<table class="table table-striped">
   <thead>
-    <tr>
+    <tr class="d-flex">
       <th *ngFor="let column of columns"
-          scope="col">
-        <span *ngIf="column.name">{{ column.name | translate }}</span>
+          scope="col"
+          [class]="setHeaderClasses(column)"
+          (click)="updateSorting(column)">
+        <span *ngIf="column.name">{{ column.name | translate }}
+        </span>
+        <i *ngIf="sortHeader === column.prop"
+           aria-hidden="true"
+           [class]="getHeaderIconCss()"></i>
       </th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let row of filteredData">
+    <tr *ngFor="let row of filteredData"
+        class="d-flex">
       <td *ngFor="let column of columns"
+          [class]="column.css"
           [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}">
         <div *ngIf="!(column.cellTemplateName || column.cellTemplate)">{{ renderCellValue(row, column) }}</div>
         <ng-template *ngIf="column.cellTemplate"

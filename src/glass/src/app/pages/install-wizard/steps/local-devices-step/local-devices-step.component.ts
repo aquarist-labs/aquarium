@@ -31,7 +31,7 @@ import {
 type TableEntry = {
   path?: string;
   type: string;
-  size: string;
+  size: number;
   useAs: string;
   isSystemDisk: boolean;
   isStorageDisk: boolean;
@@ -56,24 +56,20 @@ export class LocalDevicesStepComponent implements OnInit {
   public devicesColumns: DatatableColumn[] = [
     {
       name: TEXT('Path'),
-      prop: 'path',
-      sortable: true
+      prop: 'path'
     },
     {
       name: TEXT('Type'),
-      prop: 'type',
-      sortable: true
+      prop: 'type'
     },
     {
       name: TEXT('Size'),
       prop: 'size',
-      sortable: true,
       pipe: new BytesToSizePipe()
     },
     {
       name: TEXT('Function'),
-      prop: 'useAs',
-      sortable: true
+      prop: 'useAs'
     }
   ];
 
@@ -83,7 +79,6 @@ export class LocalDevicesStepComponent implements OnInit {
     this.devicesColumns.unshift({
       name: TEXT('Available'),
       prop: 'isAvailable',
-      sortable: true,
       cellTemplate: this.availableTpl
     });
 
@@ -124,7 +119,7 @@ export class LocalDevicesStepComponent implements OnInit {
     }
     return {
       path: disk.path,
-      size: disk.size.toString(),
+      size: disk.size,
       type: typeStr,
       useAs: translate(TEXT('N/A')),
       isAvailable: false,
