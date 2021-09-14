@@ -25,13 +25,17 @@ import {
   ViewChild
 } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
-import { Sort } from '@angular/material/sort';
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+
+export enum SortDirection {
+  ascending = 'asc',
+  descending = 'desc'
+}
 
 @Component({
   selector: 'glass-datatable',
@@ -69,6 +73,12 @@ export class DatatableComponent implements OnInit, OnDestroy {
   pageSize = 25;
 
   @Input()
+  sortHeader?: string;
+
+  @Input()
+  sortDirection: SortDirection.ascending | SortDirection.descending = SortDirection.ascending;
+
+  @Input()
   hidePageSize = false;
 
   // The auto-reload time in milliseconds. The load event will be fired
@@ -89,6 +99,8 @@ export class DatatableComponent implements OnInit, OnDestroy {
   protected _data: Array<DatatableData> = [];
   protected subscriptions: Subscription = new Subscription();
 
+  private sortableColumns: string[] = [];
+
   constructor(private ngZone: NgZone) {}
 
   ngOnInit(): void {
@@ -102,7 +114,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
             case 'actionMenu':
               column.name = '';
               column.prop = '_action'; // Add a none existing name here.
-              column.sortable = false;
+              column.unsortable = true;
               break;
           }
         }
@@ -119,6 +131,13 @@ export class DatatableComponent implements OnInit, OnDestroy {
         );
       });
     }
+    this.sortableColumns = this.columns
+      .filter((c) => !c.unsortable)
+      .map((c) => this.getSortProp(c));
+    if (!this.sortHeader && this.sortableColumns.length > 0) {
+      this.sortHeader = this.sortableColumns[0];
+    }
+    this.prepareColumnStyle();
   }
 
   ngOnDestroy() {
@@ -143,11 +162,39 @@ export class DatatableComponent implements OnInit, OnDestroy {
     return value;
   }
 
-  sortData(sort: Sort): void {
-    if (!sort.active || sort.direction === '') {
+  updateSorting(c: DatatableColumn): void {
+    const prop = this.getSortProp(c);
+    if (!this.sortableColumns.includes(prop)) {
       return;
     }
-    this.data = _.orderBy(this.data, [sort.active], [sort.direction]);
+    if (prop === this.sortHeader) {
+      this.sortDirection =
+        this.sortDirection === SortDirection.descending
+          ? SortDirection.ascending
+          : SortDirection.descending;
+    } else {
+      this.sortHeader = prop;
+      this.sortDirection = SortDirection.ascending;
+    }
+  }
+
+  setHeaderClasses(column: DatatableColumn): string {
+    let css = column.css || '';
+    if (column.unsortable) {
+      return css;
+    }
+    css += ' sortable';
+    if (this.sortHeader !== this.getSortProp(column)) {
+      return css;
+    }
+    return css + ` sort-header ${this.sortDirection}`;
+  }
+
+  getHeaderIconCss(): string {
+    const css = 'mdi mdi-';
+    return this.sortDirection === SortDirection.ascending
+      ? css + 'sort-ascending'
+      : css + 'sort-descending';
   }
 
   reloadData(): void {
@@ -155,9 +202,52 @@ export class DatatableComponent implements OnInit, OnDestroy {
   }
 
   get filteredData(): DatatableData[] {
-    return this.data.slice(
+    return _.orderBy(this.data, [this.sortHeader], [this.sortDirection]).slice(
       (this.page - 1) * this.pageSize,
       (this.page - 1) * this.pageSize + this.pageSize
     );
+  }
+
+  private getSortProp(column: DatatableColumn) {
+    return column.compareProp || column.prop;
+  }
+
+  private prepareColumnStyle() {
+    const customCols = this.columns.filter((c) => c.cols);
+    const availableCols = 12 - _.sumBy(customCols, (c) => c.cols as number);
+    const columnsToChange = this.columns.length - customCols.length;
+
+    this.colSanityCheck(availableCols, columnsToChange);
+    const autoColLength = columnsToChange === 0 ? 0 : Math.round(availableCols / columnsToChange);
+    const flexFillIndex = this.findFlexFillIndex(customCols, columnsToChange);
+    this.columns.forEach((column, index) => {
+      if (!column.cols) {
+        column.cols = autoColLength;
+      }
+      this.appendCss(column, index === flexFillIndex ? 'flex-fill' : `col-${column.cols}`);
+    });
+  }
+
+  private colSanityCheck(availableCols: number, columnsToChange: number) {
+    if (availableCols < 0 || (availableCols === 0 && columnsToChange >= 1)) {
+      throw new Error(
+        'Only 12 cols can be used in one row by bootstrap, please redefine the "DatatableColumn.cols" values'
+      );
+    }
+  }
+
+  private findFlexFillIndex(customCols: DatatableColumn[], columnsToChange: number): number {
+    return customCols.length === 0
+      ? this.columns.length - 1
+      : columnsToChange === 0
+      ? _.findIndex(
+          this.columns,
+          customCols.reduce((p, c) => (p.cols! < c.cols! ? c : p))
+        )
+      : _.findLastIndex(this.columns, (c) => !c.cols);
+  }
+
+  private appendCss(column: DatatableColumn, css: string) {
+    column.css = column.css ? `${column.css} ${css}` : css;
   }
 }
