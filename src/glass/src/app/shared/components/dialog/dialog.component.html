@@ -8,7 +8,8 @@
   <div fxLayout="row"
        fxLayoutAlign="start center">
     <i *ngIf="icon"
-       [class]="icon"></i>
+       [class]="icon">
+    </i>
     <div class="ml-2"
          fxLayoutAlign="center center">
       <span [innerHTML]="config.message | translate"></span>

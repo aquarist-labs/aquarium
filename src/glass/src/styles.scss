@@ -72,7 +72,8 @@ $mat-typography-config: mat.define-typography-config();
   color: $glass-color-success;
 }
 .glass-color-red,
-.glass-color-error {
+.glass-color-error,
+.glass-color-danger {
   color: $glass-color-danger;
 }
 

@@ -1,0 +1,8 @@
+@import 'styles.scss';
+
+.modal-body .mdi::before {
+  // See '.alert .mdi::before' in scss/bootstrap.scss
+  position: relative;
+  top: 4px;
+  margin-right: 2px;
+}
