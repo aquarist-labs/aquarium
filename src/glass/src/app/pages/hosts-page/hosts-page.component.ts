@@ -26,13 +26,11 @@ export class HostsPageComponent {
     this.columns = [
       {
         name: TEXT('Hostname'),
-        prop: 'hostname',
-        sortable: true
+        prop: 'hostname'
       },
       {
         name: TEXT('Address'),
-        prop: 'address',
-        sortable: true
+        prop: 'address'
       }
     ];
   }

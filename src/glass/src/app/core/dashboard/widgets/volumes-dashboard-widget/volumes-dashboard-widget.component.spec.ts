@@ -8,10 +8,12 @@ import { of } from 'rxjs';
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { VolumesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/volumes-dashboard-widget/volumes-dashboard-widget.component';
 import { LocalNodeService, Volume } from '~/app/shared/services/api/local.service';
+import { FixtureHelper } from '~/testing/unit-test-helper';
 
 describe('DevicesDashboardWidgetComponent', () => {
   let component: VolumesDashboardWidgetComponent;
   let fixture: ComponentFixture<VolumesDashboardWidgetComponent>;
+  let fh: FixtureHelper;
   const mockedVolumes: Volume[] = [
     {
       available: true,
@@ -201,6 +203,7 @@ describe('DevicesDashboardWidgetComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(VolumesDashboardWidgetComponent);
+    fh = new FixtureHelper(fixture);
     component = fixture.componentInstance;
     spyOn(TestBed.inject(LocalNodeService), 'volumes').and.returnValue(of(mockedVolumes));
     fixture.detectChanges();
@@ -215,5 +218,17 @@ describe('DevicesDashboardWidgetComponent', () => {
       expect(x.length > 0).toBe(true);
       done();
     });
+  });
+
+  it('should have the right order in table', () => {
+    fh.expectTextToBe('thead > tr', 'Path Serial Vendor Type Size');
+  });
+
+  it('should sort devices by the right size', () => {
+    component.columns[4].css = 'size';
+    fh.expectTextToBe('thead > tr > th.size.sortable', 'Size');
+    fh.clickElement('thead > tr > th.size.sortable');
+    fh.expectTextToBe('.sort-header', 'Size');
+    fh.expectTextsToBe('td.size', ['8.00 GB', '8.00 GB', '8.00 GB', '8.00 GB', '24.00 GB']);
   });
 });

@@ -30,23 +30,21 @@ export class UsersPageComponent {
     this.columns = [
       {
         name: TEXT('Name'),
-        prop: 'username',
-        sortable: true
+        prop: 'username'
       },
       {
         name: TEXT('Full Name'),
-        prop: 'full_name',
-        sortable: true
+        prop: 'full_name'
       },
       {
         name: TEXT('Disabled'),
         prop: 'disabled',
-        sortable: true,
         cellTemplateName: 'checkIcon'
       },
       {
         name: '',
         prop: '',
+        unsortable: true,
         cellTemplateName: 'actionMenu',
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
