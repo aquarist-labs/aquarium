@@ -41,7 +41,6 @@ class WelcomeMessageModel(BaseModel):
     pubkey: str
     cephconf: str
     keyring: str
-    etcd_peer: str
 
 
 class ReadyToAddMessageModel(BaseModel):

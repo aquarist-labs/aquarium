@@ -36,7 +36,6 @@ from gravel.controllers.nodes.errors import (
     NodeHasBeenDeployedError,
     NodeHasJoinedError,
 )
-from gravel.controllers.nodes.etcd import spawn_etcd
 from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
@@ -307,7 +306,6 @@ class NodeDeployment:
         assert welcome.pubkey
         assert welcome.cephconf
         assert welcome.keyring
-        assert welcome.etcd_peer
 
         # create system disk after we are certain we are joining.
         # ensure all state writes happen only after the disk has been created.
@@ -320,17 +318,6 @@ class NodeDeployment:
 
         self._state.mark_join()
         await self._set_hostname(hostname)
-
-        my_url: str = f"{hostname}=http://{address}:2380"
-        initial_cluster: str = f"{welcome.etcd_peer},{my_url}"
-        await spawn_etcd(
-            self._gstate,
-            new=False,
-            token=None,
-            hostname=hostname,
-            address=address,
-            initial_cluster=initial_cluster,
-        )
 
         authorized_keys: Path = Path("/root/.ssh/authorized_keys")
         if not authorized_keys.parent.exists():
@@ -347,6 +334,10 @@ class NodeDeployment:
         keyring_path.write_text(welcome.keyring)
         keyring_path.chmod(0o600)
         cephconf_path.chmod(0o644)
+
+        # We've got ceph.conf and the admin keyring now, kick the kvstore
+        # to get a connection.
+        await self._gstate.store.ensure_connection()
 
         # get NTP address
         ntp_addr = await self._gstate.store.get("/nodes/ntp_addr")
@@ -375,23 +366,6 @@ class NodeDeployment:
 
         self._state.mark_ready()
         return True
-
-    async def _prepare_etcd(
-        self, hostname: str, address: str, token: str
-    ) -> None:
-        assert self._state
-        if self._state.bootstrapping:
-            raise NodeCantDeployError("node being deployed")
-        elif not self._state.nostage:
-            raise NodeCantDeployError("node can't be deployed")
-
-        await spawn_etcd(
-            self._gstate,
-            new=True,
-            token=token,
-            hostname=hostname,
-            address=address,
-        )
 
     async def deploy(
         self,
@@ -463,6 +437,12 @@ class NodeDeployment:
                 self._progress = ProgressEnum.DONE
                 await finisher(True, None)
 
+            # By now, the KV store connection thread will have well and
+            # truly found the cluster and connected to it.  Still, for the
+            # sake of completeness, let's give it a kick here to make it
+            # explicit.
+            await self._gstate.store.ensure_connection()
+
         async def _assimilate_devices() -> None:
             devices = config.disks.storage
             if len(devices) == 0:
@@ -475,11 +455,6 @@ class NodeDeployment:
         self._progress = ProgressEnum.PREPARING
 
         await self._set_hostname(hostname)
-        try:
-            await self._prepare_etcd(hostname, address, token)
-        except NodeError as e:
-            logger.error(f"bootstrap prepare error: {e.message}")
-            raise e
 
         await self._set_ntp_addr(ntp_addr)
 

@@ -24,7 +24,7 @@ will be then be started on boot.
 The latter, `disk.sh`, is run within a chrooted image mount, but before the
 image is finalized. During this step we will be obtaining container images
 needed for Aquarium's execution, so we have them available upon first run,
-including an image for `Ceph` and an image for `etcd`.
+including an image for `Ceph`.
 
 
 ## Containerized build environment

@@ -56,9 +56,9 @@ class Vagrant:
             return False, err
         return True, None
 
-    def stop(self, interactive: bool = True) -> Tuple[bool, Optional[str]]:
+    def stop(self, force: bool = False) -> Tuple[bool, Optional[str]]:
         cmd = "vagrant destroy"
-        if not interactive:
+        if force:
             cmd += " --force"
         retcode, _, err = self._run(cmd, interactive=True)
         if retcode != 0:

@@ -19,7 +19,7 @@ import time
 import typing
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Dict
+from typing import Dict, Type
 
 from fastapi.logger import logger as fastapi_logger
 
@@ -131,11 +131,11 @@ class GlobalState:
     ceph_mgr: Mgr
     ceph_mon: Mon
 
-    def __init__(self):
+    def __init__(self, kv_class: Type[KV] = KV):
         self._config = Config()
         self._is_shutting_down = False
         self._tickers = {}
-        self._kvstore = KV()
+        self._kvstore = kv_class()
 
     def add_cephadm(self, cephadm: Cephadm):
         self.cephadm = cephadm
@@ -173,6 +173,7 @@ class GlobalState:
 
     async def shutdown(self) -> None:
         self._is_shutting_down = True
+        await self._kvstore.close()
         logger.info("shutdown!")
         await self.tick_task
 
@@ -205,9 +206,6 @@ class GlobalState:
 
     def get_ticker(self, desc: str) -> Ticker:
         return self._tickers[desc]
-
-    async def init_store(self) -> None:
-        await self._kvstore.ensure_connection()
 
     @property
     def config(self) -> Config:

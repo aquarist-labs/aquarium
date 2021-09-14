@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import UUID, uuid4
 
-import aetcd3
 from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -49,11 +48,6 @@ from gravel.controllers.nodes.errors import (
     NodeNotDeployedError,
     NodeNotStartedError,
     NodeShuttingDownError,
-)
-from gravel.controllers.nodes.etcd import (
-    ContainerFetchError,
-    etcd_pull_image,
-    spawn_etcd,
 )
 from gravel.controllers.nodes.messages import (
     ErrorMessageModel,
@@ -92,7 +86,6 @@ logger: Logger = fastapi_logger
 #     stage = AVAILABLE
 #
 # _node_start()                               [state: none || available]
-#     obtain etcd state
 #     load state
 #     start connmgr
 #     stage = STARTED
@@ -201,13 +194,6 @@ class NodeMgr:
             assert self.deployment_state.ready or self.deployment_state.deployed
             assert self._state.hostname
             assert self._state.address
-            await spawn_etcd(
-                self.gstate,
-                new=False,
-                token=None,
-                hostname=self._state.hostname,
-                address=self._state.address,
-            )
             await self._start_ceph()
             await self._node_start()
 
@@ -217,12 +203,11 @@ class NodeMgr:
     async def _obtain_images(self) -> bool:
         cephadm = self.gstate.cephadm
         try:
-            await asyncio.gather(
-                cephadm.pull_images(), etcd_pull_image(self.gstate)
-            )
-        except ContainerFetchError as e:
-            logger.error(f"unable to fetch containers: {e.message}")
-            return False
+            # Since removing etcd this gather structure is redundant
+            # (we're only invoking one awaitable), but I've left it
+            # here anyway in case it turns out we want to add other
+            # container images in future.
+            await asyncio.gather(cephadm.pull_images())
         except CephadmError as e:
             logger.error(f"unable to fetch ceph containers: {str(e)}")
             return False
@@ -623,32 +608,8 @@ class NodeMgr:
 
         logger.debug(f"handle join > pubkey: {pubkey}")
 
-        logger.debug("handle join > connect etcd client")
-        etcd: aetcd3.Etcd3Client = aetcd3.client()
-        peer_url: str = f"http://{msg.address}:2380"
-        logger.debug(f"handle join > add '{peer_url}' to etcd")
-        member, nodes = await etcd.add_member([peer_url])
-        await etcd.close()
-        assert member is not None
-        assert nodes is not None
-        assert len(nodes) > 0
-
-        member_urls: str = ",".join(
-            [
-                f"{m.name}={m.peer_urls[0]}"
-                for m in nodes
-                if (len(m.peer_urls) > 0 and len(m.name) > 0)
-            ]
-        )
-        logger.debug(
-            f"{member_urls=}, member: {member.name}={member.peer_urls[0]}"
-        )
-
         welcome = WelcomeMessageModel(
-            pubkey=pubkey,
-            cephconf=cephconf,
-            keyring=keyring,
-            etcd_peer=member_urls,
+            pubkey=pubkey, cephconf=cephconf, keyring=keyring
         )
         try:
             logger.debug(f"handle join > send welcome: {welcome}")
