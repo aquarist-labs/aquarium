@@ -53,14 +53,6 @@ class ServicesOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Services Probe Interval")
 
 
-class EtcdOptionsModel(BaseModel):
-    registry: str = Field(
-        "quay.io/coreos/etcd", title="Container Image Registry"
-    )
-    version: str = Field("latest", title="Container Version Label")
-    data_dir: str = Field("/var/lib/etcd", title="Etcd Data Dir")
-
-
 class AuthOptionsModel(BaseModel):
     jwt_secret: str = Field(
         title="The access token secret",
@@ -81,7 +73,6 @@ class OptionsModel(BaseModel):
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
     services: ServicesOptionsModel = Field(ServicesOptionsModel())
-    etcd: EtcdOptionsModel = Field(EtcdOptionsModel())
     auth: AuthOptionsModel = Field(AuthOptionsModel())
 
 

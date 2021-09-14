@@ -17,7 +17,7 @@ These are
 
 * `/var/log`, so logs are persisted between runs.
 
-* `/var/lib/etcd`, where we keep this node's etcd persistent db.
+* `/var/lib/aquarium`, where we keep this node's local kvstore cache.
 
 * `/var/lib/containers`, where container images are kept.
 

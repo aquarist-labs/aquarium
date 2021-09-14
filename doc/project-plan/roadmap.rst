@@ -73,7 +73,7 @@ M6
   
     * Add events widget (frontend)
     
-    * Basic event stashing on etcd (backend)
+    * Basic event stashing (backend)
       * node join
       * ???
 
@@ -171,7 +171,7 @@ A list of items brought to you in some unkempt, roughly prioritized order.
   
   * Obtain cluster events (backend)
   
-    * Store them in etcd?
+    * Store them somewhere?
     * Mutual exclusion access to ceph cluster operations
   
   * Dashboard
@@ -185,7 +185,7 @@ A list of items brought to you in some unkempt, roughly prioritized order.
 
       * Figure out what is an event (backend)
       * Figure out how to display Ceph status updates as events (backend)
-      * Store events in etcd (backend)
+      * Store events (backend)
       * Display events (frontend)
 
     * Hosts
@@ -199,7 +199,7 @@ A list of items brought to you in some unkempt, roughly prioritized order.
       * Obtain logs for each node (frontend, backend)
       * Obtain all logs (frontend, backend)
 
-      * Likely rely on etcd to do keep obtained logs from all nodes (backend)
+      * Where to keep obtained logs from all nodes? (backend)
 
         * or on websockets to connect to each node and obtain those logs?
 

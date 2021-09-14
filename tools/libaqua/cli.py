@@ -392,9 +392,10 @@ def cmd_start(ctx: AppCtx, name: str, conservative: bool) -> None:
 
 
 @app.command("stop")
+@click.option("-f", "--force", flag_value=True)
 @click.argument("name", required=True, type=str)
 @pass_appctx
-def cmd_stop(ctx: AppCtx, name: str) -> None:
+def cmd_stop(ctx: AppCtx, name: str, force: bool) -> None:
     """
     Stop deployment; destroys running machines
     """
@@ -402,7 +403,7 @@ def cmd_stop(ctx: AppCtx, name: str) -> None:
     assert deployment
 
     try:
-        deployment.stop()
+        deployment.stop(force=force)
     except AqrError as e:
         click.secho(f"Error: {e.message}", fg="red")
         sys.exit(e.errno)

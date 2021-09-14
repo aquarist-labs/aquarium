@@ -328,6 +328,15 @@ class Mon:
         if not self._set_default_ruleset_config(rulesetid):
             return False
 
+        # The KV store creates a pool during cluster bringup, which (because
+        # threads) inevitably happens before the default ruleset is set in
+        # the cluster config above, so we need ensure we apply that ruleset
+        # to any existing pools as well.
+        pools: List[CephOSDPoolEntryModel] = self.get_pools()
+        for pool in pools:
+            if not self.set_pool_ruleset(pool.pool_name, "single_node_rule"):
+                return False
+
         return True
 
     def set_replicated_ruleset(self) -> bool:

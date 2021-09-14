@@ -206,7 +206,6 @@ async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
 
     fake_connmgr: ConnMgr = cast(ConnMgr, mocker.MagicMock())
     deployment = NodeDeployment(gstate, fake_connmgr)
-    deployment._prepare_etcd = mocker.AsyncMock()
     deployment._set_hostname = mock_set_hostname
     deployment._set_ntp_addr = mock_set_ntpaddr
 

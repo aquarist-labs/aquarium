@@ -10,7 +10,7 @@ ceph tests should either be sufficient in this regard or expanded upon.
 Our primary scope is Aquarium. That is, we want to ensure aquarium does the
 right things, makes the right/expected decisions, and executes the orchestrated
 plan as expected. We also want to test the integration between Aquarium, the
-host OS, Ceph, and any other services (etcd for example) to ensure that the
+host OS, Ceph, and any other services to ensure that the
 deployment and operation of such services is functional and works with
 Aquarium's directives (ie, opinionated configuration).
 
