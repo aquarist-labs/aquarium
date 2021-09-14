@@ -1,12 +1,13 @@
 #!/bin/bash
 
-dependencies_opensuse_tumbleweed=(
+dependencies_opensuse=(
   "btrfsprogs"
   "git"
   "kpartx"
   "make"
   "python3"
   "python3-kiwi"
+  "python3-devel"
   "nodejs-common"
   "npm"
   "vagrant"
@@ -78,7 +79,7 @@ dependencies_ubuntu=(
   "libvirt-daemon-system"
 )
 
-dependencies_build_python_leap=(
+dependencies_build_python_opensuse=(
   "gcc"
   "automake"
   "bzip2"
@@ -194,7 +195,7 @@ if ${show_dependencies} ; then
 
   case $osid in
     opensuse-tumbleweed | opensuse-leap)
-      echo "  > ${dependencies_opensuse_tumbleweed[*]}"
+      echo "  > ${dependencies_opensuse[*]}"
       ;;
     debian)
       echo "  > ${dependencies_debian[*]}"
@@ -205,7 +206,7 @@ if ${show_dependencies} ; then
     *)
       echo "error: unsupported distribution"
       echo "These are the packages you might need:"
-      echo "  > ${dependencies_opensuse_tumbleweed[*]}"
+      echo "  > ${dependencies_opensuse[*]}"
       exit 1
       ;;
   esac
@@ -218,13 +219,13 @@ if ! ${skip_install_deps} ; then
   case $osid in
     opensuse-tumbleweed | opensuse-leap)
       echo "=> try installing dependencies"
-      sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || {
+      sudo zypper --non-interactive install ${dependencies_opensuse[*]} || {
         echo "Dependency installation failed"
         exit 1
       }
       if [ -n "$pyenv_python" ] ; then
         echo "=> try installing dependencies for building python because --pyenv-python requested"
-        sudo zypper --non-interactive install ${dependencies_build_python_leap[*]} || {
+        sudo zypper --non-interactive install ${dependencies_build_python_opensuse[*]} || {
           echo "Dependency installation failed"
           exit 1
       }
