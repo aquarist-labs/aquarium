@@ -96,13 +96,6 @@ export class DashboardPageComponent {
       cols: 7,
       rows: 9,
       enabledByDefault: false
-    },
-    {
-      id: 'hosts',
-      title: TEXT('Hosts'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: false
     }
   ];
 
