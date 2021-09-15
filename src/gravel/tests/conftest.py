@@ -193,7 +193,6 @@ async def aquarium_startup(
         from gravel.controllers.resources.inventory import Inventory
         from gravel.controllers.resources.status import Status
         from gravel.controllers.resources.storage import Storage
-        from gravel.controllers.services import ServiceModel, Services
 
         logger: logging.Logger = fastapi_logger
 
@@ -265,22 +264,6 @@ async def aquarium_startup(
                     self.cluster = mocker.Mock()
                     self._is_connected = True
 
-        class FakeServices(Services):
-            async def _save(self):
-                pass
-
-            async def _load(self):
-                pass
-
-            def _create_cephfs(self, svc: ServiceModel):
-                pass
-
-            def _create_nfs(self, svc: ServiceModel):
-                pass
-
-            def _is_ready(self):
-                return True
-
         class FakeStorage(Storage):  # type: ignore
             available = 2000  # type: ignore
             total = 2000  # type: ignore
@@ -324,11 +307,6 @@ async def aquarium_startup(
             gstate.config.options.storage.probe_interval, nodemgr, ceph_mon
         )
         gstate.add_storage(storage)
-
-        services: Services = FakeServices(
-            gstate.config.options.services.probe_interval, gstate, nodemgr
-        )
-        gstate.add_services(services)
 
         await nodemgr.start()
         await gstate.start()
@@ -375,12 +353,6 @@ def gstate(app_state: SimpleNamespace):
 @pytest.fixture
 def global_nodemgr(app_state: SimpleNamespace):
     yield app_state.nodemgr
-
-
-@pytest.fixture()
-@pytest.mark.asyncio
-async def services(gstate: GlobalState):
-    return gstate.services
 
 
 @pytest.fixture()

@@ -33,7 +33,6 @@ if typing.TYPE_CHECKING:
     from gravel.controllers.resources.inventory import Inventory
     from gravel.controllers.resources.status import Status
     from gravel.controllers.resources.storage import Storage
-    from gravel.controllers.services import Services
 
 logger: Logger = fastapi_logger
 
@@ -44,12 +43,18 @@ def setup_logging(console_level: str) -> None:
         "disable_existing_loggers": False,
         "formatters": {
             "simple": {
-                "format": "[%(levelname)-5s] %(asctime)s -- %(module)s -- %(message)s",
+                "format": (
+                    "[%(levelname)-5s] %(asctime)s -- "
+                    "%(module)s -- %(message)s"
+                ),
                 "datefmt": "%Y-%m-%dT%H:%M:%S",
             },
             "colorized": {
                 "()": "uvicorn.logging.ColourizedFormatter",
-                "format": "%(levelprefix)s %(asctime)s -- %(module)s -- %(message)s",
+                "format": (
+                    "%(levelprefix)s %(asctime)s -- "
+                    "%(module)s -- %(message)s"
+                ),
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
         },
@@ -126,7 +131,6 @@ class GlobalState:
     status: Status
     inventory: Inventory
     storage: Storage
-    services: Services
     cephadm: Cephadm
     ceph_mgr: Mgr
     ceph_mon: Mon
@@ -161,10 +165,6 @@ class GlobalState:
     def add_storage(self, storage: Storage):
         self.storage = storage
         self.add_ticker("storage", storage)
-
-    def add_services(self, services: Services):
-        self.services = services
-        self.add_ticker("services", services)
 
     async def start(self) -> None:
         if self._is_shutting_down:

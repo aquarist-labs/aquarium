@@ -690,11 +690,6 @@ class NodeMgr:
         logger.info(msg)
         mon.set_pool_default_size(target_size)
 
-        # adjust the size of existing pools
-        svc_pool_ids: List[int] = []  # aquarium service pool ids
-        for svc in self.gstate.services.ls():
-            svc_pool_ids += svc.pools
-
         for pool in mon.get_pools():  # all pools
             msg = (
                 "set osd pool size >"
@@ -703,11 +698,7 @@ class NodeMgr:
                 f" target_size: {target_size}"
             )
 
-            if pool.pool in svc_pool_ids:
-                reason = "reason: pool is managed by an aquarium service"
-                logger.debug(f"skipping {msg} {reason}")
-                continue
-            elif pool.size > target_size:
+            if pool.size > target_size:
                 reason = "reason: pool is user defined"
                 logger.debug(f"skipping {msg} {reason}")
                 continue
