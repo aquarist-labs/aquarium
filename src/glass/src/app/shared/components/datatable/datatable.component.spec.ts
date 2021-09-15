@@ -178,4 +178,12 @@ describe('DatatableComponent', () => {
     expect(component.sortHeader).toBe('inside.color');
     expect(component.filteredData).toEqual([data.a, data.c, data.b]);
   });
+
+  // This resolve the issue that the action menu closes on data refresh without a seen change.
+  it('should cache the current view', () => {
+    fixture.detectChanges();
+    const oldTableData = component.filteredData;
+    component.data = [data.c, data.b, data.a];
+    expect(oldTableData).toBe(component.filteredData);
+  });
 });

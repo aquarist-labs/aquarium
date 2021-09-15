@@ -100,6 +100,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
   protected subscriptions: Subscription = new Subscription();
 
   private sortableColumns: string[] = [];
+  private tableData: DatatableData[] = [];
 
   constructor(private ngZone: NgZone) {}
 
@@ -202,10 +203,14 @@ export class DatatableComponent implements OnInit, OnDestroy {
   }
 
   get filteredData(): DatatableData[] {
-    return _.orderBy(this.data, [this.sortHeader], [this.sortDirection]).slice(
+    const filtered = _.orderBy(this.data, [this.sortHeader], [this.sortDirection]).slice(
       (this.page - 1) * this.pageSize,
       (this.page - 1) * this.pageSize + this.pageSize
     );
+    if (!_.isEqual(filtered, this.tableData)) {
+      this.tableData = filtered;
+    }
+    return this.tableData;
   }
 
   private getSortProp(column: DatatableColumn) {
