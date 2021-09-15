@@ -10,18 +10,14 @@
     </button>
   </div>
   <div class="glass-hosts-page-content">
-    <div class="card">
-      <div class="card-body">
-        <div *ngIf="!firstLoadComplete && loading"
-             class="progress">
-          <div class="progress-bar bg-info indeterminate"></div>
-        </div>
-        <glass-datatable [data]="data"
-                         [columns]="columns"
-                         [autoReload]="30000"
-                         (loadData)="loadData()">
-        </glass-datatable>
-      </div>
+    <div *ngIf="!firstLoadComplete && loading"
+         class="progress">
+      <div class="progress-bar bg-info indeterminate"></div>
     </div>
+    <glass-datatable [data]="data"
+                     [columns]="columns"
+                     [autoReload]="30000"
+                     (loadData)="loadData()">
+    </glass-datatable>
   </div>
 </div>

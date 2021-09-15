@@ -96,7 +96,8 @@ export class DeclarativeFormComponent implements OnInit {
     });
     _.forEach(this.config?.fields, (field: FormFieldConfig) => {
       _.defaultsDeep(field, {
-        hasCopyToClipboardButton: false
+        hasCopyToClipboardButton: false,
+        placeholder: ''
       });
     });
     this.formGroup = this.createForm();

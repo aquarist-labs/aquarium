@@ -1,6 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { PagesModule } from '~/app/pages/pages.module';
@@ -13,12 +12,7 @@ describe('UsersPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [UsersPageComponent],
-      imports: [
-        HttpClientTestingModule,
-        NoopAnimationsModule,
-        PagesModule,
-        TranslateModule.forRoot()
-      ]
+      imports: [HttpClientTestingModule, PagesModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 
