@@ -1,7 +1,4 @@
-@use '~@angular/material' as mat;
 @import 'styles.scss';
-
-$mat-typography-config: mat.define-typography-config();
 
 .glass-sys-info-dashboard-widget {
   padding-left: 24px;
@@ -10,16 +7,6 @@ $mat-typography-config: mat.define-typography-config();
 
   .glass-sys-info-dashboard-widget-cell {
     margin-bottom: 8px;
-
-    &.cpu-load {
-      .mat-card {
-        padding: 8px;
-
-        .value {
-          font-size: mat.font-size($mat-typography-config, subheading-2);
-        }
-      }
-    }
   }
 }
 .glass-sys-info-dashboard-widget.error {

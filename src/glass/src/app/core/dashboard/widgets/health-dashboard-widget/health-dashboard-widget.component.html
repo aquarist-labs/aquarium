@@ -9,15 +9,12 @@
        fxLayout="row"
        fxLayoutAlign="center center"
        fxFlexFill>
-    <mat-icon *ngIf="isOkay"
-              svgIcon="mdi:thumb-up">
-    </mat-icon>
-    <mat-icon *ngIf="isError"
-              svgIcon="mdi:thumb-down">
-    </mat-icon>
-    <mat-icon *ngIf="isWarn"
-              svgIcon="mdi:alert-circle-outline">
-    </mat-icon>
+    <i *ngIf="isOkay"
+       class="mdi mdi-thumb-up"></i>
+    <i *ngIf="isError"
+       class="mdi mdi-thumb-down"></i>
+    <i *ngIf="isWarn"
+       class="mdi mdi-alert-circle-outline"></i>
     <span class="glass-health-dashboard-widget-text">{{ statusText }}</span>
   </div>
 </glass-widget>

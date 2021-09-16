@@ -1,36 +1,42 @@
-<mat-card class="glass-dashboard-widget {{status}}"
-          fxFlexFill>
-  <mat-card-title-group fxLayout="row"
-                        fxLayoutAlign="space-between center">
-    <mat-card-title>
-      <span>{{ title | translate }}</span>
-    </mat-card-title>
-    <button mat-icon-button
-            *ngIf="actionMenu"
-            [matMenuTriggerFor]="menu"
-            matTooltip="{{title | translate}} actions">
-      <mat-icon svgIcon="mdi:menu"></mat-icon>
-    </button>
-  </mat-card-title-group>
-  <div *ngIf="!firstLoadComplete && loading"
-       class="glass-hosts-dashboard-widget-loader">
-    <mat-progress-bar mode="indeterminate">
-    </mat-progress-bar>
+<div class="card glass-dashboard-widget {{status}}"
+     fxFlexFill>
+  <div class="card-body">
+    <div class="card-title"
+         fxLayout="row"
+         fxLayoutAlign="space-between center">
+      {{ title | translate }}
+      <div *ngIf="actionMenu"
+           ngbDropdown
+           display="dynamic"
+           placement="bottom-right">
+        <button class="btn btn-simple"
+                title="{{title | translate}} actions"
+                ngbDropdownToggle>
+          <i class="mdi mdi-menu"></i>
+        </button>
+        <div ngbDropdownMenu>
+          <a ngbDropdownItem
+             *ngFor="let item of actionMenu"
+             (click)="item.action()">
+            <i class="mdi mdi-{{item.icon}}"></i>
+            <span>{{item.name | translate}}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!firstLoadComplete && loading"
+         class="progress">
+      <div class="progress-bar bg-info indeterminate"></div>
+    </div>
+    <div *ngIf="!error && firstLoadComplete"
+         class="card-text">
+      <ng-content></ng-content>
+    </div>
+    <div *ngIf="error && !loading"
+         class="card-text"
+         fxLayout="column"
+         fxLayoutAlign="center center">
+      <i class="mdi mdi-lan-disconnect"></i>
+    </div>
   </div>
-  <mat-card-content *ngIf="!error && firstLoadComplete">
-    <ng-content></ng-content>
-  </mat-card-content>
-  <mat-card-content *ngIf="error && !loading"
-                    fxLayout="column"
-                    fxLayoutAlign="center center">
-    <mat-icon svgIcon="mdi:lan-disconnect"></mat-icon>
-  </mat-card-content>
-</mat-card>
-<mat-menu #menu="matMenu">
-  <button *ngFor="let item of actionMenu"
-          mat-menu-item
-          (click)="item.action()">
-    <mat-icon svgIcon="mdi:{{item.icon}}"></mat-icon>
-    <span>{{item.name | translate}}</span>
-  </button>
-</mat-menu>
+</div>

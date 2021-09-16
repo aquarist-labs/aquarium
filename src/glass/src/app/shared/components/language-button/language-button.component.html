@@ -1,16 +1,15 @@
-<button mat-icon-button
-        class="glass-language-button"
-        matTooltip="{{ 'Language' | translate }}"
-        [matMenuTriggerFor]="languageMenu">
-  <mat-icon svgIcon="mdi:earth"></mat-icon>
-</button>
-
-<mat-menu #languageMenu="matMenu">
-  <button *ngFor="let language of languages | keyvalue"
-          mat-menu-item
-          [ngClass]="{'active': language.key === currentLanguage}"
-          [disabled]="language.key === currentLanguage"
-          (click)="onSelectLanguage(language.key)">
-    <span>{{ language.value }}</span>
+<div ngbDropdown>
+  <button class="btn btn-simple"
+          title="{{ 'Language' | translate }}"
+          ngbDropdownToggle>
+    <i class="mdi mdi-earth"></i>
   </button>
-</mat-menu>
+  <div ngbDropdownMenu>
+    <button *ngFor="let language of languages | keyvalue"
+            ngbDropdownItem
+            [ngClass]="{'active': language.key === currentLanguage}"
+            (click)="onSelectLanguage(language.key)">
+      {{ language.value }}
+    </button>
+  </div>
+</div>

@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
 
 import { CoreModule } from '~/app/core/core.module';
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
+import { GLASS_DIALOG_DATA } from '~/app/shared/services/dialog.service';
 
 describe('DeclarativeFormModalComponent', () => {
   let component: DeclarativeFormModalComponent;
@@ -14,9 +15,9 @@ describe('DeclarativeFormModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CoreModule, ToastrModule.forRoot(), TranslateModule.forRoot()],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: {} },
+        { provide: GLASS_DIALOG_DATA, useValue: {} },
         {
-          provide: MatDialogRef,
+          provide: NgbActiveModal,
           useValue: {}
         }
       ]

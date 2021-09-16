@@ -1,24 +1,35 @@
-<div *ngIf="icon || config.title"
-     mat-dialog-title>
-  <mat-icon *ngIf="icon"
-            svgIcon="{{ icon }}">
-  </mat-icon>
-  <div *ngIf="config.title">{{ config.title | translate }}</div>
+<div *ngIf="config.title"
+     class="modal-header">
+  <div class="modal-title">
+    {{ config.title | translate }}
+  </div>
 </div>
-<mat-dialog-content class="mat-typography">
-  <span [innerHTML]="config.message | translate"></span>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button *ngIf="button2Visible"
-          mat-flat-button
-          cdkFocusInitial
-          [mat-dialog-close]="button2Result">
-    {{ button2Text | translate }}
-  </button>
-  <button *ngIf="button1Visible"
-          mat-flat-button
-          [class]="button1Class"
-          [mat-dialog-close]="button1Result">
-    {{ button1Text | translate }}
-  </button>
-</mat-dialog-actions>
+<div class="modal-body">
+  <div fxLayout="row"
+       fxLayoutAlign="start center">
+    <i *ngIf="icon"
+       [class]="icon">
+    </i>
+    <div class="ml-2"
+         fxLayoutAlign="center center">
+      <span [innerHTML]="config.message | translate"></span>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <div class="modal-actions">
+    <button *ngIf="button2Visible"
+            type="button"
+            class="btn btn-outline-default"
+            (click)="onButtonClick(button2Result)">
+      {{ button2Text | translate }}
+    </button>
+    <button *ngIf="button1Visible"
+            type="button"
+            class="btn btn-outline-default"
+            [class]="button1Class"
+            (click)="onButtonClick(button1Result)">
+      {{ button1Text | translate }}
+    </button>
+  </div>
+</div>

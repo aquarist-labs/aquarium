@@ -12,14 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatStepper } from '@angular/material/stepper';
+import { Component, OnInit } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
-import _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard/models/install-wizard-context.type';
+import { Icon } from '~/app/shared/enum/icon.enum';
 import {
   LocalNodeService,
   NodeStatus,
@@ -42,21 +41,19 @@ export class InstallJoinWizardPageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  @ViewChild(MatStepper, { static: false })
-  stepper?: MatStepper;
-
+  public icons = Icon;
+  public activeId = 1;
   public context: InstallJoinWizardContext = {
     config: {},
-    stage: 'unknown',
-    stepperVisible: false
+    stage: 'unknown'
   };
   public pageIndex = {
-    start: 0,
-    hostname: 1,
-    devices: 2,
-    registration: 3,
-    summary: 4,
-    finish: 5
+    start: 1,
+    networking: 2,
+    devices: 3,
+    registration: 4,
+    join: 5,
+    finish: 6
   };
 
   constructor(
@@ -74,9 +71,8 @@ export class InstallJoinWizardPageComponent implements OnInit {
         switch (res.node_stage) {
           case StatusStageEnum.joining:
             this.context.stage = 'joining';
-            this.context.stepperVisible = false;
             // Jump to the 'Summary' step.
-            this.stepper!.selectedIndex = this.pageIndex.summary;
+            this.activeId = this.pageIndex.join;
             // Immediately show the progress message.
             this.blockUI.start(
               translate(TEXT('Please wait, joining existing cluster in progress ...'))
@@ -85,14 +81,10 @@ export class InstallJoinWizardPageComponent implements OnInit {
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'joined';
-            this.context.stepperVisible = true;
             // Jump to the 'Finish' step.
-            this.stepper!.selectedIndex = this.pageIndex.finish;
+            this.activeId = this.pageIndex.finish;
             break;
           default:
-            this.context.stepperVisible = true;
-            // Force linear mode.
-            this.stepper!.linear = true;
             break;
         }
       },
@@ -100,24 +92,8 @@ export class InstallJoinWizardPageComponent implements OnInit {
     );
   }
 
-  onAnimationDone(): void {
-    // Focus the first element with the 'autofocus' attribute.
-    if (this.stepper) {
-      // eslint-disable-next-line no-underscore-dangle
-      const stepContentId = this.stepper._getStepContentId(this.stepper.selectedIndex);
-      const stepContentElement = document.getElementById(stepContentId);
-      const element: HTMLElement | null | undefined = stepContentElement?.querySelector(
-        '[ng-reflect-autofocus=true]'
-      );
-      if (element && _.isFunction(element.focus)) {
-        element.focus();
-      }
-    }
-  }
-
   doJoin(): void {
     this.context.stage = 'joining';
-    this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, start joining existing cluster ...')));
     this.nodesService
       .join({
@@ -141,7 +117,6 @@ export class InstallJoinWizardPageComponent implements OnInit {
   }
 
   private handleError(err: any): void {
-    this.context.stepperVisible = true;
     this.blockUI.stop();
     this.notificationService.show(err.toString(), {
       type: 'error'
@@ -168,9 +143,8 @@ export class InstallJoinWizardPageComponent implements OnInit {
               break;
             case StatusStageEnum.ready:
               this.context.stage = 'joined';
-              this.context.stepperVisible = true;
               this.blockUI.stop();
-              this.stepper?.next();
+              this.activeId++;
               break;
           }
         },

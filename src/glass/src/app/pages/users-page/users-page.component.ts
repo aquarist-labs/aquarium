@@ -9,7 +9,6 @@ import { DialogComponent } from '~/app/shared/components/dialog/dialog.component
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
-import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
 import { User, UserService } from '~/app/shared/services/api/user.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
@@ -31,23 +30,21 @@ export class UsersPageComponent {
     this.columns = [
       {
         name: TEXT('Name'),
-        prop: 'username',
-        sortable: true
+        prop: 'username'
       },
       {
         name: TEXT('Full Name'),
-        prop: 'full_name',
-        sortable: true
+        prop: 'full_name'
       },
       {
         name: TEXT('Disabled'),
         prop: 'disabled',
-        sortable: true,
         cellTemplateName: 'checkIcon'
       },
       {
         name: '',
         prop: '',
+        unsortable: true,
         cellTemplateName: 'actionMenu',
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
@@ -77,9 +74,8 @@ export class UsersPageComponent {
         }
       },
       {
-        width: '40%',
-        data: {
-          title: TEXT('Add User'),
+        title: TEXT('Add User'),
+        formConfig: {
           fields: [
             {
               type: 'text',
@@ -112,9 +108,9 @@ export class UsersPageComponent {
               value: false,
               hint: TEXT('Temporarily prohibit the user from logging in.')
             }
-          ],
-          submitButtonText: TEXT('Add')
-        } as DeclarativeFormModalConfig
+          ]
+        },
+        submitButtonText: TEXT('Add')
       }
     );
   }
@@ -138,9 +134,8 @@ export class UsersPageComponent {
               }
             },
             {
-              width: '40%',
-              data: {
-                title: TEXT('Edit User'),
+              title: TEXT('Edit User'),
+              formConfig: {
                 fields: [
                   {
                     type: 'text',
@@ -168,9 +163,9 @@ export class UsersPageComponent {
                     value: user.disabled,
                     hint: TEXT('Temporarily prohibit the user from logging in.')
                   }
-                ],
-                submitButtonText: TEXT('Edit')
-              } as DeclarativeFormModalConfig
+                ]
+              },
+              submitButtonText: TEXT('Edit')
             }
           );
         }
@@ -192,14 +187,9 @@ export class UsersPageComponent {
               }
             },
             {
-              width: '40%',
-              data: {
-                type: 'yesNo',
-                icon: 'question',
-                message: TEXT(
-                  `Do you really want to delete user <strong>${data.username}</strong>?`
-                )
-              }
+              type: 'yesNo',
+              icon: 'question',
+              message: TEXT(`Do you really want to delete user <strong>${data.username}</strong>?`)
             }
           );
         }

@@ -1,23 +1,23 @@
 <div class="glass-hosts-page"
      fxLayout="column">
-  <div class="glass-hosts-page-actions"
+  <div class="page-actions"
        fxLayout="row"
        fxLayoutAlign="start center">
-    <button mat-flat-button
+    <button type="button"
+            class="btn"
             (click)="onShowToken()">
       <span translate>Authentication Token</span>
     </button>
   </div>
   <div class="glass-hosts-page-content">
-    <mat-card>
-      <mat-progress-bar *ngIf="!firstLoadComplete && loading"
-                        mode="indeterminate">
-      </mat-progress-bar>
-      <glass-datatable [data]="data"
-                       [columns]="columns"
-                       [autoReload]="30000"
-                       (loadData)="loadData()">
-      </glass-datatable>
-    </mat-card>
+    <div *ngIf="!firstLoadComplete && loading"
+         class="progress">
+      <div class="progress-bar bg-info indeterminate"></div>
+    </div>
+    <glass-datatable [data]="data"
+                     [columns]="columns"
+                     [autoReload]="30000"
+                     (loadData)="loadData()">
+    </glass-datatable>
   </div>
 </div>

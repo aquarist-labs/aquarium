@@ -1,5 +1,4 @@
-import { Component, Input } from '@angular/core';
-import { MatSidenav } from '@angular/material/sidenav';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
@@ -13,9 +12,8 @@ import { DialogService } from '~/app/shared/services/dialog.service';
   styleUrls: ['./top-bar.component.scss']
 })
 export class TopBarComponent {
-  // eslint-disable-next-line @angular-eslint/no-input-rename
-  @Input('navigationSidenav')
-  navigationSidenav!: MatSidenav;
+  @Output()
+  readonly toggleNavigation = new EventEmitter<any>();
 
   username: string | null;
 
@@ -27,8 +25,8 @@ export class TopBarComponent {
     this.username = this.authStorageService.getUsername();
   }
 
-  onToggleNavigationBar(): void {
-    this.navigationSidenav.toggle();
+  onToggleNavigation(): void {
+    this.toggleNavigation.emit();
   }
 
   onLogout(): void {
@@ -40,12 +38,9 @@ export class TopBarComponent {
         }
       },
       {
-        width: '40%',
-        data: {
-          type: 'yesNo',
-          icon: 'question',
-          message: TEXT('Do you really want to logout?')
-        }
+        type: 'yesNo',
+        icon: 'question',
+        message: TEXT('Do you really want to logout?')
       }
     );
   }

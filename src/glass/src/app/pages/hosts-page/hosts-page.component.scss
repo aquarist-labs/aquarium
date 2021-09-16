@@ -1,17 +1,13 @@
 @import 'styles.scss';
 
 .glass-hosts-page {
-  margin: 24px;
+  margin: $glass-margin;
 
-  .glass-hosts-page-actions {
+  .page-actions {
     margin-bottom: 8px;
+
     button {
-      @extend .glass-color-theme-primary;
-    }
-  }
-  .glass-hosts-page-content {
-    .mat-card {
-      padding: unset;
+      @extend .btn-outline-default;
     }
   }
 }

@@ -1,5 +1,19 @@
+/* eslint-disable no-underscore-dangle */
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   Input,
@@ -10,24 +24,24 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
-import { Sort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
+
+export enum SortDirection {
+  ascending = 'asc',
+  descending = 'desc'
+}
 
 @Component({
   selector: 'glass-datatable',
   templateUrl: './datatable.component.html',
   styleUrls: ['./datatable.component.scss']
 })
-export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(MatPaginator)
-  paginator?: MatPaginator;
-
+export class DatatableComponent implements OnInit, OnDestroy {
   @ViewChild('iconTpl', { static: true })
   iconTpl?: TemplateRef<any>;
   @ViewChild('checkIconTpl', { static: true })
@@ -41,10 +55,10 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   get data(): DatatableData[] {
-    return this.dataSource.data;
+    return this._data;
   }
   set data(data: DatatableData[]) {
-    this.dataSource.data = data;
+    this._data = data;
   }
 
   @Input()
@@ -53,6 +67,12 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
   // Set to 0 to disable pagination.
   @Input()
   pageSize = 25;
+
+  @Input()
+  sortHeader?: string;
+
+  @Input()
+  sortDirection: SortDirection.ascending | SortDirection.descending = SortDirection.ascending;
 
   @Input()
   hidePageSize = false;
@@ -67,11 +87,16 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
   loadData = new EventEmitter();
 
   // Internal
-  cellTemplates: Record<string, TemplateRef<any>> = {};
-  displayedColumns: string[] = [];
-  dataSource = new MatTableDataSource<DatatableData>([]);
+  public icons = Icon;
+  public page = 1;
+  public cellTemplates: Record<string, TemplateRef<any>> = {};
+  public displayedColumns: string[] = [];
 
+  protected _data: Array<DatatableData> = [];
   protected subscriptions: Subscription = new Subscription();
+
+  private sortableColumns: string[] = [];
+  private tableData: DatatableData[] = [];
 
   constructor(private ngZone: NgZone) {}
 
@@ -86,7 +111,7 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
             case 'actionMenu':
               column.name = '';
               column.prop = '_action'; // Add a none existing name here.
-              column.sortable = false;
+              column.unsortable = true;
               break;
           }
         }
@@ -103,16 +128,17 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
         );
       });
     }
+    this.sortableColumns = this.columns
+      .filter((c) => !c.unsortable)
+      .map((c) => this.getSortProp(c));
+    if (!this.sortHeader && this.sortableColumns.length > 0) {
+      this.sortHeader = this.sortableColumns[0];
+    }
+    this.prepareColumnStyle();
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-  }
-
-  ngAfterViewInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
   }
 
   initTemplates() {
@@ -133,14 +159,96 @@ export class DatatableComponent implements OnInit, AfterViewInit, OnDestroy {
     return value;
   }
 
-  sortData(sort: Sort): void {
-    if (!sort.active || sort.direction === '') {
+  updateSorting(c: DatatableColumn): void {
+    const prop = this.getSortProp(c);
+    if (!this.sortableColumns.includes(prop)) {
       return;
     }
-    this.data = _.orderBy(this.data, [sort.active], [sort.direction]);
+    if (prop === this.sortHeader) {
+      this.sortDirection =
+        this.sortDirection === SortDirection.descending
+          ? SortDirection.ascending
+          : SortDirection.descending;
+    } else {
+      this.sortHeader = prop;
+      this.sortDirection = SortDirection.ascending;
+    }
+  }
+
+  setHeaderClasses(column: DatatableColumn): string {
+    let css = column.css || '';
+    if (column.unsortable) {
+      return css;
+    }
+    css += ' sortable';
+    if (this.sortHeader !== this.getSortProp(column)) {
+      return css;
+    }
+    return css + ` sort-header ${this.sortDirection}`;
+  }
+
+  getHeaderIconCss(): string {
+    const css = 'mdi mdi-';
+    return this.sortDirection === SortDirection.ascending
+      ? css + 'sort-ascending'
+      : css + 'sort-descending';
   }
 
   reloadData(): void {
     this.loadData.emit();
+  }
+
+  get filteredData(): DatatableData[] {
+    const filtered = _.orderBy(this.data, [this.sortHeader], [this.sortDirection]).slice(
+      (this.page - 1) * this.pageSize,
+      (this.page - 1) * this.pageSize + this.pageSize
+    );
+    if (!_.isEqual(filtered, this.tableData)) {
+      this.tableData = filtered;
+    }
+    return this.tableData;
+  }
+
+  private getSortProp(column: DatatableColumn) {
+    return column.compareProp || column.prop;
+  }
+
+  private prepareColumnStyle() {
+    const customCols = this.columns.filter((c) => c.cols);
+    const availableCols = 12 - _.sumBy(customCols, (c) => c.cols as number);
+    const columnsToChange = this.columns.length - customCols.length;
+
+    this.colSanityCheck(availableCols, columnsToChange);
+    const autoColLength = columnsToChange === 0 ? 0 : Math.round(availableCols / columnsToChange);
+    const flexFillIndex = this.findFlexFillIndex(customCols, columnsToChange);
+    this.columns.forEach((column, index) => {
+      if (!column.cols) {
+        column.cols = autoColLength;
+      }
+      this.appendCss(column, index === flexFillIndex ? 'flex-fill' : `col-${column.cols}`);
+    });
+  }
+
+  private colSanityCheck(availableCols: number, columnsToChange: number) {
+    if (availableCols < 0 || (availableCols === 0 && columnsToChange >= 1)) {
+      throw new Error(
+        'Only 12 cols can be used in one row by bootstrap, please redefine the "DatatableColumn.cols" values'
+      );
+    }
+  }
+
+  private findFlexFillIndex(customCols: DatatableColumn[], columnsToChange: number): number {
+    return customCols.length === 0
+      ? this.columns.length - 1
+      : columnsToChange === 0
+      ? _.findIndex(
+          this.columns,
+          customCols.reduce((p, c) => (p.cols! < c.cols! ? c : p))
+        )
+      : _.findLastIndex(this.columns, (c) => !c.cols);
+  }
+
+  private appendCss(column: DatatableColumn, css: string) {
+    column.css = column.css ? `${column.css} ${css}` : css;
   }
 }

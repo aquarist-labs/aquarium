@@ -1,14 +1,26 @@
-<block-ui class="mat-typography">
-  <mat-sidenav-container autosize>
-    <mat-sidenav #navigationSidenav
-                 position="start"
-                 [mode]="sideNavMode"
-                 [opened]="sideNavOpened">
-      <glass-navigation-bar></glass-navigation-bar>
-    </mat-sidenav>
-    <mat-sidenav-content fxLayout="column">
-      <glass-top-bar [navigationSidenav]="navigationSidenav"></glass-top-bar>
-      <router-outlet></router-outlet>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+<block-ui>
+  <div class="glass-main-layout"
+       fxLayout="row"
+       fxLayoutAlign="start stretch">
+    <div class="glass-navigation-menu"
+         [ngClass]="{'visible': navigationVisible}"
+         fxLayout="column"
+         fxLayoutAlign="start none">
+      <nav>
+        <header fxLayout="row"
+                fxLayoutAlign="start center">
+          <div class="logo"></div>
+          <div class="title"></div>
+        </header>
+        <glass-navigation-bar></glass-navigation-bar>
+      </nav>
+    </div>
+    <div fxFlex
+         fxLayout="column">
+      <glass-top-bar (toggleNavigation)="navigationVisible = !navigationVisible"></glass-top-bar>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
 </block-ui>

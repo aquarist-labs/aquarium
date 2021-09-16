@@ -1,0 +1,227 @@
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+@use './defaults/colors' as dc;
+@use './defaults/fonts' as df;
+@use './defaults/variables' as dv;
+
+$primary: dc.$glass-color-theme-primary !default;
+$secondary: dc.$glass-color-theme-accent !default;
+$success: dc.$glass-color-success !default;
+$info: dc.$glass-color-info !default;
+$warning: dc.$glass-color-warning !default;
+$danger: dc.$glass-color-danger !default;
+$card-bg: dc.$eos-bc-gray-50;
+
+$h1-font-size: 2em !default;
+$h2-font-size: 1.75em !default;
+$h3-font-size: 1.5em !default;
+$h4-font-size: 1.3em !default;
+$h5-font-size: 1.15em !default;
+$h6-font-size: 1em !default;
+
+$font-family-sans-serif: df.$glass-font-family-sans-serif !default;
+$font-family-monospace: df.$glass-font-family-monospace !default;
+$headings-font-family: df.$glass-font-family-headings !default;
+
+@import '~bootstrap/scss/bootstrap';
+
+//////////////////////////////////////////////////////////////////////////////
+// Material Design Icons - https://materialdesignicons.com/bootstrap
+.mdi::before {
+  font-size: 24px;
+  line-height: 14px;
+}
+.btn .mdi::before {
+  position: relative;
+  top: 4px;
+}
+.btn-xs .mdi::before {
+  font-size: 18px;
+  top: 3px;
+}
+.btn-sm .mdi::before {
+  font-size: 18px;
+  top: 3px;
+}
+.dropdown-menu .mdi {
+  width: 18px;
+}
+.dropdown-menu .mdi::before {
+  position: relative;
+  top: 4px;
+  left: -8px;
+}
+.nav .mdi::before {
+  position: relative;
+  top: 4px;
+}
+.navbar .navbar-toggle .mdi::before {
+  position: relative;
+  top: 4px;
+  color: #fff;
+}
+.breadcrumb .mdi::before {
+  position: relative;
+  top: 4px;
+}
+.breadcrumb a:hover {
+  text-decoration: none;
+}
+.breadcrumb a:hover span {
+  text-decoration: underline;
+}
+.alert .mdi::before {
+  position: relative;
+  top: 4px;
+  margin-right: 2px;
+}
+.input-group-addon .mdi::before {
+  position: relative;
+  top: 3px;
+}
+.navbar-brand .mdi::before {
+  position: relative;
+  top: 2px;
+  margin-right: 2px;
+}
+.list-group-item .mdi::before {
+  position: relative;
+  top: 3px;
+  left: -3px;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Alert
+.alert {
+  padding: dv.$glass-padding;
+}
+
+.alert-success,
+.alert-info,
+.alert-warning,
+.alert-danger {
+  color: dc.$glass-color-white;
+}
+
+.alert-success {
+  background-color: dc.$glass-color-success;
+}
+
+.alert-info {
+  background-color: dc.$glass-color-info;
+}
+
+.alert-warning {
+  background-color: dc.$glass-color-warning;
+}
+
+.alert-danger {
+  background-color: dc.$glass-color-danger;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Button
+.btn-simple {
+  @extend .btn-link;
+
+  &:focus,
+  &.focus {
+    box-shadow: unset;
+  }
+}
+
+.btn-submit {
+  @extend .btn-warning;
+}
+
+.btn-outline-default {
+  @include button-outline-variant($input-border-color);
+  color: $gray-900;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Card
+.card,
+.card-header,
+.card-body,
+.card-footer {
+  background-color: dc.$glass-color-card-background;
+}
+
+.card {
+  border: 0;
+  border-radius: 0;
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-footer {
+  border-top: 0;
+}
+
+.card-actions {
+}
+
+.card-title {
+  @extend .h5;
+
+  margin-bottom: unset;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Forms
+.invalid-feedback {
+  display: block;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Modal
+.modal-title {
+  @extend .h5;
+
+  i {
+    vertical-align: middle;
+  }
+}
+.modal-actions {
+  @extend .float-right;
+
+  *:not(:first-child) {
+    @extend .ml-2;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Progress
+.progress {
+  .indeterminate {
+    animation: progress-loading 2s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+  }
+}
+
+@keyframes progress-loading {
+  0%,
+  100% {
+    transition-timing-function: cubic-bezier(1, 0, 0.65, 0.85);
+  }
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}

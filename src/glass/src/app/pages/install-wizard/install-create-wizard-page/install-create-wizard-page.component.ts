@@ -12,16 +12,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatStepper } from '@angular/material/stepper';
+import { Component, OnInit } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
-import _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { forkJoin } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard/models/install-wizard-context.type';
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
@@ -46,21 +45,19 @@ export class InstallCreateWizardPageComponent implements OnInit {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  @ViewChild(MatStepper, { static: false })
-  stepper?: MatStepper;
-
+  public icons = Icon;
+  public activeId = 1;
   public context: InstallCreateWizardContext = {
     config: {},
-    stage: 'unknown',
-    stepperVisible: false
+    stage: 'unknown'
   };
   public pageIndex = {
-    start: 0,
-    hostname: 1,
-    ntp: 2,
-    localDevices: 3,
-    installation: 4,
-    finish: 5
+    start: 1,
+    networking: 2,
+    time: 3,
+    devices: 4,
+    installation: 5,
+    finish: 6
   };
 
   constructor(
@@ -81,23 +78,20 @@ export class InstallCreateWizardPageComponent implements OnInit {
         switch (res.nodeStatus.node_stage) {
           case StatusStageEnum.bootstrapped:
             this.context.stage = 'bootstrapped';
-            this.context.stepperVisible = true;
             // Jump to the 'Finish' step.
-            this.stepper!.selectedIndex = this.pageIndex.finish;
+            this.activeId = this.pageIndex.finish;
             break;
           case StatusStageEnum.ready:
             this.context.stage = 'deployed';
-            this.context.stepperVisible = true;
             // Jump to the 'Finish' step.
-            this.stepper!.selectedIndex = this.pageIndex.finish;
+            this.activeId = this.pageIndex.finish;
             break;
           default:
-            this.context.stepperVisible = true;
             switch (res.deploymentStatusReply.stage) {
               case NodeStageEnum.bootstrapping:
                 this.context.stage = 'bootstrapping';
                 // Jump to the 'Installation' step.
-                this.stepper!.selectedIndex = this.pageIndex.installation;
+                this.activeId = this.pageIndex.installation;
                 // Immediately show the progress message.
                 this.blockUI.start(
                   translate(
@@ -111,36 +105,18 @@ export class InstallCreateWizardPageComponent implements OnInit {
               case NodeStageEnum.deployed:
                 this.context.stage = 'bootstrapped';
                 // Jump to the 'Finish' step.
-                this.stepper!.selectedIndex = this.pageIndex.finish;
+                this.activeId = this.pageIndex.finish;
                 break;
               case NodeStageEnum.none:
-                // Force linear mode.
-                this.stepper!.linear = true;
                 break;
             }
         }
       },
       error: (err) => {
         err.preventDefault();
-        this.stepper!.linear = true;
         this.handleError(err.message);
       }
     });
-  }
-
-  onAnimationDone(): void {
-    // Focus the first element with the 'autofocus' attribute.
-    if (this.stepper) {
-      // eslint-disable-next-line no-underscore-dangle
-      const stepContentId = this.stepper._getStepContentId(this.stepper.selectedIndex);
-      const stepContentElement = document.getElementById(stepContentId);
-      const element: HTMLElement | null | undefined = stepContentElement?.querySelector(
-        '[ng-reflect-autofocus=true]'
-      );
-      if (element && _.isFunction(element.focus)) {
-        element.focus();
-      }
-    }
   }
 
   /**
@@ -152,14 +128,12 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   finishDeployment(): void {
-    this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT(`Please wait, finishing deployment ...`)));
     this.nodesService.markDeploymentFinished().subscribe(
       (success: boolean) => {
         this.blockUI.stop();
-        this.context.stepperVisible = true;
         if (success) {
-          this.stepper!.next();
+          this.activeId++;
         } else {
           this.handleError(TEXT('Unable to finish deployment.'));
         }
@@ -172,7 +146,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   private handleError(message: string): void {
-    this.context.stepperVisible = true;
     this.blockUI.stop();
     this.notificationService.show(message, {
       type: 'error'
@@ -205,7 +178,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   private doBootstrap(): void {
-    this.context.stepperVisible = false;
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
     this.nodesService
       .deploymentStart({
@@ -232,7 +204,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
   }
 
   private pollBootstrapStatus(): void {
-    this.context.stepperVisible = false;
     this.nodesService
       .deploymentStatus()
       .pipe(
@@ -261,7 +232,6 @@ export class InstallCreateWizardPageComponent implements OnInit {
                 )
               );
               this.context.stage = 'bootstrapped';
-              this.context.stepperVisible = true;
               this.blockUI.stop();
               this.finishDeployment();
               break;

@@ -1,8 +1,8 @@
-.mat-dialog-title {
-  display: flex;
-  align-items: center;
+@import 'styles.scss';
 
-  .mat-icon {
-    margin-right: 10px;
-  }
+.modal-body .mdi::before {
+  // See '.alert .mdi::before' in scss/bootstrap.scss
+  position: relative;
+  top: 4px;
+  margin-right: 2px;
 }

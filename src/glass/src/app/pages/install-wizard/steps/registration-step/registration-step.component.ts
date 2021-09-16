@@ -42,13 +42,12 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
         name: 'address',
         type: 'text',
         label: TEXT('Address'),
-        value: '',
         validators: {
           required: true,
           patternType: 'hostAddress'
         },
         hint: TEXT('The IP address or FQDN of the main node.'),
-        onPaste: this.onAddressPaste
+        onPaste: this.onAddressPaste.bind(this)
       },
       {
         name: 'port',
@@ -63,9 +62,9 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
       },
       {
         name: 'token',
-        type: 'token',
+        type: 'text',
         label: TEXT('Token'),
-        value: '',
+        placeholder: 'xxxx-xxxx-xxxx-xxxx',
         validators: {
           required: true,
           pattern: /^[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}$/i
@@ -78,8 +77,9 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
   private subscription?: Subscription;
 
   ngAfterViewInit(): void {
-    if (this.form?.formGroup) {
-      this.subscription = this.form.formGroup.valueChanges.subscribe(() => this.updateContext());
+    if (this.context && this.form) {
+      // Populate form fields with current values.
+      this.form.patchValues(this.context.config);
     }
   }
 
@@ -89,6 +89,13 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
 
   get completed(): boolean {
     return this.form?.formGroup?.valid ?? false;
+  }
+
+  updateContext(): void {
+    if (this.context && this.completed) {
+      const values = this.form!.values;
+      _.merge(this.context.config, values);
+    }
   }
 
   /**
@@ -104,13 +111,7 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
     const matches = /^(.+):(\d+)$/.exec(text);
     if (matches && matches.length === 3) {
       event.preventDefault();
-      this.form?.formGroup?.patchValue({ address: matches[1], port: matches[2] });
-    }
-  }
-
-  private updateContext(): void {
-    if (this.context) {
-      _.merge(this.context.config, this.form!.values);
+      this.form?.patchValues({ address: matches[1], port: matches[2] });
     }
   }
 }

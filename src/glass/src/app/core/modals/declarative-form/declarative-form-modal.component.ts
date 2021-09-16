@@ -1,10 +1,11 @@
 import { Component, Inject, ViewChild } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import * as _ from 'lodash';
 
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormModalConfig } from '~/app/shared/models/declarative-form-modal-config.type';
+import { GLASS_DIALOG_DATA } from '~/app/shared/services/dialog.service';
 
 @Component({
   selector: 'glass-declarative-form-modal',
@@ -18,11 +19,13 @@ export class DeclarativeFormModalComponent {
   public config: DeclarativeFormModalConfig;
 
   constructor(
-    private matDialogRef: MatDialogRef<DeclarativeFormModalComponent>,
-    @Inject(MAT_DIALOG_DATA) data: DeclarativeFormModalConfig
+    public ngbActiveModal: NgbActiveModal,
+    @Inject(GLASS_DIALOG_DATA) config: DeclarativeFormModalConfig
   ) {
-    this.config = _.defaultsDeep(data, {
-      fields: [],
+    this.config = _.defaultsDeep(config, {
+      formConfig: {
+        fields: []
+      },
       submitButtonVisible: true,
       submitButtonText: TEXT('OK'),
       submitButtonResult: undefined,
@@ -32,10 +35,14 @@ export class DeclarativeFormModalComponent {
     });
   }
 
-  onOK(): void {
+  onCancel(): void {
+    this.ngbActiveModal.close(this.config.cancelButtonResult);
+  }
+
+  onSubmit(): void {
     const result = _.isUndefined(this.config.submitButtonResult)
       ? this.form.values
       : this.config.submitButtonResult;
-    this.matDialogRef.close(result);
+    this.ngbActiveModal.close(result);
   }
 }

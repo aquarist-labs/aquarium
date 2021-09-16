@@ -14,16 +14,26 @@
  */
 import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
 
 import { GlassValidators } from '~/app/shared/forms/validators';
 import {
   DeclarativeFormConfig,
+  FormButtonConfig,
   FormFieldConfig
 } from '~/app/shared/models/declarative-form-config.type';
 import { NotificationService } from '~/app/shared/services/notification.service';
+
+let nextUniqueId = 0;
 
 @Component({
   selector: 'glass-declarative-form',
@@ -52,8 +62,17 @@ export class DeclarativeFormComponent implements OnInit {
       if (_.isNumber(field.validators.max)) {
         validators.push(Validators.max(field.validators.max));
       }
+      if (_.isNumber(field.validators.minLength)) {
+        validators.push(Validators.minLength(field.validators.minLength));
+      }
+      if (_.isNumber(field.validators.maxLength)) {
+        validators.push(Validators.maxLength(field.validators.maxLength));
+      }
       if (_.isBoolean(field.validators.required) && field.validators.required) {
         validators.push(Validators.required);
+      }
+      if (_.isPlainObject(field.validators.requiredIf)) {
+        validators.push(GlassValidators.requiredIf(field.validators.requiredIf!));
       }
       if (_.isString(field.validators.pattern) || _.isRegExp(field.validators.pattern)) {
         validators.push(Validators.pattern(field.validators.pattern));
@@ -72,9 +91,13 @@ export class DeclarativeFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.config = _.defaultsDeep(this.config, {
+      id: `glass-declarative-form-${++nextUniqueId}`
+    });
     _.forEach(this.config?.fields, (field: FormFieldConfig) => {
       _.defaultsDeep(field, {
-        hasCopyToClipboardButton: false
+        hasCopyToClipboardButton: false,
+        placeholder: ''
       });
     });
     this.formGroup = this.createForm();
@@ -106,7 +129,36 @@ export class DeclarativeFormComponent implements OnInit {
     }
   }
 
+  onButtonClick(buttonConfig: FormButtonConfig) {
+    if (_.isFunction(buttonConfig.click)) {
+      buttonConfig.click(buttonConfig, this.values);
+    }
+  }
+
   get values(): Record<string, any> {
-    return this.formGroup ? this.formGroup.value : {};
+    return this.formGroup?.value ?? {};
+  }
+
+  get valid(): boolean {
+    return this.formGroup?.valid ?? false;
+  }
+
+  patchValues(values: Record<string, any>): void {
+    this.formGroup?.patchValue(values);
+  }
+
+  /**
+   * Reports whether the control with the given path has the error specified.
+   */
+  showError(
+    path: Array<string | number> | string,
+    fgd: FormGroupDirective,
+    errorCode?: string
+  ): boolean {
+    const control = fgd.form.get(path);
+    return control
+      ? (fgd.submitted || control.dirty) &&
+          (errorCode ? control.hasError(errorCode) : control.invalid)
+      : false;
   }
 }

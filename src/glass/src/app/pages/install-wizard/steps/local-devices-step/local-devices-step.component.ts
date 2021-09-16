@@ -17,6 +17,7 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import {
@@ -30,7 +31,7 @@ import {
 type TableEntry = {
   path?: string;
   type: string;
-  size: string;
+  size: number;
   useAs: string;
   isSystemDisk: boolean;
   isStorageDisk: boolean;
@@ -50,44 +51,34 @@ export class LocalDevicesStepComponent implements OnInit {
   @ViewChild('availableTpl', { static: true })
   public availableTpl!: TemplateRef<any>;
 
-  disks: TableEntry[] = [];
-  devicesColumns: DatatableColumn[] = [
-    {
-      name: '',
-      prop: '_',
-      cellTemplateName: 'icon',
-      cellTemplateConfig: { name: 'mdi:server' }
-    },
+  public icons = Icon;
+  public disks: TableEntry[] = [];
+  public devicesColumns: DatatableColumn[] = [
     {
       name: TEXT('Path'),
-      prop: 'path',
-      sortable: true
+      prop: 'path'
     },
     {
       name: TEXT('Type'),
-      prop: 'type',
-      sortable: true
+      prop: 'type'
     },
     {
       name: TEXT('Size'),
       prop: 'size',
-      sortable: true,
       pipe: new BytesToSizePipe()
     },
     {
       name: TEXT('Function'),
-      prop: 'useAs',
-      sortable: true
+      prop: 'useAs'
     }
   ];
 
   constructor(private nodesService: NodesService) {}
 
   ngOnInit(): void {
-    this.devicesColumns.push({
+    this.devicesColumns.unshift({
       name: TEXT('Available'),
       prop: 'isAvailable',
-      sortable: true,
       cellTemplate: this.availableTpl
     });
 
@@ -128,7 +119,7 @@ export class LocalDevicesStepComponent implements OnInit {
     }
     return {
       path: disk.path,
-      size: disk.size.toString(),
+      size: disk.size,
       type: typeStr,
       useAs: translate(TEXT('N/A')),
       isAvailable: false,

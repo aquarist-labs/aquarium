@@ -1,0 +1,7 @@
+@import 'styles.scss';
+
+.form-actions {
+  *:not(:first-child) {
+    @extend .ml-2;
+  }
+}

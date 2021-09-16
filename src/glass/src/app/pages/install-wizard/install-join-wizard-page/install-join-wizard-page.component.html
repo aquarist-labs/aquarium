@@ -1,145 +1,187 @@
-<div class="glass-install-join-wizard-page"
+<div class="glass-install-wizard-page"
      fxLayout="column"
-     fxLayoutAlign="center center">
-  <div class="glass-install-wizard-page-background"></div>
-  <div class="glass-install-wizard-page-content"
-       [ngClass]="{hidden: !context.stepperVisible}"
-       fxLayout="column"
-       fxLayoutAlign="center center">
-    <mat-card>
-      <mat-card-content>
-        <mat-horizontal-stepper #stepper
-                                linear="false"
-                                labelPosition="bottom"
-                                (animationDone)="onAnimationDone()">
-          <ng-template matStepperIcon="edit">
-            <mat-icon svgIcon="mdi:check"></mat-icon>
-          </ng-template>
+     fxLayoutAlign="start start">
+  <ul ngbNav
+      #nav="ngbNav"
+      [(activeId)]="activeId"
+      class="nav-tabs">
+    <li [ngbNavItem]="pageIndex.start"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.start }}-circle"></i>
+        <span class="ml-1"
+              translate>
+          Start
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <b translate>Welcome!</b>
+        <p translate>This wizard will guide you through the process to join this node with an existing cluster.</p>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-default"
+                  routerLink="/installer/install-mode">
+            <span translate>Cancel</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  (click)="nav.select(pageIndex.networking)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
 
-          <mat-step label="{{ 'Start' | translate }}">
-            <div class="glass-install-wizard-step-content">
-              <div fxLayout="column"
-                   fxLayoutAlign="center center">
-                <mat-icon class="glass-icon-4x"
-                          svgIcon="aquarium-logo">
-                </mat-icon>
-                <span translate>This wizard will guide you through the process to join this node with an existing cluster.</span>
-              </div>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button mat-icon-button
-                      matTooltip="{{ 'Back' | translate }}"
-                      class="mat-stepper-back"
-                      routerLink="/installer/install-mode">
-                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-              </button>
-              <button mat-button
-                      matStepperNext>
-                <span translate>Next</span>
-              </button>
-            </div>
-          </mat-step>
+    <li [ngbNavItem]="pageIndex.networking"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.networking }}-circle"></i>
+        <span class="ml-1"
+              translate>
+          Networking
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-hostname-step #networkingStep
+                             [context]="context">
+        </glass-hostname-step>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-default"
+                  (click)="networkingStep.updateContext(); nav.select(pageIndex.start)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  [disabled]="!networkingStep.completed"
+                  (click)="networkingStep.updateContext(); nav.select(pageIndex.devices)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
 
-          <mat-step label="{{ 'Networking' | translate }}"
-                    [completed]="hostnameStep.completed">
-            <div class="glass-install-wizard-step-content">
-              <glass-hostname-step #hostnameStep
-                                   [context]="context">
-              </glass-hostname-step>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button mat-icon-button
-                      matTooltip="{{ 'Back' | translate }}"
-                      matStepperPrevious>
-                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-              </button>
-              <button mat-button
-                      matStepperNext>
-                <span translate>Next</span>
-              </button>
-            </div>
-          </mat-step>
+    <li [ngbNavItem]="pageIndex.devices"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.devices }}-circle"></i>
+        <span class="ml-1"
+              translate>
+          Devices
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-local-devices-step></glass-local-devices-step>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-default"
+                  (click)="nav.select(pageIndex.networking)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  (click)="nav.select(pageIndex.registration)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
 
-          <mat-step label="{{ 'Devices' | translate }}">
-            <div class="glass-install-wizard-step-content">
-              <glass-local-devices-step></glass-local-devices-step>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button mat-icon-button
-                      matTooltip="{{ 'Back' | translate }}"
-                      matStepperPrevious>
-                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-              </button>
-              <button mat-button
-                      matStepperNext>
-                <span translate>Next</span>
-              </button>
-            </div>
-          </mat-step>
+    <li [ngbNavItem]="pageIndex.registration"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.registration }}-circle"></i>
+        <span class="ml-1"
+              translate>
+          Registration
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-registration-step #registrationStep
+                                 [context]="context">
+        </glass-registration-step>
+        <div class="nav-actions">
+          <button type="button"
+                  class="btn btn-outline-default"
+                  (click)="registrationStep.updateContext(); nav.select(pageIndex.devices)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  [disabled]="!registrationStep.completed"
+                  (click)="registrationStep.updateContext(); nav.select(pageIndex.join)">
+            <span translate>Next</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
 
-          <mat-step label="{{ 'Registration' | translate }}"
-                    [completed]="registerStep.completed">
-            <div class="glass-install-wizard-step-content">
-              <glass-registration-step #registerStep
-                                       [context]="context">
-              </glass-registration-step>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button mat-icon-button
-                      matTooltip="{{ 'Back' | translate }}"
-                      matStepperPrevious>
-                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-              </button>
-              <button mat-button
-                      matStepperNext>
-                <span translate>Next</span>
-              </button>
-            </div>
-          </mat-step>
+    <li [ngbNavItem]="pageIndex.join"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.join }}-circle"></i>
+        <span class="ml-1"
+              translate>
+          Join
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-alert-panel type="info"
+                           noColor>
+          <span translate>The system can now join the existing cluster.</span>
+        </glass-alert-panel>
+        <div class="nav-actions mt-3">
+          <button *ngIf="!['joining', 'joined'].includes(context.stage)"
+                  type="button"
+                  class="btn btn-outline-default"
+                  (click)="nav.select(pageIndex.registration)">
+            <span translate>Previous</span>
+          </button>
+          <button type="button"
+                  class="btn btn-submit ml-2"
+                  (click)="doJoin()">
+            <span translate>Join</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
 
-          <mat-step label="{{ 'Join' | translate }}">
-            <div class="glass-install-wizard-step-content">
-              <glass-alert-panel type="info">
-                <span translate>The system can now join the existing cluster.</span>
-              </glass-alert-panel>
-            </div>
-            <div class="glass-install-wizard-step-actions">
-              <button *ngIf="!['joining', 'joined'].includes(context.stage)"
-                      mat-icon-button
-                      matTooltip="{{ 'Back' | translate }}"
-                      matStepperPrevious>
-                <mat-icon svgIcon="mdi:arrow-left"></mat-icon>
-              </button>
-              <button mat-button
-                      class="glass-color-theme-accent"
-                      (click)="doJoin()">
-                <span translate>Join</span>
-              </button>
-            </div>
-          </mat-step>
+    <li [ngbNavItem]="pageIndex.finish"
+        [disabled]="true">
+      <a ngbNavLink
+         fxLayout="row"
+         fxLayoutAlign="start center">
+        <i class="mdi mdi-numeric-{{ pageIndex.finish }}-circle"></i>
+        <span class="ml-1"
+              translate>
+          Finish
+        </span>
+      </a>
+      <ng-template ngbNavContent>
+        <glass-alert-panel type="success"
+                           noColor>
+          <span translate>The node was successfully integrated into the cluster and is now ready to use. You can now open your dashboard by clicking the button below.</span>
+        </glass-alert-panel>
+        <div class="nav-actions mt-3">
+          <button type="button"
+                  class="btn btn-submit"
+                  routerLink="/dashboard">
+            <span translate>Go to Dashboard</span>
+          </button>
+        </div>
+      </ng-template>
+    </li>
+  </ul>
 
-          <mat-step label="{{ 'Finish' | translate }}">
-            <div class="glass-install-wizard-step-content">
-              <div fxLayout="column"
-                   fxLayoutAlign="center center">
-                <mat-icon class="glass-icon-4x"
-                          svgIcon="mdi:check-circle-outline">
-                </mat-icon>
-                <p class="glass-text-center">
-                  <span translate>The node was successfully integrated into the cluster and is now ready to use.</span>
-                  <br>
-                  <span translate>You can now open your dashboard by clicking the button below.</span>
-                </p>
-                <button mat-button
-                        class="glass-color-theme-accent"
-                        routerLink="/dashboard">
-                  <span translate>Go to Dashboard</span>
-                </button>
-              </div>
-            </div>
-          </mat-step>
-        </mat-horizontal-stepper>
-      </mat-card-content>
-    </mat-card>
-  </div>
+  <div [ngbNavOutlet]="nav"></div>
 </div>

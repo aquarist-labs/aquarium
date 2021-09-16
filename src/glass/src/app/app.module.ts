@@ -9,7 +9,6 @@ import { AppComponent } from '~/app/app.component';
 import { AppRoutingModule } from '~/app/app-routing.module';
 import { CoreModule } from '~/app/core/core.module';
 import { getCurrentLanguage, setTranslationService, TranslateHttpLoader } from '~/app/i18n.helper';
-import { MaterialModule } from '~/app/material.modules';
 import { PagesModule } from '~/app/pages/pages.module';
 import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-interceptor.service';
 
@@ -21,7 +20,6 @@ import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-in
     BrowserAnimationsModule,
     AppRoutingModule,
     CoreModule,
-    MaterialModule,
     PagesModule,
     ToastrModule.forRoot({
       positionClass: 'toast-bottom-center',

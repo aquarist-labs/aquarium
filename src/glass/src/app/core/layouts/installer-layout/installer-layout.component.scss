@@ -1,0 +1,67 @@
+@import 'styles.scss';
+
+.glass-installer-layout {
+  .sidebar {
+    background-color: $glass-color-theme-primary;
+    background-image: url('/assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg');
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    color: $glass-color-theme-primary-complementary;
+    max-width: 20rem;
+    min-width: 20rem;
+    padding: $glass-padding;
+
+    .header {
+      .logo {
+        background-image: url('/assets/images/aquarium-logo.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 3rem;
+        width: 3rem;
+      }
+
+      .title {
+        font-family: $glass-font-family-headings;
+        font-size: 2.5rem;
+        font-weight: lighter;
+        padding-left: $glass-padding;
+
+        &:after {
+          content: 'Aquarium';
+        }
+      }
+    }
+
+    .footer {
+      font-size: 0.75rem;
+
+      &:after {
+        content: '@2021 SUSE, LLC.';
+      }
+    }
+  }
+
+  .main {
+    .header {
+      background-color: $glass-color-whitesmoke;
+      height: $glass-menu-height;
+
+      ::ng-deep .btn {
+        color: $glass-color-black;
+      }
+
+      ::ng-deep .submenu {
+        a {
+          color: $glass-color-black;
+          pointer-events: none;
+        }
+      }
+    }
+
+    .content {
+      margin: $glass-margin;
+    }
+  }
+}

@@ -22,7 +22,14 @@ export class LoginPageComponent implements OnInit {
   form!: DeclarativeFormComponent;
 
   public config: DeclarativeFormConfig = {
-    id: 'loginPage',
+    buttonAlign: 'center',
+    buttons: [
+      {
+        type: 'submit',
+        text: TEXT('Sign in'),
+        click: this.onLogin.bind(this)
+      }
+    ],
     fields: [
       {
         name: 'username',

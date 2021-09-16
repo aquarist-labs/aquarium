@@ -1,0 +1,83 @@
+/*
+ * Project Aquarium's frontend (glass)
+ * Copyright (C) 2021 SUSE, LLC.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+@forward '../vendor/fonts';
+
+$glass-font-family-sans-serif: 'Lato', arial, helvetica, sans-serif;
+$glass-font-family-monospace: 'Roboto Mono', monospace;
+$glass-font-family-headings: 'Poppins', sans-serif;
+
+/* poppins-300 - latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/assets/fonts/poppins-v15-latin-300.eot'); /* IE9 Compat Modes */
+  src: local(''), url('/assets/fonts/poppins-v15-latin-300.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('/assets/fonts/poppins-v15-latin-300.woff2') format('woff2'),
+    /* Super Modern Browsers */ url('/assets/fonts/poppins-v15-latin-300.woff') format('woff'),
+    /* Modern Browsers */ url('/assets/fonts/poppins-v15-latin-300.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/assets/fonts/poppins-v15-latin-300.svg#Poppins') format('svg'); /* Legacy iOS */
+}
+/* poppins-500 - latin */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/assets/fonts/poppins-v15-latin-500.eot'); /* IE9 Compat Modes */
+  src: local(''), url('/assets/fonts/poppins-v15-latin-500.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('/assets/fonts/poppins-v15-latin-500.woff2') format('woff2'),
+    /* Super Modern Browsers */ url('/assets/fonts/poppins-v15-latin-500.woff') format('woff'),
+    /* Modern Browsers */ url('/assets/fonts/poppins-v15-latin-500.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/assets/fonts/poppins-v15-latin-500.svg#Poppins') format('svg'); /* Legacy iOS */
+}
+/* lato-regular - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/lato-v17-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local(''), url('/assets/fonts/lato-v17-latin-regular.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('/assets/fonts/lato-v17-latin-regular.woff2') format('woff2'),
+    /* Super Modern Browsers */ url('/assets/fonts/lato-v17-latin-regular.woff') format('woff'),
+    /* Modern Browsers */ url('/assets/fonts/lato-v17-latin-regular.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/assets/fonts/lato-v17-latin-regular.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* lato-700 - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/assets/fonts/lato-v17-latin-700.eot'); /* IE9 Compat Modes */
+  src: local(''), url('/assets/fonts/lato-v17-latin-700.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('/assets/fonts/lato-v17-latin-700.woff2') format('woff2'),
+    /* Super Modern Browsers */ url('/assets/fonts/lato-v17-latin-700.woff') format('woff'),
+    /* Modern Browsers */ url('/assets/fonts/lato-v17-latin-700.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/assets/fonts/lato-v17-latin-700.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* roboto-mono-regular - latin */
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/roboto-mono-v12-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local(''),
+    url('/assets/fonts/roboto-mono-v12-latin-regular.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */ url('/assets/fonts/roboto-mono-v12-latin-regular.woff2') format('woff2'),
+    /* Super Modern Browsers */ url('/assets/fonts/roboto-mono-v12-latin-regular.woff')
+      format('woff'),
+    /* Modern Browsers */ url('/assets/fonts/roboto-mono-v12-latin-regular.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/assets/fonts/roboto-mono-v12-latin-regular.svg#RobotoMono')
+      format('svg'); /* Legacy iOS */
+}

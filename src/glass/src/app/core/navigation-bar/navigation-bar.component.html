@@ -1,6 +1,7 @@
-<div class="glass-navigation-bar">
-  <mat-nav-list>
-    <glass-navigation-bar-item *ngFor="let item of navItems"
-                               [item]="item"></glass-navigation-bar-item>
-  </mat-nav-list>
-</div>
+<ul class="glass-navigation-bar"
+    ngbNav
+    orientation="vertical">
+  <glass-navigation-bar-item *ngFor="let item of navItems"
+                             [item]="item">
+  </glass-navigation-bar-item>
+</ul>

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 import { BlockUIModule } from 'ng-block-ui';
 
@@ -14,7 +15,6 @@ import { BreadcrumbsComponent } from '~/app/core/navigation-bar/breadcrumbs/brea
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
-import { MaterialModule } from '~/app/material.modules';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
@@ -32,7 +32,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     BlockUIModule.forRoot(),
     CommonModule,
     FlexLayoutModule,
-    MaterialModule,
+    NgbModule,
     RouterModule,
     DashboardModule,
     TranslateModule.forChild(),

@@ -1,47 +1,48 @@
 <div class="glass-dashboard-page"
      fxLayout="column">
-  <mat-toolbar fxLayout="row"
-               fxLayoutAlign="end center">
-    <button mat-icon-button
-            matTooltip="Settings"
-            [matMenuTriggerFor]="widgetsMenu">
-      <mat-icon svgIcon="mdi:cog"></mat-icon>
-    </button>
-  </mat-toolbar>
-  <gridster [options]="gridsterConfig">
-    <gridster-item *ngFor="let item of gridsterItems"
-                   [item]="item">
-      <ng-container [ngSwitch]="item.type">
-        <ng-template [ngSwitchCase]="'performance'">
-          <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'volumes'">
-          <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'health'">
-          <glass-health-dashboard-widget></glass-health-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'sysInfo'">
-          <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
-        </ng-template>
-        <ng-template [ngSwitchCase]="'hosts'">
-          <glass-hosts-dashboard-widget></glass-hosts-dashboard-widget>
-        </ng-template>
-      </ng-container>
-    </gridster-item>
-  </gridster>
-</div>
 
-<mat-menu #widgetsMenu="matMenu">
-  <button *ngFor="let widget of widgets | sortBy:['title']"
-          mat-menu-item
-          (click)="onToggleWidget(widget.id)">
-    <mat-icon *ngIf="!enabled.includes(widget.id)"
-              svgIcon="mdi:checkbox-blank-outline">
-    </mat-icon>
-    <mat-icon *ngIf="enabled.includes(widget.id)"
-              svgIcon="mdi:check-box-outline">
-    </mat-icon>
-    <span>{{ widget.title | translate }}</span>
-  </button>
-</mat-menu>
+  <div class="header">
+    <div ngbDropdown>
+      <button class="btn btn-outline-default"
+              ngbDropdownToggle
+              translate>
+        Settings
+      </button>
+      <div ngbDropdownMenu>
+        <button *ngFor="let widget of widgets | sortBy:['title']"
+                ngbDropdownItem
+                (click)="onToggleWidget(widget.id)">
+          <i *ngIf="!enabled.includes(widget.id)"
+             class="mdi mdi-checkbox-blank-outline mr-2">
+          </i>
+          <i *ngIf="enabled.includes(widget.id)"
+             class="mdi mdi-check-box-outline mr-2">
+          </i>
+          <span>{{ widget.title | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <gridster [options]="gridsterConfig">
+      <gridster-item *ngFor="let item of gridsterItems"
+                     [item]="item">
+        <ng-container [ngSwitch]="item.type">
+          <ng-template [ngSwitchCase]="'performance'">
+            <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
+          </ng-template>
+          <ng-template [ngSwitchCase]="'volumes'">
+            <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
+          </ng-template>
+          <ng-template [ngSwitchCase]="'health'">
+            <glass-health-dashboard-widget></glass-health-dashboard-widget>
+          </ng-template>
+          <ng-template [ngSwitchCase]="'sysInfo'">
+            <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
+          </ng-template>
+        </ng-container>
+      </gridster-item>
+    </gridster>
+  </div>
+</div>

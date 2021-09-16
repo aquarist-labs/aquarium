@@ -26,13 +26,11 @@ export class HostsPageComponent {
     this.columns = [
       {
         name: TEXT('Hostname'),
-        prop: 'hostname',
-        sortable: true
+        prop: 'hostname'
       },
       {
         name: TEXT('Address'),
-        prop: 'address',
-        sortable: true
+        prop: 'address'
       }
     ];
   }
@@ -48,12 +46,9 @@ export class HostsPageComponent {
   onShowToken(): void {
     this.nodesService.token().subscribe((res: TokenReply) => {
       this.dialogService.open(DeclarativeFormModalComponent, undefined, {
-        width: '40%',
-        data: {
-          title: TEXT('Authentication Token'),
-          subtitle: TEXT(
-            'Use this token to authenticate a new node when adding it to the cluster.'
-          ),
+        title: TEXT('Authentication Token'),
+        subtitle: TEXT('Use this token to authenticate a new node when adding it to the cluster.'),
+        formConfig: {
           fields: [
             {
               type: 'text',
@@ -63,10 +58,10 @@ export class HostsPageComponent {
               hasCopyToClipboardButton: true,
               class: 'glass-text-monospaced'
             }
-          ],
-          submitButtonVisible: false,
-          cancelButtonText: TEXT('Close')
-        }
+          ]
+        },
+        submitButtonVisible: false,
+        cancelButtonText: TEXT('Close')
       });
     });
   }

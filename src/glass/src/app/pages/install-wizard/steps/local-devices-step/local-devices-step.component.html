@@ -5,25 +5,21 @@
     The following devices have been identified in the system and will be automatically added to the storage management.
   </span>
   <glass-datatable [data]="disks"
-                   [columns]="devicesColumns"
-                   [pageSize]="5"
-                   [hidePageSize]="true">
+                   sortHeader="path"
+                   [columns]="devicesColumns">
   </glass-datatable>
 </div>
 
 <ng-template #availableTpl
              let-value="value"
              let-row="row">
-  <mat-icon *ngIf="value"
-            svgIcon="mdi:check">
-  </mat-icon>
-  <mat-icon *ngIf="!value"
-            class="glass-cursor-help"
-            svgIcon="mdi:minus"
-            [matBadge]="row.rejectedReasons.length"
-            matBadgeOverlap="true"
-            matBadgeColor="warn"
-            matBadgeSize="small"
-            [matTooltip]="row.rejectedReasons.join(', ')">
-  </mat-icon>
+  <i *ngIf="value"
+     [class]="icons.check">
+  </i>
+  <i *ngIf="!value"
+     class="glass-cursor-help"
+     [class]="icons.minus"
+     [title]="row.rejectedReasons.join(', ')">
+    <span class="ml-1 badge badge-danger">{{ row.rejectedReasons.length }}</span>
+  </i>
 </ng-template>

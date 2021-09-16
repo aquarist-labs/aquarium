@@ -30,14 +30,13 @@
               "src/favicon.ico",
               "src/favicon.svg",
               "src/favicon_180x180.png",
-              "src/assets",
-              {
-                "glob": "mdi.svg",
-                "input": "node_modules/@mdi/angular-material",
-                "output": "./assets"
-              }
+              "src/assets"
             ],
-            "styles": ["node_modules/ngx-toastr/toastr.css", "src/styles.scss"],
+            "styles": [
+              "node_modules/ngx-toastr/toastr.css",
+              "node_modules/@mdi/font/scss/materialdesignicons.scss",
+              "src/styles.scss"
+            ],
             "stylePreprocessorOptions": {
               "includePaths": ["src"]
             },

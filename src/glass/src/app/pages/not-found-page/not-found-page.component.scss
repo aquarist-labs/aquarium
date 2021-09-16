@@ -1,13 +1,15 @@
 @import 'styles.scss';
 
 .glass-not-found-page {
-  @extend .glass-color-theme-accent;
+  @extend .glass-color-theme-primary;
 
-  height: 100%;
-  width: 100%;
   background-image: url('/assets/images/isabel-galvez-i54owgDjXeY-unsplash.jpg');
   background-blend-mode: multiply;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
+
+  .text {
+    @extend .h1;
+  }
 }

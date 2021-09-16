@@ -15,28 +15,24 @@ export class VolumesDashboardWidgetComponent {
   columns: DatatableColumn[] = [
     {
       name: TEXT('Path'),
-      prop: 'path',
-      sortable: true
+      prop: 'path'
     },
     {
       name: TEXT('Serial'),
-      prop: 'device_id',
-      sortable: true
+      prop: 'device_id'
     },
     {
       name: TEXT('Vendor'),
-      prop: 'sys_api.vendor',
-      sortable: true
+      prop: 'sys_api.vendor'
     },
     {
       name: TEXT('Type'),
-      prop: 'human_readable_type',
-      sortable: true
+      prop: 'human_readable_type'
     },
     {
       name: TEXT('Size'),
       prop: 'sys_api.human_readable_size',
-      sortable: true
+      compareProp: 'sys_api.size'
     }
   ];
 

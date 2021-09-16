@@ -1,54 +1,59 @@
-<mat-toolbar class="glass-top-bar"
-             color="primary">
-  <button mat-icon-button
-          matTooltip="{{ 'Toggle navigation' | translate }}"
-          (click)="onToggleNavigationBar()">
-    <mat-icon svgIcon="mdi:menu"></mat-icon>
+<div class="glass-top-bar"
+     fxLayout="row"
+     fxLayoutAlign="start center">
+  <button class="btn btn-simple"
+          title="{{ 'Toggle navigation' | translate }}"
+          (click)="onToggleNavigation()">
+    <i class="mdi mdi-menu"></i>
   </button>
   <glass-breadcrumbs></glass-breadcrumbs>
   <span fxFlex></span>
   <glass-language-button></glass-language-button>
-  <button mat-icon-button
-          matTooltip="{{ 'Help' | translate }}"
-          [matMenuTriggerFor]="helpMenu">
-    <mat-icon svgIcon="mdi:help"></mat-icon>
-  </button>
-  <button mat-icon-button
-          matTooltip="{{ 'Logged in user' | translate }}"
-          [matMenuTriggerFor]="userMenu">
-    <mat-icon svgIcon="mdi:account"></mat-icon>
-  </button>
-</mat-toolbar>
-
-<mat-menu #helpMenu="matMenu">
-  <a href="https://aquarist-labs.io/"
-     target="_blank"
-     class="glass-text-no-decoration">
-    <button mat-menu-item>
-      <mat-icon svgIcon="mdi:web"></mat-icon>
-      <span translate>Website</span>
+  <div ngbDropdown>
+    <button class="btn btn-simple"
+            title="{{ 'Help' | translate }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-help-circle"></i>
     </button>
-  </a>
-  <a href="https://github.com/aquarist-labs/forum/discussions/"
-     target="_blank"
-     class="glass-text-no-decoration">
-    <button mat-menu-item>
-      <mat-icon svgIcon="mdi:forum"></mat-icon>
-      <span translate>Discussions</span>
+    <div ngbDropdownMenu>
+      <a ngbDropdownItem
+         href="https://aquarist-labs.io/"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-web mr-2"></i>
+          <span translate>Website</span>
+        </div>
+      </a>
+      <a ngbDropdownItem
+         href="https://github.com/aquarist-labs/forum/discussions/"
+         target="_blank">
+        <div>
+          <i class="mdi mdi-forum mr-2"></i>
+          <span translate>Discussions</span>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div ngbDropdown
+       display="dynamic"
+       placement="bottom-right">
+    <button class="btn btn-simple"
+            title="{{ 'Logged in user' | translate }}"
+            ngbDropdownToggle>
+      <i class="mdi mdi-account-circle"></i>
     </button>
-  </a>
-</mat-menu>
-
-<mat-menu #userMenu="matMenu">
-  <button mat-menu-item
-          disabled>
-    <mat-icon svgIcon="mdi:account"></mat-icon>
-    <span translate>Signed in as <b>{{ username }}</b></span>
-  </button>
-  <mat-divider></mat-divider>
-  <button mat-menu-item
-          (click)="onLogout()">
-    <mat-icon svgIcon="mdi:logout"></mat-icon>
-    <span translate>Logout</span>
-  </button>
-</mat-menu>
+    <div ngbDropdownMenu>
+      <div ngbDropdownItem
+           disabled>
+        <i class="mdi mdi-account-circle mr-2"></i>
+        <span translate>Signed in as <b>{{ username }}</b></span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <button ngbDropdownItem
+              (click)="onLogout()">
+        <i class="mdi mdi-logout mr-2"></i>
+        <span translate>Logout</span>
+      </button>
+    </div>
+  </div>
+</div>

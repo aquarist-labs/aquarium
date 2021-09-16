@@ -1,10 +1,13 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+
+import { Icon } from '~/app/shared/enum/icon.enum';
+import { GLASS_DIALOG_DATA } from '~/app/shared/services/dialog.service';
 
 export type DialogConfig = {
   type: 'ok' | 'okCancel' | 'yesNo';
-  icon?: 'info' | 'warn' | 'error' | 'danger' | 'question';
+  icon?: 'info' | 'warning' | 'danger' | 'question';
   title?: string;
   message: string;
 };
@@ -15,19 +18,24 @@ export type DialogConfig = {
   styleUrls: ['./dialog.component.scss']
 })
 export class DialogComponent implements OnInit {
-  config!: DialogConfig;
+  public config!: DialogConfig;
 
-  button1Text!: string;
-  button1Result?: any;
-  button1Class?: string;
-  button1Visible = false;
-  button2Text!: string;
-  button2Result?: any;
-  button2Visible = false;
-  icon?: string;
+  public button1Text!: string;
+  public button1Result?: any;
+  public button1Class?: string;
+  public button1Visible = false;
+  public button2Text!: string;
+  public button2Result?: any;
+  public button2Visible = false;
+  public icon?: string;
 
-  constructor(@Inject(MAT_DIALOG_DATA) data: DialogConfig) {
-    this.config = data;
+  private icons = Icon;
+
+  constructor(
+    public ngbActiveModal: NgbActiveModal,
+    @Inject(GLASS_DIALOG_DATA) config: DialogConfig
+  ) {
+    this.config = config;
   }
 
   ngOnInit(): void {
@@ -36,11 +44,13 @@ export class DialogComponent implements OnInit {
         this.button1Text = TEXT('OK');
         this.button1Result = true;
         this.button1Visible = true;
+        this.button1Class = 'btn-submit';
         break;
       case 'okCancel':
         this.button1Text = TEXT('OK');
         this.button1Result = true;
         this.button1Visible = true;
+        this.button1Class = 'btn-submit';
         this.button2Text = TEXT('Cancel');
         this.button2Result = false;
         this.button2Visible = true;
@@ -49,6 +59,7 @@ export class DialogComponent implements OnInit {
         this.button1Text = TEXT('Yes');
         this.button1Result = true;
         this.button1Visible = true;
+        this.button1Class = 'btn-submit';
         this.button2Text = TEXT('No');
         this.button2Result = false;
         this.button2Visible = true;
@@ -56,22 +67,22 @@ export class DialogComponent implements OnInit {
     }
     switch (this.config.icon) {
       case 'info':
-        this.icon = 'mdi:information-outline';
+        this.icon = this.icons.info;
         break;
-      case 'warn':
-        this.icon = 'mdi:alert-outline';
+      case 'warning':
+        this.icon = this.icons.warning;
         this.button1Class = 'glass-color-theme-warn';
         break;
-      case 'error':
-        this.icon = 'alert-circle-outline';
-        this.button1Class = 'glass-color-theme-error';
-        break;
       case 'danger':
-        this.icon = 'mdi:close-octagon';
+        this.icon = this.icons.danger;
         this.button1Class = 'glass-color-theme-danger';
         break;
       case 'question':
-        this.icon = 'mdi:help-circle-outline';
+        this.icon = this.icons.question;
     }
+  }
+
+  onButtonClick(result: any): void {
+    this.ngbActiveModal.close(result);
   }
 }

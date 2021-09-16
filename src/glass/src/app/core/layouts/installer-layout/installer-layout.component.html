@@ -1,3 +1,32 @@
-<block-ui class="mat-typography">
-  <router-outlet></router-outlet>
+<block-ui>
+  <div class="glass-installer-layout"
+       fxFlexFill
+       fxLayout="row"
+       fxLayoutAlign="start stretch">
+    <div class="sidebar"
+         fxLayout="column">
+      <div class="header"
+           fxLayout="row"
+           fxLayoutAlign="start center">
+        <div class="logo"></div>
+        <div class="title"></div>
+      </div>
+      <div fxFlex></div>
+      <div class="footer"></div>
+    </div>
+    <div class="main"
+         fxFlex
+         fxLayout="column">
+      <div class="header"
+           fxLayout="row"
+           fxLayoutAlign="start center">
+        <glass-breadcrumbs></glass-breadcrumbs>
+        <div fxFlex></div>
+        <glass-language-button></glass-language-button>
+      </div>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
 </block-ui>
