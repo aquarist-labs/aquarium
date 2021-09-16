@@ -15,7 +15,6 @@ import { BreadcrumbsComponent } from '~/app/core/navigation-bar/breadcrumbs/brea
 import { NavigationBarComponent } from '~/app/core/navigation-bar/navigation-bar.component';
 import { NavigationBarItemComponent } from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
 import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
-import { MaterialModule } from '~/app/material.modules';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
@@ -33,7 +32,6 @@ import { SharedModule } from '~/app/shared/shared.module';
     BlockUIModule.forRoot(),
     CommonModule,
     FlexLayoutModule,
-    MaterialModule,
     NgbModule,
     RouterModule,
     DashboardModule,

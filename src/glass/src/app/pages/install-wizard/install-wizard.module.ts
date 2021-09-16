@@ -20,7 +20,6 @@ import { RouterModule } from '@angular/router';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { MaterialModule } from '~/app/material.modules';
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
 import { HostnameStepComponent } from '~/app/pages/install-wizard/steps/hostname-step/hostname-step.component';
@@ -41,7 +40,6 @@ import { SharedModule } from '~/app/shared/shared.module';
   imports: [
     CommonModule,
     FlexLayoutModule,
-    MaterialModule,
     NgbNavModule,
     RouterModule,
     SharedModule,

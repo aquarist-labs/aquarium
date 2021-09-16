@@ -10,7 +10,6 @@ import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/hea
 import { PerformanceDashboardWidgetComponent } from '~/app/core/dashboard/widgets/performance-dashboard-widget/performance-dashboard-widget.component';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
 import { VolumesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/volumes-dashboard-widget/volumes-dashboard-widget.component';
-import { MaterialModule } from '~/app/material.modules';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
@@ -29,7 +28,6 @@ import { SharedModule } from '~/app/shared/shared.module';
   imports: [
     CommonModule,
     FlexLayoutModule,
-    MaterialModule,
     NgxChartsModule,
     SharedModule,
     RouterModule,

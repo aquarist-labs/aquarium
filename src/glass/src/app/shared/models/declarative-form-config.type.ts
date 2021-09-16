@@ -1,8 +1,9 @@
 export type FormFieldConfig = {
   name: string;
-  type: 'text' | 'number' | 'password' | 'token' | 'checkbox' | 'radio';
+  type: 'text' | 'number' | 'password' | 'checkbox' | 'radio';
   label?: string;
   value?: any;
+  placeholder?: string;
   readonly?: boolean;
   autofocus?: boolean;
   hint?: string;

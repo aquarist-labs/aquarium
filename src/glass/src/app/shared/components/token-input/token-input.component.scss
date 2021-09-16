@@ -1,9 +1,0 @@
-@import 'styles.scss';
-
-.separator {
-  @extend .mx-2;
-
-  &:before {
-    content: '-';
-  }
-}

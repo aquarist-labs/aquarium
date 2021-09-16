@@ -26,7 +26,7 @@ export class LoginPageComponent implements OnInit {
     buttons: [
       {
         type: 'submit',
-        text: TEXT('Login'),
+        text: TEXT('Sign in'),
         click: this.onLogin.bind(this)
       }
     ],

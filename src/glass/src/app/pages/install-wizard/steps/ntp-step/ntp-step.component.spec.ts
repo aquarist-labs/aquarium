@@ -13,7 +13,6 @@
  * GNU General Public License for more details.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
 
@@ -26,12 +25,7 @@ describe('NtpStepComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        PagesModule,
-        ToastrModule.forRoot(),
-        TranslateModule.forRoot()
-      ]
+      imports: [PagesModule, ToastrModule.forRoot(), TranslateModule.forRoot()]
     }).compileComponents();
   });
 

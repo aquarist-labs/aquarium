@@ -109,7 +109,8 @@
       <i class="mdi mdi-dots-vertical"></i>
     </button>
     <div ngbDropdownMenu>
-      <button ngbDropdownItem *ngFor="let item of items"
+      <button *ngFor="let item of items"
+              ngbDropdownItem
               (click)="item.callback(row)">
         <span>{{ item.title | translate }}</span>
       </button>

@@ -1,24 +1,5 @@
-@use '~@angular/material' as mat;
-
 @import 'src/scss/defaults';
 @import 'src/scss/bootstrap';
-
-@include mat.core();
-
-$glass-light-theme: mat.define-light-theme(
-  mat.define-palette($eos-green-palette),
-  mat.define-palette($eos-cerulean-palette),
-  mat.define-palette($eos-red-palette)
-);
-$glass-light-theme-inverse: mat.define-light-theme(
-  mat.define-palette($eos-cerulean-palette),
-  mat.define-palette($eos-green-palette),
-  mat.define-palette($eos-red-palette)
-);
-
-@include mat.all-component-themes($glass-light-theme);
-
-$mat-typography-config: mat.define-typography-config();
 
 .glass-color-theme-primary {
   color: $glass-color-theme-primary-complementary;
@@ -130,14 +111,6 @@ body {
   background: $glass-color-transparent-black !important;
 }
 
-// Sidenav
-.mat-sidenav-container {
-  height: 100%;
-}
-.mat-sidenav {
-  background-color: $eos-bc-gray-50;
-}
-
 // ngx-charts
 ngx-charts-advanced-pie-chart .advanced-pie-legend {
   .legend-items-container .legend-items {
@@ -154,9 +127,11 @@ ngx-charts-advanced-pie-chart .advanced-pie-legend {
       }
     }
   }
+
   .total-label {
     font-size: 12px;
   }
+
   .total-value {
     font-size: 20px;
   }
@@ -164,11 +139,9 @@ ngx-charts-advanced-pie-chart .advanced-pie-legend {
 
 // ngx-toastr
 .toast-container {
-  font-family: mat.font-family($mat-typography-config);
-  font-size: mat.font-size($mat-typography-config, body-1);
-
   .ngx-toastr {
     box-shadow: unset;
+
     &:hover {
       box-shadow: unset;
     }

@@ -1,6 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -13,13 +12,7 @@ describe('MainLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        CoreModule,
-        HttpClientTestingModule,
-        NoopAnimationsModule,
-        RouterTestingModule,
-        TranslateModule.forRoot()
-      ]
+      imports: [CoreModule, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 

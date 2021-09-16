@@ -2,7 +2,6 @@
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
@@ -21,7 +20,6 @@ describe('InstallCreateWizardPageComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        NoopAnimationsModule,
         PagesModule,
         RouterTestingModule,
         ToastrModule.forRoot(),

@@ -24,7 +24,6 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
 import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
@@ -43,9 +42,6 @@ export enum SortDirection {
   styleUrls: ['./datatable.component.scss']
 })
 export class DatatableComponent implements OnInit, OnDestroy {
-  @ViewChild(MatPaginator)
-  paginator?: MatPaginator;
-
   @ViewChild('iconTpl', { static: true })
   iconTpl?: TemplateRef<any>;
   @ViewChild('checkIconTpl', { static: true })

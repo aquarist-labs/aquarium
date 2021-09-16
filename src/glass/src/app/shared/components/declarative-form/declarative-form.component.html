@@ -29,6 +29,7 @@
                      autocapitalize="none"
                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [formControlName]="field.name"
+                     [placeholder]="field.placeholder"
                      [readonly]="field.readonly"
                      [required]="field.validators?.required!"
                      [autofocus]="field.autofocus"
@@ -88,6 +89,7 @@
                      type="text"
                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [formControlName]="field.name"
+                     [placeholder]="field.placeholder"
                      [readonly]="field.readonly"
                      [required]="field.validators?.required!"
                      [autofocus]="field.autofocus"
@@ -147,6 +149,7 @@
                      inputmode="numeric"
                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
                      [formControlName]="field.name"
+                     [placeholder]="field.placeholder"
                      [readonly]="field.readonly"
                      [required]="field.validators?.required!"
                      [autofocus]="field.autofocus"
@@ -179,29 +182,6 @@
                   class="invalid-feedback"
                   translate>
               The value cannot exceed {{ field.validators?.max }}.
-            </span>
-          </div>
-        </ng-template>
-
-        <ng-template [ngSwitchCase]="'token'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <label *ngIf="field.label"
-                   class="col-form-label">
-              {{ field.label | translate }}
-            </label>
-            <glass-token-input [formControlName]="field.name"
-                               [required]="field.validators?.required!"
-                               (paste)="onPaste(field, $event)">
-            </glass-token-input>
-            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
-                   class="form-text text-muted"
-                   [innerHTML]="field.hint | translate | sanitize:'html'">
-            </small>
-            <span *ngIf="showError(field.name, frm, 'required')"
-                  class="invalid-feedback"
-                  translate>
-              This field is required.
             </span>
           </div>
         </ng-template>

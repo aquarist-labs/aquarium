@@ -62,8 +62,9 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
       },
       {
         name: 'token',
-        type: 'token',
+        type: 'text',
         label: TEXT('Token'),
+        placeholder: 'xxxx-xxxx-xxxx-xxxx',
         validators: {
           required: true,
           pattern: /^[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}$/i

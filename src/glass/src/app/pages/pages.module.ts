@@ -7,7 +7,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { GridsterModule } from 'angular-gridster2';
 
 import { CoreModule } from '~/app/core/core.module';
-import { MaterialModule } from '~/app/material.modules';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
@@ -31,7 +30,6 @@ import { SharedModule } from '~/app/shared/shared.module';
     CoreModule,
     FlexLayoutModule,
     GridsterModule,
-    MaterialModule,
     NgbModule,
     RouterModule,
     SharedModule,
