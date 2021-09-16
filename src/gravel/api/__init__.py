@@ -34,8 +34,11 @@ class JWTAuthSchema(OAuth2PasswordBearer):
             # Fallback: Try to get it from the headers.
             token = await super().__call__(request)
         # Decode token and do the following checks:
-        jwt_mgr = JWTMgr(state.gstate.config.options.auth)
-        raw_token: JWT = jwt_mgr.get_raw_access_token(token)
+        try:
+            jwt_mgr = JWTMgr(state.gstate.config.options.auth)
+            raw_token: JWT = jwt_mgr.get_raw_access_token(token)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=str(e))
         # - Is the token revoked?
         deny_list = JWTDenyList(state.gstate.store)
         await deny_list.load()
