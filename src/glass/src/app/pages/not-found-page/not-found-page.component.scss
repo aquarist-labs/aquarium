@@ -9,6 +9,14 @@
   background-repeat: no-repeat;
   background-position: center center;
 
+  .logo {
+    background-image: url('/assets/images/aquarium-logo.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    height: 6rem;
+    width: 6rem;
+  }
+
   .text {
     @extend .h1;
   }

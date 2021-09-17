@@ -1,5 +1,9 @@
 @import 'src/scss/defaults';
+
+@import 'src/scss/blockui';
 @import 'src/scss/bootstrap';
+@import 'src/scss/ngx-charts';
+@import 'src/scss/ngx-toastr';
 
 .glass-color-theme-primary {
   color: $glass-color-theme-primary-complementary;
@@ -81,81 +85,12 @@
   cursor: help;
 }
 
-.glass-icon-2x,
-.glass-icon-3x,
-.glass-icon-4x {
-  line-height: 1;
-}
-.glass-icon-2x {
-  font-size: 2em;
-}
-.glass-icon-3x {
-  font-size: 3em;
-}
-.glass-icon-4x {
-  font-size: 4em;
-}
-
 html,
 body {
   height: 100%;
 }
 body {
-  margin: 0;
   background-color: $glass-color-body-background;
   font-family: $glass-font-family-sans-serif;
-}
-
-// BlockUI
-.block-ui-wrapper {
-  background: $glass-color-transparent-black !important;
-}
-
-// ngx-charts
-ngx-charts-advanced-pie-chart .advanced-pie-legend {
-  .legend-items-container .legend-items {
-    overflow: initial;
-    .legend-item {
-      .item-value {
-        font-size: 16px;
-      }
-      .item-percent {
-        font-size: 16px;
-      }
-      .item-label {
-        font-size: 12px;
-      }
-    }
-  }
-
-  .total-label {
-    font-size: 12px;
-  }
-
-  .total-value {
-    font-size: 20px;
-  }
-}
-
-// ngx-toastr
-.toast-container {
-  .ngx-toastr {
-    box-shadow: unset;
-
-    &:hover {
-      box-shadow: unset;
-    }
-  }
-}
-.toast-error {
-  background-color: $glass-color-danger;
-}
-.toast-success {
-  background-color: $glass-color-success;
-}
-.toast-info {
-  background-color: $glass-color-info;
-}
-.toast-warning {
-  background-color: $glass-color-warning;
+  margin: 0;
 }

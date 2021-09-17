@@ -26,6 +26,7 @@
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/favicon.svg",
@@ -33,8 +34,11 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/ngx-toastr/toastr.css",
+              "node_modules/@fontsource/lato",
+              "node_modules/@fontsource/poppins",
+              "node_modules/@fontsource/roboto-mono",
               "node_modules/@mdi/font/scss/materialdesignicons.scss",
+              "node_modules/ngx-toastr/toastr.css",
               "src/styles.scss"
             ],
             "stylePreprocessorOptions": {

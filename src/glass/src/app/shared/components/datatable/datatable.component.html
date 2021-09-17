@@ -29,31 +29,40 @@
   </tbody>
 </table>
 <div class="d-flex float-right">
-  <select *ngIf="!hidePageSize"
-          class="custom-select mr-2"
-          [(ngModel)]="pageSize"
-          (ngModelChange)="reloadData()">
-    <option [ngValue]="5"
-            translate>
-      5 items per page
-    </option>
-    <option [ngValue]="10"
-            translate>
-      10 items per page
-    </option>
-    <option [ngValue]="25"
-            translate>
-      25 items per page
-    </option>
-    <option [ngValue]="50"
-            translate>
-      50 items per page
-    </option>
-    <option [ngValue]="100"
-            translate>
-      100 items per page
-    </option>
-  </select>
+  <div *ngIf="!hidePageSize"
+       ngbDropdown>
+    <button class="btn btn-outline-default mr-2"
+            ngbDropdownToggle>
+      {{ pageSize + ' ' + ('items per page' | translate) }}
+    </button>
+    <div ngbDropdownMenu>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(5)"
+              translate>
+        5 items per page
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(10)"
+              translate>
+        10 items per page
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(25)"
+              translate>
+        25 items per page
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(50)"
+              translate>
+        50 items per page
+      </button>
+      <button ngbDropdownItem
+              (click)="onPageSizeChange(100)"
+              translate>
+        100 items per page
+      </button>
+    </div>
+  </div>
   <ngb-pagination [collectionSize]="data.length"
                   [(page)]="page"
                   [pageSize]="pageSize"

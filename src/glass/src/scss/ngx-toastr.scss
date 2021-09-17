@@ -1,0 +1,23 @@
+@use './defaults/colors' as dc;
+
+.toast-container {
+  .ngx-toastr {
+    box-shadow: unset;
+
+    &:hover {
+      box-shadow: unset;
+    }
+  }
+}
+.toast-error {
+  background-color: dc.$glass-color-danger;
+}
+.toast-success {
+  background-color: dc.$glass-color-success;
+}
+.toast-info {
+  background-color: dc.$glass-color-info;
+}
+.toast-warning {
+  background-color: dc.$glass-color-warning;
+}

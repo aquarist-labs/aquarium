@@ -3,8 +3,8 @@
 .glass-main-layout {
   height: 100%;
 
-  .glass-navigation-menu {
-    background-color: $glass-color-whitesmoke;
+  .navigation {
+    background-color: $glass-color-menu-background;
     margin-left: -15rem;
     max-width: 15rem;
     min-width: 15rem;
@@ -15,13 +15,14 @@
     }
 
     header {
-      color: $glass-color-white;
-      background-color: $glass-color-menu-background;
-      height: $glass-menu-height;
+      color: $glass-color-site-header-text;
+      background-color: $glass-color-site-header-background;
+      height: $glass-site-header-height;
       padding-left: 1.5rem;
 
       .logo {
         background-image: url('/assets/images/aquarium-logo.svg');
+        background-position-y: center;
         background-repeat: no-repeat;
         background-size: contain;
         height: 2rem;

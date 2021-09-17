@@ -2,7 +2,7 @@
   <div class="glass-main-layout"
        fxLayout="row"
        fxLayoutAlign="start stretch">
-    <div class="glass-navigation-menu"
+    <div class="navigation"
          [ngClass]="{'visible': navigationVisible}"
          fxLayout="column"
          fxLayoutAlign="start none">
@@ -15,9 +15,12 @@
         <glass-navigation-bar></glass-navigation-bar>
       </nav>
     </div>
-    <div fxFlex
+    <div class="main"
+         fxFlex
          fxLayout="column">
-      <glass-top-bar (toggleNavigation)="navigationVisible = !navigationVisible"></glass-top-bar>
+      <header>
+        <glass-top-bar (toggleNavigation)="navigationVisible = !navigationVisible"></glass-top-bar>
+      </header>
       <div class="content">
         <router-outlet></router-outlet>
       </div>

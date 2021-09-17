@@ -22,7 +22,7 @@ $success: dc.$glass-color-success !default;
 $info: dc.$glass-color-info !default;
 $warning: dc.$glass-color-warning !default;
 $danger: dc.$glass-color-danger !default;
-$card-bg: dc.$eos-bc-gray-50;
+$card-bg: dc.$glass-color-gray-50;
 
 $h1-font-size: 2em !default;
 $h2-font-size: 1.75em !default;
@@ -34,6 +34,9 @@ $h6-font-size: 1em !default;
 $font-family-sans-serif: df.$glass-font-family-sans-serif !default;
 $font-family-monospace: df.$glass-font-family-monospace !default;
 $headings-font-family: df.$glass-font-family-headings !default;
+$table-accent-bg: dc.$glass-color-table-accent-background !default;
+$component-active-color: dc.$glass-color-theme-primary-complementary;
+$component-active-bg: dc.$glass-color-theme-primary;
 
 @import '~bootstrap/scss/bootstrap';
 
@@ -143,7 +146,7 @@ $headings-font-family: df.$glass-font-family-headings !default;
 }
 
 .btn-submit {
-  @extend .btn-warning;
+  @include button-variant(dc.$glass-color-btn-submit, dc.$glass-color-btn-submit);
 }
 
 .btn-outline-default {
