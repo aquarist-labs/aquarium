@@ -55,11 +55,11 @@ routines:
         sudo systemctl start libvirtd
     - name: create foo
       command: |
-        source aquarium/venv/bin/activate
+        source aquarium/tools/venv/bin/activate
         cd aquarium && ./tools/aqua create foo
     - name: start foo
       command: |
-        source aquarium/venv/bin/activate
+        source aquarium/tools/venv/bin/activate
         cd aquarium && ./tools/aqua start foo --conservative
     - name: dump aquarium service log
       command: |

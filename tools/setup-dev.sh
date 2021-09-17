@@ -353,34 +353,24 @@ git submodule update --init || exit 1
 [[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
   ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
-if [ -d venv ] ; then
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+if [ -d $SCRIPT_DIR/venv ] ; then
     echo
     echo "Detected an existing virtual environment:"
-    echo "  > $(realpath venv)"
+    echo "  > $(realpath $SCRIPT_DIR/venv)"
     if yes_no "Blow it away"; then
-        rm -rf venv || exit $?
+        rm -rf $SCRIPT_DIR/venv || exit $?
     fi
     echo
 fi
 
-# We need system site packages because librados python bindings are only
-# available as a package, they're not on pypi (and Tim thinks they probably
-# never will be).
-# However, if we set --system-site-packages on creation, the required
-# dependencies may not be installed properly if they already exist in the
-# developers environment.
-# Instead, first create an isolated venv, install the requirements, then
-# enable system packages for future venv activations.
-# This will ensure if someone uses it inside the image, they will be able
-# to fall back to system packages to get librados.
-$PYTHON -m venv venv || exit 1
+# Set up Virtual Env for dev tools
+$PYTHON -m venv $SCRIPT_DIR/venv || exit 1
 
-source venv/bin/activate
-pip install -r src/requirements.txt -U || exit 1
+source $SCRIPT_DIR/venv/bin/activate
+pip install -r $SCRIPT_DIR/requirements.txt -U || exit 1
 deactivate
-
-# Modify pyenv.cfg to enable system packages from now onwards.
-sed -i 's/include-system-site-packages = false/include-system-site-packages = true/g' venv/pyvenv.cfg
 
 pushd src/glass &>/dev/null
 npm ci || exit 1
