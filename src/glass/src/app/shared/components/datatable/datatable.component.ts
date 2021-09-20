@@ -209,7 +209,12 @@ export class DatatableComponent implements OnInit, OnDestroy {
     return this.tableData;
   }
 
-  private getSortProp(column: DatatableColumn) {
+  onPageSizeChange(pageSize: number): void {
+    this.pageSize = pageSize;
+    this.reloadData();
+  }
+
+  private getSortProp(column: DatatableColumn): string {
     return column.compareProp || column.prop;
   }
 

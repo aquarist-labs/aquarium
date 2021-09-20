@@ -9,6 +9,7 @@ import {
 } from 'angular-gridster2';
 import * as _ from 'lodash';
 
+import { Icon } from '~/app/shared/enum/icon.enum';
 import { DashboardWidgetConfig } from '~/app/shared/models/dashboard-widget.model';
 import { LocalStorageService } from '~/app/shared/services/local-storage.service';
 
@@ -18,7 +19,7 @@ import { LocalStorageService } from '~/app/shared/services/local-storage.service
   styleUrls: ['./dashboard-page.component.scss']
 })
 export class DashboardPageComponent {
-  gridsterConfig: GridsterConfig = {
+  public gridsterConfig: GridsterConfig = {
     setGridSize: true,
     gridType: GridType.Fixed,
     compactType: CompactType.CompactLeftAndUp,
@@ -64,7 +65,8 @@ export class DashboardPageComponent {
       this.saveSettings();
     }
   };
-  gridsterItems: Array<GridsterItem> = [];
+  public gridsterItems: Array<GridsterItem> = [];
+  public icons = Icon;
 
   // New dashboard widgets must be added here. Don't forget to enhance
   // the template to render the new widget.

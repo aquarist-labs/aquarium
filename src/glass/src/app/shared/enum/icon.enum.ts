@@ -6,5 +6,7 @@ export enum Icon {
   hint = 'mdi mdi-lightbulb-on-outline',
   question = 'mdi mdi-help-circle-outline',
   check = 'mdi mdi-check',
-  minus = 'mdi mdi-minus'
+  minus = 'mdi mdi-minus',
+  checkboxBlank = 'mdi mdi-checkbox-blank-outline',
+  checkboxMarked = 'mdi mdi-checkbox-marked-outline'
 }

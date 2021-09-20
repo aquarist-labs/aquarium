@@ -13,10 +13,10 @@
                 ngbDropdownItem
                 (click)="onToggleWidget(widget.id)">
           <i *ngIf="!enabled.includes(widget.id)"
-             class="mdi mdi-checkbox-blank-outline mr-2">
+             class="{{ icons.checkboxBlank }} mr-1">
           </i>
           <i *ngIf="enabled.includes(widget.id)"
-             class="mdi mdi-check-box-outline mr-2">
+             class="{{ icons.checkboxMarked }} mr-1">
           </i>
           <span>{{ widget.title | translate }}</span>
         </button>

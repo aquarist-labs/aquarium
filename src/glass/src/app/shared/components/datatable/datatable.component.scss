@@ -1,5 +1,6 @@
 th.sortable {
   cursor: pointer;
+
   & > i {
     padding-left: 0.25em;
     font-size: 1.25em;
@@ -7,12 +8,16 @@ th.sortable {
   }
 }
 
-.dropdown-toggle {
-  text-decoration: none;
-  &:focus {
-    box-shadow: none;
-  }
-  &::after {
-    display: none;
+td {
+  .dropdown-toggle {
+    text-decoration: none;
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &::after {
+      display: none;
+    }
   }
 }
