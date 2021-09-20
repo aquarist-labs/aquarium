@@ -7,4 +7,5 @@ pytest-cov
 pytest-datadir
 pytest-mock
 requests
+types-psutil
 types-PyYAML

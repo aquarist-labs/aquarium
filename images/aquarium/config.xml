@@ -178,6 +178,7 @@
         <package name="python38-dbm"/>
         <package name="python38-requests"/>
         <package name="python38-PyYAML"/>
+        <package name="python38-psutil"/>
         <package name="python3-rados"/>
         <archive name="aquarium.tar.gz"/>
         <archive name="root.tar.gz"/>
