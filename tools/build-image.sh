@@ -61,6 +61,7 @@ error_exit() {
 }
 
 imgtype="vagrant"
+ostype="Tumbleweed"
 build_name="aquarium"
 clean=0
 
