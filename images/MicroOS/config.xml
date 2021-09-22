@@ -765,6 +765,7 @@
         <package name="live-add-yast-repos"/>
         <!-- Apparently zypper (?) doesn't like having multiple patterns with the same name,
              so avoid using namedCollection at least for basesystem -->
+        <package name="patterns-microos-base"/>
         <package name="patterns-microos-basesystem"/>
         <package name="patterns-microos-base-zypper"/>
         <package name="patterns-base-bootloader"/>
@@ -907,7 +908,9 @@
         <!-- Avoid libressl -->
         <package name="openssl"/>
 
-        <!-- Aquarium required : not sure needed -->
+        <!-- Aquarium required : podman -->
+	<package name="btrfsprogs"/>
+	<package name="fuse-overlayfs"/>
         <package name="udev"/>
         <package name="xz"/>
         <package name="grep"/>
@@ -933,7 +936,7 @@
         <!-- So that https repos work for image package downloads -->
         <package name="ca-certificates-mozilla"/>
         <!-- TODO: Use the proper flavors once available -->
-        <package name="MicroOS-release-dvd"/>
+        <package name="MicroOS-release"/>
     </packages>
 
 
