@@ -26,6 +26,7 @@ export class DialogComponent implements OnInit {
   public button1Visible = false;
   public button2Text!: string;
   public button2Result?: any;
+  public button2Class?: string;
   public button2Visible = false;
   public icon?: string;
 
@@ -39,6 +40,8 @@ export class DialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.button1Class = 'btn-outline-default';
+    this.button2Class = 'btn-outline-default';
     switch (this.config.type) {
       case 'ok':
         this.button1Text = TEXT('OK');
@@ -71,11 +74,11 @@ export class DialogComponent implements OnInit {
         break;
       case 'warning':
         this.icon = this.icons.warning;
-        this.button1Class = 'glass-color-theme-warn';
+        this.button1Class = `${this.button1Class} glass-color-theme-warn`;
         break;
       case 'danger':
         this.icon = this.icons.danger;
-        this.button1Class = 'glass-color-theme-danger';
+        this.button1Class = `${this.button1Class} glass-color-theme-danger`;
         break;
       case 'question':
         this.icon = this.icons.question;

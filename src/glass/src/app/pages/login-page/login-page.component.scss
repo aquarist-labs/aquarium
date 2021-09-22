@@ -1,6 +1,8 @@
 @import 'styles.scss';
 
 .glass-login-page {
+  background-color: $glass-color-whitesmoke;
+
   .sidebar {
     background-color: $glass-color-theme-primary;
     background-image: url('/assets/images/qijin-xu-pSmXVhWr9kE-unsplash.jpg');
@@ -44,20 +46,11 @@
   }
 
   .main {
-    background-color: $glass-color-whitesmoke;
-
     .header {
       height: $glass-site-header-height;
 
       ::ng-deep .btn {
         color: $glass-color-black;
-      }
-
-      ::ng-deep .submenu {
-        a {
-          color: $glass-color-black;
-          pointer-events: none;
-        }
       }
     }
   }

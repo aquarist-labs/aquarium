@@ -20,13 +20,14 @@
   <div class="modal-actions">
     <button *ngIf="button2Visible"
             type="button"
-            class="btn btn-outline-default"
+            class="btn"
+            [class]="button2Class"
             (click)="onButtonClick(button2Result)">
       {{ button2Text | translate }}
     </button>
     <button *ngIf="button1Visible"
             type="button"
-            class="btn btn-outline-default"
+            class="btn"
             [class]="button1Class"
             (click)="onButtonClick(button1Result)">
       {{ button1Text | translate }}
