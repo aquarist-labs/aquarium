@@ -13,11 +13,14 @@
     background-image: url('/assets/images/aquarium-logo.svg');
     background-repeat: no-repeat;
     background-size: contain;
+    margin-bottom: 1rem;
     height: 6rem;
     width: 6rem;
   }
 
   .text {
     @extend .h1;
+
+    margin-bottom: 1rem;
   }
 }

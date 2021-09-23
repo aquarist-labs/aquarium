@@ -40,7 +40,7 @@ export class TopBarComponent {
       {
         type: 'yesNo',
         icon: 'question',
-        message: TEXT('Do you really want to logout?')
+        message: TEXT('Do you really want to sign out?')
       }
     );
   }
