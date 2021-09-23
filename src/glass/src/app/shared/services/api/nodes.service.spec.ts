@@ -31,12 +31,6 @@ describe('NodesService', () => {
     expect(req.request.method).toBe('POST');
   });
 
-  it('should call token', () => {
-    service.token().subscribe();
-    const req = httpTesting.expectOne('api/nodes/token');
-    expect(req.request.method).toBe('GET');
-  });
-
   it('should call deployment start', () => {
     service
       .deploymentStart({

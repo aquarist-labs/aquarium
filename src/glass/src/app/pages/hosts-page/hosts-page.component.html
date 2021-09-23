@@ -1,14 +1,5 @@
 <div class="glass-hosts-page"
      fxLayout="column">
-  <div class="page-actions"
-       fxLayout="row"
-       fxLayoutAlign="start center">
-    <button type="button"
-            class="btn"
-            (click)="onShowToken()">
-      <span translate>Authentication Token</span>
-    </button>
-  </div>
   <div class="glass-hosts-page-content">
     <div *ngIf="!firstLoadComplete && loading"
          class="progress">

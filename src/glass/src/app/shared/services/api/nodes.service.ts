@@ -104,13 +104,6 @@ export class NodesService {
   }
 
   /**
-   * Obtain the cluster's token.
-   */
-  token(): Observable<TokenReply> {
-    return this.http.get<TokenReply>(`${this.url}/token`);
-  }
-
-  /**
    * Start node deployment.
    */
   deploymentStart(request: DeploymentStartRequest): Observable<DeploymentStartReply> {
