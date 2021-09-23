@@ -54,7 +54,7 @@ describe('DatatableComponent', () => {
     const pipe = {
       transform: (value: any) => value
     };
-    const pipeSpy = spyOn(pipe, 'transform').and.returnValue('bar');
+    const pipeSpy = jest.spyOn(pipe, 'transform').mockReturnValue('bar');
     component.columns = [
       {
         name: 'Foo',

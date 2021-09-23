@@ -103,9 +103,7 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
             "scripts": []

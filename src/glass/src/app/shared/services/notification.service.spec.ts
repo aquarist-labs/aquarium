@@ -1,8 +1,9 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
 
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { SharedModule } from '~/app/shared/shared.module';
+import { TestingModule } from '~/app/testing.module';
 
 describe('NotificationService', () => {
   let service: NotificationService;
@@ -10,9 +11,11 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [SharedModule, ToastrModule.forRoot()]
+      imports: [SharedModule, TestingModule, ToastrModule.forRoot()]
     });
     toastrService = TestBed.inject(ToastrService);
+    jest.spyOn(toastrService, 'info');
+    jest.spyOn(toastrService, 'error');
     service = TestBed.inject(NotificationService);
   });
 
@@ -21,29 +24,29 @@ describe('NotificationService', () => {
   });
 
   it('should show notification [1]', fakeAsync(() => {
-    spyOn(toastrService, 'info');
     service.show('foo', { duration: 2000, type: 'info' });
     tick(5);
     expect(toastrService.info).toHaveBeenCalledWith('foo', undefined, {
       timeOut: 2000
     });
+    flush();
   }));
 
   it('should show notification [2]', fakeAsync(() => {
-    spyOn(toastrService, 'info');
     service.show('bar');
     tick(5);
     expect(toastrService.info).toHaveBeenCalledWith('bar', undefined, {
       timeOut: 5000
     });
+    flush();
   }));
 
   it('should show notification [3]', fakeAsync(() => {
-    spyOn(toastrService, 'error');
     service.show('baz', { type: 'error' });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledWith('baz', undefined, {
       timeOut: 5000
     });
+    flush();
   }));
 });

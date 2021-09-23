@@ -12,15 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '~/app/core/core.module';
-
-import { NavigationBarItemComponent, NavItem } from './navigation-bar-item.component';
+import {
+  NavigationBarItemComponent,
+  NavItem
+} from '~/app/core/navigation-bar/navigation-bar-item/navigation-bar-item.component';
+import { TestingModule } from '~/app/testing.module';
 
 describe('NavigationBarItemComponent', () => {
   let component: NavigationBarItemComponent;
@@ -40,7 +42,17 @@ describe('NavigationBarItemComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, HttpClientTestingModule, RouterTestingModule, TranslateModule.forRoot()]
+      imports: [
+        CoreModule,
+        RouterTestingModule.withRoutes([
+          {
+            path: 'itemroute',
+            redirectTo: '/'
+          }
+        ]),
+        TestingModule,
+        TranslateModule.forRoot()
+      ]
     }).compileComponents();
   });
 
@@ -49,6 +61,7 @@ describe('NavigationBarItemComponent', () => {
     component = fixture.componentInstance;
     component.item = item;
     router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate');
     fixture.detectChanges();
   });
 
@@ -61,13 +74,11 @@ describe('NavigationBarItemComponent', () => {
   });
 
   it('should navigate if no children defined', () => {
-    spyOn(router, 'navigate');
     component.itemClicked(item);
     expect(router.navigate).toHaveBeenCalledWith(['/itemroute']);
   });
 
   it('shouldn\'t navigate and show subs if defined', () => {
-    spyOn(router, 'navigate');
     component.itemClicked(itemSubs);
     expect(router.navigate).not.toHaveBeenCalled();
     expect(component.showSub).toBe(true);

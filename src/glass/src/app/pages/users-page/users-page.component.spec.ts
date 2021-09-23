@@ -11,7 +11,6 @@ describe('UsersPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [UsersPageComponent],
       imports: [HttpClientTestingModule, PagesModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
