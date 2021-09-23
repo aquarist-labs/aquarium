@@ -10,5 +10,5 @@ declare global {
  * Press the first found button with the given text.
  */
 Cypress.Commands.add('clickButton', (text: string) => {
-  return cy.get(`button:contains("${text}")`).filter(':visible').click();
+  return cy.get(`button:contains("${text}")`).should('be.visible').click();
 });
