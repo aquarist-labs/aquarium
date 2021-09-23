@@ -11,7 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from typing import List
+import asyncio
+from enum import Enum
 
 import psutil
 from pydantic import BaseModel, Field
@@ -27,11 +28,17 @@ AQUARIUM_MIN_MEMORY_GB = 2
 AQUARIUM_MIN_ROOT_DISK_GB = 10
 
 
+class HardwareQualifiedEnum(int, Enum):
+    QUALIFIED = 0
+    ERROR = 1
+
+
 class CPUQualifiedModel(BaseModel):
     qualified: bool = Field("The CPU is sufficient")
     min_cpu: int = Field("Minimum number of CPU's")
     actual_cpu: int = Field("Actual number of CPU's")
     error: str = Field("CPU didn't meet requirements")
+    status: HardwareQualifiedEnum = Field(HardwareQualifiedEnum.QUALIFIED)
 
 
 class MemoryQualifiedModel(BaseModel):
@@ -39,6 +46,7 @@ class MemoryQualifiedModel(BaseModel):
     min_mem: int = Field("Minimum amount of memory (GB)")
     actual_mem: int = Field("Actual amount of memory (GB)")
     error: str = Field("Memory didn't meet requirements")
+    status: HardwareQualifiedEnum = Field(HardwareQualifiedEnum.QUALIFIED)
 
 
 class RootDiskQualifiedModel(BaseModel):
@@ -46,11 +54,16 @@ class RootDiskQualifiedModel(BaseModel):
     min_disk: int = Field("Minimum size of root disk (GB)")
     actual_disk: int = Field("Actual size of root disk (GB)")
     error: str = Field("Root disk didn't meet requirements")
+    status: HardwareQualifiedEnum = Field(HardwareQualifiedEnum.QUALIFIED)
 
 
 class LocalhostQualifiedModel(BaseModel):
-    qualified: bool = Field("The localhost passes validation")
-    errors: List[str] = []
+    all_qualified: bool = Field("The localhost passes validation")
+    cpu_qualified: CPUQualifiedModel = Field("CPU qualification details")
+    mem_qualified: MemoryQualifiedModel = Field("Memory qualification details")
+    root_disk_qualified: RootDiskQualifiedModel = Field(
+        "Root disk qualification details"
+    )
 
 
 async def validate_cpu() -> CPUQualifiedModel:
@@ -61,6 +74,7 @@ async def validate_cpu() -> CPUQualifiedModel:
     min_cpu: int = AQUARIUM_MIN_CPU
     actual_cpu: int = psutil.cpu_count()
     error: str = ""
+    status: HardwareQualifiedEnum = HardwareQualifiedEnum.QUALIFIED
 
     if actual_cpu < min_cpu:
         qualified = False
@@ -68,11 +82,14 @@ async def validate_cpu() -> CPUQualifiedModel:
             "The node does not have a sufficient number of CPU cores. "
             "Required: %d, Actual: %d." % (min_cpu, actual_cpu)
         )
+        status = HardwareQualifiedEnum.ERROR
+
     return CPUQualifiedModel(
         qualified=qualified,
         min_cpu=min_cpu,
         actual_cpu=actual_cpu,
         error=error,
+        status=status,
     )
 
 
@@ -86,6 +103,7 @@ async def validate_memory() -> MemoryQualifiedModel:
     # NOTE(jhesketh): We round down to the nearest GB
     actual_mem: int = int(psutil.virtual_memory().total / 1024 / 1024 / 1024)
     error: str = ""
+    status: HardwareQualifiedEnum = HardwareQualifiedEnum.QUALIFIED
 
     if actual_mem < min_mem:
         qualified = False
@@ -93,11 +111,13 @@ async def validate_memory() -> MemoryQualifiedModel:
             "The node does not have a sufficient memory. "
             "Required: %d, Actual: %d." % (min_mem, actual_mem)
         )
+        status = HardwareQualifiedEnum.ERROR
     return MemoryQualifiedModel(
         qualified=qualified,
         min_mem=min_mem,
         actual_mem=actual_mem,
         error=error,
+        status=status,
     )
 
 
@@ -114,6 +134,7 @@ async def validate_root_disk() -> RootDiskQualifiedModel:
     # NOTE(jhesketh): We round down to the nearest GB
     actual_disk: int = int(psutil.disk_usage("/").total / 1024 / 1024 / 1024)
     error: str = ""
+    status: HardwareQualifiedEnum = HardwareQualifiedEnum.QUALIFIED
 
     if actual_disk < min_disk:
         qualified = False
@@ -121,11 +142,13 @@ async def validate_root_disk() -> RootDiskQualifiedModel:
             "The node does not have sufficient space on the root disk. "
             "Required: %d, Actual: %d." % (min_disk, actual_disk)
         )
+        status = HardwareQualifiedEnum.ERROR
     return RootDiskQualifiedModel(
         qualified=qualified,
         min_disk=min_disk,
         actual_disk=actual_disk,
         error=error,
+        status=status,
     )
 
 
@@ -134,26 +157,26 @@ async def localhost_qualified() -> LocalhostQualifiedModel:
     Validates whether the localhost is fully qualified (ie, meets all minium
     requirements).
     """
-    qualified: bool = True
-    errors: List = []
+    all_qualified: bool = True
 
-    qualified_cpu: CPUQualifiedModel = await validate_cpu()
-    if not qualified_cpu.qualified:
-        qualified = False
-        errors.append(qualified_cpu.error)
+    cputask = asyncio.create_task(validate_cpu())
+    memtask = asyncio.create_task(validate_memory())
+    disktask = asyncio.create_task(validate_root_disk())
 
-    qualified_mem: MemoryQualifiedModel = await validate_memory()
-    if not qualified_mem.qualified:
-        qualified = False
-        errors.append(qualified_mem.error)
-
-    qualified_disk: RootDiskQualifiedModel = await validate_root_disk()
-    if not qualified_disk.qualified:
-        qualified = False
-        errors.append(qualified_disk.error)
+    cpu_qualified: CPUQualifiedModel = await cputask
+    mem_qualified: MemoryQualifiedModel = await memtask
+    root_disk_qualified: RootDiskQualifiedModel = await disktask
+    if not (
+        cpu_qualified.qualified
+        and mem_qualified.qualified
+        and root_disk_qualified.qualified
+    ):
+        all_qualified = False
 
     result = LocalhostQualifiedModel(
-        qualified=qualified,
-        errors=errors,
+        all_qualified=all_qualified,
+        cpu_qualified=cpu_qualified,
+        mem_qualified=mem_qualified,
+        root_disk_qualified=root_disk_qualified,
     )
     return result
