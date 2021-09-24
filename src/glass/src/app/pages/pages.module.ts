@@ -13,6 +13,7 @@ import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-
 import { InstallWelcomePageComponent } from '~/app/pages/install-welcome-page/install-welcome-page.component';
 import { InstallWizardModule } from '~/app/pages/install-wizard/install-wizard.module';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
+import { NetworkPageComponent } from '~/app/pages/network-page/network-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 import { SharedModule } from '~/app/shared/shared.module';
@@ -25,7 +26,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     HostsPageComponent,
     LoginPageComponent,
     UsersPageComponent,
-    InstallWelcomePageComponent
+    InstallWelcomePageComponent,
+    NetworkPageComponent
   ],
   imports: [
     CommonModule,

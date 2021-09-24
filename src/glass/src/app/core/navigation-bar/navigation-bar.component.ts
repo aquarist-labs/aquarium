@@ -39,6 +39,11 @@ export class NavigationBarComponent implements OnInit {
       name: TEXT('Hosts'),
       icon: 'mdi mdi-server-network',
       route: '/dashboard/hosts'
+    },
+    {
+      name: TEXT('Network'),
+      icon: 'mdi mdi-lan',
+      route: '/dashboard/network'
     }
   ];
 
