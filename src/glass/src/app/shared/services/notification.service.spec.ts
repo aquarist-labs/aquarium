@@ -14,8 +14,8 @@ describe('NotificationService', () => {
       imports: [SharedModule, TestingModule, ToastrModule.forRoot()]
     });
     toastrService = TestBed.inject(ToastrService);
-    jest.spyOn(toastrService, 'info');
-    jest.spyOn(toastrService, 'error');
+    jest.spyOn(toastrService, 'info').mockImplementation();
+    jest.spyOn(toastrService, 'error').mockImplementation();
     service = TestBed.inject(NotificationService);
   });
 

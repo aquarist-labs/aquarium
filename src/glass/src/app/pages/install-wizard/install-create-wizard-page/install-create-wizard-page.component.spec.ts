@@ -34,7 +34,7 @@ describe('InstallCreateWizardPageComponent', () => {
     component = fixture.componentInstance;
     httpTesting = TestBed.inject(HttpTestingController);
     toastrService = TestBed.inject(ToastrService);
-    jest.spyOn(toastrService, 'error');
+    jest.spyOn(toastrService, 'error').mockImplementation();
     fixture.detectChanges();
   });
 
