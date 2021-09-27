@@ -25,32 +25,4 @@ if ! /usr/sbin/cephadm --help >/dev/null ; then
   exit 1
 fi
 
-
-mkdir /var/lib/containers
-# we need nameservers to resolve the names for podman
-echo "nameserver 1.1.1.1" > /etc/resolv.conf
-
-# and we need a basic running system too
-mount -t sysfs none /sys
-mount -t devtmpfs none /dev
-mount -t tmpfs none /dev/shm
-mount -t proc none /proc
-mount -t tmpfs none /run
-
-# setting "--events-backend none" means podman doesn't try
-# (and fail) to log a "system refresh" event to the journal
-# /usr/bin/podman --events-backend none pull quay.io/coreos/etcd:latest
-# we don't get to use cephadm directly because it will
-# try running a container inside the chroot, and that
-# fails with a bang.
-# /usr/bin/podman --events-backend none pull docker.io/ceph/ceph:v16
-
-# cleanup
-umount /run
-umount /proc
-umount /dev/shm
-umount /dev
-umount /sys
-rm /etc/resolv.conf
-
 exit 0
