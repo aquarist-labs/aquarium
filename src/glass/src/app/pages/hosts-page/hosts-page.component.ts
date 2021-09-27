@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import { finalize } from 'rxjs/operators';
 
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
@@ -37,10 +38,16 @@ export class HostsPageComponent {
 
   loadData(): void {
     this.loading = true;
-    this.orchService.hosts().subscribe((data) => {
-      this.data = data;
-      this.loading = this.firstLoadComplete = true;
-    });
+    this.orchService
+      .hosts()
+      .pipe(
+        finalize(() => {
+          this.loading = this.firstLoadComplete = true;
+        })
+      )
+      .subscribe((data) => {
+        this.data = data;
+      });
   }
 
   onShowToken(): void {

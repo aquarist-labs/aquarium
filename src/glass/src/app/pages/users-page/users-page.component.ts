@@ -53,10 +53,16 @@ export class UsersPageComponent {
 
   loadData(): void {
     this.loading = true;
-    this.usersService.list().subscribe((data) => {
-      this.data = data;
-      this.loading = this.firstLoadComplete = true;
-    });
+    this.usersService
+      .list()
+      .pipe(
+        finalize(() => {
+          this.loading = this.firstLoadComplete = true;
+        })
+      )
+      .subscribe((data: User[]) => {
+        this.data = data;
+      });
   }
 
   onAdd(): void {
