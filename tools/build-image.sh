@@ -150,7 +150,7 @@ case ${ostype} in
     MicroOS)
         kiwi_conf_dir=MicroOS
         case ${imgtype} in
-            vagrant) profile="Vagrant" type="oem";;
+            vagrant) profile="ContainerHost-Vagrant" type="oem";;
             virtualbox) profile="VirtualBox" type="oem";;
             self-install) profile="ContainerHost-SelfInstall" type="oem";;
             *)
