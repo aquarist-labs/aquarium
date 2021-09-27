@@ -23,7 +23,7 @@ export enum WidgetHealthStatus {
 })
 export class WidgetComponent implements OnInit, OnDestroy {
   @Input()
-  title = '';
+  widgetTitle = '';
   @Input()
   loadData?: () => Observable<any>;
   @Input()
