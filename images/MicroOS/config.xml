@@ -10,170 +10,111 @@
     </description>
     <profiles>
         <!-- Aquarium and ceph packages stuff -->
-        <profile name="Aquarium-base" description="Aquarium and Ceph base requirements"/>
+        <profile
+            name="Aquarium-base"
+            description="Aquarium and Ceph base requirements"
+        />
 
-        <!-- MicroOS Added - Copy mostly from openSUSE-MicroOS build and added the ceph bit -->
+        <!--
+            MicroOS Added - Copy mostly from openSUSE-MicroOS build and added
+            the ceph bits
+        -->
+        
         <!-- Flavors -->
-        <profile name="ContainerHost" description="Aquarium + MicroOS with container runtime (podman)"/>
-        <profile name="k3s" description="Aquarium + MicroOS with k3s"/>
-        <profile name="Kubic-kubeadm" description="Aquarium + MicroOS with CRI-O and kubeadm"/>
+        <profile
+            name="ContainerHost"
+            description="Aquarium + MicroOS with container runtime (podman)"
+        />
+
         <!-- Platforms -->
-        <profile name="kvm-and-xen" description="kvm-and-xen" arch="x86_64,aarch64">
+        <profile name="kvm-and-xen" description="kvm-and-xen" arch="x86_64">
             <requires profile="Aquarium-base"/>
-	</profile>
+        </profile>
         <profile name="VMware" description="VMware for x86_64" arch="x86_64">
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="MS-HyperV" description="Hyper-V for x86_64" arch="x86_64">
+        </profile>
+        <profile
+            name="MS-HyperV"
+            description="Hyper-V for x86_64"
+            arch="x86_64"
+        >
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="OpenStack-Cloud" description="OpenStack Cloud" arch="x86_64,aarch64">
+        </profile>
+        <profile
+            name="OpenStack-Cloud"
+            description="OpenStack Cloud"
+            arch="x86_64"
+        >
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="DigitalOcean-Cloud" description="DigitalOcean Cloud" arch="x86_64">
+        </profile>
+        <profile
+            name="DigitalOcean-Cloud"
+            description="DigitalOcean Cloud"
+            arch="x86_64"
+        >
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="VirtualBox" description="VirtualBox for x86_64" arch="x86_64">
+        </profile>
+        <profile
+            name="VirtualBox"
+            description="VirtualBox for x86_64"
+            arch="x86_64"
+        >
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="Pine64" description="Pine64" arch="aarch64">
+        </profile>        
+        <profile name="Vagrant" description="Vagrant for x86_64" arch="x86_64">
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="RaspberryPi" description="RaspberryPi (3+, aarch64)" arch="aarch64">
+        </profile>
+        <profile
+            name="SelfInstall"
+            description="Self Installing Image"
+            arch="x86_64"
+        >
             <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="RaspberryPi2" description="RaspberryPi2 (armv7)" arch="armv7l">
-            <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="Rock64" description="Rock64" arch="aarch64">
-            <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="Vagrant" description="Vagrant for x86_64" arch="x86_64,aarch64">
-            <requires profile="Aquarium-base"/>
-	</profile>
-        <profile name="SelfInstall" description="Self Installing Image" arch="x86_64,aarch64">
-            <requires profile="Aquarium-base"/>
-	</profile>
+        </profile>
         <profile name="onie" description="ONIE Installer Image" arch="x86_64">
             <requires profile="Aquarium-base"/>
-	</profile>
+        </profile>
 
         <!-- Images (flavor + platform) -->
-        <profile name="ContainerHost-kvm-and-xen" description="Aquarium + MicroOS with Podman for KVM and HVM Xen" arch="x86_64,aarch64">
+        <profile
+            name="ContainerHost-kvm-and-xen"
+            description="Aquarium + MicroOS with Podman for KVM and HVM Xen"
+            arch="x86_64"
+        >
             <requires profile="kvm-and-xen"/>
             <requires profile="ContainerHost"/>
         </profile>
-        <profile name="ContainerHost-VMware" description="Aquarium + MicroOS with Podman for VMware" arch="x86_64">
+        <profile
+            name="ContainerHost-VMware"
+            description="Aquarium + MicroOS with Podman for VMware"
+            arch="x86_64"
+        >
             <requires profile="VMware"/>
             <requires profile="ContainerHost"/>
         </profile>
-        <profile name="ContainerHost-MS-HyperV" description="Aquarium + MicroOS with Podman for Hyper-V" arch="x86_64">
+        <profile
+            name="ContainerHost-MS-HyperV"
+            description="Aquarium + MicroOS with Podman for Hyper-V"
+            arch="x86_64"
+        >
             <requires profile="MS-HyperV"/>
             <requires profile="ContainerHost"/>
         </profile>
-        <profile name="ContainerHost-OpenStack-Cloud" description="Aquarium + MicroOS with Podman for OpenStack Cloud" arch="x86_64,aarch64">
+        <profile
+            name="ContainerHost-OpenStack-Cloud"
+            description="Aquarium + MicroOS with Podman for OpenStack Cloud"
+            arch="x86_64"
+        >
             <requires profile="OpenStack-Cloud"/>
             <requires profile="ContainerHost"/>
         </profile>
-        <profile name="ContainerHost-Pine64" description="Aquarium + MicroOS with Podman for the Pine64" arch="aarch64">
-            <requires profile="Pine64"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-RaspberryPi" description="Aquarium + MicroOS with Podman for the Raspberry Pi" arch="aarch64">
-            <requires profile="RaspberryPi"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-Rock64" description="Aquarium + MicroOS with Podman for the Rock64" arch="aarch64">
-            <requires profile="Rock64"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="ContainerHost-Vagrant" description="Aquarium + MicroOS with Podman for Vagrant" arch="x86_64,aarch64">
+        <profile
+            name="ContainerHost-Vagrant"
+            description="Aquarium + MicroOS with Podman for Vagrant"
+            arch="x86_64"
+        >
             <requires profile="Vagrant"/>
             <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="Kubic-kubeadm-kvm-and-xen" description="Aquarium + kubeadm with CRI-O for KVM and HVM Xen" arch="x86_64,aarch64">
-            <requires profile="kvm-and-xen"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-VMware" description="Aquarium + kubeadm with CRI-O for VMware" arch="x86_64">
-            <requires profile="VMware"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-MS-HyperV" description="Aquarium + kubeadm with CRI-O for Hyper-V" arch="x86_64">
-            <requires profile="MS-HyperV"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-OpenStack-Cloud" description="Aquarium + kubeadm with CRI-O for OpenStack Cloud" arch="x86_64">
-            <requires profile="OpenStack-Cloud"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-DigitalOcean-Cloud" description="Aquarium + kubeadm with CRI-O for DigitalOcean Cloud" arch="x86_64">
-            <requires profile="DigitalOcean-Cloud"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-Pine64" description="Aquarium + kubeadm with CRI-O for the Pine64" arch="aarch64">
-            <requires profile="Pine64"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-RaspberryPi" description="Aquarium + kubeadm with CRI-O for the Raspberry Pi" arch="aarch64">
-            <requires profile="RaspberryPi"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-Rock64" description="Aquarium + kubeadm with CRI-O for the Rock64" arch="aarch64">
-            <requires profile="Rock64"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="Kubic-kubeadm-Vagrant" description="Aquarium + kubeadm with CRI-O for Vagrant" arch="x86_64,aarch64">
-            <requires profile="Vagrant"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="ContainerHost-SelfInstall" description="Aquarium + MicroOS with Podman for SelfInstallation" arch="x86_64,aarch64">
-            <requires profile="SelfInstall"/>
-            <requires profile="ContainerHost"/>
-        </profile>
-        <profile name="Kubic-kubeadm-SelfInstall" description="Aquarium + kubeadm with CRI-O for SelfInstallation" arch="x86_64,aarch64">
-            <requires profile="SelfInstall"/>
-            <requires profile="Kubic-kubeadm"/>
-        </profile>
-        <profile name="k3s-kvm-and-xen" description="Aquarium + MicroOS with k3s for KVM and HVM Xen" arch="x86_64,aarch64">
-            <requires profile="kvm-and-xen"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-VMware" description="Aquarium + MicroOS with k3s for VMware" arch="x86_64">
-            <requires profile="VMware"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-MS-HyperV" description="Aquarium + MicroOS with k3s for Hyper-V" arch="x86_64">
-            <requires profile="MS-HyperV"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-OpenStack-Cloud" description="Aquarium + MicroOS with k3s for OpenStack Cloud" arch="x86_64,aarch64">
-            <requires profile="OpenStack-Cloud"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-Pine64" description="Aquarium + MicroOS with k3s for the Pine64" arch="aarch64">
-            <requires profile="Pine64"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-RaspberryPi" description="Aquarium + MicroOS with k3s for the Raspberry Pi" arch="aarch64">
-            <requires profile="RaspberryPi"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-Rock64" description="Aquarium + MicroOS with k3s for the Rock64" arch="aarch64">
-            <requires profile="Rock64"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-Vagrant" description="Aquarium + MicroOS with k3s for Vagrant" arch="x86_64,aarch64">
-            <requires profile="Vagrant"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-SelfInstall" description="Aquarium + MicroOS with k3s for SelfInstallation" arch="x86_64,aarch64">
-            <requires profile="SelfInstall"/>
-            <requires profile="k3s"/>
-        </profile>
-        <profile name="k3s-DigitalOcean-Cloud" description="Aquarium + MicroOS with k3s for DigitalOcean Cloud" arch="x86_64">
-            <requires profile="DigitalOcean-Cloud"/>
-            <requires profile="k3s"/>
         </profile>
     </profiles>
 
@@ -204,40 +145,8 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">20</size>
-        </type>
-    </preferences>
-    <preferences profiles="kvm-and-xen" arch="aarch64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="qcow2"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=qemu"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <bootloader name="grub2" console="gfxterm" />
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
@@ -262,7 +171,11 @@
             btrfs_root_is_readonly_snapshot="true"
             btrfs_quota_groups="true"
         >
-            <bootloader name="grub2" console="serial" serial_line="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1" />
+            <bootloader
+                name="grub2"
+                console="serial"
+                serial_line="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+            />
             <systemdisk>
                 <volume name="home"/>
                 <volume name="root"/>
@@ -270,7 +183,8 @@
                 <volume name="srv"/>
                 <volume name="var" copy_on_write="false"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
@@ -303,7 +217,8 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
@@ -338,46 +253,15 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
             <size unit="G">24</size>
         </type>
     </preferences>
-    <preferences profiles="OpenStack-Cloud" arch="aarch64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="qcow2"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=openstack"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <bootloader name="grub2" console="gfxterm" />
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <size unit="G">24</size>
-        </type>
-    </preferences>
+
     <preferences profiles="DigitalOcean-Cloud" arch="x86_64">
         <version>16.0.0</version>
         <packagemanager>zypper</packagemanager>
@@ -405,7 +289,8 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
@@ -439,7 +324,8 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
@@ -454,7 +340,10 @@
         <rpm-excludedocs>true</rpm-excludedocs>
         <locale>en_US</locale>
 
-        <!-- MicroOS remove: I don't remember why  kernelcmdline="root=/dev/sda3 disk=/dev/sda" is not needed here -->
+        <!--
+            MicroOS remove: I don't remember why
+            kernelcmdline="root=/dev/sda3 disk=/dev/sda" is not needed here
+        -->
         <type
             image="vmx"
             filesystem="btrfs"
@@ -476,150 +365,15 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
             <size unit="G">20</size>
         </type>
     </preferences>
-    <preferences profiles="Pine64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200n8 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_pine64.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-        >
-            <bootloader name="grub2" />
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
-    <preferences profiles="RaspberryPi">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime,compress=lzo"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200n8 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_rpi.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-        >
-            <bootloader name="grub2" console="gfxterm" />
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
-    <preferences profiles="RaspberryPi2">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime,compress=lzo"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyAMA0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_rpi.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-        >
-            <bootloader name="grub2" console="gfxterm" />
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm-efi" mountpoint="boot/grub2/arm-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
-    <preferences profiles="Rock64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
-        <type
-            image="oem"
-            initrd_system="dracut"
-            filesystem="btrfs"
-            fsmountoptions="noatime,compress=lzo"
-            firmware="efi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200n8 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            efipartsize="16"
-            editbootinstall="editbootinstall_rock64.sh"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="false"
-            disk_start_sector="32768"
-        >
-            <bootloader name="grub2"/>
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-                <volume name="var" copy_on_write="false"/>
-            </systemdisk>
-        </type>
-    </preferences>
+
     <preferences profiles="Vagrant" arch="x86_64">
         <version>16.0.0</version>
         <packagemanager>zypper</packagemanager>
@@ -647,7 +401,8 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
             </systemdisk>
@@ -655,42 +410,7 @@
             <size unit="G">24</size>
         </type>
     </preferences>
-    <preferences profiles="Vagrant" arch="aarch64">
-        <version>16.0.0</version>
-        <packagemanager>zypper</packagemanager>
-        <bootloader-theme>openSUSE</bootloader-theme>
-        <rpm-excludedocs>true</rpm-excludedocs>
-        <locale>en_US</locale>
 
-        <!-- MicroOS removed :  I don't remember why kernelcmdline="root=/dev/vda3 disk=/dev/vda" is neeeded in my old kiwi file -->
-        <type
-            image="vmx"
-            filesystem="btrfs"
-            format="vagrant"
-            firmware="uefi"
-            kernelcmdline="quiet systemd.show_status=yes console=ttyS0,115200 console=tty0 net.ifnames=0 \$ignition_firstboot ignition.platform.id=metal"
-            bootpartition="false"
-            bootkernel="custom"
-            devicepersistency="by-uuid"
-            btrfs_root_is_snapshot="true"
-            btrfs_root_is_readonly_snapshot="true"
-            btrfs_quota_groups="true"
-            spare_part="5G" spare_part_mountpoint="/var" spare_part_fs="btrfs" spare_part_is_last="true" spare_part_fs_attributes="no-copy-on-write"
-        >
-            <bootloader name="grub2" console="gfxterm" />
-            <systemdisk>
-                <volume name="home"/>
-                <volume name="root"/>
-                <volume name="opt"/>
-                <volume name="srv"/>
-                <volume name="boot/grub2/arm64-efi" mountpoint="boot/grub2/arm64-efi"/>
-                <volume name="boot/writable"/>
-                <volume name="usr/local"/>
-            </systemdisk>
-            <vagrantconfig provider="libvirt" virtualsize="24"/>
-            <size unit="G">24</size>
-        </type>
-    </preferences>
     <preferences profiles="SelfInstall">
         <version>16.0.0</version>
         <packagemanager>zypper</packagemanager>
@@ -720,7 +440,8 @@
                 <volume name="opt"/>
                 <volume name="srv"/>
                 <volume name="boot/grub2/i386-pc"/>
-                <volume name="boot/grub2/x86_64-efi" mountpoint="boot/grub2/x86_64-efi"/>
+                <volume name="boot/grub2/x86_64-efi"
+                        mountpoint="boot/grub2/x86_64-efi"/>
                 <volume name="boot/writable"/>
                 <volume name="usr/local"/>
                 <volume name="var" copy_on_write="false"/>
@@ -740,14 +461,22 @@
 
     <!-- Aquarium Added: user start -->
     <users>
-         <user password="aquarium" home="/home/aquarium" name="aquarium" groups="aquarium"  pwdformat="plain"/>
+         <user
+            password="aquarium"
+            home="/home/aquarium"
+            name="aquarium"
+            groups="aquarium"
+            pwdformat="plain"
+        />
     </users>
+
     <users profiles="Vagrant">
         <user password="vagrant"
               home="/home/vagrant"
               name="vagrant"
               groups="vagrant"
-              pwdformat="plain"/>
+              pwdformat="plain"
+        />
     </users>
     <!-- Aquarium Added: user done -->
 
@@ -763,8 +492,11 @@
 
     <packages type="image">
         <package name="live-add-yast-repos"/>
-        <!-- Apparently zypper (?) doesn't like having multiple patterns with the same name,
-             so avoid using namedCollection at least for basesystem -->
+        <!--
+            Apparently zypper (?) doesn't like having multiple patterns with
+            the same name, so avoid using namedCollection at least for
+            basesystem
+        -->
         <package name="patterns-microos-base"/>
         <package name="patterns-microos-basesystem"/>
         <package name="patterns-microos-base-zypper"/>
@@ -772,39 +504,31 @@
         <package name="patterns-microos-defaults"/>
         <package name="kernel-default"/>
     </packages>
-    <packages type="image" profiles="kvm-and-xen,VMware,MS-HyperV,VirtualBox,Pine64,RaspberryPi,RaspberryPi2,Rock64,Vagrant,DigitalOcean-Cloud">
-        <!-- Needed for initial configuration, except on OpenStack-Cloud, where cloud-init is used -->
-        <!-- On ONIE, the installer does the partitioning and salt is used for configuration -->
+
+    <packages
+        type="image"
+        profiles="kvm-and-xen,VMware,MS-HyperV,VirtualBox,Vagrant,DigitalOcean-Cloud"
+    >
+        <!--
+            Needed for initial configuration, except on OpenStack-Cloud, where
+            cloud-init is used
+        -->
+        <!--
+            On ONIE, the installer does the partitioning and salt is used for
+            configuration
+        -->
         <package name="ignition-dracut"/>
         <package name="combustion"/>
         <package name="growpart-generator"/>
     </packages>
-    <packages type="image" profiles="Pine64,RaspberryPi,RaspberryPi2,Rock64">
-        <package name="patterns-microos-hardware"/>
-    </packages>
+    
     <packages type="image" profiles="ContainerHost">
         <namedCollection name="container_runtime"/>
         <package name="patterns-containers-container_runtime"/>
         <namedCollection name="microos_apparmor"/>
         <package name="patterns-microos-apparmor"/>
     </packages>
-    <packages type="image" profiles="k3s">
-        <package name="k3s"/>
-    </packages>
-    <packages type="image" profiles="Kubic-kubeadm">
-        <namedCollection name="container_runtime_kubernetes"/>
-        <package name="patterns-containers-container_runtime_kubernetes"/>
-        <namedCollection name="kubeadm"/>
-        <package name="patterns-containers-kubeadm"/>
-        <namedCollection name="kubic_admin"/>
-        <package name="patterns-containers-kubic_admin"/>
-        <namedCollection name="kubic_loadbalancer"/>
-        <package name="patterns-containers-kubic_loadbalancer"/>
-        <namedCollection name="kubic_worker"/>
-        <package name="patterns-containers-kubic_worker"/>
-        <namedCollection name="microos_apparmor"/>
-        <package name="patterns-microos-apparmor"/>
-    </packages>
+        
     <packages type="image" profiles="kvm-and-xen">
         <!-- KVM and Xen specific packages -->
         <package name="xen-tools-domU" arch="x86_64"/>
@@ -823,39 +547,7 @@
     <packages type="image" profiles="VirtualBox">
         <package name="virtualbox-guest-tools"/>
     </packages>
-    <packages type="image" profiles="Pine64">
-        <package name="u-boot-pine64plus" arch="aarch64"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="ntp"/>
-    </packages>
-    <packages type="image" profiles="RaspberryPi">
-        <package name="raspberrypi-firmware" arch="aarch64"/>
-        <package name="raspberrypi-firmware-config" arch="aarch64"/>
-        <package name="raspberrypi-firmware-dt" arch="aarch64"/>
-        <package name="u-boot-rpiarm64" arch="aarch64"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="bcm43xx-firmware"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
-        <package name="wireless-tools"/>
-        <package name="wpa_supplicant"/>
-    </packages>
-    <packages type="image" profiles="RaspberryPi2">
-        <package name="raspberrypi-firmware" arch="armv7l"/>
-        <package name="raspberrypi-firmware-config" arch="armv7l"/>
-        <package name="raspberrypi-firmware-dt" arch="armv7l"/>
-        <package name="u-boot-rpi2" arch="armv7l"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="bcm43xx-firmware"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
-        <package name="wireless-tools"/>
-        <package name="wpa_supplicant"/>
-    </packages>
-    <packages type="image" profiles="Rock64">
-        <package name="u-boot-rock64-rk3328" arch="aarch64"/>
-        <package name="dtb-rockchip" arch="aarch64"/>
-        <package name="dracut-kiwi-oem-repart"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
-    </packages>
+    
     <packages type="image" profiles="Vagrant">
         <!-- vagrant-libvirt uses nfs for synced folders -->
         <package name="nfs-client"/>
@@ -864,14 +556,16 @@
     </packages>
     <packages type="image" profiles="onie">
         <package name="patterns-microos-hardware"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
+        <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
+        <package name="kernel-firmware-all"/>
         <package name="salt-minion"/>
         <archive name="onie.tar.gz"/>
     </packages>
     <packages type="image" profiles="SelfInstall">
         <package name="dracut-kiwi-oem-repart"/>
         <package name="dracut-kiwi-oem-dump"/>
-        <package name="kernel-firmware-all"/> <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
+        <!-- Fix choice between kernel-firmware and kernel-firmware-all -->
+        <package name="kernel-firmware-all"/>
         <!-- Aquarium needed not sure need to be added yet
         <package name="dracut-kiwi-live"/>
         <package name="dracut-kiwi-lib"/>
@@ -881,7 +575,7 @@
     <packages type="image" profiles="Aquarium-base" patternType="onlyRequired"> 
         <!-- not sure needed
         <package name="syslinux"/>
-         -->
+        -->
         <package name="lvm2"/>
         <package name="chrony"/>
         <package name="tuned"/>
@@ -900,7 +594,10 @@
     </packages>
 
     <packages type="bootstrap">
-        <!-- Avoid that zypper picks the busybox-foo variant for those, that would fail later -->
+        <!--
+            Avoid that zypper picks the busybox-foo variant for those, that
+            would fail later
+        -->
         <package name="coreutils"/>
         <package name="gawk"/>
         <package name="gzip"/>
@@ -909,8 +606,8 @@
         <package name="openssl"/>
 
         <!-- Aquarium required : podman -->
-	<package name="btrfsprogs"/>
-	<package name="fuse-overlayfs"/>
+        <package name="btrfsprogs"/>
+        <package name="fuse-overlayfs"/>
         <package name="udev"/>
         <package name="xz"/>
         <package name="grep"/>
@@ -920,7 +617,10 @@
         <package name="sudo"/>
         <package name="openssh"/>
         <package name="openssh-server"/>
-        <!-- This requires openssl, and so avoids that zypper picks libressl here -->
+        <!--
+            This requires openssl, and so avoids that zypper picks libressl
+            here
+        -->
         <package name="mokutil"/>
 
         <!-- Aquarium added: network utilities -->
@@ -938,6 +638,5 @@
         <!-- TODO: Use the proper flavors once available -->
         <package name="MicroOS-release"/>
     </packages>
-
 
 </image>
