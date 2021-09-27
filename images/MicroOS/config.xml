@@ -584,9 +584,6 @@
         <package name="python38-requests"/>
         <package name="python38-PyYAML"/>
         <package name="python3-rados"/>
-        <package name="etcdctl"/>
-        <!-- Needed for pip install from git repo -->
-        <package name="git"/>
 
         <archive name="aquarium.tar.gz"/>
         <archive name="root.tar.gz"/>
