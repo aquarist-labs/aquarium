@@ -1,17 +1,17 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { UserService } from '~/app/shared/services/api/user.service';
+import { UsersService } from '~/app/shared/services/api/users.service';
 
-describe('UserService', () => {
-  let service: UserService;
+describe('UsersService', () => {
+  let service: UsersService;
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule]
     });
-    service = TestBed.inject(UserService);
+    service = TestBed.inject(UsersService);
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
@@ -21,7 +21,7 @@ describe('UserService', () => {
 
   it('should call list', () => {
     service.list().subscribe();
-    const req = httpTesting.expectOne('api/user/');
+    const req = httpTesting.expectOne('api/users/');
     expect(req.request.method).toBe('GET');
   });
 
@@ -35,19 +35,19 @@ describe('UserService', () => {
         disabled: true
       })
       .subscribe();
-    const req = httpTesting.expectOne('api/user/create');
+    const req = httpTesting.expectOne('api/users/create');
     expect(req.request.method).toBe('POST');
   });
 
   it('should call delete', () => {
     service.delete('foo').subscribe();
-    const req = httpTesting.expectOne('api/user/foo');
+    const req = httpTesting.expectOne('api/users/foo');
     expect(req.request.method).toBe('DELETE');
   });
 
   it('should call update', () => {
     service.update('foo', { full_name: 'baz' }).subscribe();
-    const req = httpTesting.expectOne('api/user/foo');
+    const req = httpTesting.expectOne('api/users/foo');
     expect(req.request.method).toBe('PATCH');
   });
 });

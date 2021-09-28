@@ -9,7 +9,7 @@ import { DialogComponent } from '~/app/shared/components/dialog/dialog.component
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
-import { User, UserService } from '~/app/shared/services/api/user.service';
+import { User, UsersService } from '~/app/shared/services/api/users.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
@@ -26,7 +26,7 @@ export class UsersPageComponent {
   data: User[] = [];
   columns: DatatableColumn[];
 
-  constructor(private dialogService: DialogService, private userService: UserService) {
+  constructor(private dialogService: DialogService, private usersService: UsersService) {
     this.columns = [
       {
         name: TEXT('Name'),
@@ -53,7 +53,7 @@ export class UsersPageComponent {
 
   loadData(): void {
     this.loading = true;
-    this.userService.list().subscribe((data) => {
+    this.usersService.list().subscribe((data) => {
       this.data = data;
       this.loading = this.firstLoadComplete = true;
     });
@@ -65,7 +65,7 @@ export class UsersPageComponent {
       (res: User | boolean) => {
         if (res) {
           this.blockUI.start(translate(TEXT('Please wait, creating user ...')));
-          this.userService
+          this.usersService
             .create(res as User)
             .pipe(finalize(() => this.blockUI.stop()))
             .subscribe(() => {
@@ -125,7 +125,7 @@ export class UsersPageComponent {
             (res: User | boolean) => {
               if (res) {
                 this.blockUI.start(translate(TEXT('Please wait, updating user ...')));
-                this.userService
+                this.usersService
                   .update((res as User).username, res as User)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
@@ -178,7 +178,7 @@ export class UsersPageComponent {
             (res: boolean) => {
               if (res) {
                 this.blockUI.start(translate(TEXT('Please wait, deleting user ...')));
-                this.userService
+                this.usersService
                   .delete(data.username)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
