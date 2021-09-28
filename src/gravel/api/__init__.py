@@ -33,6 +33,10 @@ class JWTAuthSchema(OAuth2PasswordBearer):
         if token is None:
             # Fallback: Try to get it from the headers.
             token = await super().__call__(request)
+        if not token:
+            raise HTTPException(
+                status_code=400, detail="Token missing from request"
+            )
         # Decode token and do the following checks:
         try:
             jwt_mgr = JWTMgr(state.gstate.config.options.auth)
