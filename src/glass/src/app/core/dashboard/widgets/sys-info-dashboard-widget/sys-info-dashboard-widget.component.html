@@ -40,15 +40,7 @@
            fxFlex="100"
            fxLayout="column">
         <div class="glass-text-bold">Memory</div>
-        <div fxFlex>
-          <ngx-charts-advanced-pie-chart [scheme]="memoryChartColorScheme"
-                                         [results]="memoryChartData"
-                                         [view]="[500,175]"
-                                         [animations]="false"
-                                         [tooltipDisabled]="true"
-                                         [valueFormatting]="valueFormatting">
-          </ngx-charts-advanced-pie-chart>
-        </div>
+        <div echarts [options]="memoryGauge"></div>
       </div>
       <div class="glass-sys-info-dashboard-widget-cell"
            fxFlex="100"
