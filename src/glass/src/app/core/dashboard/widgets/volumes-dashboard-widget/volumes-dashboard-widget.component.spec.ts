@@ -199,7 +199,7 @@ describe('DevicesDashboardWidgetComponent', () => {
     fixture = TestBed.createComponent(VolumesDashboardWidgetComponent);
     fh = new FixtureHelper(fixture);
     component = fixture.componentInstance;
-    spyOn(TestBed.inject(LocalNodeService), 'volumes').and.returnValue(of(mockedVolumes));
+    jest.spyOn(TestBed.inject(LocalNodeService), 'volumes').mockReturnValue(of(mockedVolumes));
     fixture.detectChanges();
   });
 

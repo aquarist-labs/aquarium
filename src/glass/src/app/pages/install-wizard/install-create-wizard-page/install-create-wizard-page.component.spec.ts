@@ -1,14 +1,14 @@
 /* eslint-disable max-len */
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
 
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
 import { HttpErrorInterceptorService } from '~/app/shared/services/http-error-interceptor.service';
+import { TestingModule } from '~/app/testing.module';
 
 describe('InstallCreateWizardPageComponent', () => {
   let component: InstallCreateWizardPageComponent;
@@ -18,13 +18,7 @@ describe('InstallCreateWizardPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        PagesModule,
-        RouterTestingModule,
-        ToastrModule.forRoot(),
-        TranslateModule.forRoot()
-      ],
+      imports: [PagesModule, TestingModule, ToastrModule.forRoot(), TranslateModule.forRoot()],
       providers: [
         {
           provide: HTTP_INTERCEPTORS,
@@ -40,7 +34,7 @@ describe('InstallCreateWizardPageComponent', () => {
     component = fixture.componentInstance;
     httpTesting = TestBed.inject(HttpTestingController);
     toastrService = TestBed.inject(ToastrService);
-    spyOn(toastrService, 'error');
+    jest.spyOn(toastrService, 'error').mockImplementation();
     fixture.detectChanges();
   });
 
@@ -54,6 +48,7 @@ describe('InstallCreateWizardPageComponent', () => {
       .error(new ErrorEvent('Unknown error'), { status: 500 });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledTimes(1);
+    flush();
   }));
 
   it('should show notification only once [2]', fakeAsync(() => {
@@ -62,6 +57,7 @@ describe('InstallCreateWizardPageComponent', () => {
       .error(new ErrorEvent('Unknown error'), { status: 500 });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledTimes(1);
+    flush();
   }));
 
   it('should show notification only once [3]', fakeAsync(() => {
@@ -71,5 +67,6 @@ describe('InstallCreateWizardPageComponent', () => {
       .error(new ErrorEvent('Unknown error'), { status: 500 });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledTimes(1);
+    flush();
   }));
 });
