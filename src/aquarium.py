@@ -22,7 +22,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
 
-from gravel.api import auth, devices, local, nodes, orch, status, user
+from gravel.api import auth, devices, local, nodes, orch, status, users
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.nodes.mgr import NodeMgr
@@ -128,7 +128,7 @@ def aquarium_factory(
             "description": "Operations related to user authentication",
         },
         {
-            "name": "user",
+            "name": "users",
             "description": "Operations related to user management",
         },
     ]
@@ -157,7 +157,7 @@ def aquarium_factory(
     aquarium_api.include_router(nodes.router)
     aquarium_api.include_router(devices.router)
     aquarium_api.include_router(auth.router)
-    aquarium_api.include_router(user.router)
+    aquarium_api.include_router(users.router)
 
     #
     # mounts

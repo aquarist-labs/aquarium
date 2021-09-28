@@ -23,7 +23,7 @@ from gravel.controllers.auth import JWT, UserMgr, UserModel
 
 logger: Logger = fastapi_logger
 
-router: APIRouter = APIRouter(prefix="/user", tags=["user"])
+router: APIRouter = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", name="Get list of users", response_model=List[UserModel])

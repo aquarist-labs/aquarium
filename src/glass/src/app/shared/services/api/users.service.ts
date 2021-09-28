@@ -27,8 +27,9 @@ export type User = {
 @Injectable({
   providedIn: 'root'
 })
-export class UserService {
-  private url = 'api/user';
+export class UsersService {
+  private url = 'api/users';
+
   constructor(private http: HttpClient) {}
 
   public list(): Observable<User[]> {
