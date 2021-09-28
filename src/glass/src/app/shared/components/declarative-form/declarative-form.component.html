@@ -235,6 +235,35 @@
             </div>
           </div>
         </ng-template>
+
+        <ng-template [ngSwitchCase]="'select'">
+          <div class="form-group"
+               [class]="field.groupClass">
+            <label *ngIf="field.label"
+                   class="col-form-label">
+              {{ field.label | translate }}
+            </label>
+            <select class="form-control"
+                    [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                    [formControlName]="field.name"
+                    [required]="field.validators?.required!">
+              <option *ngFor="let option of field.options | keyvalue"
+                      [value]="option.key"
+                      [selected]="option.key === field.value">
+                {{ option.value | translate }}
+              </option>
+            </select>
+            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                   class="form-text text-muted"
+                   [innerHTML]="field.hint | translate | sanitize:'html'">
+            </small>
+            <span *ngIf="showError(field.name, frm, 'required')"
+                  class="invalid-feedback"
+                  translate>
+              This field is required.
+            </span>
+          </div>
+        </ng-template>
       </ng-container>
     </ng-container>
 
