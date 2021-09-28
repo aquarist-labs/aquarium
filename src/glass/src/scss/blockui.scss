@@ -1,5 +1,3 @@
-@use './defaults/colors' as dc;
-
 .block-ui-wrapper {
-  background: dc.$glass-color-transparent-black !important;
+  background: rgba(0, 0, 0, 0.54) !important;
 }
