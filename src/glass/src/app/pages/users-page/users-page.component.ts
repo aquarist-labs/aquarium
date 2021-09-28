@@ -171,6 +171,9 @@ export class UsersPageComponent {
         }
       },
       {
+        type: 'divider'
+      },
+      {
         title: TEXT('Delete'),
         callback: (data: DatatableData) => {
           this.dialogService.open(
