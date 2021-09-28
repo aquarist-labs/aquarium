@@ -14,10 +14,11 @@
  */
 import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import { EChartsOption } from 'echarts';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { translate } from '~/app/i18n.helper';
+import { translate, translateWords } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { Inventory, LocalNodeService } from '~/app/shared/services/api/local.service';
 
@@ -28,10 +29,85 @@ import { Inventory, LocalNodeService } from '~/app/shared/services/api/local.ser
 })
 export class SysInfoDashboardWidgetComponent {
   data: Inventory = {} as Inventory;
-  memoryChartData: any[] = [];
-  memoryChartColorScheme = {
-    // EOS colors: [$eos-bc-green-500, $eos-bc-gray-100]
-    domain: ['#30ba78', '#e0dfdf']
+  ram: {
+    inBytes: {
+      total: number;
+      used: number;
+      free: number;
+    };
+    inPercent: {
+      total: number;
+      used: number;
+      free: number;
+    };
+    asString: {
+      total: string;
+      used: string;
+      free: string;
+    };
+  } = {
+    inBytes: {
+      total: 0,
+      used: 0,
+      free: 0
+    },
+    inPercent: {
+      total: 100,
+      used: 100,
+      free: 0
+    },
+    asString: {
+      total: '0 B',
+      used: '0 B',
+      free: '0 B'
+    }
+  };
+  memoryGauge: EChartsOption = {
+    title: {
+      padding: 0,
+      show: true,
+      text: '',
+      subtext: ''
+    },
+    silent: true,
+    series: [
+      {
+        center: ['50%', '60%'],
+        itemStyle: {
+          color: '#FFAB91'
+        },
+        progress: {
+          show: true,
+          width: 30
+        },
+        pointer: {
+          show: false
+        },
+        axisLine: {
+          lineStyle: {
+            width: 30
+          }
+        },
+        axisLabel: {
+          show: false
+        },
+        splitLine: {
+          show: false
+        },
+        axisTick: {
+          show: false
+        },
+        name: 'Memory',
+        type: 'gauge',
+        detail: {
+          offsetCenter: [0, 0],
+          fontSize: 30,
+          formatter: '{value}%',
+          color: 'auto'
+        },
+        data: []
+      }
+    ]
   };
   cpuLoadChartData: any[] = [];
   cpuLoadColorScheme = {
@@ -41,15 +117,6 @@ export class SysInfoDashboardWidgetComponent {
 
   constructor(private localNodeService: LocalNodeService) {}
 
-  valueFormatting(c: any) {
-    // Note, this implementation is by intention, do NOT use code like
-    // 'valueFormatting.bind(this)', otherwise this method is called
-    // over and over again because Angular CD seems to assume something
-    // has been changed.
-    const pipe = new BytesToSizePipe();
-    return pipe.transform(c);
-  }
-
   updateData($data: Inventory) {
     this.data = $data;
   }
@@ -57,18 +124,7 @@ export class SysInfoDashboardWidgetComponent {
   loadData(): Observable<Inventory> {
     return this.localNodeService.inventory().pipe(
       map((inventory: Inventory) => {
-        const total: number = inventory.memory.total_kb * 1024;
-        const free: number = inventory.memory.free_kb * 1024;
-        this.memoryChartData = [
-          {
-            name: translate(TEXT('Used')),
-            value: total - free
-          },
-          {
-            name: translate(TEXT('Free')),
-            value: free
-          }
-        ];
+        this.updateMemory(inventory);
         /* eslint-disable @typescript-eslint/naming-convention */
         const load_1min = Math.floor(inventory.cpu.load.one_min * 100);
         const load_5min = Math.floor(inventory.cpu.load.five_min * 100);
@@ -84,5 +140,39 @@ export class SysInfoDashboardWidgetComponent {
         return inventory;
       })
     );
+  }
+
+  updateMemory(inventory: Inventory) {
+    this.updateRamSpec(inventory);
+    const words = translateWords([TEXT('Used'), TEXT('Free'), TEXT('Total')]);
+    // Somehow TS can't figure out the subtypes of EChartsOption that are already defined.
+    // @ts-ignore
+    this.memoryGauge.title.subtext = [
+      `${words.Total!}: ${this.ram.asString.total}`,
+      `${words.Used!}: ${this.ram.asString.used}`,
+      `${words.Free!}: ${this.ram.asString.free}`
+    ].join('\n');
+    // Somehow TS can't figure out the subtypes of EChartsOption that are already defined.
+    // @ts-ignore
+    this.memoryGauge.series[0].data = [{ value: this.ram.inPercent.used }];
+  }
+
+  private updateRamSpec(inventory: Inventory) {
+    const ramSpec = {
+      total: inventory.memory.total_kb,
+      free: inventory.memory.free_kb,
+      used: inventory.memory.total_kb - inventory.memory.free_kb
+    };
+    // Note, this implementation is by intention, do NOT use code like
+    // 'valueFormatting.bind(this)', otherwise this method is called
+    // over and over again because Angular CD seems to assume something
+    // has been changed.
+    const pipe = new BytesToSizePipe();
+    const indexArrTypeSafe: ('total' | 'free' | 'used')[] = ['total', 'free', 'used'];
+    indexArrTypeSafe.forEach((s) => {
+      this.ram.inBytes[s] = ramSpec[s] * 1024;
+      this.ram.inPercent[s] = Math.round((this.ram.inBytes[s] / this.ram.inBytes.total) * 100);
+      this.ram.asString[s] = pipe.transform(this.ram.inBytes[s]);
+    });
   }
 }
