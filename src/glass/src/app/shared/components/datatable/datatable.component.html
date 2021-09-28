@@ -118,11 +118,16 @@
       <i class="mdi mdi-dots-vertical"></i>
     </button>
     <div ngbDropdownMenu>
-      <button *ngFor="let item of items"
-              ngbDropdownItem
-              (click)="item.callback(row)">
-        <span>{{ item.title | translate }}</span>
-      </button>
+      <ng-container *ngFor="let item of items">
+        <button *ngIf="item.type !== 'divider'"
+                ngbDropdownItem
+                (click)="item.callback(row)">
+          <span>{{ item.title | translate }}</span>
+        </button>
+        <div *ngIf="item.type === 'divider'"
+             class="dropdown-divider">
+        </div>
+      </ng-container>
     </div>
   </div>
 </ng-template>
