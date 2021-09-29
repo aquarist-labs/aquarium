@@ -32,6 +32,20 @@ export const translate = (text: string): string =>
   _.isUndefined(translateService) ? text : translateService.instant(text);
 
 /**
+ * Translates strings and maps original name as object attribute name.
+ *
+ * Recommend to be only used for single words. Like 'Used', 'Free', 'Hostname' ...
+ */
+export const translateWords = (words: string[]): { [word: string]: string } => {
+  const o = {};
+  words.forEach((word) => {
+    // @ts-ignore
+    o[word] = translate(word);
+  });
+  return o;
+};
+
+/**
  * Load the specified translation file.
  */
 export class TranslateHttpLoader implements TranslateLoader {
