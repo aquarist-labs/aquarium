@@ -30,4 +30,8 @@ export class DialogService {
     }
     return modalRef;
   }
+
+  dismissAll(): void {
+    this.ngbModal.dismissAll();
+  }
 }
