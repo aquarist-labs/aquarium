@@ -5,12 +5,14 @@
   padding-right: 24px;
   padding-bottom: 24px;
 
-  .glass-sys-info-dashboard-widget-cell {
-    margin-bottom: 8px;
+  .charts-section {
+    margin-top: 0.25rem
   }
 }
+
 .glass-sys-info-dashboard-widget.error {
   @extend .glass-color-theme-error;
-  padding: unset;
+
+  padding: 0;
   height: 50px;
 }

@@ -1,54 +1,55 @@
 <glass-widget [loadData]="loadData.bind(this)"
               widgetTitle="System Information"
               (loadDataEvent)="updateData($event)">
-  <div class="glass-sys-info-dashboard-widget"
-       fxLayout="row"
-       fxLayoutAlign="center center">
-    <div fxFlexFill
-         fxLayout="row wrap">
-      <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="50">
+  <div class="glass-sys-info-dashboard-widget">
+    <div fxLayout="column"
+         gdGap="0.25rem"
+         gdColumns="repeat(auto-fit, minmax(140px, 1fr))">
+      <div class="glass-sys-info-dashboard-widget-cell">
         <div class="glass-text-bold"
              translate>Hostname</div>
         <div>{{ data?.hostname }}</div>
       </div>
-      <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="50">
+      <div class="glass-sys-info-dashboard-widget-cell">
         <div class="glass-text-bold"
              translate>Operating System</div>
         <div>{{ data?.operating_system }}</div>
       </div>
-      <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="50">
+      <div class="glass-sys-info-dashboard-widget-cell">
         <div class="glass-text-bold"
              translate>Kernel</div>
         <div>{{ data?.kernel }}</div>
       </div>
-      <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="50">
+      <div class="glass-sys-info-dashboard-widget-cell">
         <div class="glass-text-bold"
              translate>Architecture</div>
         <div>{{ data?.cpu?.arch }}</div>
       </div>
-      <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="50">
+      <div class="glass-sys-info-dashboard-widget-cell">
         <div class="glass-text-bold"
              translate>Uptime</div>
         <div>{{ data?.system_uptime | relativeDate:true }}</div>
       </div>
+    </div>
+    <div class="charts-section"
+         fxLayout="row"
+         fxLayoutAlign="start start">
       <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="100"
-           fxLayout="column">
-        <div class="glass-text-bold">Memory</div>
-        <div echarts [options]="memoryGauge"></div>
+           fxFlex="50">
+        <div class="glass-text-bold"
+             translate>Memory</div>
+        <div echarts
+             [initOpts]="memoryGaugeInitOpts"
+             [options]="memoryGaugeOpts">
+        </div>
       </div>
       <div class="glass-sys-info-dashboard-widget-cell"
-           fxFlex="100"
+           fxFlex="50"
            fxLayout="column">
         <div class="glass-text-bold"
              translate>CPU Load</div>
         <div fxFlex
-             fxLayoutGap="8px"
+             fxLayoutGap="0.5rem"
              fxLayout="row">
           <div *ngFor="let item of cpuLoadChartData; index as i"
                fxFlex>

@@ -62,7 +62,10 @@ export class SysInfoDashboardWidgetComponent {
       free: '0 B'
     }
   };
-  memoryGauge: EChartsOption = {
+  memoryGaugeInitOpts = {
+    height: '200px'
+  };
+  memoryGaugeOpts: EChartsOption = {
     title: {
       padding: 0,
       show: true,
@@ -78,14 +81,14 @@ export class SysInfoDashboardWidgetComponent {
         },
         progress: {
           show: true,
-          width: 30
+          width: 20
         },
         pointer: {
           show: false
         },
         axisLine: {
           lineStyle: {
-            width: 30
+            width: 20
           }
         },
         axisLabel: {
@@ -101,7 +104,7 @@ export class SysInfoDashboardWidgetComponent {
         type: 'gauge',
         detail: {
           offsetCenter: [0, 0],
-          fontSize: 30,
+          fontSize: 16,
           formatter: '{value}%',
           color: 'auto'
         },
@@ -147,14 +150,14 @@ export class SysInfoDashboardWidgetComponent {
     const words = translateWords([TEXT('Used'), TEXT('Free'), TEXT('Total')]);
     // Somehow TS can't figure out the subtypes of EChartsOption that are already defined.
     // @ts-ignore
-    this.memoryGauge.title.subtext = [
+    this.memoryGaugeOpts.title.subtext = [
       `${words.Total!}: ${this.ram.asString.total}`,
       `${words.Used!}: ${this.ram.asString.used}`,
       `${words.Free!}: ${this.ram.asString.free}`
     ].join('\n');
     // Somehow TS can't figure out the subtypes of EChartsOption that are already defined.
     // @ts-ignore
-    this.memoryGauge.series[0].data = [{ value: this.ram.inPercent.used }];
+    this.memoryGaugeOpts.series[0].data = [{ value: this.ram.inPercent.used }];
   }
 
   private updateRamSpec(inventory: Inventory) {
