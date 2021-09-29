@@ -20,6 +20,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
+import { Inventory } from '~/app/shared/services/api/local.service';
 
 describe('SysInfoDashboardWidgetComponent', () => {
   let component: SysInfoDashboardWidgetComponent;
@@ -44,5 +45,45 @@ describe('SysInfoDashboardWidgetComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('Memory', () => {
+    let inventoryMock: Inventory;
+    beforeEach(() => {
+      inventoryMock = {
+        memory: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          total_kb: 100,
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          free_kb: 95
+        }
+      } as Inventory;
+      component.updateMemory(inventoryMock);
+    });
+
+    it('should calculate memory usage in percent', () => {
+      expect(component.ram).toEqual({
+        inBytes: {
+          total: 102400,
+          used: 5120,
+          free: 97280
+        },
+        inPercent: {
+          total: 100,
+          used: 5,
+          free: 95
+        },
+        asString: {
+          total: '100 KB',
+          used: '5 KB',
+          free: '95 KB'
+        }
+      });
+    });
+
+    it('should show the right gauge text', () => {
+      // @ts-ignore
+      expect(component.memoryGauge.title.subtext).toBe('Total: 100 KB\nUsed: 5 KB\nFree: 95 KB');
+    });
   });
 });

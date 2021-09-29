@@ -5,6 +5,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NgxEchartsModule } from 'ngx-echarts';
 
 import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/health-dashboard-widget/health-dashboard-widget.component';
 import { PerformanceDashboardWidgetComponent } from '~/app/core/dashboard/widgets/performance-dashboard-widget/performance-dashboard-widget.component';
@@ -29,6 +30,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     CommonModule,
     FlexLayoutModule,
     NgxChartsModule,
+    NgxEchartsModule.forRoot({ echarts: () => import('echarts') }),
     SharedModule,
     RouterModule,
     TranslateModule.forChild()
