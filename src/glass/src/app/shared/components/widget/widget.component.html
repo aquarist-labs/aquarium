@@ -4,13 +4,13 @@
     <div class="card-title"
          fxLayout="row"
          fxLayoutAlign="space-between center">
-      {{ title | translate }}
+      {{ widgetTitle | translate }}
       <div *ngIf="actionMenu"
            ngbDropdown
            display="dynamic"
            placement="bottom-right">
         <button class="btn btn-simple"
-                title="{{title | translate}} actions"
+                title="{{widgetTitle | translate}} actions"
                 ngbDropdownToggle>
           <i class="mdi mdi-menu"></i>
         </button>
