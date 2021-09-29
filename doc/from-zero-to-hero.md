@@ -113,7 +113,7 @@ as well as bare-metal hardware environments.
    The script can also replace and rebuild a new pyenv python for you. Just
    reply yes when it ask you cleanup and reinstall pyenv.
 
-4. run `source venv/bin/activate`.
+4. run `source tools/venv/bin/activate`.
 
    You are now in the virtual environment with all the python packages
    in the required versions. If you want to exit and return to your
@@ -223,6 +223,12 @@ those changes.
 2. `cd /srv/aquarium` within the VM
 
 3. `sudo ./tools/run_aquarium.sh`
+
+3. a) you can use `--use-venv` to have a virtual-env created inside the
+      current-working-directory (as "venv") in which the dependencies are
+      installed. This is separate to the virtual-env that was created earlier
+      by `setup-dev.sh` which is used for the purposes of the tools inside
+      `tools/` (such as `aqua`).
 
 4. access your newly running environment at `http://localhost:1337`
 

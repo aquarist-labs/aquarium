@@ -64,8 +64,22 @@ if [ -z "${port}" ]; then
 fi
 
 if ! $with_systemdeps ; then
+  # We need system site packages because librados python bindings are only
+  # available as a package, they're not on pypi (and Tim thinks they probably
+  # never will be).
+  # However, if we set --system-site-packages on creation, the required
+  # dependencies may not be installed properly if they already exist in the
+  # developers environment.
+  # Instead, first create an isolated venv, install the requirements, then
+  # enable system packages for future venv activations.
+  # This will ensure if someone uses it inside the image, they will be able
+  # to fall back to system packages to get librados.
+  python3 -m venv ${VENV_DIR} || exit 1
   source ${VENV_DIR}/bin/activate || exit $?
   pip install -r ${AQUARIUM_DIR}/src/requirements.txt || exit $?
+  deactivate
+  sed -i 's/include-system-site-packages = false/include-system-site-packages = true/g' venv/pyvenv.cfg
+  source ${VENV_DIR}/bin/activate || exit $?
 fi
 
 pushd ${AQUARIUM_DIR}/src &>/dev/null

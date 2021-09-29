@@ -21,6 +21,7 @@ src/.coverage
 src/gravel/cephadm/cephadm.bin
 tests/vagrant/deployments/
 tests/vagrant/setups/
+tools/venv
 venv/
 virtualenv/
 wheelhouse/

@@ -1,0 +1,5 @@
+aiohttp
+click==7.1.2
+pydantic==1.7.3
+kiwi==9.23.56
+kiwi-boxed-plugin==0.2.15

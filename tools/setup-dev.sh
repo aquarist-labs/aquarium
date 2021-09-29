@@ -1,12 +1,14 @@
 #!/bin/bash
 
-dependencies_opensuse_tumbleweed=(
+dependencies_opensuse=(
   "btrfsprogs"
+  "gcc"
   "git"
   "kpartx"
   "make"
   "python3"
   "python3-kiwi"
+  "python3-devel"
   "nodejs-common"
   "npm"
   "vagrant"
@@ -78,7 +80,7 @@ dependencies_ubuntu=(
   "libvirt-daemon-system"
 )
 
-dependencies_build_python_leap=(
+dependencies_build_python_opensuse=(
   "gcc"
   "automake"
   "bzip2"
@@ -194,7 +196,7 @@ if ${show_dependencies} ; then
 
   case $osid in
     opensuse-tumbleweed | opensuse-leap)
-      echo "  > ${dependencies_opensuse_tumbleweed[*]}"
+      echo "  > ${dependencies_opensuse[*]}"
       ;;
     debian)
       echo "  > ${dependencies_debian[*]}"
@@ -205,7 +207,7 @@ if ${show_dependencies} ; then
     *)
       echo "error: unsupported distribution"
       echo "These are the packages you might need:"
-      echo "  > ${dependencies_opensuse_tumbleweed[*]}"
+      echo "  > ${dependencies_opensuse[*]}"
       exit 1
       ;;
   esac
@@ -218,13 +220,13 @@ if ! ${skip_install_deps} ; then
   case $osid in
     opensuse-tumbleweed | opensuse-leap)
       echo "=> try installing dependencies"
-      sudo zypper --non-interactive install ${dependencies_opensuse_tumbleweed[*]} || {
+      sudo zypper --non-interactive install ${dependencies_opensuse[*]} || {
         echo "Dependency installation failed"
         exit 1
       }
       if [ -n "$pyenv_python" ] ; then
         echo "=> try installing dependencies for building python because --pyenv-python requested"
-        sudo zypper --non-interactive install ${dependencies_build_python_leap[*]} || {
+        sudo zypper --non-interactive install ${dependencies_build_python_opensuse[*]} || {
           echo "Dependency installation failed"
           exit 1
       }
@@ -351,26 +353,23 @@ git submodule update --init || exit 1
 [[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
   ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
 
-if [ -d venv ] ; then
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+if [ -d $SCRIPT_DIR/venv ] ; then
     echo
     echo "Detected an existing virtual environment:"
-    echo "  > $(realpath venv)"
+    echo "  > $(realpath $SCRIPT_DIR/venv)"
     if yes_no "Blow it away"; then
-        rm -rf venv || exit $?
+        rm -rf $SCRIPT_DIR/venv || exit $?
     fi
     echo
 fi
 
+# Set up Virtual Env for dev tools
+$PYTHON -m venv $SCRIPT_DIR/venv || exit 1
 
-# We need system site packages because librados python bindings are only
-# available as a package, they're not on pypi (and Tim thinks they probably
-# never will be). Setting --system-site-packages here means the venv will
-# work properly if someone uses it inside the image, where we need to be
-# able to fall back to system packages to get librados.
-$PYTHON -m venv --system-site-packages venv || exit 1
-
-source venv/bin/activate
-pip install -r src/requirements.txt -U || exit 1
+source $SCRIPT_DIR/venv/bin/activate
+pip install -r $SCRIPT_DIR/requirements.txt -U || exit 1
 deactivate
 
 pushd src/glass &>/dev/null
