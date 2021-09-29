@@ -8,6 +8,6 @@
   "defaultCommandTimeout": 20000,
   "viewportHeight": 1080,
   "viewportWidth": 1920,
-  "fixturesFolder": false,
+  "fixturesFolder": "cypress/fixtures",
   "projectId": "k7ab29"
 }

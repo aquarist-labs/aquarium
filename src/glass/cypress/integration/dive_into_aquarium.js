@@ -1,6 +1,12 @@
 describe('Dive into Aquarium', () => {
   it('Visit the first tank', () => {
+    cy.intercept('GET', '/api/local/status', { fixture: 'node_qualified.json' });
+
     cy.visit('/');
+    cy.contains('Welcome to Aquarium').should('be.visible');
+    cy.clickButton('Check requirements now');
+    cy.contains('Congratulations! You can now proceed.');
+    cy.clickButton('Next');
     cy.contains('Create new cluster').should('be.visible');
     cy.clickButton('Create');
     cy.contains('This wizard will guide you through the installation process').should('be.visible');

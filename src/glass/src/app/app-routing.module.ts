@@ -23,6 +23,7 @@ import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
+import { InstallWelcomePageComponent } from '~/app/pages/install-welcome-page/install-welcome-page.component';
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
@@ -56,7 +57,12 @@ const routes: Routes = [
     component: InstallerLayoutComponent,
     canActivateChild: [StatusRouteGuardService],
     children: [
-      { path: '', redirectTo: 'install-mode', pathMatch: 'full' },
+      { path: '', redirectTo: 'welcome', pathMatch: 'full' },
+      {
+        path: 'welcome',
+        component: InstallWelcomePageComponent,
+        data: { breadcrumb: TEXT('Welcome') }
+      },
       {
         path: 'install-mode',
         component: InstallModePageComponent,

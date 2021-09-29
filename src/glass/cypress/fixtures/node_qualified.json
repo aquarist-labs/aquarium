@@ -1,0 +1,28 @@
+{
+  "localhost_qualified": {
+    "all_qualified": true,
+    "cpu_qualified": {
+      "qualified": true,
+      "min_threads": 2,
+      "actual_threads": 2,
+      "error": "",
+      "status": 0
+    },
+    "mem_qualified": {
+      "qualified": true,
+      "min_mem": 2147483648,
+      "actual_mem": 4107501568,
+      "error": "",
+      "status": 0
+    },
+    "root_disk_qualified": {
+      "qualified": true,
+      "min_disk": 10737418240,
+      "actual_disk": 25733095424,
+      "error": "",
+      "status": 0
+    }
+  },
+  "inited": true,
+  "node_stage": 0
+}

@@ -10,6 +10,7 @@ import { CoreModule } from '~/app/core/core.module';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
+import { InstallWelcomePageComponent } from '~/app/pages/install-welcome-page/install-welcome-page.component';
 import { InstallWizardModule } from '~/app/pages/install-wizard/install-wizard.module';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
@@ -23,7 +24,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     NotFoundPageComponent,
     HostsPageComponent,
     LoginPageComponent,
-    UsersPageComponent
+    UsersPageComponent,
+    InstallWelcomePageComponent
   ],
   imports: [
     CommonModule,

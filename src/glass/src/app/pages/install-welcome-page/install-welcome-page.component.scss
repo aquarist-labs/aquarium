@@ -1,0 +1,13 @@
+@import 'styles.scss';
+
+.card {
+  width: 80%;
+
+  .card-actions {
+    @extend .float-right;
+  }
+}
+
+.requirement-warning {
+  vertical-align: middle;
+}

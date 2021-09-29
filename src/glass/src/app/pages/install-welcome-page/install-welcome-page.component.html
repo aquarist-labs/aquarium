@@ -1,0 +1,83 @@
+<div class="glass-install-welcome-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"
+           *ngIf="!checked"
+           translate>
+        Welcome to Aquarium
+      </div>
+      <div class="card-title"
+           *ngIf="checked"
+           translate>
+        Requirements report
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-text"
+           *ngIf="!checked"
+           translate>
+        Before we begin, check if the current node meets the minimum set of requirements.
+      </div>
+      <div *ngIf="checked">
+        <div *ngIf="qualified; then qualifiedTpl else notQualifiedTpl"></div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="card-actions">
+        <button type="button"
+                class="btn btn-warning"
+                (click)="checkRequirements()"
+                *ngIf="!checked">
+          <span translate>Check requirements now</span>
+        </button>
+        <button type="button"
+                class="btn btn-warning"
+                routerLink="/installer/install-mode"
+                *ngIf="checked">
+          <span *ngIf="qualified"
+                translate>Next</span>
+          <span *ngIf="!qualified"
+                translate>Continue anyway (I know what I'm doing)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #qualifiedColTpl
+             let-value="value">
+  <i *ngIf="value"
+     class="text-success"
+     [class]="icons.check">
+  </i>
+  <i *ngIf="!value"
+     class="text-danger"
+     [class]="icons.minus">
+  </i>
+</ng-template>
+
+<ng-template #qualifiedTpl>
+  <glass-alert-panel type="success">
+    <span translate>Congratulations! You can now proceed.</span>
+  </glass-alert-panel>
+</ng-template>
+
+<ng-template #notQualifiedTpl>
+  <glass-alert-panel type="danger">
+    <span translate>The node does not fulfil the necessary requirements. See more details in the table below.</span>
+  </glass-alert-panel>
+  <glass-datatable [data]="status"
+                   [columns]="statusColumns"></glass-datatable>
+</ng-template>
+
+<ng-template #nodeConfigColTpl
+             let-value="value"
+             let-row="row">
+  {{ value }}
+  <i *ngIf="row.actual < row.min"
+     class="text-danger requirement-warning mdi mdi-alert-circle">
+  </i>
+</ng-template>
+
