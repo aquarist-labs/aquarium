@@ -113,7 +113,7 @@ async def node_deploy(
     other nodes to join the cluster will be generated.
 
     This is an asynchronous call. The consumer should poll the
-    `/nodes/deploy/status` endpoint to gather progress on the operation.
+    `/nodes/deployment/status` endpoint to gather progress on the operation.
     """
     logger.debug("api > deployment")
 
