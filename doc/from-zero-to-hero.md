@@ -224,6 +224,12 @@ those changes.
 
 3. `sudo ./tools/run_aquarium.sh`
 
+3. a) you can use `--use-venv` to have a virtual-env created inside the
+      current-working-directory (as "venv") in which the dependencies are
+      installed. This is separate to the virtual-env that was created earlier
+      by `setup-dev.sh` which is used for the purposes of the tools inside
+      `tools/` (such as `aqua`).
+
 4. access your newly running environment at `http://localhost:1337`
 
 And this should cover the initial steps to allow one to start hacking on
