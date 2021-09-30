@@ -72,6 +72,7 @@
         <packagemanager>zypper</packagemanager>
         <locale>en_US</locale>
         <keytable>us</keytable>
+        <!-- manpages are deliberately not installed in the image -->
         <rpm-excludedocs>true</rpm-excludedocs>
         <rpm-check-signatures>false</rpm-check-signatures>
         <bootloader-theme>openSUSE</bootloader-theme>
