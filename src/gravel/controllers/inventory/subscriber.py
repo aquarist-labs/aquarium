@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Awaitable, Callable
 
-from gravel.cephadm.models import NodeInfoModel
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 
 
 class Subscriber:

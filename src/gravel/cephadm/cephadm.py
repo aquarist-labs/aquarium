@@ -24,14 +24,7 @@ import pydantic
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
 
-from .models import (
-    HostFactsModel,
-    NodeCPUInfoModel,
-    NodeCPULoadModel,
-    NodeInfoModel,
-    NodeMemoryInfoModel,
-    VolumeDeviceModel,
-)
+from .models import HostFactsModel, VolumeDeviceModel
 
 logger: Logger = fastapi_logger
 
@@ -172,42 +165,6 @@ class Cephadm:
                 else:
                     d.human_readable_type = "ssd"
         return inventory
-
-    async def get_node_info(self) -> NodeInfoModel:
-        try:
-            facts = await self.gather_facts()
-            inventory = await self.get_volume_inventory()
-        except CephadmError as e:
-            raise CephadmError("error obtaining node info") from e
-
-        return NodeInfoModel(
-            hostname=facts.hostname,
-            model=facts.model,
-            vendor=facts.vendor,
-            kernel=facts.kernel,
-            operating_system=facts.operating_system,
-            system_uptime=facts.system_uptime,
-            current_time=facts.timestamp,
-            cpu=NodeCPUInfoModel(
-                arch=facts.arch,
-                model=facts.cpu_model,
-                cores=facts.cpu_cores,
-                count=facts.cpu_count,
-                threads=facts.cpu_threads,
-                load=NodeCPULoadModel(
-                    one_min=facts.cpu_load["1min"],
-                    five_min=facts.cpu_load["5min"],
-                    fifteen_min=facts.cpu_load["15min"],
-                ),
-            ),
-            nics=facts.interfaces,
-            memory=NodeMemoryInfoModel(
-                available_kb=facts.memory_available_kb,
-                free_kb=facts.memory_free_kb,
-                total_kb=facts.memory_total_kb,
-            ),
-            disks=inventory,
-        )
 
     async def pull_images(self) -> None:
         logger.debug("fetching ceph container image")

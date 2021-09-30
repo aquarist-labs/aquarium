@@ -30,7 +30,7 @@ def test_solution(
     gstate: GlobalState,
 ) -> None:
 
-    from gravel.cephadm.models import NodeInfoModel
+    from gravel.controllers.inventory.nodeinfo import NodeInfoModel
     from gravel.controllers.nodes.disks import Disks, DiskSolution
 
     fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
@@ -71,7 +71,7 @@ def test_solution_with_ssd(
     get_data_contents: Callable[[str, str], str],
     gstate: GlobalState,
 ) -> None:
-    from gravel.cephadm.models import NodeInfoModel
+    from gravel.controllers.inventory.nodeinfo import NodeInfoModel
     from gravel.controllers.nodes.disks import Disks, DiskSolution
 
     fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(

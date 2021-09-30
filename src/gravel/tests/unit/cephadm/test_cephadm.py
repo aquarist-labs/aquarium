@@ -19,11 +19,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from gravel.cephadm.cephadm import Cephadm, CephadmError
-from gravel.cephadm.models import (
-    HostFactsModel,
-    NodeInfoModel,
-    VolumeDeviceModel,
-)
+from gravel.cephadm.models import HostFactsModel, VolumeDeviceModel
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -148,6 +144,12 @@ async def test_get_node_info(
         cephadm, "get_volume_inventory", side_effect=mock_inventory_result
     )
 
-    info: NodeInfoModel = await cephadm.get_node_info()
+    # keep it here for a bit, we'll move this later
+    from gravel.controllers.inventory.nodeinfo import (
+        NodeInfoModel,
+        get_node_info,
+    )
+
+    info: NodeInfoModel = await get_node_info(cephadm)
     assert info.hostname == facts_result.hostname
     assert info.disks == inventory_result

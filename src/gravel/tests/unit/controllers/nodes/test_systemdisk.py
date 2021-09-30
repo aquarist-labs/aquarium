@@ -148,8 +148,8 @@ async def test_create(
         if "lvcreate" in args:
             fs.create_file("/dev/mapper/aquarium-systemdisk")
 
-    from gravel.cephadm.models import NodeInfoModel
     from gravel.controllers.inventory.inventory import Inventory
+    from gravel.controllers.inventory.nodeinfo import NodeInfoModel
     from gravel.controllers.nodes.systemdisk import (
         SystemDisk,
         UnavailableDeviceError,

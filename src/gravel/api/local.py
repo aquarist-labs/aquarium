@@ -20,7 +20,8 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
-from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
+from gravel.cephadm.models import VolumeDeviceModel
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.nodes.deployment import NodeStageEnum
 from gravel.controllers.nodes.local import (
     LocalhostQualifiedModel,

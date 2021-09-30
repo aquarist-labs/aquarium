@@ -24,9 +24,9 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
 from gravel.cephadm.cephadm import CephadmError
-from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.auth import UserMgr, UserModel
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.inventory.subscriber import Subscriber
 from gravel.controllers.nodes.conn import (
     ConnMgr,

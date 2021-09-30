@@ -20,8 +20,8 @@ from typing import Awaitable, Callable, List, Optional
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
-from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState, Ticker
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel, get_node_info
 from gravel.controllers.inventory.subscriber import Subscriber
 from gravel.controllers.nodes.mgr import NodeMgr
 
@@ -68,7 +68,7 @@ class Inventory(Ticker):
     async def probe(self) -> None:
         cephadm: Cephadm = self._gstate.cephadm
         start: int = int(time.monotonic())
-        nodeinfo = await cephadm.get_node_info()
+        nodeinfo = await get_node_info(cephadm)
         diff: int = int(time.monotonic()) - start
         log_message = f"probing took {diff} seconds"
         if diff > 30:
