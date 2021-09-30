@@ -32,7 +32,6 @@ from gravel.controllers.nodes.errors import (
     NodeCantDeployError,
     NodeCantJoinError,
     NodeChronyRestartError,
-    NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError,
 )
@@ -381,7 +380,6 @@ class NodeDeployment:
 
         hostname = config.hostname
         address = config.address
-        token = config.token
         ntp_addr = config.ntp_addr
 
         if self._state.error:
