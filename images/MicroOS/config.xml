@@ -628,6 +628,8 @@
         <!-- Aquarium added: groupadd is no longer in base package -->
         <package name="shadow"/>
 
+        <package name="lshw"/>
+
         <package name="filesystem"/>
         <package name="glibc-locale-base"/>
         <!-- So that https repos work for image package downloads -->
