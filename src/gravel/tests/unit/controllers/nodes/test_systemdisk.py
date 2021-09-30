@@ -148,12 +148,13 @@ async def test_create(
         if "lvcreate" in args:
             fs.create_file("/dev/mapper/aquarium-systemdisk")
 
+    from gravel.cephadm.models import NodeInfoModel
+    from gravel.controllers.inventory.inventory import Inventory
     from gravel.controllers.nodes.systemdisk import (
         SystemDisk,
         UnavailableDeviceError,
         UnknownDeviceError,
     )
-    from gravel.controllers.resources.inventory import Inventory, NodeInfoModel
 
     nodeinfo: NodeInfoModel = NodeInfoModel.parse_raw(
         get_data_contents(DATA_DIR, "inventory_basic.json")

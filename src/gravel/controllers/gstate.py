@@ -29,8 +29,8 @@ from gravel.controllers.kv import KV
 from gravel.controllers.orch.ceph import Mgr, Mon
 
 if typing.TYPE_CHECKING:
+    from gravel.controllers.inventory.inventory import Inventory
     from gravel.controllers.resources.devices import Devices
-    from gravel.controllers.resources.inventory import Inventory
     from gravel.controllers.resources.status import Status
     from gravel.controllers.resources.storage import Storage
 

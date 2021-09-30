@@ -22,8 +22,8 @@ from fastapi.logger import logger as fastapi_logger
 from gravel.cephadm.cephadm import Cephadm
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState, Ticker
+from gravel.controllers.inventory.subscriber import Subscriber
 from gravel.controllers.nodes.mgr import NodeMgr
-from gravel.controllers.resources.inventory_sub import Subscriber
 
 logger: Logger = fastapi_logger
 

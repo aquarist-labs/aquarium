@@ -27,6 +27,7 @@ from gravel.cephadm.cephadm import CephadmError
 from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.auth import UserMgr, UserModel
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.subscriber import Subscriber
 from gravel.controllers.nodes.conn import (
     ConnMgr,
     IncomingConnection,
@@ -59,7 +60,6 @@ from gravel.controllers.nodes.messages import (
 )
 from gravel.controllers.orch.ceph import CephCommandError, Mon
 from gravel.controllers.orch.orchestrator import Orchestrator, OrchHostListModel
-from gravel.controllers.resources.inventory_sub import Subscriber
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
