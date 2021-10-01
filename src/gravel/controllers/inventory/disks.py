@@ -98,7 +98,11 @@ def _get_availability(
 ) -> Tuple[bool, List[RejectionReasonEnum]]:
     reasons: List[RejectionReasonEnum] = []
 
-    if disk.children is not None and len(disk.children) >= 0:
+    if (disk.children is not None and len(disk.children) >= 0) or (
+        disk.capabilities is not None
+        and "lvm2" in disk.capabilities
+        and disk.capabilities["lvm2"] is True
+    ):
         reasons.append(RejectionReasonEnum.IN_USE)
 
     assert disk.size is not None
