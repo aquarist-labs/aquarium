@@ -371,16 +371,47 @@ async def test_join(
 
     from uuid import UUID
 
+    from gravel.controllers.inventory.disks import DiskDevice
     from gravel.controllers.nodes.deployment import DeploymentDisksConfig
-    from gravel.controllers.nodes.disks import DiskModel, DiskSolution
+    from gravel.controllers.nodes.disks import DiskSolution
     from gravel.controllers.nodes.mgr import JoinParamsModel, NodeInitStage
 
     def mock_solution(gstate: GlobalState) -> DiskSolution:
         return DiskSolution(
-            systemdisk=DiskModel(path="/dev/foo", size=1000),
+            systemdisk=DiskDevice(
+                id="foo01",
+                name="foo",
+                path="/dev/foo",
+                product="Foo",
+                vendor="Foo Inc",
+                size=1000,
+                rotational=False,
+                available=True,
+                rejected_reasons=[],
+            ),
             storage=[
-                DiskModel(path="/dev/bar", size=2000),
-                DiskModel(path="/dev/baz", size=2000),
+                DiskDevice(
+                    id="bar01",
+                    name="bar",
+                    path="/dev/bar",
+                    product="Bar",
+                    vendor="Bar LLC",
+                    size=2000,
+                    rotational=False,
+                    available=True,
+                    rejected_reasons=[],
+                ),
+                DiskDevice(
+                    id="baz01",
+                    name="baz",
+                    path="/dev/baz",
+                    product="Baz",
+                    vendor="Baz Ltd",
+                    size=2000,
+                    rotational=False,
+                    available=True,
+                    rejected_reasons=[],
+                ),
             ],
             storage_size=4000,
             possible=True,
@@ -552,18 +583,49 @@ async def test_deploy(
 ) -> None:
 
     from gravel.controllers.auth import UserMgr, UserModel
+    from gravel.controllers.inventory.disks import DiskDevice
     from gravel.controllers.nodes.deployment import DeploymentConfig
-    from gravel.controllers.nodes.disks import DiskModel, DiskSolution
+    from gravel.controllers.nodes.disks import DiskSolution
     from gravel.controllers.nodes.mgr import NodeInitStage
 
     called_mock_deploy = False
 
     def mock_solution(gstate: GlobalState) -> DiskSolution:
         return DiskSolution(
-            systemdisk=DiskModel(path="/dev/foo", size=1000),
+            systemdisk=DiskDevice(
+                id="foo01",
+                name="foo",
+                path="/dev/foo",
+                product="Foo",
+                vendor="Foo Inc",
+                size=1000,
+                rotational=False,
+                available=True,
+                rejected_reasons=[],
+            ),
             storage=[
-                DiskModel(path="/dev/bar", size=2000),
-                DiskModel(path="/dev/baz", size=2000),
+                DiskDevice(
+                    id="bar01",
+                    name="bar",
+                    path="/dev/bar",
+                    product="Bar",
+                    vendor="Bar LLC",
+                    size=2000,
+                    rotational=False,
+                    available=True,
+                    rejected_reasons=[],
+                ),
+                DiskDevice(
+                    id="baz01",
+                    name="baz",
+                    path="/dev/baz",
+                    product="Baz",
+                    vendor="Baz Ltd",
+                    size=2000,
+                    rotational=False,
+                    available=True,
+                    rejected_reasons=[],
+                ),
             ],
             storage_size=4000,
             possible=True,

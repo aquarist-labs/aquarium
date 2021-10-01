@@ -34,7 +34,7 @@ async def test_inventory_subs(
 ):
 
     nodeinfo: NodeInfoModel = NodeInfoModel.parse_raw(
-        get_data_contents(DATA_DIR, "inventory_basic.json")
+        get_data_contents(DATA_DIR, "nodeinfo_real.json")
     )
 
     inventory: Inventory = gstate.inventory

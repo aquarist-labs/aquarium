@@ -16,7 +16,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Coroutine, List, Optional, Tuple, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from gravel.controllers.utils import HWEntryModel, lshw
 
@@ -30,16 +30,30 @@ class RejectionReasonEnum(int, Enum):
     REMOVABLE_DEVICE = 3
 
 
+def _make_unknown(value: Optional[str]) -> str:
+    if value is None:
+        return "Unknown"
+    return value
+
+
 class DiskDevice(BaseModel):
     id: str
     name: str
     path: str
-    product: Optional[str]
-    vendor: Optional[str]
+    product: str
+    vendor: str
     size: int
     rotational: bool
     available: bool
-    reject_reasons: List[RejectionReasonEnum] = Field([])
+    rejected_reasons: List[RejectionReasonEnum] = Field([])
+
+    _validate_product = validator("product", pre=True, allow_reuse=True)(
+        _make_unknown
+    )
+
+    _validate_vendor = validator("vendor", pre=True, allow_reuse=True)(
+        _make_unknown
+    )
 
 
 async def get_hw_storage_devices() -> Union[List[HWEntryModel], None]:
@@ -119,7 +133,7 @@ async def _get_disk_device(disk: HWEntryModel) -> DiskDevice:
         size=disk.size,
         rotational=rotational,
         available=available,
-        reject_reasons=rejection_reasons,
+        rejected_reasons=rejection_reasons,
     )
 
 

@@ -34,7 +34,7 @@ def test_solution(
     from gravel.controllers.nodes.disks import Disks, DiskSolution
 
     fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
-        get_data_contents(DATA_DIR, "disks_local_inventory.json")
+        get_data_contents(DATA_DIR, "disks_local_nodeinfo.json")
     )
     gstate.inventory._latest = fake_inventory
 
@@ -46,26 +46,6 @@ def test_solution(
     assert solution.systemdisk.path == "/dev/vdb"
 
 
-def test_device_to_disk(
-    mocker: MockerFixture, get_data_contents: Callable[[str, str], str]
-) -> None:
-
-    from gravel.cephadm.models import VolumeDeviceModel
-    from gravel.controllers.nodes.disks import (
-        DiskModel,
-        DiskTypeEnum,
-        _device_to_disk,
-    )
-
-    device: VolumeDeviceModel = VolumeDeviceModel.parse_raw(
-        get_data_contents(DATA_DIR, "disks_single_volume.json")
-    )
-    disk: DiskModel = _device_to_disk(device)
-
-    assert disk.path == "/dev/vdb"
-    assert disk.type == DiskTypeEnum.HDD
-
-
 def test_solution_with_ssd(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str],
@@ -75,7 +55,7 @@ def test_solution_with_ssd(
     from gravel.controllers.nodes.disks import Disks, DiskSolution
 
     fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
-        get_data_contents(DATA_DIR, "disks_local_inventory_with_ssd.json")
+        get_data_contents(DATA_DIR, "disks_local_nodeinfo_with_ssd.json")
     )
     gstate.inventory._latest = fake_inventory
 
@@ -84,4 +64,4 @@ def test_solution_with_ssd(
     assert solution.systemdisk is not None
     assert len(solution.rejected) == 1
     assert len(solution.storage) == 3
-    assert solution.systemdisk.path == "/dev/vdc"
+    assert solution.systemdisk.path == "/dev/vda"

@@ -11,6 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import asyncio
 from typing import Dict, List
 
 from pydantic import BaseModel
@@ -21,8 +22,8 @@ from gravel.cephadm.models import (
     NodeCPUInfoModel,
     NodeCPULoadModel,
     NodeMemoryInfoModel,
-    VolumeDeviceModel,
 )
+from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
 
 
 class NodeInfoModel(BaseModel):
@@ -36,13 +37,14 @@ class NodeInfoModel(BaseModel):
     cpu: NodeCPUInfoModel
     nics: Dict[str, NICModel]
     memory: NodeMemoryInfoModel
-    disks: List[VolumeDeviceModel]
+    disks: List[DiskDevice]
 
 
 async def get_node_info(cephadm: Cephadm) -> NodeInfoModel:
     try:
-        facts = await cephadm.gather_facts()
-        inventory = await cephadm.get_volume_inventory()
+        facts, disks = await asyncio.gather(
+            cephadm.gather_facts(), get_storage_devices()
+        )
     except CephadmError as e:
         raise CephadmError("error obtaining node info") from e
 
@@ -72,5 +74,5 @@ async def get_node_info(cephadm: Cephadm) -> NodeInfoModel:
             free_kb=facts.memory_free_kb,
             total_kb=facts.memory_total_kb,
         ),
-        disks=inventory,
+        disks=disks,
     )

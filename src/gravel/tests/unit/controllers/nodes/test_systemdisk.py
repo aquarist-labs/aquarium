@@ -157,7 +157,7 @@ async def test_create(
     )
 
     nodeinfo: NodeInfoModel = NodeInfoModel.parse_raw(
-        get_data_contents(DATA_DIR, "inventory_basic.json")
+        get_data_contents(DATA_DIR, "nodeinfo_real.json")
     )
 
     inventory: Inventory = gstate.inventory
@@ -180,14 +180,14 @@ async def test_create(
     nodeinfo.disks[0].available = False
     throws = False
     try:
-        await systemdisk.create("/dev/foo")
+        await systemdisk.create("/dev/vda")
     except UnavailableDeviceError:
         throws = True
         pass
     assert throws
 
     nodeinfo.disks[0].available = True
-    await systemdisk.create("/dev/foo")
+    await systemdisk.create("/dev/vda")
 
 
 @pytest.mark.asyncio

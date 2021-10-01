@@ -1,0 +1,111 @@
+{
+  "hostname": "node1",
+  "model": " (Standard PC (i440FX + PIIX, 1996))",
+  "vendor": "QEMU",
+  "kernel": "5.14.6-1-default",
+  "operating_system": "Unknown",
+  "system_uptime": 8133.15,
+  "current_time": 1633086689,
+  "cpu": {
+    "arch": "x86_64",
+    "model": "AMD EPYC-Rome Processor",
+    "cores": 1,
+    "count": 1,
+    "threads": 1,
+    "load": {
+      "one_min": 0.0,
+      "five_min": 0.0,
+      "fifteen_min": 0.0
+    }
+  },
+  "nics": {
+    "eth0": {
+      "driver": "virtio_net",
+      "iftype": "physical",
+      "ipv4_address": "192.168.121.228/24",
+      "ipv6_address": "fe80::5054:ff:feef:31b9/64",
+      "lower_devs_list": [],
+      "mtu": 1500,
+      "nic_type": "ethernet",
+      "operstate": "up",
+      "speed": -1,
+      "upper_devs_list": []
+    },
+    "lo": {
+      "driver": "",
+      "iftype": "logical",
+      "ipv4_address": "127.0.0.1/8",
+      "ipv6_address": "::1/128",
+      "lower_devs_list": [],
+      "mtu": 65536,
+      "nic_type": "loopback",
+      "operstate": "unknown",
+      "speed": -1,
+      "upper_devs_list": []
+    }
+  },
+  "memory": {
+    "available_kb": 3567364,
+    "free_kb": 3431520,
+    "total_kb": 4011272
+  },
+  "disks": [
+    {
+      "id": "virtio0",
+      "name": "vda",
+      "path": "/dev/vda",
+      "product": "Unknown",
+      "vendor": "Unknown",
+      "size": 25769803776,
+      "rotational": false,
+      "available": true,
+      "rejected_reasons": []
+    },
+    {
+      "id": "virtio1",
+      "name": "vdb",
+      "path": "/dev/vdb",
+      "product": "Unknown",
+      "vendor": "Unknown",
+      "size": 8589934592,
+      "rotational": true,
+      "available": true,
+      "rejected_reasons": []
+    },
+    {
+      "id": "virtio2",
+      "name": "vdc",
+      "path": "/dev/vdc",
+      "product": "Unknown",
+      "vendor": "Unknown",
+      "size": 8589934592,
+      "rotational": true,
+      "available": true,
+      "rejected_reasons": []
+    },
+    {
+      "id": "virtio3",
+      "name": "vdd",
+      "path": "/dev/vdd",
+      "product": "Unknown",
+      "vendor": "Unknown",
+      "size": 8589934592,
+      "rotational": true,
+      "available": true,
+      "rejected_reasons": []
+    },
+    {
+      "id": "virtio4",
+      "name": "vde",
+      "path": "/dev/vde",
+      "product": "Unknown",
+      "vendor": "Unknown",
+      "size": 8589934592,
+      "rotational": true,
+      "available": false,
+      "rejected_reasons": [
+        2
+      ]
+    }
+  ]
+}

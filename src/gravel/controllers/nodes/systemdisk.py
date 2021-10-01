@@ -19,9 +19,9 @@ from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
 
-from gravel.cephadm.models import VolumeDeviceModel
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.disks import DiskDevice
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.utils import aqr_run_cmd
 
@@ -112,7 +112,7 @@ class SystemDisk:
         inventory: Optional[NodeInfoModel] = self._gstate.inventory.latest
         assert inventory is not None
 
-        device: Optional[VolumeDeviceModel] = next(
+        device: Optional[DiskDevice] = next(
             (d for d in inventory.disks if d.path == devicestr), None
         )
 
