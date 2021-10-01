@@ -57,6 +57,9 @@ class MountEntry(BaseModel):
     dest: str
 
 
+AQR_SYSTEM_PATH = "/var/lib/aquarium-system"
+
+
 def get_mounts() -> List[MountEntry]:
     proc: Path = Path("/proc/mounts")
     assert proc.exists()
@@ -94,7 +97,7 @@ class SystemDisk:
         for entry in mounts:
             if (
                 entry.source == "/dev/mapper/aquarium-systemdisk"
-                and entry.dest == "/aquarium"
+                and entry.dest == AQR_SYSTEM_PATH
             ):
                 return True
         return False
@@ -148,8 +151,8 @@ class SystemDisk:
             # format with xfs
             await aqr_run_cmd(shlex.split(f"mkfs.xfs -m bigtime=1 {lvmdev}"))
 
-            aqrmntpath: Path = Path("/aquarium")
-            aqrmntpath.mkdir(exist_ok=True)
+            aqrmntpath: Path = Path(AQR_SYSTEM_PATH)
+            aqrmntpath.mkdir(exist_ok=True, parents=True)
 
             await self.mount()
 
@@ -171,7 +174,7 @@ class SystemDisk:
             raise e
 
     async def mount(self) -> None:
-        aqrmntpath: Path = Path("/aquarium")
+        aqrmntpath: Path = Path(AQR_SYSTEM_PATH)
         aqrdevpath: Path = Path("/dev/mapper/aquarium-systemdisk")
         assert aqrdevpath.exists()
         aqrmntpath.mkdir(exist_ok=True)
@@ -185,9 +188,9 @@ class SystemDisk:
             raise MountError(msg=str(e))
 
     async def unmount(self) -> None:
-        aqrmnt: Path = Path("/aquarium")
+        aqrmnt: Path = Path(AQR_SYSTEM_PATH)
         if not aqrmnt.exists():
-            raise MountError(msg="The /aquarium mount point does not exist.")
+            raise MountError(msg=f"The {aqrmnt} mount point does not exist.")
 
         try:
             await aqr_run_cmd(shlex.split(f"umount {aqrmnt}"))
@@ -210,7 +213,7 @@ class SystemDisk:
             await aqr_run_cmd(shlex.split(mntcmd))
 
         for upper, lower in self._overlaydirs.items():
-            aqrpath: Path = Path("/aquarium")
+            aqrpath: Path = Path(AQR_SYSTEM_PATH)
             upperpath: Path = aqrpath.joinpath(upper)
             overlaypath: Path = upperpath.joinpath("overlay")
             temppath: Path = upperpath.joinpath("temp")
@@ -231,7 +234,7 @@ class SystemDisk:
                 )
 
         for ours, theirs in self._bindmounts.items():
-            ourpath: Path = Path("/aquarium").joinpath(ours)
+            ourpath: Path = Path(AQR_SYSTEM_PATH).joinpath(ours)
             theirpath: Path = Path(theirs)
             assert ourpath.exists()
             theirpath.mkdir(parents=True, exist_ok=True)

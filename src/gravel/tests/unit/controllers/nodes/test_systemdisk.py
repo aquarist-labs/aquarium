@@ -40,7 +40,7 @@ def test_get_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
     for entry in lst:
         if (
             entry.source == "/dev/mapper/aquarium-systemdisk"
-            and entry.dest == "/aquarium"
+            and entry.dest == "/var/lib/aquarium-system"
         ):
             found = True
             break
@@ -221,7 +221,7 @@ async def test_mount_error(
     except MountError:
         throws = True
     assert throws
-    assert fs.exists("/aquarium")
+    assert fs.exists("/var/lib/aquarium-system")
 
 
 @pytest.mark.asyncio
@@ -249,7 +249,7 @@ async def test_unmount_error(
         throws = True
     assert throws
 
-    fs.create_dir("/aquarium")
+    fs.create_dir("/var/lib/aquarium-system")
     throws = False
     try:
         await systemdisk.unmount()
@@ -319,11 +319,11 @@ async def test_enable(
     systemdisk.mount = mocker.AsyncMock()
 
     for upper in systemdisk._overlaydirs.keys():
-        fs.create_dir(f"/aquarium/{upper}/overlay")
-        fs.create_dir(f"/aquarium/{upper}/temp")
+        fs.create_dir(f"/var/lib/aquarium-system/{upper}/overlay")
+        fs.create_dir(f"/var/lib/aquarium-system/{upper}/temp")
 
     for ours in systemdisk._bindmounts.keys():
-        fs.create_dir(f"/aquarium/{ours}")
+        fs.create_dir(f"/var/lib/aquarium-system/{ours}")
 
     await systemdisk.enable()
 
