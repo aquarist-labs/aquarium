@@ -46,7 +46,7 @@ describe('UsersService', () => {
   });
 
   it('should call update', () => {
-    service.update('foo', { full_name: 'baz' }).subscribe();
+    service.update({ username: 'foo', full_name: 'baz' }).subscribe();
     const req = httpTesting.expectOne('api/users/foo');
     expect(req.request.method).toBe('PATCH');
   });

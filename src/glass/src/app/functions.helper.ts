@@ -35,3 +35,22 @@ export const toBytes = (value: number | string): number | null => {
   }
   return Math.round(bytes);
 };
+
+/**
+ * Convert a number of bytes into the highest possible binary unit.
+ *
+ * @param value The value to convert.
+ * @returns Returns The converted value, e.g. '4 MiB'.
+ */
+export const bytesToSize = (value: null | number | string): string => {
+  if (_.isNull(value) || [0, '0', ''].includes(value)) {
+    return '0 B';
+  }
+  const bytes = _.toNumber(value);
+  const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+  const factor = 1024;
+  const i = Math.floor(Math.log(bytes) / Math.log(factor));
+  const rawVal = bytes / Math.pow(factor, i);
+  const rounded = Math.round((rawVal + Number.EPSILON) * 100) / 100;
+  return rounded + ' ' + sizes[i];
+};

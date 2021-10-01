@@ -13,8 +13,10 @@
  * GNU General Public License for more details.
  */
 import { Clipboard } from '@angular/cdk/clipboard';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
+  AbstractControl,
+  AsyncValidatorFn,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -24,10 +26,14 @@ import {
 } from '@angular/forms';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import * as _ from 'lodash';
+import { Subscription } from 'rxjs';
 
+import { bytesToSize, toBytes } from '~/app/functions.helper';
 import { GlassValidators } from '~/app/shared/forms/validators';
 import {
+  DeclarativeForm,
   DeclarativeFormConfig,
+  DeclarativeFormValues,
   FormButtonConfig,
   FormFieldConfig
 } from '~/app/shared/models/declarative-form-config.type';
@@ -40,12 +46,14 @@ let nextUniqueId = 0;
   templateUrl: './declarative-form.component.html',
   styleUrls: ['./declarative-form.component.scss']
 })
-export class DeclarativeFormComponent implements OnInit {
+export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDestroy {
   @Input()
   config?: DeclarativeFormConfig;
 
   @Input()
   formGroup?: FormGroup;
+
+  private subscriptions: Subscription = new Subscription();
 
   constructor(
     private clipboard: Clipboard,
@@ -55,6 +63,7 @@ export class DeclarativeFormComponent implements OnInit {
 
   private static createFormControl(field: FormFieldConfig): FormControl {
     const validators: Array<ValidatorFn> = [];
+    const asyncValidator: Array<AsyncValidatorFn> = [];
     if (field.validators) {
       if (_.isNumber(field.validators.min)) {
         validators.push(Validators.min(field.validators.min));
@@ -84,32 +93,74 @@ export class DeclarativeFormComponent implements OnInit {
             break;
         }
       }
+      if (_.isFunction(field.validators.custom)) {
+        validators.push(field.validators.custom);
+      }
+      if (_.isFunction(field.validators.asyncCustom)) {
+        asyncValidator.push(field.validators.asyncCustom);
+      }
     }
-    return new FormControl(_.defaultTo(field.value, null), {
-      validators
-    });
+    let value = _.defaultTo(field.value, null);
+    if (field.type === 'binary' && _.isNumber(value)) {
+      value = bytesToSize(field.value);
+    }
+    return new FormControl(value, validators, asyncValidator);
   }
 
   ngOnInit(): void {
     this.config = _.defaultsDeep(this.config, {
       id: `glass-declarative-form-${++nextUniqueId}`
     });
-    _.forEach(this.config?.fields, (field: FormFieldConfig) => {
+    const fields: Array<FormFieldConfig> = this.getFields();
+    _.forEach(fields, (field: FormFieldConfig) => {
       _.defaultsDeep(field, {
         hasCopyToClipboardButton: false,
         placeholder: '',
         options: {}
       });
+      switch (field.type) {
+        case 'checkbox':
+        case 'radio':
+          _.defaultsDeep(field, {
+            id: `${field.name}-${++nextUniqueId}`
+          });
+          break;
+      }
     });
     this.formGroup = this.createForm();
+    // Initialize onValueChanges callbacks.
+    _.forEach(
+      _.filter(fields, (field) => _.isFunction(field.onValueChanges)),
+      (field: FormFieldConfig) => {
+        if (this.formGroup) {
+          const control: AbstractControl | null = this.getControl(field.name);
+          if (control) {
+            this.subscriptions.add(
+              control.valueChanges.subscribe((value: any) => {
+                value = this.convertToRaw(value, field);
+                field.onValueChanges!(value, control, this);
+              })
+            );
+          }
+        }
+      }
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   createForm(): FormGroup {
     const controlsConfig: Record<string, FormControl> = {};
-    _.forEach(this.config?.fields, (field: FormFieldConfig) => {
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
       controlsConfig[field.name] = DeclarativeFormComponent.createFormControl(field);
     });
     return this.formBuilder.group(controlsConfig);
+  }
+
+  getControl(path: string): AbstractControl | null {
+    return this.formGroup ? this.formGroup.get(path) : null;
   }
 
   onCopyToClipboard(field: FormFieldConfig): void {
@@ -136,16 +187,29 @@ export class DeclarativeFormComponent implements OnInit {
     }
   }
 
-  get values(): Record<string, any> {
-    return this.formGroup?.value ?? {};
+  get values(): DeclarativeFormValues {
+    const values = this.formGroup?.value ?? {};
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
+      const value = values[field.name];
+      if (value) {
+        values[field.name] = this.convertToRaw(value, field);
+      }
+    });
+    return values;
   }
 
   get valid(): boolean {
     return this.formGroup?.valid ?? false;
   }
 
-  patchValues(values: Record<string, any>): void {
+  patchValues(values: DeclarativeFormValues, markAsDirty: boolean = true): void {
     this.formGroup?.patchValue(values);
+    if (markAsDirty) {
+      _.forEach(_.keys(values), (key) => {
+        const control = this.formGroup?.get(key);
+        control?.markAsDirty();
+      });
+    }
   }
 
   /**
@@ -161,5 +225,26 @@ export class DeclarativeFormComponent implements OnInit {
       ? (fgd.submitted || control.dirty) &&
           (errorCode ? control.hasError(errorCode) : control.invalid)
       : false;
+  }
+
+  private getFields(): Array<FormFieldConfig> {
+    const flatten = (fields: Array<FormFieldConfig>): Array<FormFieldConfig> =>
+      _.flatMap(fields, (field: FormFieldConfig) => {
+        if (_.isArray(field.fields)) {
+          return flatten(field.fields);
+        } else {
+          return field;
+        }
+      });
+    return flatten(this.config?.fields || []);
+  }
+
+  private convertToRaw(value: any, field: FormFieldConfig): any {
+    switch (field.type) {
+      case 'binary':
+        value = toBytes(value);
+        break;
+    }
+    return value;
   }
 }

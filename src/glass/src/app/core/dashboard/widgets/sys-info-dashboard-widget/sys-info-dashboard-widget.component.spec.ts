@@ -74,9 +74,9 @@ describe('SysInfoDashboardWidgetComponent', () => {
           free: 95
         },
         asString: {
-          total: '100 KB',
-          used: '5 KB',
-          free: '95 KB'
+          total: '100 KiB',
+          used: '5 KiB',
+          free: '95 KiB'
         }
       });
     });
@@ -84,7 +84,7 @@ describe('SysInfoDashboardWidgetComponent', () => {
     it('should show the right gauge text', () => {
       // @ts-ignore
       expect(component.memoryGaugeOpts.title.subtext).toBe(
-        'Total: 100 KB\nUsed: 5 KB\nFree: 95 KB'
+        'Total: 100 KiB\nUsed: 5 KiB\nFree: 95 KiB'
       );
     });
   });
