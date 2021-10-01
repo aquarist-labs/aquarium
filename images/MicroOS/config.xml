@@ -579,11 +579,13 @@
         <package name="lvm2"/>
         <package name="chrony"/>
         <package name="tuned"/>
+        <package name="xfsprogs"/>
         <package name="python38-pip"/>
         <package name="python38-aiofiles"/>
         <package name="python38-requests"/>
         <package name="python38-PyYAML"/>
         <package name="python3-rados"/>
+        <package name="python38-dbm"/>
 
         <archive name="aquarium.tar.gz"/>
         <archive name="root.tar.gz"/>
@@ -604,7 +606,7 @@
 
         <!-- Aquarium required : podman -->
         <package name="btrfsprogs"/>
-        <package name="fuse-overlayfs"/>
+        <package name="fuse-overlayfs"/> <!-- Joao: I think we can drop this -->
         <package name="udev"/>
         <package name="xz"/>
         <package name="grep"/>
