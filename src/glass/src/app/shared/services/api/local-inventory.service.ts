@@ -17,11 +17,11 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
+  Disk,
   Inventory,
   LocalNodeService,
   Nic,
-  NodeStatus,
-  Volume
+  NodeStatus
 } from '~/app/shared/services/api/local.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -54,7 +54,7 @@ export class LocalInventoryService {
     this.inventory$ = this.inventorySource.asObservable();
   }
 
-  getDevices(): Observable<Volume[]> {
+  getDevices(): Observable<Disk[]> {
     return this.inventory$.pipe(map((inventory: Inventory) => inventory.disks));
   }
 

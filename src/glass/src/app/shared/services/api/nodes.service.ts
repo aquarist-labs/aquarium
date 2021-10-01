@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { Disk } from '~/app/shared/services/api/local.service';
+
 export enum DeploymentErrorEnum {
   none = 0,
   cantBootstrap = 1,
@@ -57,29 +59,12 @@ export type DeploymentStatusReply = {
   progress: number;
 };
 
-export type DiskInfo = {
-  vendor: string;
-  model: string;
-};
-
-export type Disk = {
-  path?: string;
-  size: number;
-  type: DiskTypeEnum;
-  info: DiskInfo;
-};
-
-export type RejectedDisk = {
-  disk: Disk;
-  reasons: string[];
-};
-
 export type DiskSolution = {
   systemdisk?: Disk;
   storage: Disk[];
   /* eslint-disable-next-line @typescript-eslint/naming-convention */
   storage_size: number;
-  rejected: RejectedDisk[];
+  rejected: Disk[];
   possible: boolean;
 };
 

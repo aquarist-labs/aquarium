@@ -24,9 +24,9 @@ import {
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { DeviceHost, DevicesService } from '~/app/shared/services/api/devices.service';
-import { Inventory, LocalNodeService, Volume } from '~/app/shared/services/api/local.service';
+import { Disk, Inventory, LocalNodeService } from '~/app/shared/services/api/local.service';
 
-type VolumeExtended = Volume & {
+type VolumeExtended = Disk & {
   utilization: number;
   humanReadableUtilization: string;
 };
@@ -53,11 +53,11 @@ export class StorageDevicesPageComponent {
       },
       {
         name: TEXT('Serial'),
-        prop: 'device_id'
+        prop: 'id'
       },
       {
         name: TEXT('Vendor'),
-        prop: 'sys_api.vendor'
+        prop: 'vendor'
       },
       {
         name: TEXT('Type'),
@@ -73,8 +73,8 @@ export class StorageDevicesPageComponent {
       },
       {
         name: TEXT('Size'),
-        prop: 'sys_api.human_readable_size',
-        compareProp: 'sys_api.size'
+        prop: 'size',
+        compareProp: 'size'
       },
       {
         name: TEXT('Utilization'),
@@ -97,12 +97,12 @@ export class StorageDevicesPageComponent {
       )
       .subscribe((res: { inventory: Inventory; devices: Record<string, DeviceHost> }) => {
         const data: VolumeExtended[] = [];
-        _.forEach(res.inventory.disks, (volume: Volume) => {
-          const volumeExtended: VolumeExtended = volume as VolumeExtended;
+        _.forEach(res.inventory.disks, (disk: Disk) => {
+          const volumeExtended: VolumeExtended = disk as VolumeExtended;
           // Append the utilization.
           const deviceHost: DeviceHost = _.get(res.devices, res.inventory.hostname);
           if (deviceHost) {
-            const device = _.find(deviceHost.devices, ['path', volume.path]);
+            const device = _.find(deviceHost.devices, ['path', disk.path]);
             if (device) {
               volumeExtended.utilization = device.utilization.utilization;
               volumeExtended.humanReadableUtilization = `${_.round(

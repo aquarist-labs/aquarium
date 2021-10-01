@@ -18,33 +18,22 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export type Volume = {
-  available: boolean;
-  device_id: string;
-  human_readable_type: string;
-  lsm_data: Record<string, unknown>;
-  lvs: null[];
+export enum DiskRejectionReasonEnum {
+  InUse = 1,
+  TooSmall = 2,
+  RemovableDevice = 3,
+}
+
+export type Disk = {
+  id: string;
+  name: string;
   path: string;
-  rejected_reasons: string[];
-  sys_api: {
-    human_readable_size: string;
-    locked: number;
-    model: string;
-    nr_requests: number;
-    partitions: Record<string, unknown>;
-    removable: boolean;
-    rev: string;
-    ro: boolean;
-    rotational: boolean;
-    sas_address: string;
-    sas_device_handle: string;
-    scheduler_mode: string;
-    sectors: number;
-    sectorsize: number;
-    size: number;
-    support_discard: number;
-    vendor: string;
-  };
+  product: string;
+  vendor: string;
+  size: number;
+  rotational: boolean;
+  available: boolean;
+  rejected_reasons: DiskRejectionReasonEnum[];
 };
 
 export type Nic = {
@@ -86,7 +75,7 @@ export type Inventory = {
     free_kb: number;
     total_kb: number;
   };
-  disks: Volume[];
+  disks: Disk[];
 };
 
 // eslint-disable-next-line no-shadow
@@ -146,7 +135,7 @@ export class LocalNodeService {
   /**
    * Get volumes
    */
-  public volumes(): Observable<Volume[]> {
+  public volumes(): Observable<Disk[]> {
     // Inventory is much faster than the volumes endpoint
     return this.inventory().pipe(map((i) => i.disks));
   }
