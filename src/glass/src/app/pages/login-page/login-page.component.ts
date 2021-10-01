@@ -8,6 +8,7 @@ import { translate } from '~/app/i18n.helper';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 import { AuthService } from '~/app/shared/services/api/auth.service';
+import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
   selector: 'glass-login-page',
@@ -52,10 +53,16 @@ export class LoginPageComponent implements OnInit {
     ]
   };
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private dialogService: DialogService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.blockUI.resetGlobal();
+    // Ensure all open modal dialogs are closed.
+    this.dialogService.dismissAll();
   }
 
   onLogin(): void {
