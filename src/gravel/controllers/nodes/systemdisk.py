@@ -84,6 +84,7 @@ class SystemDisk:
         "logs": "/var/log",
         "aquarium": "/var/lib/aquarium",
         "roothome": "/root",
+        "sysctl": "/usr/lib/sysctl.d",
     }
     _bindmounts: Dict[str, str] = {"ceph": "/var/lib/ceph"}
 
