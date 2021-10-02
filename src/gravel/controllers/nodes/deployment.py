@@ -103,6 +103,10 @@ class DeploymentError(GravelError):
     pass
 
 
+class SystemDiskCreationError(DeploymentError):
+    pass
+
+
 class DeploymentState:
 
     _stage: NodeStageEnum
@@ -254,6 +258,80 @@ class NodeDeployment:
 
         return 0
 
+    async def _prepare_node(
+        self,
+        sysdiskpath: str,
+        hostname: str,
+        ntpaddr: Optional[str],
+        pubkey: Optional[str],
+        keyring: Optional[str],
+        cephconf: Optional[str],
+        is_join: bool,
+        progress_cb: Optional[Callable[[int, Optional[str]], None]],
+    ) -> None:
+        def progress(value: int, msg: str) -> None:
+            if progress_cb is not None:
+                progress_cb(value, msg)
+
+        if is_join:
+            assert ntpaddr is None
+            assert pubkey is not None and len(pubkey) > 0
+            assert keyring is not None and len(keyring) > 0
+            assert cephconf is not None and len(cephconf) > 0
+        else:
+            assert ntpaddr is not None and len(ntpaddr) > 0
+            assert pubkey is None
+            assert keyring is None
+            assert cephconf is None
+
+        def _write_keys(pubkey: str, keyring: str, conf: str) -> None:
+            # write pubkey to authorized keys, allows cephadm to do stuff
+            authorized_keys = Path("/root/.ssh/authorized_keys")
+            authorized_keys.parent.mkdir(
+                exist_ok=True, parents=True, mode=0o700
+            )
+            with authorized_keys.open("a") as fd:
+                fd.writelines([pubkey])
+                logger.debug(f"prepare_node: wrote pubkey to {authorized_keys}")
+
+            # write ceph.conf, allows accessing the cluster
+            confpath = Path("/etc/ceph/ceph.conf")
+            keyringpath = Path("/etc/ceph/ceph.client.admin.keyring")
+            confpath.parent.mkdir(exist_ok=True, parents=True, mode=0o755)
+            confpath.write_text(conf)
+            keyringpath.write_text(keyring)
+            keyringpath.chmod(0o600)
+            confpath.chmod(0o644)
+
+        systemdisk = SystemDisk(self._gstate)
+        try:
+            progress(0, "Creating System Disk")
+            await systemdisk.create(sysdiskpath)
+            progress(10, "Enabling System Disk")
+            await systemdisk.enable()
+        except GravelError as e:
+            raise SystemDiskCreationError(msg=e.message)
+
+        if is_join:
+            # We're doing a join. It should be quick. Don't track progress.
+            assert (
+                pubkey is not None
+                and keyring is not None
+                and cephconf is not None
+            )
+            _write_keys(pubkey, keyring, cephconf)
+
+        progress(20, "Setting Hostname")
+        await self._set_hostname(hostname)
+
+        progress(30, "Setting NTP servers")
+        if is_join:
+            await self._gstate.store.ensure_connection()
+            ntpaddr = await self._gstate.store.get("/nodes/ntp_addr")
+
+        assert ntpaddr is not None and len(ntpaddr) > 0
+        await self._set_ntp_addr(ntpaddr)
+
     async def join(
         self,
         leader_address: str,
@@ -380,17 +458,9 @@ class NodeDeployment:
 
         hostname = config.hostname
         address = config.address
-        ntp_addr = config.ntp_addr
 
         if self._state.error:
             raise NodeCantDeployError("Node is in error state.")
-
-        systemdisk = SystemDisk(self._gstate)
-        try:
-            await systemdisk.create(config.disks.system)
-            await systemdisk.enable()
-        except GravelError as e:
-            raise NodeCantDeployError(e.message)
 
         async def _start() -> None:
             assert self._state
@@ -452,9 +522,16 @@ class NodeDeployment:
 
         self._progress = ProgressEnum.PREPARING
 
-        await self._set_hostname(hostname)
-
-        await self._set_ntp_addr(ntp_addr)
+        await self._prepare_node(
+            config.disks.system,
+            config.hostname,
+            config.ntp_addr,
+            pubkey=None,
+            keyring=None,
+            cephconf=None,
+            is_join=False,
+            progress_cb=None,
+        )
 
         assert not self._bootstrapper
         await _start()
