@@ -146,7 +146,10 @@ async def test_create(
 
     async def mock_lvm(args: str) -> None:
         if "lvcreate" in args:
-            fs.create_file("/dev/mapper/aquarium-systemdisk")
+            if "systemdisk" in args:
+                fs.create_file("/dev/mapper/aquarium-systemdisk")
+            elif "containers" in args:
+                fs.create_file("/dev/mapper/aquarium-containers")
 
     from gravel.controllers.inventory.inventory import Inventory
     from gravel.controllers.inventory.nodeinfo import NodeInfoModel
