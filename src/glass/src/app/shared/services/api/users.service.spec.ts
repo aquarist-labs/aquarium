@@ -50,4 +50,16 @@ describe('UsersService', () => {
     const req = httpTesting.expectOne('api/users/foo');
     expect(req.request.method).toBe('PATCH');
   });
+
+  it('should call get', () => {
+    service.get('foo').subscribe();
+    const req = httpTesting.expectOne('api/users/foo');
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should call exists', () => {
+    service.exists('foo').subscribe();
+    const req = httpTesting.expectOne('api/users/foo');
+    expect(req.request.method).toBe('GET');
+  });
 });

@@ -1,7 +1,11 @@
 import { Component } from '@angular/core';
+import { AbstractControl, AsyncValidatorFn } from '@angular/forms';
+import { ValidationErrors } from '@angular/forms';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { finalize } from 'rxjs/operators';
+import { Observable, of, timer } from 'rxjs';
+import { finalize, map, switchMapTo } from 'rxjs/operators';
 
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
 import { translate } from '~/app/i18n.helper';
@@ -11,7 +15,6 @@ import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { User, UsersService } from '~/app/shared/services/api/users.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
-
 @Component({
   selector: 'glass-users-page',
   templateUrl: './users-page.component.html',
@@ -89,7 +92,8 @@ export class UsersPageComponent {
               name: 'username',
               value: '',
               validators: {
-                required: true
+                required: true,
+                asyncCustom: this.nameValidator()
               }
             },
             {
@@ -205,5 +209,23 @@ export class UsersPageComponent {
       }
     ];
     return result;
+  }
+
+  private nameValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (control.pristine || _.isEmpty(control.value)) {
+        return of(null);
+      }
+      return timer(200).pipe(
+        switchMapTo(this.usersService.exists(control.value)),
+        map((resp: boolean) => {
+          if (!resp) {
+            return null;
+          } else {
+            return { custom: TEXT('The name is already in use.') };
+          }
+        })
+      );
+    };
   }
 }
