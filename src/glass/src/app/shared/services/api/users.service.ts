@@ -44,7 +44,7 @@ export class UsersService {
     return this.http.delete<void>(`${this.url}/${username}`);
   }
 
-  public update(username: string, user: Partial<User>): Observable<User> {
-    return this.http.patch<User>(`${this.url}/${username}`, user);
+  public update(user: Partial<User>): Observable<User> {
+    return this.http.patch<User>(`${this.url}/${user.username}`, user);
   }
 }

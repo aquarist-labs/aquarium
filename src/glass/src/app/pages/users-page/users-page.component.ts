@@ -132,7 +132,7 @@ export class UsersPageComponent {
               if (res) {
                 this.blockUI.start(translate(TEXT('Please wait, updating user ...')));
                 this.usersService
-                  .update((res as User).username, res as User)
+                  .update(res as User)
                   .pipe(finalize(() => this.blockUI.stop()))
                   .subscribe(() => {
                     this.loadData();

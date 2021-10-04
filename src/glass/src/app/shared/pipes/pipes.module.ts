@@ -7,6 +7,7 @@ import { RedundancyLevelPipe } from '~/app/shared/pipes/redundancy-level.pipe';
 import { RelativeDatePipe } from '~/app/shared/pipes/relative-date.pipe';
 import { SanitizePipe } from '~/app/shared/pipes/sanitize.pipe';
 import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
+import { ToStringPipe } from '~/app/shared/pipes/to-string.pipe';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
     SortByPipe,
     RelativeDatePipe,
     RedundancyLevelPipe,
-    MapPipe
+    MapPipe,
+    ToStringPipe
   ],
   providers: [
     BytesToSizePipe,
@@ -23,7 +25,8 @@ import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
     SortByPipe,
     RelativeDatePipe,
     RedundancyLevelPipe,
-    MapPipe
+    MapPipe,
+    ToStringPipe
   ],
   exports: [
     BytesToSizePipe,
@@ -31,7 +34,8 @@ import { SortByPipe } from '~/app/shared/pipes/sort-by.pipe';
     SortByPipe,
     RelativeDatePipe,
     RedundancyLevelPipe,
-    MapPipe
+    MapPipe,
+    ToStringPipe
   ],
   imports: [CommonModule]
 })

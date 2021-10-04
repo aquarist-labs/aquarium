@@ -12,195 +12,50 @@
         [formGroup]="formGroup"
         [attr.id]="config.id"
         fxLayout="column">
-    <ng-container *ngFor="let field of config.fields; let i = index">
-      <ng-container [ngSwitch]="field.type">
-        <ng-template [ngSwitchCase]="'password'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <label *ngIf="field.label"
-                   class="col-form-label">
-              {{ field.label | translate }}
-            </label>
-            <div class="input-group">
-              <input #passwordInput
-                     class="form-control"
-                     type="password"
-                     autocorrect="off"
-                     autocapitalize="none"
-                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [formControlName]="field.name"
-                     [placeholder]="field.placeholder"
-                     [readonly]="field.readonly"
-                     [required]="field.validators?.required!"
-                     [autofocus]="field.autofocus"
-                     (paste)="onPaste(field, $event)">
-              <div class="input-group-append">
-                <button type="button"
-                        class="btn btn-outline-default"
-                        title="{{ passwordInput.type === 'password' ? 'Show' : 'Hide' | translate }}"
-                        (click)="passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'">
-                  <i class="mdi mdi-eye-outline"></i>
-                </button>
-                <button *ngIf="field.hasCopyToClipboardButton"
-                        type="button"
-                        class="btn btn-outline-default"
-                        title="{{ 'Copy to clipboard' | translate }}"
-                        (click)="onCopyToClipboard(field)">
-                  <i class="mdi mdi-content-copy"></i>
-                </button>
-              </div>
-            </div>
-            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
-                   class="form-text text-muted"
-                   [innerHTML]="field.hint | translate | sanitize:'html'">
-            </small>
-            <span *ngIf="showError(field.name, frm, 'required')"
-                  class="invalid-feedback"
-                  translate>
-              This field is required.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'pattern')"
-                  class="invalid-feedback"
-                  translate>
-              The value is invalid.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'minLength')"
-                  class="invalid-feedback"
-                  translate>
-              Minimum length is {{ field.validators?.minLength }} characters.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'maxLength')"
-                  class="invalid-feedback"
-                  translate>
-              Maximum length is {{ field.validators?.maxLength }} characters.
-            </span>
-          </div>
-        </ng-template>
+    <ng-container *ngFor="let field of config.fields">
+      <ng-container [ngTemplateOutlet]="renderFormField"
+                    [ngTemplateOutletContext]="{ $implicit: field }">
+      </ng-container>
 
-        <ng-template [ngSwitchCase]="'text'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <label *ngIf="field.label"
-                   class="col-form-label">
-              {{ field.label | translate }}
-            </label>
-            <div class="input-group">
-              <input class="form-control"
-                     type="text"
-                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [formControlName]="field.name"
-                     [placeholder]="field.placeholder"
-                     [readonly]="field.readonly"
-                     [required]="field.validators?.required!"
-                     [autofocus]="field.autofocus"
-                     (paste)="onPaste(field, $event)">
-              <div class="input-group-append">
-                <button *ngIf="field.hasCopyToClipboardButton"
-                        type="button"
-                        class="btn btn-outline-default"
-                        title="{{ 'Copy to clipboard' | translate }}"
-                        (click)="onCopyToClipboard(field)">
-                  <i class="mdi mdi-content-copy"></i>
-                </button>
-              </div>
-            </div>
-            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
-                   class="form-text text-muted"
-                   [innerHTML]="field.hint | translate | sanitize:'html'">
-            </small>
-            <span *ngIf="showError(field.name, frm, 'required')"
-                  class="invalid-feedback"
-                  translate>
-              This field is required.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'pattern')"
-                  class="invalid-feedback"
-                  translate>
-              The value is invalid.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'hostAddress')"
-                  class="invalid-feedback"
-                  translate>
-              This field must be an IP address or FQDN.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'minLength')"
-                  class="invalid-feedback"
-                  translate>
-              Minimum length is {{ field.validators?.minLength }} characters.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'maxLength')"
-                  class="invalid-feedback"
-                  translate>
-              Maximum length is {{ field.validators?.maxLength }} characters.
-            </span>
-          </div>
-        </ng-template>
-
-        <ng-template [ngSwitchCase]="'number'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <label *ngIf="field.label"
-                   class="col-form-label">
-              {{ field.label | translate }}
-            </label>
-            <div class="input-group">
-              <input class="form-control"
-                     type="text"
-                     inputmode="numeric"
-                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [formControlName]="field.name"
-                     [placeholder]="field.placeholder"
-                     [readonly]="field.readonly"
-                     [required]="field.validators?.required!"
-                     [autofocus]="field.autofocus"
-                     (paste)="onPaste(field, $event)">
-              <div class="input-group-append">
-                <button *ngIf="field.hasCopyToClipboardButton"
-                        type="button"
-                        class="btn btn-outline-default"
-                        title="{{ 'Copy to clipboard' | translate }}"
-                        (click)="onCopyToClipboard(field)">
-                  <i class="mdi mdi-content-copy"></i>
-                </button>
-              </div>
-            </div>
-            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
-                   class="form-text text-muted"
-                   [innerHTML]="field.hint | translate | sanitize:'html'">
-            </small>
-            <span *ngIf="showError(field.name, frm, 'required')"
-                  class="invalid-feedback"
-                  translate>
-              This field is required.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'min')"
-                  class="invalid-feedback"
-                  translate>
-              The value must be at least {{ field.validators?.min }}.
-            </span>
-            <span *ngIf="showError(field.name, frm, 'max')"
-                  class="invalid-feedback"
-                  translate>
-              The value cannot exceed {{ field.validators?.max }}.
-            </span>
-          </div>
-        </ng-template>
-
-        <ng-template [ngSwitchCase]="'checkbox'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <div class="form-check">
-              <input class="form-check-input"
-                     type="checkbox"
-                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [id]="field.name"
-                     [formControlName]="field.name"
-                     [checked]="field.value"
-                     [required]="field.validators?.required!">
-              <label class="form-check-label"
-                     [for]="field.name">
-                {{ field.label! | translate }}
+      <ng-template #renderFormField
+                   let-field>
+        <ng-container [ngSwitch]="field.type">
+          <ng-template [ngSwitchCase]="'password'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <label *ngIf="field.label"
+                     class="col-form-label">
+                {{ field.label | translate }}
               </label>
+              <div class="input-group">
+                <input #passwordInput
+                       class="form-control"
+                       type="password"
+                       autocorrect="off"
+                       autocapitalize="none"
+                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                       [formControlName]="field.name"
+                       [placeholder]="field.placeholder"
+                       [readonly]="field.readonly"
+                       [required]="field.validators?.required!"
+                       [autofocus]="field.autofocus"
+                       (paste)="onPaste(field, $event)">
+                <div class="input-group-append">
+                  <button type="button"
+                          class="btn btn-outline-default"
+                          title="{{ passwordInput.type === 'password' ? 'Show' : 'Hide' | translate }}"
+                          (click)="passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password'">
+                    <i class="mdi mdi-eye-outline"></i>
+                  </button>
+                  <button *ngIf="field.hasCopyToClipboardButton"
+                          type="button"
+                          class="btn btn-outline-default"
+                          title="{{ 'Copy to clipboard' | translate }}"
+                          (click)="onCopyToClipboard(field)">
+                    <i class="mdi mdi-content-copy"></i>
+                  </button>
+                </div>
+              </div>
               <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                      class="form-text text-muted"
                      [innerHTML]="field.hint | translate | sanitize:'html'">
@@ -210,61 +65,302 @@
                     translate>
                 This field is required.
               </span>
+              <span *ngIf="showError(field.name, frm, 'pattern')"
+                    class="invalid-feedback"
+                    translate>
+                The value is invalid.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'minLength')"
+                    class="invalid-feedback"
+                    translate>
+                Minimum length is {{ field.validators?.minLength }} characters.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'maxLength')"
+                    class="invalid-feedback"
+                    translate>
+                Maximum length is {{ field.validators?.maxLength }} characters.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'custom')"
+                    class="invalid-feedback">
+                {{ formGroup.getError('custom', field.name) | translate }}
+              </span>
             </div>
-          </div>
-        </ng-template>
+          </ng-template>
 
-        <ng-template [ngSwitchCase]="'radio'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <div class="custom-control custom-radio">
-              <input class="custom-control-input"
-                     type="radio"
-                     [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                     [id]="field.name + i"
-                     [formControlName]="field.name"
-                     [value]="field.value">
-              <label class="custom-control-label"
-                     [for]="field.name + i">
-                {{ field.label! | translate }}
+          <ng-template [ngSwitchCase]="'text'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <label *ngIf="field.label"
+                     class="col-form-label">
+                {{ field.label | translate }}
               </label>
+              <div class="input-group">
+                <input class="form-control"
+                       type="text"
+                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                       [formControlName]="field.name"
+                       [placeholder]="field.placeholder"
+                       [readonly]="field.readonly"
+                       [required]="field.validators?.required!"
+                       [autofocus]="field.autofocus"
+                       (paste)="onPaste(field, $event)">
+                <div class="input-group-append">
+                  <button *ngIf="field.hasCopyToClipboardButton"
+                          type="button"
+                          class="btn btn-outline-default"
+                          title="{{ 'Copy to clipboard' | translate }}"
+                          (click)="onCopyToClipboard(field)">
+                    <i class="mdi mdi-content-copy"></i>
+                  </button>
+                </div>
+              </div>
               <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
                      class="form-text text-muted"
                      [innerHTML]="field.hint | translate | sanitize:'html'">
               </small>
+              <span *ngIf="showError(field.name, frm, 'required')"
+                    class="invalid-feedback"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'pattern')"
+                    class="invalid-feedback"
+                    translate>
+                The value is invalid.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'hostAddress')"
+                    class="invalid-feedback"
+                    translate>
+                This field must be an IP address or FQDN.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'minLength')"
+                    class="invalid-feedback"
+                    translate>
+                Minimum length is {{ field.validators?.minLength }} characters.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'maxLength')"
+                    class="invalid-feedback"
+                    translate>
+                Maximum length is {{ field.validators?.maxLength }} characters.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'custom')"
+                    class="invalid-feedback">
+                {{ formGroup.getError('custom', field.name) | translate }}
+              </span>
             </div>
-          </div>
-        </ng-template>
+          </ng-template>
 
-        <ng-template [ngSwitchCase]="'select'">
-          <div class="form-group"
-               [class]="field.groupClass">
-            <label *ngIf="field.label"
-                   class="col-form-label">
-              {{ field.label | translate }}
-            </label>
-            <select class="form-control"
-                    [ngClass]="{'is-invalid': showError(field.name, frm)}"
-                    [formControlName]="field.name"
-                    [required]="field.validators?.required!">
-              <option *ngFor="let option of field.options | keyvalue"
-                      [value]="option.key"
-                      [selected]="option.key === field.value">
-                {{ option.value | translate }}
-              </option>
-            </select>
-            <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
-                   class="form-text text-muted"
-                   [innerHTML]="field.hint | translate | sanitize:'html'">
-            </small>
-            <span *ngIf="showError(field.name, frm, 'required')"
-                  class="invalid-feedback"
-                  translate>
-              This field is required.
-            </span>
-          </div>
-        </ng-template>
-      </ng-container>
+          <ng-template [ngSwitchCase]="'number'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <label *ngIf="field.label"
+                     class="col-form-label">
+                {{ field.label | translate }}
+              </label>
+              <div class="input-group">
+                <input class="form-control"
+                       type="text"
+                       inputmode="numeric"
+                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                       [formControlName]="field.name"
+                       [placeholder]="field.placeholder"
+                       [readonly]="field.readonly"
+                       [required]="field.validators?.required!"
+                       [autofocus]="field.autofocus"
+                       (paste)="onPaste(field, $event)">
+                <div class="input-group-append">
+                  <button *ngIf="field.hasCopyToClipboardButton"
+                          type="button"
+                          class="btn btn-outline-default"
+                          title="{{ 'Copy to clipboard' | translate }}"
+                          (click)="onCopyToClipboard(field)">
+                    <i class="mdi mdi-content-copy"></i>
+                  </button>
+                </div>
+              </div>
+              <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                     class="form-text text-muted"
+                     [innerHTML]="field.hint | translate | sanitize:'html'">
+              </small>
+              <span *ngIf="showError(field.name, frm, 'required')"
+                    class="invalid-feedback"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'min')"
+                    class="invalid-feedback"
+                    translate>
+                The value must be at least {{ field.validators?.min }}.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'max')"
+                    class="invalid-feedback"
+                    translate>
+                The value cannot exceed {{ field.validators?.max }}.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'custom')"
+                    class="invalid-feedback">
+                {{ formGroup.getError('custom', field.name) | translate }}
+              </span>
+            </div>
+          </ng-template>
+
+          <ng-template [ngSwitchCase]="'checkbox'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                       [id]="field.id"
+                       [formControlName]="field.name"
+                       [checked]="field.value"
+                       [required]="field.validators?.required!">
+                <label class="form-check-label"
+                       [for]="field.id">
+                  {{ field.label! | translate }}
+                </label>
+                <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                       class="form-text text-muted"
+                       [innerHTML]="field.hint | translate | sanitize:'html'">
+                </small>
+                <span *ngIf="showError(field.name, frm, 'required')"
+                      class="invalid-feedback"
+                      translate>
+                  This field is required.
+                </span>
+                <span *ngIf="showError(field.name, frm, 'custom')"
+                      class="invalid-feedback">
+                  {{ formGroup.getError('custom', field.name) | translate }}
+                </span>
+              </div>
+            </div>
+          </ng-template>
+
+          <ng-template [ngSwitchCase]="'radio'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <div class="custom-control custom-radio">
+                <input class="custom-control-input"
+                       type="radio"
+                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                       [id]="field.id"
+                       [formControlName]="field.name"
+                       [value]="field.value"
+                       [checked]="field.checked">
+                <label class="custom-control-label"
+                       [for]="field.id">
+                  {{ field.label! | translate }}
+                </label>
+                <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                       class="form-text text-muted"
+                       [innerHTML]="field.hint | translate | sanitize:'html'">
+                </small>
+              </div>
+            </div>
+          </ng-template>
+
+          <ng-template [ngSwitchCase]="'select'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <label *ngIf="field.label"
+                     class="col-form-label">
+                {{ field.label | translate }}
+              </label>
+              <select class="form-control"
+                      [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                      [formControlName]="field.name"
+                      [required]="field.validators?.required!">
+                <option *ngFor="let option of field.options | keyvalue"
+                        [value]="option.key"
+                        [selected]="option.key === field.value">
+                  {{ option.value | toString | translate }}
+                </option>
+              </select>
+              <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                     class="form-text text-muted"
+                     [innerHTML]="field.hint | translate | sanitize:'html'">
+              </small>
+              <span *ngIf="showError(field.name, frm, 'required')"
+                    class="invalid-feedback"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'custom')"
+                    class="invalid-feedback">
+                {{ formGroup.getError('custom', field.name) | translate }}
+              </span>
+            </div>
+          </ng-template>
+
+          <ng-template [ngSwitchCase]="'binary'">
+            <div class="form-group"
+                 [class]="field.groupClass">
+              <label *ngIf="field.label"
+                     class="col-form-label">
+                {{ field.label | translate }}
+              </label>
+              <div class="input-group">
+                <input class="form-control"
+                       type="text"
+                       inputmode="numeric"
+                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
+                       [formControlName]="field.name"
+                       [placeholder]="field.placeholder"
+                       [readonly]="field.readonly"
+                       [required]="field.validators?.required!"
+                       [autofocus]="field.autofocus"
+                       (paste)="onPaste(field, $event)"
+                       cbDimlessBinary>
+                <div class="input-group-append">
+                  <button *ngIf="field.hasCopyToClipboardButton"
+                          type="button"
+                          class="btn btn-outline-default"
+                          title="{{ 'Copy to clipboard' | translate }}"
+                          (click)="onCopyToClipboard(field)">
+                    <i class="mdi mdi-content-copy"></i>
+                  </button>
+                </div>
+              </div>
+              <small *ngIf="field.hint && field.hint.length > 0 && !showError(field.name, frm)"
+                     class="form-text text-muted"
+                     [innerHTML]="field.hint | translate | sanitize:'html'">
+              </small>
+              <span *ngIf="showError(field.name, frm, 'required')"
+                    class="invalid-feedback"
+                    translate>
+                This field is required.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'min')"
+                    class="invalid-feedback"
+                    translate>
+                The value must be at least {{ field.validators?.min }}.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'max')"
+                    class="invalid-feedback"
+                    translate>
+                The value cannot exceed {{ field.validators?.max }}.
+              </span>
+              <span *ngIf="showError(field.name, frm, 'custom')"
+                    class="invalid-feedback">
+                {{ formGroup.getError('custom', field.name) | translate }}
+              </span>
+            </div>
+          </ng-template>
+
+          <ng-template [ngSwitchCase]="'container'">
+            <div class="form-container"
+                 fxLayout="row">
+              <div *ngFor="let innerField of field.fields"
+                   class="form-container-item"
+                   [fxFlex]="innerField.flex ? innerField.flex : ''">
+                <ng-container [ngTemplateOutlet]="renderFormField"
+                              [ngTemplateOutletContext]="{ $implicit: innerField }">
+                </ng-container>
+              </div>
+            </div>
+          </ng-template>
+        </ng-container>
+      </ng-template>
     </ng-container>
 
     <div class="form-actions"

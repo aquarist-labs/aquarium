@@ -1,5 +1,13 @@
 @import 'styles.scss';
 
+.form-container {
+  align-items: baseline;
+
+  .form-container-item:not(:first-child) {
+    @extend .ml-2;
+  }
+}
+
 .form-actions {
   *:not(:first-child) {
     @extend .ml-2;
