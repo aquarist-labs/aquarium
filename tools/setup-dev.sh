@@ -371,10 +371,10 @@ if [ -d $SCRIPT_DIR/venv ] ; then
 fi
 
 # Set up Virtual Env for dev tools
-$PYTHON -m venv $SCRIPT_DIR/venv || exit 1
+$PYTHON -m venv --system-site-packages $SCRIPT_DIR/venv || exit 1
 
 source $SCRIPT_DIR/venv/bin/activate
-pip install -r $SCRIPT_DIR/requirements.txt -U || exit 1
+pip install -r $SCRIPT_DIR/requirements.txt || exit 1
 deactivate
 
 pushd src/glass &>/dev/null
