@@ -22,17 +22,17 @@ routines:
     - name: building image
       command: |
         cd aquarium
-        source venv/bin/activate
+        source tools/venv/bin/activate
         ./tools/build-image.sh
     - name: create deployment
       command: |
         cd aquarium
-        source venv/bin/activate
+        source tools/venv/bin/activate
         ./tools/aqua create foo
     - name: start deployment
       command: |
         cd aquarium
-        source venv/bin/activate
+        source tools/venv/bin/activate
         ./tools/aqua start foo --conservative
     - name: dump aquarium service log
       command: |
