@@ -23,6 +23,7 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
 from gravel.controllers.errors import GravelError
+from gravel.controllers.containers import container_pull, ContainerPullError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError
 from gravel.controllers.nodes.conn import ConnMgr
@@ -77,12 +78,25 @@ class DeploymentDisksConfig(BaseModel):
     storage: List[str] = Field([], title="Devices to consume for storage")
 
 
+class DeploymentContainerRegistryConfig(BaseModel):
+    registry: str = Field(title="Container registry location")
+    insecure: bool = Field(title="Whether the container registry is insecure")
+
+
+class DeploymentContainerConfig(BaseModel):
+    registry: Optional[DeploymentContainerRegistryConfig] = Field(
+        None, title="Container Registry Config"
+    )
+    image: Optional[str] = Field(None, title="Container image to use")
+
+
 class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
     ntp_addr: str
     disks: DeploymentDisksConfig
+    container: DeploymentContainerConfig
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -266,6 +280,7 @@ class NodeDeployment:
         pubkey: Optional[str],
         keyring: Optional[str],
         cephconf: Optional[str],
+        containerconf: DeploymentContainerConfig,
         is_join: bool,
         progress_cb: Optional[Callable[[int, Optional[str]], None]],
     ) -> None:
@@ -331,6 +346,25 @@ class NodeDeployment:
 
         assert ntpaddr is not None and len(ntpaddr) > 0
         await self._set_ntp_addr(ntpaddr)
+
+        progress(50, "Obtaining containers")
+        ctrcfg = self._gstate.config.options.containers
+        if (
+            containerconf.registry is not None
+            and len(containerconf.registry.registry) > 0
+            and containerconf.image is not None
+            and len(containerconf.image) > 0
+        ):
+            ctrcfg.registry = containerconf.registry.registry
+            ctrcfg.secure = not containerconf.registry.insecure
+            ctrcfg.image = containerconf.image
+
+        try:
+            await container_pull(ctrcfg.registry, ctrcfg.image, ctrcfg.secure)
+        except ContainerPullError as e:
+            raise DeploymentError(msg=e.message)
+
+        progress(100, "Finished preparing deployment")
 
     async def join(
         self,
@@ -530,6 +564,7 @@ class NodeDeployment:
             keyring=None,
             cephconf=None,
             is_join=False,
+            containerconf=config.container,
             progress_cb=None,
         )
 

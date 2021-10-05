@@ -35,6 +35,7 @@ from gravel.controllers.nodes.conn import (
 )
 from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
+    DeploymentContainerConfig,
     DeploymentDisksConfig,
     DeploymentState,
     NodeDeployment,
@@ -389,6 +390,7 @@ class NodeMgr:
                 token=self._token,
                 ntp_addr=params.ntpaddr,
                 disks=disks,
+                container=DeploymentContainerConfig(),
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment,
