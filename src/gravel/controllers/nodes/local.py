@@ -24,8 +24,8 @@ from pydantic import BaseModel, Field
 #                 These are also currently somewhat arbitrary and will need
 #                 tuning.
 AQUARIUM_MIN_CPU = 2
-AQUARIUM_MIN_MEMORY_GB = 2
-AQUARIUM_MIN_ROOT_DISK_GB = 10
+AQUARIUM_MIN_MEMORY = 2 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
+AQUARIUM_MIN_ROOT_DISK = 10 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
 
 
 class CPUQualifiedEnum(int, Enum):
@@ -48,8 +48,8 @@ class MemoryQualifiedEnum(int, Enum):
 
 class MemoryQualifiedModel(BaseModel):
     qualified: bool = Field("The memory is sufficient")
-    min_mem: int = Field("Minimum amount of memory (GB)")
-    actual_mem: int = Field("Actual amount of memory (GB)")
+    min_mem: int = Field("Minimum amount of memory (bytes)")
+    actual_mem: int = Field("Actual amount of memory (bytes)")
     error: str = Field("Memory didn't meet requirements")
     status: MemoryQualifiedEnum = Field(MemoryQualifiedEnum.QUALIFIED)
 
@@ -61,8 +61,8 @@ class RootDiskQualifiedEnum(int, Enum):
 
 class RootDiskQualifiedModel(BaseModel):
     qualified: bool = Field("The root disk size is sufficient")
-    min_disk: int = Field("Minimum size of root disk (GB)")
-    actual_disk: int = Field("Actual size of root disk (GB)")
+    min_disk: int = Field("Minimum size of root disk (bytes)")
+    actual_disk: int = Field("Actual size of root disk (bytes)")
     error: str = Field("Root disk didn't meet requirements")
     status: RootDiskQualifiedEnum = Field(RootDiskQualifiedEnum.QUALIFIED)
 
@@ -108,18 +108,20 @@ async def validate_memory() -> MemoryQualifiedModel:
     Validates the localhost meets the minium memory requirements.
     """
     qualified: bool = True
-    min_mem: int = AQUARIUM_MIN_MEMORY_GB
-    # 1024 kb / 1024 mb / 1024 gb
-    # NOTE(jhesketh): We round down to the nearest GB
-    actual_mem: int = int(psutil.virtual_memory().total / 1024 / 1024 / 1024)
+    min_mem: int = AQUARIUM_MIN_MEMORY
+    actual_mem: int = psutil.virtual_memory().total
     error: str = ""
     status: MemoryQualifiedEnum = MemoryQualifiedEnum.QUALIFIED
 
     if actual_mem < min_mem:
         qualified = False
+        # 1024 kb / 1024 mb / 1024 gb
+        # NOTE(jhesketh): We round down to the nearest GB
+        min_mem_gb: int = int(min_mem / 1024 / 1024 / 1024)
+        actual_mem_gb: int = int(actual_mem / 1024 / 1024 / 1024)
         error = (
             "The node does not have a sufficient memory. "
-            "Required: %d, Actual: %d." % (min_mem, actual_mem)
+            "Required: %dGB, Actual: %dGB." % (min_mem_gb, actual_mem_gb)
         )
         status = MemoryQualifiedEnum.INSUFFICIENT_MEMORY
     return MemoryQualifiedModel(
@@ -139,18 +141,20 @@ async def validate_root_disk() -> RootDiskQualifiedModel:
           not validate the amount of free space etc.
     """
     qualified: bool = True
-    min_disk: int = AQUARIUM_MIN_ROOT_DISK_GB
-    # 1024 kb / 1024 mb / 1024 gb
-    # NOTE(jhesketh): We round down to the nearest GB
-    actual_disk: int = int(psutil.disk_usage("/").total / 1024 / 1024 / 1024)
+    min_disk: int = AQUARIUM_MIN_ROOT_DISK
+    actual_disk: int = psutil.disk_usage("/").total
     error: str = ""
     status: RootDiskQualifiedEnum = RootDiskQualifiedEnum.QUALIFIED
 
     if actual_disk < min_disk:
         qualified = False
+        # 1024 kb / 1024 mb / 1024 gb
+        # NOTE(jhesketh): We round down to the nearest GB
+        min_disk_gb: int = int(min_disk / 1024 / 1024 / 1024)
+        actual_disk_gb: int = int(actual_disk / 1024 / 1024 / 1024)
         error = (
             "The node does not have sufficient space on the root disk. "
-            "Required: %d, Actual: %d." % (min_disk, actual_disk)
+            "Required: %dGB, Actual: %dGB." % (min_disk_gb, actual_disk_gb)
         )
         status = RootDiskQualifiedEnum.INSUFFICIENT_SPACE
     return RootDiskQualifiedModel(

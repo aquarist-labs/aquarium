@@ -71,8 +71,8 @@ async def test_validate_memory(mocker: MockerFixture):
     )
     results: MemoryQualifiedModel = await validate_memory()
     assert results.qualified is True
-    assert results.min_mem == 2
-    assert results.actual_mem == 31
+    assert results.min_mem == 2147483648
+    assert results.actual_mem == 33498816512
     assert results.error == ""
     assert results.status == MemoryQualifiedEnum.QUALIFIED
 
@@ -82,10 +82,10 @@ async def test_validate_memory(mocker: MockerFixture):
     )
     results: MemoryQualifiedModel = await validate_memory()
     assert results.qualified is False
-    assert results.min_mem == 2
-    assert results.actual_mem == 1
+    assert results.min_mem == 2147483648
+    assert results.actual_mem == 1073741824
     assert results.error == (
-        "The node does not have a sufficient memory. Required: 2, Actual: 1."
+        "The node does not have a sufficient memory. Required: 2GB, Actual: 1GB."
     )
     assert results.status == MemoryQualifiedEnum.INSUFFICIENT_MEMORY
 
@@ -96,8 +96,8 @@ async def test_validate_root_disk(mocker: MockerFixture):
     mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=20000000000))
     results: RootDiskQualifiedModel = await validate_root_disk()
     assert results.qualified is True
-    assert results.min_disk == 10
-    assert results.actual_disk == 18
+    assert results.min_disk == 10737418240
+    assert results.actual_disk == 20000000000
     assert results.error == ""
     assert results.status == RootDiskQualifiedEnum.QUALIFIED
 
@@ -105,11 +105,11 @@ async def test_validate_root_disk(mocker: MockerFixture):
     mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=1073741824))
     results: RootDiskQualifiedModel = await validate_root_disk()
     assert results.qualified is False
-    assert results.min_disk == 10
-    assert results.actual_disk == 1
+    assert results.min_disk == 10737418240
+    assert results.actual_disk == 1073741824
     assert results.error == (
         "The node does not have sufficient space on the root disk. "
-        "Required: 10, Actual: 1."
+        "Required: 10GB, Actual: 1GB."
     )
     assert results.status == RootDiskQualifiedEnum.INSUFFICIENT_SPACE
 
@@ -130,13 +130,13 @@ async def test_localhost_qualified(mocker: MockerFixture):
     assert results.cpu_qualified.error == ""
     assert results.cpu_qualified.status == CPUQualifiedEnum.QUALIFIED
     assert results.mem_qualified.qualified is True
-    assert results.mem_qualified.min_mem == 2
-    assert results.mem_qualified.actual_mem == 31
+    assert results.mem_qualified.min_mem == 2147483648
+    assert results.mem_qualified.actual_mem == 33498816512
     assert results.mem_qualified.error == ""
     assert results.mem_qualified.status == MemoryQualifiedEnum.QUALIFIED
     assert results.root_disk_qualified.qualified is True
-    assert results.root_disk_qualified.min_disk == 10
-    assert results.root_disk_qualified.actual_disk == 18
+    assert results.root_disk_qualified.min_disk == 10737418240
+    assert results.root_disk_qualified.actual_disk == 20000000000
     assert results.root_disk_qualified.error == ""
     assert results.root_disk_qualified.status == RootDiskQualifiedEnum.QUALIFIED
 
@@ -153,13 +153,13 @@ async def test_localhost_qualified(mocker: MockerFixture):
     )
     assert results.cpu_qualified.status == CPUQualifiedEnum.INSUFFICIENT_CORES
     assert results.mem_qualified.qualified is True
-    assert results.mem_qualified.min_mem == 2
-    assert results.mem_qualified.actual_mem == 31
+    assert results.mem_qualified.min_mem == 2147483648
+    assert results.mem_qualified.actual_mem == 33498816512
     assert results.mem_qualified.error == ""
     assert results.mem_qualified.status == MemoryQualifiedEnum.QUALIFIED
     assert results.root_disk_qualified.qualified is True
-    assert results.root_disk_qualified.min_disk == 10
-    assert results.root_disk_qualified.actual_disk == 18
+    assert results.root_disk_qualified.min_disk == 10737418240
+    assert results.root_disk_qualified.actual_disk == 20000000000
     assert results.root_disk_qualified.error == ""
     assert results.root_disk_qualified.status == RootDiskQualifiedEnum.QUALIFIED
 
@@ -176,16 +176,16 @@ async def test_localhost_qualified(mocker: MockerFixture):
     )
     assert results.cpu_qualified.status == CPUQualifiedEnum.INSUFFICIENT_CORES
     assert results.mem_qualified.qualified is True
-    assert results.mem_qualified.min_mem == 2
-    assert results.mem_qualified.actual_mem == 31
+    assert results.mem_qualified.min_mem == 2147483648
+    assert results.mem_qualified.actual_mem == 33498816512
     assert results.mem_qualified.error == ""
     assert results.mem_qualified.status == MemoryQualifiedEnum.QUALIFIED
     assert results.root_disk_qualified.qualified is False
-    assert results.root_disk_qualified.min_disk == 10
-    assert results.root_disk_qualified.actual_disk == 1
+    assert results.root_disk_qualified.min_disk == 10737418240
+    assert results.root_disk_qualified.actual_disk == 1073741824
     assert results.root_disk_qualified.error == (
         "The node does not have sufficient space on the root disk. "
-        "Required: 10, Actual: 1."
+        "Required: 10GB, Actual: 1GB."
     )
     assert (
         results.root_disk_qualified.status

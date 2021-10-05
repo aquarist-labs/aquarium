@@ -90,16 +90,18 @@ async def test_localhost_qualified_response(
         == CPUQualifiedEnum.QUALIFIED
     )
     assert reply.localhost_qualified.mem_qualified.qualified is True
-    assert reply.localhost_qualified.mem_qualified.min_mem == 2
-    assert reply.localhost_qualified.mem_qualified.actual_mem == 31
+    assert reply.localhost_qualified.mem_qualified.min_mem == 2147483648
+    assert reply.localhost_qualified.mem_qualified.actual_mem == 33498816512
     assert reply.localhost_qualified.mem_qualified.error == ""
     assert (
         reply.localhost_qualified.mem_qualified.status
         == MemoryQualifiedEnum.QUALIFIED
     )
     assert reply.localhost_qualified.root_disk_qualified.qualified is True
-    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
-    assert reply.localhost_qualified.root_disk_qualified.actual_disk == 18
+    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10737418240
+    assert (
+        reply.localhost_qualified.root_disk_qualified.actual_disk == 20000000000
+    )
     assert reply.localhost_qualified.root_disk_qualified.error == ""
     assert (
         reply.localhost_qualified.root_disk_qualified.status
@@ -129,16 +131,18 @@ async def test_localhost_qualified_response(
         == CPUQualifiedEnum.INSUFFICIENT_CORES
     )
     assert reply.localhost_qualified.mem_qualified.qualified is True
-    assert reply.localhost_qualified.mem_qualified.min_mem == 2
-    assert reply.localhost_qualified.mem_qualified.actual_mem == 31
+    assert reply.localhost_qualified.mem_qualified.min_mem == 2147483648
+    assert reply.localhost_qualified.mem_qualified.actual_mem == 33498816512
     assert reply.localhost_qualified.mem_qualified.error == ""
     assert (
         reply.localhost_qualified.mem_qualified.status
         == MemoryQualifiedEnum.QUALIFIED
     )
     assert reply.localhost_qualified.root_disk_qualified.qualified is True
-    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
-    assert reply.localhost_qualified.root_disk_qualified.actual_disk == 18
+    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10737418240
+    assert (
+        reply.localhost_qualified.root_disk_qualified.actual_disk == 20000000000
+    )
     assert reply.localhost_qualified.root_disk_qualified.error == ""
     assert (
         reply.localhost_qualified.root_disk_qualified.status
@@ -168,20 +172,22 @@ async def test_localhost_qualified_response(
         == CPUQualifiedEnum.INSUFFICIENT_CORES
     )
     assert reply.localhost_qualified.mem_qualified.qualified is False
-    assert reply.localhost_qualified.mem_qualified.min_mem == 2
-    assert reply.localhost_qualified.mem_qualified.actual_mem == 1
+    assert reply.localhost_qualified.mem_qualified.min_mem == 2147483648
+    assert reply.localhost_qualified.mem_qualified.actual_mem == 1073741824
     assert reply.localhost_qualified.mem_qualified.error == (
-        "The node does not have a sufficient memory. Required: 2, Actual: 1."
+        "The node does not have a sufficient memory. Required: 2GB, Actual: 1GB."
     )
     assert (
         reply.localhost_qualified.mem_qualified.status
         == MemoryQualifiedEnum.INSUFFICIENT_MEMORY
     )
     assert reply.localhost_qualified.root_disk_qualified.qualified is False
-    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
-    assert reply.localhost_qualified.root_disk_qualified.actual_disk == 1
+    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10737418240
+    assert (
+        reply.localhost_qualified.root_disk_qualified.actual_disk == 1073741824
+    )
     assert reply.localhost_qualified.root_disk_qualified.error == (
-        "The node does not have sufficient space on the root disk. Required: 10, Actual: 1."
+        "The node does not have sufficient space on the root disk. Required: 10GB, Actual: 1GB."
     )
     assert (
         reply.localhost_qualified.root_disk_qualified.status
