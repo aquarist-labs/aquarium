@@ -25,6 +25,7 @@ from fastapi import FastAPI
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from pytest_mock import MockerFixture
 
+from gravel.controllers.config import ContainersOptionsModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
 
@@ -229,6 +230,9 @@ async def aquarium_startup(
                 return True
 
         class FakeCephadm(Cephadm):
+            def __init__(self):
+                super().__init__(ContainersOptionsModel())
+
             async def call(
                 self,
                 cmd: List[str],

@@ -24,6 +24,8 @@ import pydantic
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
 
+from gravel.controllers.config import ContainersOptionsModel
+
 from .models import HostFactsModel, VolumeDeviceModel
 
 logger: Logger = fastapi_logger
@@ -34,7 +36,12 @@ class CephadmError(Exception):
 
 
 class Cephadm:
-    def __init__(self):
+
+    _config: ContainersOptionsModel
+    cephadm: List[str]
+
+    def __init__(self, config: ContainersOptionsModel):
+        self._config = config
         if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
             self.cephadm = ["sudo", "./gravel/cephadm/cephadm.bin"]
@@ -46,11 +53,18 @@ class Cephadm:
         self, cmd: List[str], outcb: Optional[Callable[[str], None]] = None
     ) -> Tuple[str, str, int]:
 
-        logger.debug(f"call: {cmd}")
-        cmd = self.cephadm + cmd
+        assert len(cmd) > 0
+        cmdlst: List[str] = list(self.cephadm)
+        image = self._config.get_image()
+        cmdlst.extend(["--image", image])
+        cmdlst.extend(cmd)
+        logger.debug(f"call with {self.cephadm}")
+        logger.debug(f"call: {cmdlst}")
 
         process = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *cmdlst,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         assert process.stdout
         assert process.stderr

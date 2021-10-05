@@ -47,7 +47,7 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     nodemgr: NodeMgr = NodeMgr(gstate)
 
     # Prep cephadm
-    cephadm: Cephadm = Cephadm()
+    cephadm: Cephadm = Cephadm(gstate.config.options.containers)
     gstate.add_cephadm(cephadm)
 
     # Set up Ceph connections
