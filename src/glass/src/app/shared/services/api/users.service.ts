@@ -15,7 +15,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import * as _ from 'lodash';
+import { Observable, of } from 'rxjs';
+import { catchError, mapTo } from 'rxjs/operators';
 
 export type User = {
   username: string;
@@ -46,5 +48,21 @@ export class UsersService {
 
   public update(user: Partial<User>): Observable<User> {
     return this.http.patch<User>(`${this.url}/${user.username}`, user);
+  }
+
+  public get(username: string): Observable<User> {
+    return this.http.get<User>(`${this.url}/${username}`);
+  }
+
+  public exists(username: string): Observable<boolean> {
+    return this.get(username).pipe(
+      mapTo(true),
+      catchError((error) => {
+        if (_.isFunction(error.preventDefault)) {
+          error.preventDefault();
+        }
+        return of(false);
+      })
+    );
   }
 }
