@@ -173,13 +173,13 @@ async def localhost_qualified() -> LocalhostQualifiedModel:
     """
     all_qualified: bool = True
 
-    cputask = asyncio.create_task(validate_cpu())
-    memtask = asyncio.create_task(validate_memory())
-    disktask = asyncio.create_task(validate_root_disk())
+    cpu_qualified: CPUQualifiedModel
+    mem_qualified: MemoryQualifiedModel
+    root_disk_qualified: RootDiskQualifiedModel
+    cpu_qualified, mem_qualified, root_disk_qualified = await asyncio.gather(
+        validate_cpu(), validate_memory(), validate_root_disk()
+    )
 
-    cpu_qualified: CPUQualifiedModel = await cputask
-    mem_qualified: MemoryQualifiedModel = await memtask
-    root_disk_qualified: RootDiskQualifiedModel = await disktask
     if not (
         cpu_qualified.qualified
         and mem_qualified.qualified
