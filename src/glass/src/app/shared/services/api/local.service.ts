@@ -99,11 +99,17 @@ export enum StatusStageEnum {
   ready = 4
 }
 
-export interface NodeStatus {
+export type NodeStatus = {
   inited: boolean;
   /* eslint-disable @typescript-eslint/naming-convention */
   node_stage: StatusStageEnum;
-}
+};
+
+export type Event = {
+  ts: number;
+  severity: string;
+  message: string;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -133,5 +139,12 @@ export class LocalNodeService {
    */
   public status(): Observable<NodeStatus> {
     return this.http.get<NodeStatus>(`${this.url}/status`);
+  }
+
+  /**
+   * Get events
+   */
+  public events(): Observable<Event[]> {
+    return this.http.get<Event[]>(`${this.url}/events`);
   }
 }

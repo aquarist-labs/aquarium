@@ -1,5 +1,5 @@
 <glass-widget [loadData]="loadData.bind(this)"
-              widgetTitle="System Information"
+              widgetTitle="{{ 'System Information' | translate }}"
               (loadDataEvent)="updateData($event)">
   <div class="glass-sys-info-dashboard-widget">
     <div fxLayout="column"

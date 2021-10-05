@@ -1,5 +1,7 @@
 @import 'styles.scss';
 
+$card-title-height: 40px;
+
 div.glass-dashboard-widget {
   // Needed for box shadow
   margin: 5px;
@@ -9,11 +11,11 @@ div.glass-dashboard-widget {
   min-width: calc(100% - 10px) !important;
 
   .card-body {
-    padding: unset;
+    padding: 0;
     background-color: $glass-color-theme-primary-complementary;
 
     .card-title {
-      height: 52px;
+      height: 40px;
       padding: $glass-padding;
 
       .btn {
@@ -23,6 +25,11 @@ div.glass-dashboard-widget {
       .dropdown-toggle::after {
         display: none;
       }
+    }
+
+    .card-text {
+      height: calc(100% - #{$card-title-height});
+      overflow: auto;
     }
   }
 
@@ -40,6 +47,11 @@ div.glass-dashboard-widget {
 
   &.error {
     @extend .glass-color-theme-error;
+
     box-shadow: 0 0 5px 2px $glass-color-danger !important;
+
+    .card-body {
+      background-color: transparent;
+    }
   }
 }

@@ -1,18 +1,11 @@
+@use 'sass:math';
+
 @import 'styles.scss';
 
 .glass-sys-info-dashboard-widget {
-  padding-left: 24px;
-  padding-right: 24px;
-  padding-bottom: 24px;
+  padding: 0 $glass-padding;
 
   .charts-section {
-    margin-top: 0.25rem;
+    margin-top: math.div($glass-margin, 4);
   }
-}
-
-.glass-sys-info-dashboard-widget.error {
-  @extend .glass-color-theme-error;
-
-  padding: 0;
-  height: 50px;
 }

@@ -1,5 +1,5 @@
 <glass-widget [loadData]="loadData.bind(this)"
-              widgetTitle="Health"
+              widgetTitle="{{ 'Health' | translate }}"
               [setStatus]="setHealthStatusIndicator.bind(this)"
               (loadDataEvent)="setHealthStatus($event)">
   <div class="glass-health-dashboard-widget"
@@ -15,6 +15,6 @@
        class="mdi mdi-thumb-down"></i>
     <i *ngIf="isWarn"
        class="mdi mdi-alert-circle-outline"></i>
-    <span class="glass-health-dashboard-widget-text">{{ statusText }}</span>
+    <span class="ml-2">{{ statusText }}</span>
   </div>
 </glass-widget>
