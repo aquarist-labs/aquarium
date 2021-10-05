@@ -17,6 +17,11 @@ import pytest
 from pytest_mock import MockerFixture
 
 from gravel.api.local import NodeStatusReplyModel
+from gravel.controllers.nodes.local import (
+    CPUQualifiedEnum,
+    MemoryQualifiedEnum,
+    RootDiskQualifiedEnum,
+)
 
 
 @pytest.mark.asyncio
@@ -80,17 +85,26 @@ async def test_localhost_qualified_response(
     assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
     assert reply.localhost_qualified.cpu_qualified.actual_cpu == 8
     assert reply.localhost_qualified.cpu_qualified.error == ""
-    assert reply.localhost_qualified.cpu_qualified.status == 0
+    assert (
+        reply.localhost_qualified.cpu_qualified.status
+        == CPUQualifiedEnum.QUALIFIED
+    )
     assert reply.localhost_qualified.mem_qualified.qualified is True
     assert reply.localhost_qualified.mem_qualified.min_mem == 2
     assert reply.localhost_qualified.mem_qualified.actual_mem == 31
     assert reply.localhost_qualified.mem_qualified.error == ""
-    assert reply.localhost_qualified.mem_qualified.status == 0
+    assert (
+        reply.localhost_qualified.mem_qualified.status
+        == MemoryQualifiedEnum.QUALIFIED
+    )
     assert reply.localhost_qualified.root_disk_qualified.qualified is True
     assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
     assert reply.localhost_qualified.root_disk_qualified.actual_disk == 18
     assert reply.localhost_qualified.root_disk_qualified.error == ""
-    assert reply.localhost_qualified.root_disk_qualified.status == 0
+    assert (
+        reply.localhost_qualified.root_disk_qualified.status
+        == RootDiskQualifiedEnum.QUALIFIED
+    )
 
     # Failed CPU count
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -110,17 +124,26 @@ async def test_localhost_qualified_response(
     assert reply.localhost_qualified.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. Required: 2, Actual: 1."
     )
-    assert reply.localhost_qualified.cpu_qualified.status == 1
+    assert (
+        reply.localhost_qualified.cpu_qualified.status
+        == CPUQualifiedEnum.INSUFFICIENT_CORES
+    )
     assert reply.localhost_qualified.mem_qualified.qualified is True
     assert reply.localhost_qualified.mem_qualified.min_mem == 2
     assert reply.localhost_qualified.mem_qualified.actual_mem == 31
     assert reply.localhost_qualified.mem_qualified.error == ""
-    assert reply.localhost_qualified.mem_qualified.status == 0
+    assert (
+        reply.localhost_qualified.mem_qualified.status
+        == MemoryQualifiedEnum.QUALIFIED
+    )
     assert reply.localhost_qualified.root_disk_qualified.qualified is True
     assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
     assert reply.localhost_qualified.root_disk_qualified.actual_disk == 18
     assert reply.localhost_qualified.root_disk_qualified.error == ""
-    assert reply.localhost_qualified.root_disk_qualified.status == 0
+    assert (
+        reply.localhost_qualified.root_disk_qualified.status
+        == RootDiskQualifiedEnum.QUALIFIED
+    )
 
     # Everything fails
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -140,18 +163,27 @@ async def test_localhost_qualified_response(
     assert reply.localhost_qualified.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. Required: 2, Actual: 1."
     )
-    assert reply.localhost_qualified.cpu_qualified.status == 1
+    assert (
+        reply.localhost_qualified.cpu_qualified.status
+        == CPUQualifiedEnum.INSUFFICIENT_CORES
+    )
     assert reply.localhost_qualified.mem_qualified.qualified is False
     assert reply.localhost_qualified.mem_qualified.min_mem == 2
     assert reply.localhost_qualified.mem_qualified.actual_mem == 1
     assert reply.localhost_qualified.mem_qualified.error == (
         "The node does not have a sufficient memory. Required: 2, Actual: 1."
     )
-    assert reply.localhost_qualified.mem_qualified.status == 1
+    assert (
+        reply.localhost_qualified.mem_qualified.status
+        == MemoryQualifiedEnum.INSUFFICIENT_MEMORY
+    )
     assert reply.localhost_qualified.root_disk_qualified.qualified is False
     assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
     assert reply.localhost_qualified.root_disk_qualified.actual_disk == 1
     assert reply.localhost_qualified.root_disk_qualified.error == (
         "The node does not have sufficient space on the root disk. Required: 10, Actual: 1."
     )
-    assert reply.localhost_qualified.root_disk_qualified.status == 1
+    assert (
+        reply.localhost_qualified.root_disk_qualified.status
+        == RootDiskQualifiedEnum.INSUFFICIENT_SPACE
+    )

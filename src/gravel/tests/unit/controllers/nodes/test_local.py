@@ -15,10 +15,12 @@ import pytest
 from pytest_mock import MockerFixture
 
 from gravel.controllers.nodes.local import (
+    CPUQualifiedEnum,
     CPUQualifiedModel,
-    HardwareQualifiedEnum,
     LocalhostQualifiedModel,
+    MemoryQualifiedEnum,
     MemoryQualifiedModel,
+    RootDiskQualifiedEnum,
     RootDiskQualifiedModel,
     localhost_qualified,
     validate_cpu,
@@ -46,7 +48,7 @@ async def test_validate_cpu(mocker: MockerFixture):
     assert results.min_cpu == 2
     assert results.actual_cpu == 8
     assert results.error == ""
-    assert results.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.status == CPUQualifiedEnum.QUALIFIED
 
     # Check when we fail
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -58,7 +60,7 @@ async def test_validate_cpu(mocker: MockerFixture):
         "The node does not have a sufficient number of CPU cores. "
         "Required: 2, Actual: 1."
     )
-    assert results.status == HardwareQualifiedEnum.ERROR
+    assert results.status == CPUQualifiedEnum.INSUFFICIENT_CORES
 
 
 @pytest.mark.asyncio
@@ -72,7 +74,7 @@ async def test_validate_memory(mocker: MockerFixture):
     assert results.min_mem == 2
     assert results.actual_mem == 31
     assert results.error == ""
-    assert results.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.status == MemoryQualifiedEnum.QUALIFIED
 
     # Check when we fail
     mocker.patch(
@@ -85,7 +87,7 @@ async def test_validate_memory(mocker: MockerFixture):
     assert results.error == (
         "The node does not have a sufficient memory. Required: 2, Actual: 1."
     )
-    assert results.status == HardwareQualifiedEnum.ERROR
+    assert results.status == MemoryQualifiedEnum.INSUFFICIENT_MEMORY
 
 
 @pytest.mark.asyncio
@@ -97,7 +99,7 @@ async def test_validate_root_disk(mocker: MockerFixture):
     assert results.min_disk == 10
     assert results.actual_disk == 18
     assert results.error == ""
-    assert results.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.status == RootDiskQualifiedEnum.QUALIFIED
 
     # Check when we fail
     mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=1073741824))
@@ -109,7 +111,7 @@ async def test_validate_root_disk(mocker: MockerFixture):
         "The node does not have sufficient space on the root disk. "
         "Required: 10, Actual: 1."
     )
-    assert results.status == HardwareQualifiedEnum.ERROR
+    assert results.status == RootDiskQualifiedEnum.INSUFFICIENT_SPACE
 
 
 @pytest.mark.asyncio
@@ -126,17 +128,17 @@ async def test_localhost_qualified(mocker: MockerFixture):
     assert results.cpu_qualified.min_cpu == 2
     assert results.cpu_qualified.actual_cpu == 8
     assert results.cpu_qualified.error == ""
-    assert results.cpu_qualified.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.cpu_qualified.status == CPUQualifiedEnum.QUALIFIED
     assert results.mem_qualified.qualified is True
     assert results.mem_qualified.min_mem == 2
     assert results.mem_qualified.actual_mem == 31
     assert results.mem_qualified.error == ""
-    assert results.mem_qualified.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.mem_qualified.status == MemoryQualifiedEnum.QUALIFIED
     assert results.root_disk_qualified.qualified is True
     assert results.root_disk_qualified.min_disk == 10
     assert results.root_disk_qualified.actual_disk == 18
     assert results.root_disk_qualified.error == ""
-    assert results.root_disk_qualified.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.root_disk_qualified.status == RootDiskQualifiedEnum.QUALIFIED
 
     # Check when we fail just CPU
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -149,17 +151,17 @@ async def test_localhost_qualified(mocker: MockerFixture):
         "The node does not have a sufficient number of CPU cores. "
         "Required: 2, Actual: 1."
     )
-    assert results.cpu_qualified.status == HardwareQualifiedEnum.ERROR
+    assert results.cpu_qualified.status == CPUQualifiedEnum.INSUFFICIENT_CORES
     assert results.mem_qualified.qualified is True
     assert results.mem_qualified.min_mem == 2
     assert results.mem_qualified.actual_mem == 31
     assert results.mem_qualified.error == ""
-    assert results.mem_qualified.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.mem_qualified.status == MemoryQualifiedEnum.QUALIFIED
     assert results.root_disk_qualified.qualified is True
     assert results.root_disk_qualified.min_disk == 10
     assert results.root_disk_qualified.actual_disk == 18
     assert results.root_disk_qualified.error == ""
-    assert results.root_disk_qualified.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.root_disk_qualified.status == RootDiskQualifiedEnum.QUALIFIED
 
     # Check when we fail CPU + Disk
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -172,12 +174,12 @@ async def test_localhost_qualified(mocker: MockerFixture):
         "The node does not have a sufficient number of CPU cores. "
         "Required: 2, Actual: 1."
     )
-    assert results.cpu_qualified.status == HardwareQualifiedEnum.ERROR
+    assert results.cpu_qualified.status == CPUQualifiedEnum.INSUFFICIENT_CORES
     assert results.mem_qualified.qualified is True
     assert results.mem_qualified.min_mem == 2
     assert results.mem_qualified.actual_mem == 31
     assert results.mem_qualified.error == ""
-    assert results.mem_qualified.status == HardwareQualifiedEnum.QUALIFIED
+    assert results.mem_qualified.status == MemoryQualifiedEnum.QUALIFIED
     assert results.root_disk_qualified.qualified is False
     assert results.root_disk_qualified.min_disk == 10
     assert results.root_disk_qualified.actual_disk == 1
@@ -185,4 +187,7 @@ async def test_localhost_qualified(mocker: MockerFixture):
         "The node does not have sufficient space on the root disk. "
         "Required: 10, Actual: 1."
     )
-    assert results.root_disk_qualified.status == HardwareQualifiedEnum.ERROR
+    assert (
+        results.root_disk_qualified.status
+        == RootDiskQualifiedEnum.INSUFFICIENT_SPACE
+    )

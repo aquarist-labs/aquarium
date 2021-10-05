@@ -28,9 +28,9 @@ AQUARIUM_MIN_MEMORY_GB = 2
 AQUARIUM_MIN_ROOT_DISK_GB = 10
 
 
-class HardwareQualifiedEnum(int, Enum):
+class CPUQualifiedEnum(int, Enum):
     QUALIFIED = 0
-    ERROR = 1
+    INSUFFICIENT_CORES = 1
 
 
 class CPUQualifiedModel(BaseModel):
@@ -38,7 +38,12 @@ class CPUQualifiedModel(BaseModel):
     min_cpu: int = Field("Minimum number of CPU's")
     actual_cpu: int = Field("Actual number of CPU's")
     error: str = Field("CPU didn't meet requirements")
-    status: HardwareQualifiedEnum = Field(HardwareQualifiedEnum.QUALIFIED)
+    status: CPUQualifiedEnum = Field(CPUQualifiedEnum.QUALIFIED)
+
+
+class MemoryQualifiedEnum(int, Enum):
+    QUALIFIED = 0
+    INSUFFICIENT_MEMORY = 1
 
 
 class MemoryQualifiedModel(BaseModel):
@@ -46,7 +51,12 @@ class MemoryQualifiedModel(BaseModel):
     min_mem: int = Field("Minimum amount of memory (GB)")
     actual_mem: int = Field("Actual amount of memory (GB)")
     error: str = Field("Memory didn't meet requirements")
-    status: HardwareQualifiedEnum = Field(HardwareQualifiedEnum.QUALIFIED)
+    status: MemoryQualifiedEnum = Field(MemoryQualifiedEnum.QUALIFIED)
+
+
+class RootDiskQualifiedEnum(int, Enum):
+    QUALIFIED = 0
+    INSUFFICIENT_SPACE = 1
 
 
 class RootDiskQualifiedModel(BaseModel):
@@ -54,7 +64,7 @@ class RootDiskQualifiedModel(BaseModel):
     min_disk: int = Field("Minimum size of root disk (GB)")
     actual_disk: int = Field("Actual size of root disk (GB)")
     error: str = Field("Root disk didn't meet requirements")
-    status: HardwareQualifiedEnum = Field(HardwareQualifiedEnum.QUALIFIED)
+    status: RootDiskQualifiedEnum = Field(RootDiskQualifiedEnum.QUALIFIED)
 
 
 class LocalhostQualifiedModel(BaseModel):
@@ -74,7 +84,7 @@ async def validate_cpu() -> CPUQualifiedModel:
     min_cpu: int = AQUARIUM_MIN_CPU
     actual_cpu: int = psutil.cpu_count()
     error: str = ""
-    status: HardwareQualifiedEnum = HardwareQualifiedEnum.QUALIFIED
+    status: CPUQualifiedEnum = CPUQualifiedEnum.QUALIFIED
 
     if actual_cpu < min_cpu:
         qualified = False
@@ -82,7 +92,7 @@ async def validate_cpu() -> CPUQualifiedModel:
             "The node does not have a sufficient number of CPU cores. "
             "Required: %d, Actual: %d." % (min_cpu, actual_cpu)
         )
-        status = HardwareQualifiedEnum.ERROR
+        status = CPUQualifiedEnum.INSUFFICIENT_CORES
 
     return CPUQualifiedModel(
         qualified=qualified,
@@ -103,7 +113,7 @@ async def validate_memory() -> MemoryQualifiedModel:
     # NOTE(jhesketh): We round down to the nearest GB
     actual_mem: int = int(psutil.virtual_memory().total / 1024 / 1024 / 1024)
     error: str = ""
-    status: HardwareQualifiedEnum = HardwareQualifiedEnum.QUALIFIED
+    status: MemoryQualifiedEnum = MemoryQualifiedEnum.QUALIFIED
 
     if actual_mem < min_mem:
         qualified = False
@@ -111,7 +121,7 @@ async def validate_memory() -> MemoryQualifiedModel:
             "The node does not have a sufficient memory. "
             "Required: %d, Actual: %d." % (min_mem, actual_mem)
         )
-        status = HardwareQualifiedEnum.ERROR
+        status = MemoryQualifiedEnum.INSUFFICIENT_MEMORY
     return MemoryQualifiedModel(
         qualified=qualified,
         min_mem=min_mem,
@@ -134,7 +144,7 @@ async def validate_root_disk() -> RootDiskQualifiedModel:
     # NOTE(jhesketh): We round down to the nearest GB
     actual_disk: int = int(psutil.disk_usage("/").total / 1024 / 1024 / 1024)
     error: str = ""
-    status: HardwareQualifiedEnum = HardwareQualifiedEnum.QUALIFIED
+    status: RootDiskQualifiedEnum = RootDiskQualifiedEnum.QUALIFIED
 
     if actual_disk < min_disk:
         qualified = False
@@ -142,7 +152,7 @@ async def validate_root_disk() -> RootDiskQualifiedModel:
             "The node does not have sufficient space on the root disk. "
             "Required: %d, Actual: %d." % (min_disk, actual_disk)
         )
-        status = HardwareQualifiedEnum.ERROR
+        status = RootDiskQualifiedEnum.INSUFFICIENT_SPACE
     return RootDiskQualifiedModel(
         qualified=qualified,
         min_disk=min_disk,
