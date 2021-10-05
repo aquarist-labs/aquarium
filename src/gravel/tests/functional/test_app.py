@@ -82,8 +82,8 @@ async def test_localhost_qualified_response(
 
     assert reply.localhost_qualified.all_qualified is True
     assert reply.localhost_qualified.cpu_qualified.qualified is True
-    assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
-    assert reply.localhost_qualified.cpu_qualified.actual_cpu == 8
+    assert reply.localhost_qualified.cpu_qualified.min_threads == 2
+    assert reply.localhost_qualified.cpu_qualified.actual_threads == 8
     assert reply.localhost_qualified.cpu_qualified.error == ""
     assert (
         reply.localhost_qualified.cpu_qualified.status
@@ -121,8 +121,8 @@ async def test_localhost_qualified_response(
 
     assert reply.localhost_qualified.all_qualified is False
     assert reply.localhost_qualified.cpu_qualified.qualified is False
-    assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
-    assert reply.localhost_qualified.cpu_qualified.actual_cpu == 1
+    assert reply.localhost_qualified.cpu_qualified.min_threads == 2
+    assert reply.localhost_qualified.cpu_qualified.actual_threads == 1
     assert reply.localhost_qualified.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. Required: 2, Actual: 1."
     )
@@ -162,8 +162,8 @@ async def test_localhost_qualified_response(
 
     assert reply.localhost_qualified.all_qualified is False
     assert reply.localhost_qualified.cpu_qualified.qualified is False
-    assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
-    assert reply.localhost_qualified.cpu_qualified.actual_cpu == 1
+    assert reply.localhost_qualified.cpu_qualified.min_threads == 2
+    assert reply.localhost_qualified.cpu_qualified.actual_threads == 1
     assert reply.localhost_qualified.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. Required: 2, Actual: 1."
     )

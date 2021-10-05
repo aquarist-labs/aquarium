@@ -45,8 +45,8 @@ async def test_validate_cpu(mocker: MockerFixture):
     mocker.patch("psutil.cpu_count", return_value=8)
     results: CPUQualifiedModel = await validate_cpu()
     assert results.qualified is True
-    assert results.min_cpu == 2
-    assert results.actual_cpu == 8
+    assert results.min_threads == 2
+    assert results.actual_threads == 8
     assert results.error == ""
     assert results.status == CPUQualifiedEnum.QUALIFIED
 
@@ -54,8 +54,8 @@ async def test_validate_cpu(mocker: MockerFixture):
     mocker.patch("psutil.cpu_count", return_value=1)
     results: CPUQualifiedModel = await validate_cpu()
     assert results.qualified is False
-    assert results.min_cpu == 2
-    assert results.actual_cpu == 1
+    assert results.min_threads == 2
+    assert results.actual_threads == 1
     assert results.error == (
         "The node does not have a sufficient number of CPU cores. "
         "Required: 2, Actual: 1."
@@ -125,8 +125,8 @@ async def test_localhost_qualified(mocker: MockerFixture):
     results: LocalhostQualifiedModel = await localhost_qualified()
     assert results.all_qualified is True
     assert results.cpu_qualified.qualified is True
-    assert results.cpu_qualified.min_cpu == 2
-    assert results.cpu_qualified.actual_cpu == 8
+    assert results.cpu_qualified.min_threads == 2
+    assert results.cpu_qualified.actual_threads == 8
     assert results.cpu_qualified.error == ""
     assert results.cpu_qualified.status == CPUQualifiedEnum.QUALIFIED
     assert results.mem_qualified.qualified is True
@@ -145,8 +145,8 @@ async def test_localhost_qualified(mocker: MockerFixture):
     results: LocalhostQualifiedModel = await localhost_qualified()
     assert results.all_qualified is False
     assert results.cpu_qualified.qualified is False
-    assert results.cpu_qualified.min_cpu == 2
-    assert results.cpu_qualified.actual_cpu == 1
+    assert results.cpu_qualified.min_threads == 2
+    assert results.cpu_qualified.actual_threads == 1
     assert results.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. "
         "Required: 2, Actual: 1."
@@ -168,8 +168,8 @@ async def test_localhost_qualified(mocker: MockerFixture):
     mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=1073741824))
     results: LocalhostQualifiedModel = await localhost_qualified()
     assert results.cpu_qualified.qualified is False
-    assert results.cpu_qualified.min_cpu == 2
-    assert results.cpu_qualified.actual_cpu == 1
+    assert results.cpu_qualified.min_threads == 2
+    assert results.cpu_qualified.actual_threads == 1
     assert results.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. "
         "Required: 2, Actual: 1."

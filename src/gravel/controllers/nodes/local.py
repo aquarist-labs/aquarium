@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 #                 vs hardware etc).
 #                 These are also currently somewhat arbitrary and will need
 #                 tuning.
-AQUARIUM_MIN_CPU = 2
+AQUARIUM_MIN_CPU_THREADS = 2
 AQUARIUM_MIN_MEMORY = 2 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
 AQUARIUM_MIN_ROOT_DISK = 10 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
 
@@ -35,8 +35,8 @@ class CPUQualifiedEnum(int, Enum):
 
 class CPUQualifiedModel(BaseModel):
     qualified: bool = Field("The CPU is sufficient")
-    min_cpu: int = Field("Minimum number of CPU's")
-    actual_cpu: int = Field("Actual number of CPU's")
+    min_threads: int = Field("Minimum number of CPU threads")
+    actual_threads: int = Field("Actual number of CPU threads")
     error: str = Field("CPU didn't meet requirements")
     status: CPUQualifiedEnum = Field(CPUQualifiedEnum.QUALIFIED)
 
@@ -81,23 +81,23 @@ async def validate_cpu() -> CPUQualifiedModel:
     Validates the localhost meets the minium CPU requirements.
     """
     qualified: bool = True
-    min_cpu: int = AQUARIUM_MIN_CPU
-    actual_cpu: int = psutil.cpu_count()
+    min_threads: int = AQUARIUM_MIN_CPU_THREADS
+    actual_threads: int = psutil.cpu_count()
     error: str = ""
     status: CPUQualifiedEnum = CPUQualifiedEnum.QUALIFIED
 
-    if actual_cpu < min_cpu:
+    if actual_threads < min_threads:
         qualified = False
         error = (
             "The node does not have a sufficient number of CPU cores. "
-            "Required: %d, Actual: %d." % (min_cpu, actual_cpu)
+            "Required: %d, Actual: %d." % (min_threads, actual_threads)
         )
         status = CPUQualifiedEnum.INSUFFICIENT_CORES
 
     return CPUQualifiedModel(
         qualified=qualified,
-        min_cpu=min_cpu,
-        actual_cpu=actual_cpu,
+        min_threads=min_threads,
+        actual_threads=actual_threads,
         error=error,
         status=status,
     )
