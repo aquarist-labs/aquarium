@@ -11,10 +11,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import json
+import asyncio
 
 import pytest
 from pytest_mock import MockerFixture
+
+from gravel.api.local import NodeStatusReplyModel
 
 
 @pytest.mark.asyncio
@@ -35,21 +37,19 @@ async def test_simple_app_response(async_client, mocker: MockerFixture):
 
     response = await async_client.get("/api/local/status")
     assert response.status_code == 200
-    assert (
-        '{"localhost_qualified":{"all_qualified":true,"cpu_qualified":{"qualified":true,"min_cpu":2,"actual_cpu":8,"error":"","status":0},"mem_qualified":{"qualified":true,"min_mem":2,"actual_mem":31,"error":"","status":0},"root_disk_qualified":{"qualified":true,"min_disk":10,"actual_disk":18,"error":"","status":0}},"inited":false,"node_stage":0}'
-        == response.text
-    )
+    reply = NodeStatusReplyModel.parse_raw(response.text)
 
-    import asyncio
+    assert reply.inited is False
+    assert reply.node_stage == 0
 
     await asyncio.sleep(5)
 
     response = await async_client.get("/api/local/status")
     assert response.status_code == 200
-    assert (
-        '{"localhost_qualified":{"all_qualified":true,"cpu_qualified":{"qualified":true,"min_cpu":2,"actual_cpu":8,"error":"","status":0},"mem_qualified":{"qualified":true,"min_mem":2,"actual_mem":31,"error":"","status":0},"root_disk_qualified":{"qualified":true,"min_disk":10,"actual_disk":18,"error":"","status":0}},"inited":true,"node_stage":0}'
-        == response.text
-    )
+    reply = NodeStatusReplyModel.parse_raw(response.text)
+
+    assert reply.inited is True
+    assert reply.node_stage == 0
 
 
 @pytest.mark.asyncio
@@ -73,51 +73,24 @@ async def test_localhost_qualified_response(
 
     response = await async_client.get("/api/local/status")
     assert response.status_code == 200
-    response_json = json.loads(response.text)
-    assert response_json["localhost_qualified"]["all_qualified"] is True
-    assert (
-        response_json["localhost_qualified"]["cpu_qualified"]["qualified"]
-        is True
-    )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["min_cpu"] == 2
-    assert (
-        response_json["localhost_qualified"]["cpu_qualified"]["actual_cpu"] == 8
-    )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["error"] == ""
-    assert response_json["localhost_qualified"]["cpu_qualified"]["status"] == 0
-    assert (
-        response_json["localhost_qualified"]["mem_qualified"]["qualified"]
-        is True
-    )
-    assert response_json["localhost_qualified"]["mem_qualified"]["min_mem"] == 2
-    assert (
-        response_json["localhost_qualified"]["mem_qualified"]["actual_mem"]
-        == 31
-    )
-    assert response_json["localhost_qualified"]["mem_qualified"]["error"] == ""
-    assert response_json["localhost_qualified"]["mem_qualified"]["status"] == 0
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["qualified"]
-        is True
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["min_disk"]
-        == 10
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"][
-            "actual_disk"
-        ]
-        == 18
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["error"]
-        == ""
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["status"]
-        == 0
-    )
+    reply = NodeStatusReplyModel.parse_raw(response.text)
+
+    assert reply.localhost_qualified.all_qualified is True
+    assert reply.localhost_qualified.cpu_qualified.qualified is True
+    assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
+    assert reply.localhost_qualified.cpu_qualified.actual_cpu == 8
+    assert reply.localhost_qualified.cpu_qualified.error == ""
+    assert reply.localhost_qualified.cpu_qualified.status == 0
+    assert reply.localhost_qualified.mem_qualified.qualified is True
+    assert reply.localhost_qualified.mem_qualified.min_mem == 2
+    assert reply.localhost_qualified.mem_qualified.actual_mem == 31
+    assert reply.localhost_qualified.mem_qualified.error == ""
+    assert reply.localhost_qualified.mem_qualified.status == 0
+    assert reply.localhost_qualified.root_disk_qualified.qualified is True
+    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
+    assert reply.localhost_qualified.root_disk_qualified.actual_disk == 18
+    assert reply.localhost_qualified.root_disk_qualified.error == ""
+    assert reply.localhost_qualified.root_disk_qualified.status == 0
 
     # Failed CPU count
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -128,53 +101,26 @@ async def test_localhost_qualified_response(
 
     response = await async_client.get("/api/local/status")
     assert response.status_code == 200
-    response_json = json.loads(response.text)
-    assert response_json["localhost_qualified"]["all_qualified"] is False
-    assert (
-        response_json["localhost_qualified"]["cpu_qualified"]["qualified"]
-        is False
-    )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["min_cpu"] == 2
-    assert (
-        response_json["localhost_qualified"]["cpu_qualified"]["actual_cpu"] == 1
-    )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["error"] == (
+    reply = NodeStatusReplyModel.parse_raw(response.text)
+
+    assert reply.localhost_qualified.all_qualified is False
+    assert reply.localhost_qualified.cpu_qualified.qualified is False
+    assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
+    assert reply.localhost_qualified.cpu_qualified.actual_cpu == 1
+    assert reply.localhost_qualified.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. Required: 2, Actual: 1."
     )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["status"] == 1
-    assert (
-        response_json["localhost_qualified"]["mem_qualified"]["qualified"]
-        is True
-    )
-    assert response_json["localhost_qualified"]["mem_qualified"]["min_mem"] == 2
-    assert (
-        response_json["localhost_qualified"]["mem_qualified"]["actual_mem"]
-        == 31
-    )
-    assert response_json["localhost_qualified"]["mem_qualified"]["error"] == ""
-    assert response_json["localhost_qualified"]["mem_qualified"]["status"] == 0
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["qualified"]
-        is True
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["min_disk"]
-        == 10
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"][
-            "actual_disk"
-        ]
-        == 18
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["error"]
-        == ""
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["status"]
-        == 0
-    )
+    assert reply.localhost_qualified.cpu_qualified.status == 1
+    assert reply.localhost_qualified.mem_qualified.qualified is True
+    assert reply.localhost_qualified.mem_qualified.min_mem == 2
+    assert reply.localhost_qualified.mem_qualified.actual_mem == 31
+    assert reply.localhost_qualified.mem_qualified.error == ""
+    assert reply.localhost_qualified.mem_qualified.status == 0
+    assert reply.localhost_qualified.root_disk_qualified.qualified is True
+    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
+    assert reply.localhost_qualified.root_disk_qualified.actual_disk == 18
+    assert reply.localhost_qualified.root_disk_qualified.error == ""
+    assert reply.localhost_qualified.root_disk_qualified.status == 0
 
     # Everything fails
     mocker.patch("psutil.cpu_count", return_value=1)
@@ -185,52 +131,27 @@ async def test_localhost_qualified_response(
 
     response = await async_client.get("/api/local/status")
     assert response.status_code == 200
-    response_json = json.loads(response.text)
-    assert response_json["localhost_qualified"]["all_qualified"] is False
-    assert (
-        response_json["localhost_qualified"]["cpu_qualified"]["qualified"]
-        is False
-    )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["min_cpu"] == 2
-    assert (
-        response_json["localhost_qualified"]["cpu_qualified"]["actual_cpu"] == 1
-    )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["error"] == (
+    reply = NodeStatusReplyModel.parse_raw(response.text)
+
+    assert reply.localhost_qualified.all_qualified is False
+    assert reply.localhost_qualified.cpu_qualified.qualified is False
+    assert reply.localhost_qualified.cpu_qualified.min_cpu == 2
+    assert reply.localhost_qualified.cpu_qualified.actual_cpu == 1
+    assert reply.localhost_qualified.cpu_qualified.error == (
         "The node does not have a sufficient number of CPU cores. Required: 2, Actual: 1."
     )
-    assert response_json["localhost_qualified"]["cpu_qualified"]["status"] == 1
-    assert (
-        response_json["localhost_qualified"]["mem_qualified"]["qualified"]
-        is False
-    )
-    assert response_json["localhost_qualified"]["mem_qualified"]["min_mem"] == 2
-    assert (
-        response_json["localhost_qualified"]["mem_qualified"]["actual_mem"] == 1
-    )
-    assert response_json["localhost_qualified"]["mem_qualified"]["error"] == (
+    assert reply.localhost_qualified.cpu_qualified.status == 1
+    assert reply.localhost_qualified.mem_qualified.qualified is False
+    assert reply.localhost_qualified.mem_qualified.min_mem == 2
+    assert reply.localhost_qualified.mem_qualified.actual_mem == 1
+    assert reply.localhost_qualified.mem_qualified.error == (
         "The node does not have a sufficient memory. Required: 2, Actual: 1."
     )
-    assert response_json["localhost_qualified"]["mem_qualified"]["status"] == 1
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["qualified"]
-        is False
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["min_disk"]
-        == 10
-    )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"][
-            "actual_disk"
-        ]
-        == 1
-    )
-    assert response_json["localhost_qualified"]["root_disk_qualified"][
-        "error"
-    ] == (
+    assert reply.localhost_qualified.mem_qualified.status == 1
+    assert reply.localhost_qualified.root_disk_qualified.qualified is False
+    assert reply.localhost_qualified.root_disk_qualified.min_disk == 10
+    assert reply.localhost_qualified.root_disk_qualified.actual_disk == 1
+    assert reply.localhost_qualified.root_disk_qualified.error == (
         "The node does not have sufficient space on the root disk. Required: 10, Actual: 1."
     )
-    assert (
-        response_json["localhost_qualified"]["root_disk_qualified"]["status"]
-        == 1
-    )
+    assert reply.localhost_qualified.root_disk_qualified.status == 1
