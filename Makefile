@@ -21,12 +21,13 @@ dist: submodules glass
 	mkdir -p $(TAR_USR) $(TAR_UNIT) $(TAR_SBIN)
 	# Copy gravel, glass, aquarium.py and cephadm from src/...
 	cd src && \
-	find gravel -iname '*ceph.git*' -prune -false -o -iname '*.py' | \
+	find gravel -iname '*.py' | \
 		xargs cp --parents --target-directory=$(TAR_USR) && \
 	cp --target-directory=$(TAR_USR) ./aquarium.py && \
 	cp -R --parents --target-directory=$(TAR_USR) glass/dist && \
 	cp -R --target-directory=$(TAR_USR) boot && \
-	cp --target-directory=$(TAR_SBIN) ./gravel/ceph.git/src/cephadm/cephadm
+	cp ./gravel/cephadm/cephadm.bin $(TAR_SBIN)/cephadm
+	chmod 700 $(TAR_SBIN)/cephadm
 	# Copy aquarium service
 	cp systemd/aquarium.service $(TAR_UNIT)
 	tar -czf aquarium-$(VERSION).tar.gz -C $(TMPDIR) aquarium-$(VERSION)

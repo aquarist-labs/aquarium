@@ -352,11 +352,13 @@ if ! npm --version &>/dev/null ; then
   exit 1
 fi
 
-# don't recurse into ceph.git unless we explicitly need a submodule.
-git submodule update --init || exit 1
-
-[[ ! -e "src/gravel/cephadm/cephadm.bin" ]] && \
-  ln -fs ../ceph.git/src/cephadm/cephadm src/gravel/cephadm/cephadm.bin
+if [[ ! -e "src/gravel/cephadm/cephadm.bin" ]]; then
+  curl --silent \
+    --location https://github.com/ceph/ceph/raw/master/src/cephadm/cephadm \
+    --output src/gravel/cephadm/cephadm.bin || \
+    exit 1
+  chmod +x src/gravel/cephadm/cephadm.bin || exit 1
+fi
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
