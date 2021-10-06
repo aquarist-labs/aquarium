@@ -147,31 +147,6 @@ async def test_mgr_start(
 
 
 @pytest.mark.asyncio
-async def test_obtain_images(
-    gstate: GlobalState, mocker: MockerFixture
-) -> None:
-
-    orig_cephadm_pull_img = gstate.cephadm.pull_images
-    gstate.cephadm.pull_images = mocker.AsyncMock()
-
-    nodemgr = NodeMgr(gstate)
-    ret = await nodemgr._obtain_images()
-    assert ret
-    gstate.cephadm.pull_images.assert_called_once()  # type: ignore
-
-    from gravel.cephadm.cephadm import CephadmError
-
-    gstate.cephadm.pull_images = mocker.AsyncMock(
-        side_effect=CephadmError("foobar")
-    )
-    ret = await nodemgr._obtain_images()
-    assert not ret
-    gstate.cephadm.pull_images.assert_called_once()  # type: ignore
-
-    gstate.cephadm.pull_images = orig_cephadm_pull_img
-
-
-@pytest.mark.asyncio
 async def test_node_start(
     gstate: GlobalState,
     mocker: MockerFixture,

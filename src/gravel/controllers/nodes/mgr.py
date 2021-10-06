@@ -23,7 +23,6 @@ from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.cephadm.cephadm import CephadmError
 from gravel.controllers.auth import UserMgr, UserModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
@@ -201,19 +200,6 @@ class NodeMgr:
     async def shutdown(self) -> None:
         pass
 
-    async def _obtain_images(self) -> bool:
-        cephadm = self.gstate.cephadm
-        try:
-            # Since removing etcd this gather structure is redundant
-            # (we're only invoking one awaitable), but I've left it
-            # here anyway in case it turns out we want to add other
-            # container images in future.
-            await asyncio.gather(cephadm.pull_images())
-        except CephadmError as e:
-            logger.error(f"unable to fetch ceph containers: {str(e)}")
-            return False
-        return True
-
     async def _node_prepare(self) -> None:
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
@@ -223,9 +209,7 @@ class NodeMgr:
                 await self._node_prestart()
 
         async def _task() -> None:
-            if not await self._obtain_images():
-                # xxx: find way to shutdown here?
-                return
+            logger.debug("subscribe inventory updates")
             self._inventory_sub = await self.gstate.inventory.subscribe(
                 _inventory_subscriber, once=False
             )
