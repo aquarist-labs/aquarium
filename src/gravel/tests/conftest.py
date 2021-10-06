@@ -236,6 +236,7 @@ async def aquarium_startup(
             async def call(
                 self,
                 cmd: List[str],
+                noimage: bool = False,
                 outcb: Optional[Callable[[str], None]] = None,
             ) -> Tuple[str, str, int]:
                 # Implement expected calls to cephadm with testable responses

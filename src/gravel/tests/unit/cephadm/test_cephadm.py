@@ -27,7 +27,9 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 @pytest.mark.asyncio
 async def test_bootstrap(mocker: MockerFixture):
-    async def mock_call(cmd: str, cb: Optional[Any]) -> Tuple[str, str, int]:
+    async def mock_call(
+        cmd: List[str], noimage: bool = False, outcb: Optional[Any] = None
+    ) -> Tuple[str, str, int]:
         return "foo", "bar", 0
 
     cephadm = Cephadm(ContainersOptionsModel())
@@ -43,7 +45,9 @@ async def test_bootstrap(mocker: MockerFixture):
 async def test_gather_facts_real(
     mocker: MockerFixture, get_data_contents: Callable[[str, str], str]
 ):
-    async def mock_call(cmd: str) -> Tuple[str, str, int]:
+    async def mock_call(
+        cmd: List[str], noimage: bool = False, outcb: Optional[Any] = None
+    ) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, "gather_facts_real.json"), "", 0
 
     cephadm = Cephadm(ContainersOptionsModel())
@@ -58,7 +62,9 @@ async def test_gather_facts_real(
 
 @pytest.mark.asyncio
 async def test_gather_facts_fail_1(mocker: MockerFixture):
-    async def mock_call(cmd: str) -> Tuple[str, str, int]:
+    async def mock_call(
+        cmd: List[str], noimage: bool = False, outcb: Optional[Any] = None
+    ) -> Tuple[str, str, int]:
         return "fail", "", 0
 
     cephadm = Cephadm(ContainersOptionsModel())
@@ -72,7 +78,9 @@ async def test_gather_facts_fail_1(mocker: MockerFixture):
 async def test_gather_facts_fail_2(
     mocker: MockerFixture, get_data_contents: Callable[[str, str], str]
 ):
-    async def mock_call(cmd: str) -> Tuple[str, str, int]:
+    async def mock_call(
+        cmd: List[str], noimage: bool = False, outcb: Optional[Any] = None
+    ) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, "gather_facts_real.json"), "", 1
 
     cephadm = Cephadm(ContainersOptionsModel())
@@ -86,7 +94,9 @@ async def test_gather_facts_fail_2(
 async def test_volume_inventory(
     mocker: MockerFixture, get_data_contents: Callable[[str, str], str]
 ):
-    async def mock_call(cmd: str) -> Tuple[str, str, int]:
+    async def mock_call(
+        cmd: List[str], noimage: bool = False, outcb: Optional[Any] = None
+    ) -> Tuple[str, str, int]:
         return get_data_contents(DATA_DIR, "inventory_real.json"), "", 0
 
     cephadm = Cephadm(ContainersOptionsModel())
@@ -103,7 +113,9 @@ async def test_volume_inventory(
 
 @pytest.mark.asyncio
 async def test_volume_inventory_fail(mocker: MockerFixture):
-    async def mock_call(cmd: str) -> Tuple[str, str, int]:
+    async def mock_call(
+        cmd: List[str], noimage: bool = False, outcb: Optional[Any] = None
+    ) -> Tuple[str, str, int]:
         return "fail", "", 0
 
     cephadm = Cephadm(ContainersOptionsModel())

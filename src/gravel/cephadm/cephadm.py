@@ -50,13 +50,17 @@ class Cephadm:
             self.cephadm = ["sudo", "cephadm"]
 
     async def call(
-        self, cmd: List[str], outcb: Optional[Callable[[str], None]] = None
+        self,
+        cmd: List[str],
+        noimage: bool = False,
+        outcb: Optional[Callable[[str], None]] = None,
     ) -> Tuple[str, str, int]:
 
         assert len(cmd) > 0
         cmdlst: List[str] = list(self.cephadm)
-        image = self._config.get_image()
-        cmdlst.extend(["--image", image])
+        if not noimage:
+            image = self._config.get_image()
+            cmdlst.extend(["--image", image])
         cmdlst.extend(cmd)
         logger.debug(f"call with {self.cephadm}")
         logger.debug(f"call: {cmdlst}")
@@ -150,10 +154,10 @@ class Cephadm:
             "--skip-dashboard",
             "--skip-monitoring-stack",
         ]
-        return await self.call(cmd, outcb_handler)
+        return await self.call(cmd, noimage=False, outcb=outcb_handler)
 
     async def gather_facts(self) -> HostFactsModel:
-        stdout, stderr, rc = await self.call(["gather-facts"])
+        stdout, stderr, rc = await self.call(["gather-facts"], noimage=True)
         if rc != 0:
             raise CephadmError(stderr)
         try:
