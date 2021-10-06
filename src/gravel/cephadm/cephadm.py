@@ -146,6 +146,7 @@ class Cephadm:
         tmp_config: IO[str] = write_tmp(get_default_ceph_conf())
         cmd: List[str] = [
             "bootstrap",
+            "--skip-pull",
             "--skip-prepare-host",
             "--mon-ip",
             addr,
