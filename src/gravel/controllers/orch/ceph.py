@@ -231,9 +231,9 @@ class Mon:
             rulesetid: Optional[int] = None
             for ruleset in result:
                 assert "rule_name" in ruleset
-                assert "ruleset" in ruleset
+                assert "rule_id" in ruleset
                 if ruleset["rule_name"] == name:
-                    rulesetid = ruleset["ruleset"]
+                    rulesetid = ruleset["rule_id"]
                     break
             assert rulesetid is not None
             return rulesetid
