@@ -8,5 +8,6 @@ pyjwt==2.1.0
 starlette==0.13.6
 uvicorn==0.13.3
 pip
+psutil
 websockets==8.1
 PyYAML==5.4.1

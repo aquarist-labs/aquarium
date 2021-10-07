@@ -22,6 +22,10 @@ from pydantic import BaseModel, Field
 from gravel.api import jwt_auth_scheme
 from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.nodes.deployment import NodeStageEnum
+from gravel.controllers.nodes.local import (
+    LocalhostQualifiedModel,
+    localhost_qualified,
+)
 from gravel.controllers.nodes.mgr import NodeMgr
 
 logger: Logger = fastapi_logger
@@ -30,6 +34,9 @@ router: APIRouter = APIRouter(prefix="/local", tags=["local"])
 
 
 class NodeStatusReplyModel(BaseModel):
+    localhost_qualified: LocalhostQualifiedModel = Field(
+        LocalhostQualifiedModel(), title="Validation results of localhost"
+    )
     inited: bool = Field("Node has been inited and can be used")
     node_stage: NodeStageEnum = Field("Node Deployment Stage")
 
@@ -135,7 +142,9 @@ async def get_status(
     nodemgr: NodeMgr = request.app.state.nodemgr
 
     return NodeStatusReplyModel(
-        inited=nodemgr.available, node_stage=nodemgr.deployment_state.stage
+        localhost_qualified=await localhost_qualified(),
+        inited=nodemgr.available,
+        node_stage=nodemgr.deployment_state.stage,
     )
 
 
