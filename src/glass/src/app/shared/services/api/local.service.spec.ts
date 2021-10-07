@@ -12,10 +12,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { LocalNodeService } from './local.service';
+import { LocalNodeService } from '~/app/shared/services/api/local.service';
+import { TestingModule } from '~/app/testing.module';
 
 describe('LocalNodeService', () => {
   let service: LocalNodeService;
@@ -23,7 +24,7 @@ describe('LocalNodeService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule]
+      imports: [TestingModule]
     });
     service = TestBed.inject(LocalNodeService);
     httpTesting = TestBed.inject(HttpTestingController);
@@ -36,6 +37,18 @@ describe('LocalNodeService', () => {
   it('should call local node status', () => {
     service.status().subscribe();
     const req = httpTesting.expectOne('api/local/status');
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should get local inventory', () => {
+    service.inventory().subscribe();
+    const req = httpTesting.expectOne('api/local/inventory');
+    expect(req.request.method).toBe('GET');
+  });
+
+  it('should get local events', () => {
+    service.events().subscribe();
+    const req = httpTesting.expectOne('api/local/events');
     expect(req.request.method).toBe('GET');
   });
 });

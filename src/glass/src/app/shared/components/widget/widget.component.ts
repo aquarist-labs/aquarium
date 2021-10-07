@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import * as _ from 'lodash';
 import { EMPTY, Observable, Subscription, timer } from 'rxjs';
-import { catchError, finalize, take } from 'rxjs/operators';
+import { catchError, finalize, take, tap } from 'rxjs/operators';
 
 export type WidgetAction = {
   icon: string;
@@ -30,6 +30,8 @@ export class WidgetComponent implements OnInit, OnDestroy {
   actionMenu?: WidgetAction[];
   @Input()
   setStatus?: (data: any) => WidgetHealthStatus;
+  @Input()
+  reloadTime = 15000;
   @Output()
   readonly loadDataEvent = new EventEmitter<any>();
 
@@ -39,10 +41,8 @@ export class WidgetComponent implements OnInit, OnDestroy {
   firstLoadComplete = false;
   data?: any;
 
-  private loadingWithoutError = true;
   private loadDataSubscription?: Subscription;
   private timerSubscription?: Subscription;
-  private readonly reloadTime = 15000;
 
   ngOnInit(): void {
     this.reload();
@@ -58,7 +58,6 @@ export class WidgetComponent implements OnInit, OnDestroy {
       throw new Error('loadData attribute not set');
     }
     this.loading = true;
-    this.loadingWithoutError = true;
     this.loadDataSubscription = this.loadData()
       .pipe(
         // @ts-ignore
@@ -66,21 +65,26 @@ export class WidgetComponent implements OnInit, OnDestroy {
           if (_.isFunction(err.preventDefault)) {
             err.preventDefault();
           }
+          this.loading = false;
           this.status = WidgetHealthStatus.error;
-          this.loadingWithoutError = false;
+          this.error = true;
           return EMPTY;
         }),
+        tap(() => {
+          this.loading = false;
+          this.error = false;
+          this.firstLoadComplete = true;
+        }),
         finalize(() => {
-          this.error = !this.loadingWithoutError;
-          this.firstLoadComplete = this.loadingWithoutError;
           if (this.reloadTime > 0) {
             this.timerSubscription = timer(this.reloadTime)
               .pipe(take(1))
-              .subscribe(() => this.reload());
+              .subscribe(() => {
+                this.loadDataSubscription!.unsubscribe();
+                this.reload();
+              });
           }
-          this.loading = false;
-        }),
-        take(1)
+        })
       )
       .subscribe((data) => {
         this.data = data;

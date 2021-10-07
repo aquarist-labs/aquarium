@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import List
+from typing import Callable, List
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
@@ -34,13 +34,19 @@ class NodeStatusReplyModel(BaseModel):
     node_stage: NodeStageEnum = Field("Node Deployment Stage")
 
 
+class EventModel(BaseModel):
+    ts: int = Field(title="The Unix time stamp")
+    severity: str
+    message: str
+
+
 @router.get(
     "/volumes",
     name="Obtain local volumes",
     response_model=List[VolumeDeviceModel],
 )
 async def get_volumes(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request, _: Callable = Depends(jwt_auth_scheme)
 ) -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
@@ -64,7 +70,7 @@ async def get_volumes(
     response_model=NodeInfoModel,
 )
 async def get_node_info(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request, _: Callable = Depends(jwt_auth_scheme)
 ) -> NodeInfoModel:
     """
     Obtain this node's information and facts.
@@ -86,7 +92,7 @@ async def get_node_info(
     response_model=NodeInfoModel,
 )
 async def get_inventory(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request, _: Callable = Depends(jwt_auth_scheme)
 ) -> NodeInfoModel:
     """
     Obtain this node's inventory.
@@ -117,7 +123,7 @@ async def get_inventory(
     response_model=NodeStatusReplyModel,
 )
 async def get_status(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request, _: Callable = Depends(jwt_auth_scheme)
 ) -> NodeStatusReplyModel:
     """
     Obtain this node's current status.
@@ -131,3 +137,27 @@ async def get_status(
     return NodeStatusReplyModel(
         inited=nodemgr.available, node_stage=nodemgr.deployment_state.stage
     )
+
+
+@router.get(
+    "/events",
+    name="Obtain events from local node",
+    response_model=List[EventModel],
+)
+async def get_events(
+    request: Request, _: Callable = Depends(jwt_auth_scheme)
+) -> List[EventModel]:
+    # ToDo: Replace mocked data by live data.
+    events = [
+        {
+            "ts": 1633362463,
+            "severity": "info",
+            "message": "fooo bar asdasdlkasjd aksdjlas dasjdlsakjd asdkasld asdas.",
+        },
+        {
+            "ts": 1633363417,
+            "severity": "warn",
+            "message": "Lorem ipsum dolor sit amet, sed diam voluptua.",
+        },
+    ]
+    return [EventModel.parse_obj(event) for event in events]

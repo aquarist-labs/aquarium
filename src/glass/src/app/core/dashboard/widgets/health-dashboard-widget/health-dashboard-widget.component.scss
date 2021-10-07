@@ -1,7 +1,11 @@
-.glass-health-dashboard-widget {
-  padding: 16px;
+@use 'sass:math';
 
-  .glass-health-dashboard-widget-text {
-    margin-left: 8px;
+@import 'styles.scss';
+
+.glass-health-dashboard-widget {
+  padding: math.div($glass-padding, 2);
+
+  i:before {
+    vertical-align: middle;
   }
 }

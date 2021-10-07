@@ -86,6 +86,13 @@ export class DashboardPageComponent {
       enabledByDefault: true
     },
     {
+      id: 'events',
+      title: TEXT('Events'),
+      cols: 10,
+      rows: 7,
+      enabledByDefault: false
+    },
+    {
       id: 'volumes',
       title: TEXT('Volumes'),
       cols: 6,
@@ -97,7 +104,7 @@ export class DashboardPageComponent {
       title: TEXT('System Information'),
       cols: 7,
       rows: 9,
-      enabledByDefault: false
+      enabledByDefault: true
     }
   ];
 

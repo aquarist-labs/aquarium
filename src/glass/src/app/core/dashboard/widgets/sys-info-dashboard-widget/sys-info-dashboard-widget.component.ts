@@ -77,7 +77,7 @@ export class SysInfoDashboardWidgetComponent {
       {
         center: ['50%', '60%'],
         itemStyle: {
-          color: '#FFAB91'
+          color: '#ff9e02'
         },
         progress: {
           show: true,
@@ -114,7 +114,6 @@ export class SysInfoDashboardWidgetComponent {
   };
   cpuLoadChartData: any[] = [];
   cpuLoadColorScheme = {
-    // EOS colors: [$glass-color-yellow-100, $glass-color-yellow-500, $glass-color-yellow-900]
     domain: ['#ffecb5', '#ffc107', '#ff9e02']
   };
 
