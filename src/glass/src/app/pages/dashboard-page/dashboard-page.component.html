@@ -29,9 +29,6 @@
       <gridster-item *ngFor="let item of gridsterItems"
                      [item]="item">
         <ng-container [ngSwitch]="item.type">
-          <ng-template [ngSwitchCase]="'performance'">
-            <glass-performance-dashboard-widget></glass-performance-dashboard-widget>
-          </ng-template>
           <ng-template [ngSwitchCase]="'volumes'">
             <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
           </ng-template>
