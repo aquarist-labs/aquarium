@@ -42,6 +42,7 @@ class DeploymentModel(BaseModel):
     model: Optional[str] = Field(None, description="Type of Deployment")
     name: str = Field(..., description="Name of Deployment")
     created_on: dt = Field(..., description="Date of creation")
+    disk_size: Optional[int] = Field(None, description="Disk capacity")
     num_disks: Optional[int] = Field(None, description="Number of disks")
     num_nics: Optional[int] = Field(None, description="Number of NICs")
     num_nodes: Optional[int] = Field(None, description="Number of Nodes")
@@ -143,45 +144,6 @@ class Deployment:
 
         return path
 
-    @classmethod
-    def create(
-        cls,
-        name: str,
-        box: str,
-        provider: str,
-        num_nodes: int,
-        num_disks: int,
-        num_nics: int,
-        deployments_path: Path,
-        mount_path: Optional[Path] = None
-    ) -> Deployment:
-
-        if (box, provider) not in vagrant.Vagrant.box_list():
-            logger.debug(f"boxlist: '{vagrant.Vagrant.box_list()}'")
-            raise BoxDoesNotExistError(box, provider)
-
-        path = cls._create(name=name, deployments_path=deployments_path)
-
-        vagrantfile_text = vagrant.gen_vagrantfile(
-            box, provider, mount_path,
-            num_nodes, num_disks, num_nics
-        )
-        vagrantfile = path.joinpath("Vagrantfile")
-        logger.debug(f"writing Vagrantfile at '{vagrantfile}'")
-        vagrantfile.write_text(vagrantfile_text)
-
-        meta = VagrantDeploymentModel(
-            name=name,
-            box=box,
-            created_on=dt.now(),
-            num_disks=num_disks,
-            num_nics=num_nics,
-            num_nodes=num_nodes
-        )
-        deployment = Deployment(path, meta)
-        deployment.save()
-
-        return deployment
 
     @classmethod
     def load(cls, deployments_path: Path, name: str) -> Deployment:
@@ -272,6 +234,47 @@ def get_deployments(path: Path) -> Dict[str, Deployment]:
     return results
 
 class VagrantDeployment(Deployment):
+    @classmethod
+    def create(
+        cls,
+        name: str,
+        box: str,
+        provider: str,
+        num_nodes: int,
+        num_disks: int,
+        num_nics: int,
+        disk_size: int,
+        deployments_path: Path,
+        mount_path: Optional[Path] = None
+    ) -> Deployment:
+
+        if (box, provider) not in vagrant.Vagrant.box_list():
+            logger.debug(f"boxlist: '{vagrant.Vagrant.box_list()}'")
+            raise BoxDoesNotExistError(box, provider)
+
+        path = cls._create(name=name, deployments_path=deployments_path)
+
+        vagrantfile_text = vagrant.gen_vagrantfile(
+            box, provider, mount_path,
+            num_nodes, num_disks, disk_size, num_nics,
+        )
+        vagrantfile = path.joinpath("Vagrantfile")
+        logger.debug(f"writing Vagrantfile at '{vagrantfile}'")
+        vagrantfile.write_text(vagrantfile_text)
+
+        meta = VagrantDeploymentModel(
+            name=name,
+            box=box,
+            created_on=dt.now(),
+            disk_size=disk_size,
+            num_disks=num_disks,
+            num_nics=num_nics,
+            num_nodes=num_nodes
+        )
+        deployment = Deployment(path, meta)
+        deployment.save()
+
+        return deployment
     def shell(self, node: Optional[str], cmd: Optional[str]) -> int:
         """ Open shell into the deployment """
         try:

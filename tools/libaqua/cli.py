@@ -180,6 +180,8 @@ def _get_deployment(ctx: AppCtx, name: str) -> Deployment:
               help="Deployment type: vagrant, libvirt")
 @click.option("--cdrom", type=str, required=False,
               help="Path to iso image to be used for the first boot")
+@click.option("--disk-size", required=False, type=int, default=10, show_default=True,
+              help="Disk size, in GB")
 @click.option("--num-nodes", required=False, type=int, default=2, show_default=True,
               help="Number of nodes in deployment")
 @click.option("--num-disks", required=False, type=int, default=4, show_default=True,
@@ -197,6 +199,7 @@ def cmd_create(
     force: bool,
     deployment_type: str,
     cdrom: str,
+    disk_size: Optional[int],
     num_nodes: Optional[int],
     num_disks: Optional[int],
     num_nics: Optional[int]
@@ -245,7 +248,7 @@ def cmd_create(
         # create libvirt deployment
         mount_path = find_root()
         LibvirtDeployment.create(
-            name, num_nodes, num_disks, num_nics,
+            name, num_nodes, num_disks, num_nics, disk_size,
             ctx.deployments_path, mount_path,
             uri=connect, cdrom=cdrom,
         )
@@ -383,8 +386,8 @@ def cmd_create(
     # mount path should point to the current repo root directory
     mount_path = find_root()
     try:
-        Deployment.create(
-            name, box, provider, num_nodes, num_disks, num_nics,
+        VagrantDeployment.create(
+            name, box, provider, num_nodes, num_disks, num_nics, disk_size,
             ctx.deployments_path, mount_path
         )
     except DeploymentPathNotFoundError:

@@ -63,6 +63,7 @@ class LibvirtDeployment(Deployment):
         num_nodes: int,
         num_disks: int,
         num_nics: int,
+        disk_size: int,
         deployments_path: Path,
         mount_path: Optional[Path] = None,
         uri: Optional[str] = None,
@@ -75,6 +76,7 @@ class LibvirtDeployment(Deployment):
         meta = LibvirtDeploymentModel(
             name=name,
             created_on=dt.now(),
+            disk_size=disk_size,
             num_disks=num_disks,
             num_nics=num_nics,
             num_nodes=num_nodes,
@@ -150,7 +152,7 @@ class LibvirtDeployment(Deployment):
 
     @property
     def _disk_size(self):
-        return 10
+        return self._meta.disk_size
 
     def _disk_xml_text(self, name, dev, alias, disk_format, disk_size, source):
         disk_capacity, capacity_unit = (disk_size, 'G')

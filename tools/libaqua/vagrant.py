@@ -270,6 +270,7 @@ def gen_vagrantfile(
     rootdir: Optional[Path],
     nodes: int,
     disks: int,
+    disk_size: int,
     nics: int
 ) -> str:
 
@@ -327,18 +328,19 @@ Vagrant.configure("2") do |config|
                     f"""
             lv.customize ['storagectl', :id, '--name', 'SATA Controller', '--portcount', '6'] """
 
-        disk_size = '8G'
         for did in range(1, disks+1):
             if provider == "libvirt":
                 serial = gen_storage_serial()
+                size = f'{disk_size}G'
                 node_storage += \
                         f"""
-            lv.storage :file, size: "{disk_size}", type: "qcow2", serial: "{serial}" """
+            lv.storage :file, size: "{size}", type: "qcow2", serial: "{serial}" """
             elif provider == "virtualbox":
+                size = disk_size * 1024
                 node_storage += \
                         f"""
             unless File.exist?(N{nid}DISK{did})
-                lv.customize ['createhd', '--filename', N{nid}DISK{did}, '--format', 'VDI', '--size', '20000' ]
+                lv.customize ['createhd', '--filename', N{nid}DISK{did}, '--format', 'VDI', '--size', '{size}' ]
             end
             lv.customize ['storageattach', :id,  '--storagectl', 'SATA Controller', '--port', {did}, '--device', 0, '--type', 'hdd', '--medium', N{nid}DISK{did}] """
 
