@@ -131,3 +131,16 @@
     </div>
   </div>
 </ng-template>
+
+<ng-template #badgeTpl
+             let-value="value"
+             let-column="column">
+  <span *ngFor="let item of (value | array); last as last">
+    <span class="badge"
+          [ngClass]="(column?.cellTemplateConfig?.map && column?.cellTemplateConfig?.map[item]?.class) ? column.cellTemplateConfig.map[item].class : (column?.cellTemplateConfig?.class ? column.cellTemplateConfig.class : 'glass-color-theme-gunmetal')"
+          *ngIf="(column?.cellTemplateConfig?.map && column?.cellTemplateConfig?.map[item]?.value) ? column.cellTemplateConfig.map[item].value : column?.cellTemplateConfig?.prefix ? column.cellTemplateConfig.prefix + item : item">
+      {{ (column?.cellTemplateConfig?.map && column?.cellTemplateConfig?.map[item]?.value) ? column.cellTemplateConfig.map[item].value : column?.cellTemplateConfig?.prefix ? column.cellTemplateConfig.prefix + item : item }}
+    </span>
+    <span *ngIf="!last">&nbsp;</span>
+  </span>
+</ng-template>

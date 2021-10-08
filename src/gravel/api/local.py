@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Callable, List
+from typing import Callable, List, Literal
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
@@ -43,7 +43,7 @@ class NodeStatusReplyModel(BaseModel):
 
 class EventModel(BaseModel):
     ts: int = Field(title="The Unix time stamp")
-    severity: str
+    severity: Literal["info", "warn", "danger"]
     message: str
 
 
@@ -167,6 +167,11 @@ async def get_events(
             "ts": 1633363417,
             "severity": "warn",
             "message": "Lorem ipsum dolor sit amet, sed diam voluptua.",
+        },
+        {
+            "ts": 1633213519,
+            "severity": "danger",
+            "message": "dasda ffkv dolor sit ametasdha jhdakjsh 4232 asdasd sadasdas.",
         },
     ]
     return [EventModel.parse_obj(event) for event in events]

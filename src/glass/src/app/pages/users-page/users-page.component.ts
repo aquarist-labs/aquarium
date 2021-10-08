@@ -11,7 +11,10 @@ import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-for
 import { translate } from '~/app/i18n.helper';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
-import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import {
+  DatatableCellTemplateName,
+  DatatableColumn
+} from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { User, UsersService } from '~/app/shared/services/api/users.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
@@ -42,13 +45,13 @@ export class UsersPageComponent {
       {
         name: TEXT('Disabled'),
         prop: 'disabled',
-        cellTemplateName: 'checkIcon'
+        cellTemplateName: DatatableCellTemplateName.checkIcon
       },
       {
         name: '',
         prop: '',
         unsortable: true,
-        cellTemplateName: 'actionMenu',
+        cellTemplateName: DatatableCellTemplateName.actionMenu,
         cellTemplateConfig: this.onActionMenu.bind(this)
       }
     ];
