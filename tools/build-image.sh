@@ -159,6 +159,7 @@ mkdir -p ${build}
 rm -f ${rootdir}/aquarium*.tar.gz
 pushd ${rootdir}
 make dist
+[ $? -eq 0 ] || error_exit "make dist failed"
 popd
 
 # At this point, we have a dist tarball (aquarium-$version.tar.gz), which
