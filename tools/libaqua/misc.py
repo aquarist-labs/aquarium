@@ -58,8 +58,8 @@ def find_deployments_path() -> Path:
     except FileNotFoundError:
         raise DeploymentPathNotFoundError("unable to find root")
 
-    vagrantdir = rootdir.joinpath("tests/vagrant")
-    setupsdir = vagrantdir.joinpath("deployments")
+    aquadir = rootdir.joinpath(".aqua")
+    setupsdir = aquadir.joinpath("deployment")
     if not setupsdir:
         raise DeploymentPathNotFoundError("unable to find deployments dir")
     return setupsdir

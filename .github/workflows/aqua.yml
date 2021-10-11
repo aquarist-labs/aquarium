@@ -1,0 +1,30 @@
+name: "aqua"
+
+on: [pull_request]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # we want only python 3.8 at least
+        python-version: [3.8, 3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install libvirt-dev for libvirt-python
+      run: |
+        sudo apt-get update
+        sudo apt-get install libvirt-dev
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r tools/requirements.txt
+    - name: Run Pytest
+      run: |
+        pytest tools/libaqua
+

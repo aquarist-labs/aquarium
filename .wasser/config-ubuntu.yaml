@@ -22,25 +22,25 @@ routines:
     - name: building image
       command: |
         cd aquarium
-        source venv/bin/activate
+        source tools/venv/bin/activate
         ./tools/build-image.sh
     - name: create deployment
       command: |
         cd aquarium
-        source venv/bin/activate
+        source tools/venv/bin/activate
         ./tools/aqua create foo
     - name: start deployment
       command: |
         cd aquarium
-        source venv/bin/activate
+        source tools/venv/bin/activate
         ./tools/aqua start foo --conservative
     - name: dump aquarium service log
       command: |
-        cd aquarium/tests/vagrant/deployments/foo
+        cd aquarium/.aqua/deployment/foo
         vagrant ssh -c "sudo journalctl -u aquarium"
     - name: check aquarium service is up and running
       command: |
-        cd aquarium/tests/vagrant/deployments/foo
+        cd aquarium/.aqua/deployment/foo
         vagrant ssh -c "sudo systemctl status aquarium"
     - name: check api is accessible
       command: |

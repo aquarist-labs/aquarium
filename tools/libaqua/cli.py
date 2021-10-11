@@ -23,7 +23,7 @@ from click.decorators import make_pass_decorator
 from pathlib import Path
 
 from libaqua.images import Image
-from libaqua.deployment import Deployment, DeploymentModel, get_deployments
+from libaqua.deployment import Deployment, VagrantDeployment, DeploymentModel, get_deployments
 from libaqua.errors import (
     AqrError,
     BoxAlreadyExistsError,
@@ -167,9 +167,21 @@ def _get_deployment(ctx: AppCtx, name: str) -> Deployment:
 # create and remove setups
 #
 @app.command("create")
-@click.option("-b", "--box", type=str, required=False)
-@click.option("-i", "--image", type=str, required=False)
-@click.option("-f", "--force", flag_value=True)
+@click.option("-b", "--box", type=str, required=False,
+              help="Deployment box, run 'box list' for all available boxes")
+@click.option("-c", "--connect", type=str, required=False,
+              help="Libvirt connect URI, for example 'qemu+ssh://localhost/system'",
+              default='qemu:///system')
+@click.option("-i", "--image", type=str, required=False,
+              help="Deployment image, run 'image list' for all available images")
+@click.option("-f", "--force", flag_value=True,
+              help="Override corresponding box if needed")
+@click.option("-t", "--deployment-type", type=str, default='vagrant',
+              help="Deployment type: vagrant, libvirt")
+@click.option("--cdrom", type=str, required=False,
+              help="Path to iso image to be used for the first boot")
+@click.option("--disk-size", required=False, type=int, default=10, show_default=True,
+              help="Disk size, in GB")
 @click.option("--num-nodes", required=False, type=int, default=2, show_default=True,
               help="Number of nodes in deployment")
 @click.option("--num-disks", required=False, type=int, default=4, show_default=True,
@@ -182,19 +194,70 @@ def cmd_create(
     ctx: AppCtx,
     name: str,
     box: Optional[str],
+    connect: Optional[str],
     image: Optional[str],
     force: bool,
+    deployment_type: str,
+    cdrom: str,
+    disk_size: Optional[int],
     num_nodes: Optional[int],
     num_disks: Optional[int],
     num_nics: Optional[int]
 ) -> None:
     """
-    Create a new deployment
+    Create a new deployment with given name and required type.
+
+    If deployment with the NAME exists, report about error and quit.
+
+    For vagrant deployments any of --box or --image options could be used.
+    When none of the --box or --image options provided, it will try to
+    find box with default name (aquarium) or the same name as the deployment.
+    If there is no suitable box, then it can be created using image with
+    the default name or same name as the deployment correspondingly.
+    If no image found in turn, fail with error message.
+    Fails with error message if both --box and --image provided.
+
+    For libvirt deployments --connect options is used.
+
     """
     logger.debug(f"create: ctx = {ctx}, name: {name}, box: {box}, img: {image}")
 
+    if deployment_type == 'vagrant':
+        # create vagrant deployment
+        avail_boxes = Vagrant.box_list()
+        if box and image:
+            click.secho(
+                "Please provide only one of '--box' or '--image'", fg="red")
+            sys.exit(errno.EINVAL)
+        if box:
+            avail_box_iter = (name for name, _ in avail_boxes)
+            if box not in avail_box_iter:
+                click.secho(f"Unable to find box '{box}'", fg="red")
+                sys.exit(errno.EINVAL)
+
+        # if given box name, reuse existing box
+        # if image name requested, create corresponding vagrant box and use it for deployment
+        # (removing existing vagrant box).
+        # if non of box or image requested, we try and find box or image
+
+        elif not box and not image:
+            pass
+
+    elif deployment_type == 'libvirt':
+        from libaqua.deployment import LibvirtDeployment
+        # create libvirt deployment
+        mount_path = find_root()
+        LibvirtDeployment.create(
+            name, num_nodes, num_disks, num_nics, disk_size,
+            ctx.deployments_path, mount_path,
+            uri=connect, cdrom=cdrom,
+        )
+        return
+    else:
+        click.secho(f"Unsupportable deployment type: '{deployment_type}'", fg="red")
+        sys.exit(errno.ENOENT)
+
     avail_images: Optional[List[str]] = None
-    avail_boxes = Vagrant.box_list()
     avail_deployments: List[Deployment] = []
     try:
         avail_images = Image.list(find_builds_path())
@@ -221,11 +284,15 @@ def cmd_create(
         click.secho(f"Using default 'aquarium' as box name and image name", fg="green")
         aquarium_box_exist = False
         aquarium_image_exist = False
+        # search for box with name 'aquarium' or deployment name
         for box_name, provider_name in avail_boxes:
             if box_name == "aquarium" or box_name == name:
                 aquarium_box_exist = True
                 box = box_name
                 provider = provider_name
+        # if any box found then ensure there is an image with corresponding name
+        # and provider, otherwise find image with default name 'aquarium'
+        # or deployment name
         for img_obj in avail_images:
             if aquarium_box_exist:
                 if img_obj.name == box and img_obj.provider == provider:
@@ -235,6 +302,8 @@ def cmd_create(
                 image = img_obj.name
                 provider = img_obj.provider
 
+        # if neither box or image cannot be found then exit with error, otherwise
+        # report about our findings.
         if aquarium_box_exist:
             click.secho(f"Box '{box}' exist with Provider '{provider}' is availble", fg="green")
         elif aquarium_image_exist:
@@ -273,7 +342,7 @@ def cmd_create(
         try:
             click.secho(f"Importing image '{image}' as Vagrant box", fg="cyan")
             builds_path = ctx.builds_path
-
+            # add vagrant box with image, should result with the same name
             Image.add(builds_path, image)
             avail_boxes = Vagrant.box_list()
             box = image
@@ -314,10 +383,12 @@ def cmd_create(
         click.secho(f"Unable to find box '{box}'", fg="red")
         return
 
+    # mount path should point to the current repo root directory
+    mount_path = find_root()
     try:
-        Deployment.create(
-            name, box, provider, num_nodes, num_disks, num_nics,
-            ctx.deployments_path, find_root()
+        VagrantDeployment.create(
+            name, box, provider, num_nodes, num_disks, num_nics, disk_size,
+            ctx.deployments_path, mount_path
         )
     except DeploymentPathNotFoundError:
         click.secho("Unable to find deployments path", fg="red")
@@ -348,6 +419,7 @@ def cmd_remove(ctx: AppCtx, name: str) -> None:
         sys.exit(errno.EBUSY)
     except AqrError as e:
         click.secho(f"Unkown error: {e.message}")
+        raise(e)
         sys.exit(e.errno)
 
     click.secho("Removed.", fg="green")
@@ -541,9 +613,16 @@ def cmd_list(ctx: AppCtx, verbose: bool) -> None:
         treeline = chr(0x251c)
         treeend = chr(0x2514)
 
-        boxname = deployment.box if deployment.box else "unknown"
-        _print(treeline, "created on", str(deployment.created_on))
-        _print(treeend, "box", boxname)
+        model = deployment.meta.model
+        if isinstance(deployment, VagrantDeployment):
+            if model:
+                _print(treeline, "model", model)
+            boxname = deployment.box if deployment.box else "unknown"
+            _print(treeline, "created on", str(deployment.created_on))
+            _print(treeend, "box", boxname)
+        else:
+            if model:
+                _print(treeend, "model", model)
 
 
 #
@@ -563,7 +642,7 @@ def cmd_box() -> None:
 @pass_appctx
 def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
     logger.debug("list boxes")
-    boxes: List[str] = Vagrant().box_list()
+    boxes: List[Tuple[str, str]] = Vagrant().box_list()
     deployments: List[Deployment] = []
     try:
         deployments = [v for v in ctx.deployments.values()]
@@ -571,10 +650,12 @@ def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
         pass
 
     deployment_per_box: Dict[str, List[DeploymentModel]] = {}
+    logger.debug(f'Vagrant boxes: {boxes}')
+    logger.debug(f'Deployments: {deployments}')
 
     for deployment in deployments:
         box = deployment.box
-        if box and box in boxes:
+        if box and box in (name for (name, _) in boxes):
             if box not in deployment_per_box:
                 deployment_per_box[box] = []
             deployment_per_box[box].append(deployment.meta)
@@ -589,8 +670,7 @@ def cmd_box_list(ctx: AppCtx, verbose: bool) -> None:
 
     headerchr = chr(0x25cf)
     for boxname, provider in boxes:
-        num_deployments = 0 if boxname not in deployment_per_box \
-                            else len(deployment_per_box[boxname])
+        num_deployments = len(deployment_per_box.get(boxname, []))
         click.secho("{} {} ({}) ({} deployments)".format(
             click.style(headerchr, fg="cyan", bold=True),
             click.style(boxname, fg="white", bold=True),
@@ -641,10 +721,26 @@ def cmd_images_list(ctx: AppCtx) -> None:
             "provider": entry.provider
         })
         if not ctx.json:
-            print("{} {} ({})".format(
+            ext = str(entry.path).rsplit('.')[-1]
+            print("{} {} ({}, {})".format(
                 click.style("*", fg="cyan"),
                 click.style(entry.name, fg="white", bold=True),
+                click.style(ext, fg="white"),
                 click.style(entry.provider, fg="white")
             ))
     if ctx.json:
         print(json.dumps(lst))
+
+@cmd_images.command("build")
+@click.option("-t", "--image-type", type=str, required=False, default="vagrant",
+              help="Specify image type "
+                   "(vagrant, vagrant-libvirt, vagrant-virtualbox, self-install, live-iso)")
+@click.option("-c", "--clean", flag_value=False,
+              help="Cleanup existing build directory before building")
+@pass_appctx
+def cmd_images_build(ctx: AppCtx,
+                     image_type: str,
+                     clean: bool,
+                     ) -> None:
+    logger.debug("build images")
+

@@ -32,6 +32,10 @@ routines:
       command: |
         cd aquarium
         ./tools/setup-dev.sh
+    - name: run aqua unit tests
+      command: |
+        . aquarium/tools/venv/bin/activate
+        pytest aquarium/tools/libaqua
     - name: building image
       command: |
         cd aquarium
@@ -63,11 +67,11 @@ routines:
         cd aquarium && ./tools/aqua start foo --conservative
     - name: dump aquarium service log
       command: |
-        cd aquarium/tests/vagrant/deployments/foo
+        cd aquarium/.aqua/deployment/foo
         vagrant ssh -c "sudo journalctl -u aquarium"
     - name: check aquarium service is up and running
       command: |
-        cd aquarium/tests/vagrant/deployments/foo
+        cd aquarium/.aqua/deployment/foo
         vagrant ssh -c "sudo systemctl status aquarium"
     - name: check api is accessible
       command: |

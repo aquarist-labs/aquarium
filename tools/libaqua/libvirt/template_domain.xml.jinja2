@@ -1,0 +1,69 @@
+<domain type='kvm' id='1'>
+  <name>{{ domain_name }}</name>
+  <description>aqua</description>
+  <memory unit='KiB'>4194304</memory>
+  <currentMemory unit='KiB'>4194304</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <resource>
+    <partition>/machine</partition>
+  </resource>
+  <os>
+    <type arch='x86_64'>hvm</type>
+    <boot dev='hd'/>
+    <boot dev='cdrom'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    {% if cdrom %}
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="{{ cdrom }}"/>
+      <target dev="hdb" bus="ide"/>
+      <readonly/>
+    </disk>
+    {% endif %}
+    {% for disk in disks %}
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='{{ disk.disk_format }}'/>
+      <source file='{{ disk.source }}' index='5'/>
+      <backingStore/>
+      <target dev='{{ disk.dev }}' bus='virtio'/>
+      <alias name='{{ disk.alias }}'/>
+      <address type='pci' domain='0x0000' bus='0x00' function='0x0'/>
+    </disk>
+    {% endfor %}
+    <interface type='network'>
+      <source network='default'/>
+      <model type='virtio'/>
+    </interface>
+    <console type='pty' tty='/dev/pts/8'>
+      <source path='/dev/pts/8'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+    <input type='mouse' bus='ps2'>
+      <alias name='input0'/>
+    </input>
+    <input type='keyboard' bus='ps2'>
+      <alias name='input1'/>
+    </input>
+    <graphics type='vnc' autoport='yes' keymap='en-us'>
+    </graphics>
+    <video>
+      <model type='cirrus' vram='16384' heads='1' primary='yes'/>
+      <alias name='video0'/>
+    </video>
+    <memballoon model='virtio'>
+    </memballoon>
+  </devices>
+</domain>
+
