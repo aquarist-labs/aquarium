@@ -79,13 +79,6 @@ export class DashboardPageComponent {
       enabledByDefault: true
     },
     {
-      id: 'performance',
-      title: TEXT('Performance'),
-      cols: 6,
-      rows: 4,
-      enabledByDefault: true
-    },
-    {
       id: 'events',
       title: TEXT('Events'),
       cols: 10,
