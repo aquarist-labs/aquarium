@@ -2,7 +2,10 @@ import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { Observable } from 'rxjs';
 
-import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import {
+  DatatableCellTemplateName,
+  DatatableColumn
+} from '~/app/shared/models/datatable-column.type';
 import { RelativeDatePipe } from '~/app/shared/pipes/relative-date.pipe';
 import { Event, LocalNodeService } from '~/app/shared/services/api/local.service';
 
@@ -27,7 +30,15 @@ export class EventsDashboardWidgetComponent {
       },
       {
         name: TEXT('Severity'),
-        prop: 'severity'
+        prop: 'severity',
+        cellTemplateName: DatatableCellTemplateName.badge,
+        cellTemplateConfig: {
+          map: {
+            info: { value: TEXT('Information'), class: 'glass-color-theme-info' },
+            warn: { value: TEXT('Warning'), class: 'glass-color-theme-warn' },
+            danger: { value: TEXT('Danger'), class: 'glass-color-theme-danger' }
+          }
+        }
       },
       {
         name: TEXT('Message'),

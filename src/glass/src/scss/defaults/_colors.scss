@@ -19,6 +19,7 @@ $glass-color-green-500: #30ba78;
 $glass-color-yellow-500: #ffc107;
 $glass-color-gray-50: #f2f2f2;
 $glass-color-gray-300: #b6b4b4;
+$glass-color-gray-600: #6c757d;
 $glass-color-cerulean-900: #008acf;
 $glass-color-cerulean-500: #00b2e2;
 $glass-color-transparent: transparent;
@@ -30,6 +31,7 @@ $glass-color-success: $glass-color-green-500;
 $glass-color-info: $glass-color-cerulean-500;
 $glass-color-warning: $glass-color-yellow-500;
 $glass-color-danger: $glass-color-red-500;
+$glass-color-gunmetal: #00303d; // https://coolors.co/00303d
 
 $glass-color-theme-primary: $glass-color-cerulean-500;
 $glass-color-theme-primary-complementary: $glass-color-white;
@@ -38,7 +40,7 @@ $glass-color-theme-accent-complementary: $glass-color-white;
 $glass-color-body-background: $glass-color-white;
 $glass-color-card-background: $glass-color-gray-50;
 $glass-color-btn-submit: $glass-color-yellow-500;
-$glass-color-site-header-background: #00303d; // https://coolors.co/00303d
+$glass-color-site-header-background: $glass-color-gunmetal;
 $glass-color-site-header-text: $glass-color-white;
 $glass-color-menu-background: $glass-color-whitesmoke;
 $glass-color-menu-item-hover: $glass-color-theme-primary;

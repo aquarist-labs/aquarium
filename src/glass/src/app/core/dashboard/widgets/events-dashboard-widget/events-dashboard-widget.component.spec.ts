@@ -53,6 +53,6 @@ describe('EventsDashboardWidgetComponent', () => {
     fh.expectTextToBe('thead > tr > th.severity.sortable', 'Severity');
     fh.clickElement('thead > tr > th.severity.sortable');
     fh.expectTextToBe('.sort-header', 'Severity');
-    fh.expectTextsToBe('td.severity', ['info', 'warn']);
+    fh.expectTextsToBe('td.severity', ['Information', 'Warning']);
   });
 });

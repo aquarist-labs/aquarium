@@ -5,6 +5,7 @@
 @import 'src/scss/ngx-charts';
 @import 'src/scss/ngx-toastr';
 
+.glass-color-theme-cerulean-500,
 .glass-color-theme-primary {
   color: $glass-color-theme-primary-complementary;
   background-color: $glass-color-theme-primary;
@@ -26,6 +27,7 @@
   color: $glass-color-white;
   background-color: $glass-color-theme-primary;
 }
+.glass-color-theme-yellow-500,
 .glass-color-theme-warn {
   color: $glass-color-black;
   background-color: $glass-color-warning;
@@ -37,6 +39,14 @@
 .glass-color-theme-success {
   color: $glass-color-white;
   background-color: $glass-color-success;
+}
+.glass-color-theme-gunmetal {
+  color: $glass-color-white;
+  background-color: $glass-color-gunmetal;
+}
+.glass-color-theme-gray-600 {
+  color: $glass-color-white;
+  background-color: $glass-color-gray-600;
 }
 
 .glass-background-color-primary {
