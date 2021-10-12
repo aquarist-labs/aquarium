@@ -86,15 +86,13 @@ describe('GlassValidators', () => {
     let emailControl: AbstractControl;
     let enabledControl: AbstractControl;
     const validator = GlassValidators.requiredIf({
-      enabled: {
-        operator: 'equal',
-        arg0: true
-      }
+      operator: 'eq',
+      arg0: { prop: 'enabled' },
+      arg1: true
     });
     const validator2 = GlassValidators.requiredIf({
-      enabled: {
-        operator: 'truthy'
-      }
+      operator: 'truthy',
+      arg0: { prop: 'enabled' }
     });
 
     beforeEach(() => {
@@ -129,6 +127,33 @@ describe('GlassValidators', () => {
     it('should validate requiredIf (2)', () => {
       enabledControl.setValue(true);
       expect(validator2(emailControl)).toEqual({ required: true });
+    });
+  });
+
+  describe('constraint', () => {
+    let enabledControl: AbstractControl;
+    const validator = GlassValidators.constraint(
+      {
+        operator: 'truthy',
+        arg0: { prop: 'enabled' }
+      },
+      'xyz'
+    );
+
+    beforeEach(() => {
+      formGroup = new FormGroup({
+        enabled: new FormControl(false)
+      });
+      enabledControl = formGroup.get('enabled')!;
+    });
+
+    it('should validate constraint', () => {
+      expect(validator(enabledControl)).toEqual({ custom: 'xyz' });
+    });
+
+    it('should not validate constraint', () => {
+      enabledControl.setValue(true);
+      expect(validator(enabledControl)).toBeNull();
     });
   });
 });

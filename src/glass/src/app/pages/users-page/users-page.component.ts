@@ -115,6 +115,22 @@ export class UsersPageComponent {
               }
             },
             {
+              type: 'password',
+              label: TEXT('Confirm password'),
+              name: 'passwordconf',
+              value: '',
+              validators: {
+                constraint: {
+                  constraint: {
+                    operator: 'eq',
+                    arg0: { prop: 'password' },
+                    arg1: { prop: 'passwordconf' }
+                  },
+                  errorMessage: TEXT('Password does not match.')
+                }
+              }
+            },
+            {
               type: 'checkbox',
               label: TEXT('Disabled'),
               name: 'disabled',
@@ -168,6 +184,22 @@ export class UsersPageComponent {
                     label: TEXT('Password'),
                     name: 'password',
                     value: ''
+                  },
+                  {
+                    type: 'password',
+                    label: TEXT('Confirm password'),
+                    name: 'passwordconf',
+                    value: '',
+                    validators: {
+                      constraint: {
+                        constraint: {
+                          operator: 'eq',
+                          arg0: { prop: 'password' },
+                          arg1: { prop: 'passwordconf' }
+                        },
+                        errorMessage: TEXT('Password does not match.')
+                      }
+                    }
                   },
                   {
                     type: 'checkbox',
