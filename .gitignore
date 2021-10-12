@@ -5,6 +5,7 @@
 *.swo
 *.swp
 *.tar.gz
+.aqua/
 .idea/
 .mypy_cache/
 .pytest_cache/
