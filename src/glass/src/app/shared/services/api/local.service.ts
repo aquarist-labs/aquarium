@@ -100,6 +100,30 @@ export enum StatusStageEnum {
 }
 
 export type NodeStatus = {
+  localhost_qualified?: {
+    all_qualified: boolean;
+    cpu_qualified: {
+      qualified: boolean;
+      min_threads: number;
+      actual_threads: number;
+      error: string;
+      status: 0 | 1;
+    };
+    mem_qualified: {
+      qualified: boolean;
+      min_mem: number;
+      actual_mem: number;
+      error: string;
+      status: 0 | 1;
+    };
+    root_disk_qualified: {
+      qualified: boolean;
+      min_disk: number;
+      actual_disk: number;
+      error: string;
+      status: 0 | 1;
+    };
+  };
   inited: boolean;
   /* eslint-disable @typescript-eslint/naming-convention */
   node_stage: StatusStageEnum;
