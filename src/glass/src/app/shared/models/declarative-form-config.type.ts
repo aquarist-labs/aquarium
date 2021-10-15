@@ -1,5 +1,19 @@
 import { AbstractControl, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 
+import { Constraint } from '~/app/shared/models/constraint.type';
+
+export type FormFieldModifier = {
+  type: 'readonly' | 'value';
+  constraint: Constraint;
+  // Apply the opposite type, e.g. `editable` for `readonly`,
+  // if the constraint is falsy. Defaults to `true`.
+  opposite?: boolean;
+  // Optional configuration data. This is required by the 'value'
+  // modifier for example to set a specific value when the
+  // constraint is truthy.
+  data?: any;
+};
+
 export type FormFieldConfig = {
   name: string;
   type:
@@ -19,15 +33,21 @@ export type FormFieldConfig = {
   autofocus?: boolean;
   hint?: string;
   groupClass?: string;
+  // Modify the form field when the specified constraint is truthy.
+  modifiers?: FormFieldModifier[];
   validators?: {
     min?: number;
     max?: number;
     minLength?: number;
     maxLength?: number;
     required?: boolean;
-    requiredIf?: Record<any, any>;
+    requiredIf?: Constraint;
     pattern?: string | RegExp;
     patternType?: 'hostAddress';
+    constraint?: {
+      constraint: Constraint;
+      errorMessage: string;
+    };
     // The custom validators must return an error object with
     // the property 'custom' for the error message.
     custom?: ValidatorFn;

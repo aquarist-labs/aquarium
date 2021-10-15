@@ -58,7 +58,8 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
         validators: {
           patternType: 'hostAddress',
           requiredIf: {
-            useDefault: { operator: 'falsy' }
+            operator: 'falsy',
+            arg0: { prop: 'useDefault' }
           }
         }
       },
