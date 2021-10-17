@@ -192,6 +192,16 @@ $component-active-bg: dc.$glass-color-theme-primary;
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// Grid
+@media (min-width: 1400px) {
+  .col-xxl-6 {
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Modal
 .modal-title {
   @extend .h5;

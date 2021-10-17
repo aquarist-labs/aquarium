@@ -1,16 +1,19 @@
-<div class="card glass-dashboard-widget {{status}}"
-     fxFlexFill>
+<div class="card glass-dashboard-widget status-{{ status }}"
+     [ngClass]="{'error': error}">
   <div class="card-body">
     <div class="card-title"
          fxLayout="row"
-         fxLayoutAlign="space-between center">
-      {{ widgetTitle | translate }}
+         fxLayoutAlign="space-between center"
+         (click)="toggleCollapsed()">
+      <span class="text-truncate">
+        {{ widgetTitle | translate }}
+      </span>
       <div *ngIf="actionMenu"
            ngbDropdown
            display="dynamic"
            placement="bottom-right">
         <button class="btn btn-simple"
-                title="{{widgetTitle | translate}} actions"
+                title="{{ widgetTitle | translate }} actions"
                 ngbDropdownToggle>
           <i class="mdi mdi-menu"></i>
         </button>
@@ -18,10 +21,20 @@
           <a ngbDropdownItem
              *ngFor="let item of actionMenu"
              (click)="item.action()">
-            <i class="mdi mdi-{{item.icon}}"></i>
-            <span>{{item.name | translate}}</span>
+            <i class="mdi mdi-{{ item.icon }}"></i>
+            <span>{{ item.name | translate }}</span>
           </a>
         </div>
+      </div>
+      <div *ngIf="!error">
+        <i *ngIf="!isCollapsed"
+           class="mdi mdi-chevron-up"
+           title="{{ 'Minimize' | translate }}">
+        </i>
+        <i *ngIf="isCollapsed"
+           class="mdi mdi-chevron-down"
+           title="{{ 'Maximize' | translate }}">
+        </i>
       </div>
     </div>
     <div *ngIf="!firstLoadComplete && loading"
@@ -29,11 +42,13 @@
       <div class="progress-bar indeterminate"></div>
     </div>
     <div *ngIf="!error && firstLoadComplete"
-         class="card-text">
+         class="card-text"
+         #collapse="ngbCollapse"
+         [(ngbCollapse)]="isCollapsed">
       <ng-content></ng-content>
     </div>
     <div *ngIf="error && !loading"
-         class="card-text"
+         class="card-text p-2"
          fxLayout="column"
          fxLayoutAlign="center center">
       <i class="mdi mdi-lan-disconnect"></i>

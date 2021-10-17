@@ -3,6 +3,8 @@ import * as _ from 'lodash';
 import { EMPTY, Observable, Subscription, timer } from 'rxjs';
 import { catchError, finalize, take, tap } from 'rxjs/operators';
 
+import { LocalStorageService } from '~/app/shared/services/local-storage.service';
+
 export type WidgetAction = {
   icon: string;
   name: string;
@@ -13,7 +15,8 @@ export enum WidgetHealthStatus {
   info = 'info',
   success = 'success',
   warning = 'warning',
-  error = 'error'
+  error = 'error',
+  unknown = 'unknown'
 }
 
 @Component({
@@ -40,11 +43,15 @@ export class WidgetComponent implements OnInit, OnDestroy {
   loading = false;
   firstLoadComplete = false;
   data?: any;
+  isCollapsed = false;
 
   private loadDataSubscription?: Subscription;
   private timerSubscription?: Subscription;
 
+  constructor(private localStorageService: LocalStorageService) {}
+
   ngOnInit(): void {
+    this.isCollapsed = 'false' !== this.localStorageService.get(this.getKey(), 'false');
     this.reload();
   }
 
@@ -66,7 +73,7 @@ export class WidgetComponent implements OnInit, OnDestroy {
             err.preventDefault();
           }
           this.loading = false;
-          this.status = WidgetHealthStatus.error;
+          this.status = WidgetHealthStatus.unknown;
           this.error = true;
           return EMPTY;
         }),
@@ -91,5 +98,14 @@ export class WidgetComponent implements OnInit, OnDestroy {
         this.status = this.setStatus ? this.setStatus(this.data) : WidgetHealthStatus.info;
         this.loadDataEvent.emit(data);
       });
+  }
+
+  toggleCollapsed(): void {
+    this.isCollapsed = !this.isCollapsed;
+    this.localStorageService.set(this.getKey(), String(this.isCollapsed));
+  }
+
+  private getKey(): string {
+    return `glass_widget_${this.widgetTitle}_collapsed`;
   }
 }

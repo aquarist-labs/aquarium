@@ -3,15 +3,10 @@
 .glass-dashboard-page {
   margin: $glass-margin;
 
-  .content {
-    margin-top: $glass-margin;
-
-    gridster {
-      background: unset;
-
-      gridster-item {
-        box-shadow: unset;
-      }
+  .row {
+    .widget {
+      @extend .flex-column;
+      @extend .mb-4;
     }
   }
 }

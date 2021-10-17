@@ -1,11 +1,5 @@
-@use 'sass:math';
-
 @import 'styles.scss';
 
 .glass-sys-info-dashboard-widget {
-  padding: 0 $glass-padding;
-
-  .charts-section {
-    margin-top: math.div($glass-margin, 4);
-  }
+  padding: 0 $glass-padding $glass-padding;
 }

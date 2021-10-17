@@ -2,7 +2,6 @@
 
 @import 'src/scss/blockui';
 @import 'src/scss/bootstrap';
-@import 'src/scss/ngx-charts';
 @import 'src/scss/ngx-toastr';
 
 .glass-color-theme-cerulean-500,
@@ -77,9 +76,6 @@
 }
 .glass-text-pre {
   white-space: pre;
-}
-.glass-text-center {
-  text-align: center;
 }
 .glass-text-bold {
   font-weight: bold;

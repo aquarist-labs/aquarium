@@ -13,14 +13,12 @@
  * GNU General Public License for more details.
  */
 /* eslint-disable max-len */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { DashboardModule } from '~/app/core/dashboard/dashboard.module';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
-import { Inventory } from '~/app/shared/services/api/local.service';
+import { TestingModule } from '~/app/testing.module';
 
 describe('SysInfoDashboardWidgetComponent', () => {
   let component: SysInfoDashboardWidgetComponent;
@@ -28,12 +26,7 @@ describe('SysInfoDashboardWidgetComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        DashboardModule,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule,
-        BrowserAnimationsModule
-      ]
+      imports: [DashboardModule, TestingModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 
@@ -45,47 +38,5 @@ describe('SysInfoDashboardWidgetComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  describe('Memory', () => {
-    let inventoryMock: Inventory;
-    beforeEach(() => {
-      inventoryMock = {
-        memory: {
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          total_kb: 100,
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          free_kb: 95
-        }
-      } as Inventory;
-      component.updateMemory(inventoryMock);
-    });
-
-    it('should calculate memory usage in percent', () => {
-      expect(component.ram).toEqual({
-        inBytes: {
-          total: 102400,
-          used: 5120,
-          free: 97280
-        },
-        inPercent: {
-          total: 100,
-          used: 5,
-          free: 95
-        },
-        asString: {
-          total: '100 KiB',
-          used: '5 KiB',
-          free: '95 KiB'
-        }
-      });
-    });
-
-    it('should show the right gauge text', () => {
-      // @ts-ignore
-      expect(component.memoryGaugeOpts.title.subtext).toBe(
-        'Total: 100 KiB\nUsed: 5 KiB\nFree: 95 KiB'
-      );
-    });
   });
 });
