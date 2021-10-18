@@ -16,7 +16,6 @@ import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { EChartsOption } from 'echarts';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 import { translateWords } from '~/app/i18n.helper';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
@@ -28,7 +27,6 @@ import { Inventory, LocalNodeService } from '~/app/shared/services/api/local.ser
   styleUrls: ['./memory-dashboard-widget.component.scss']
 })
 export class MemoryDashboardWidgetComponent {
-  data: Inventory = {} as Inventory;
   ram: {
     inBytes: {
       total: number;
@@ -95,7 +93,6 @@ export class MemoryDashboardWidgetComponent {
         axisTick: {
           show: false
         },
-        name: 'Memory',
         type: 'gauge',
         detail: {
           offsetCenter: [0, 0],
@@ -111,16 +108,12 @@ export class MemoryDashboardWidgetComponent {
 
   constructor(private localNodeService: LocalNodeService) {}
 
-  updateData($data: Inventory) {
-    this.data = $data;
+  updateData(inventory: Inventory) {
+    this.updateMemory(inventory);
   }
 
   loadData(): Observable<Inventory> {
-    return this.localNodeService.inventory().pipe(
-      tap((inventory: Inventory) => {
-        this.updateMemory(inventory);
-      })
-    );
+    return this.localNodeService.inventory();
   }
 
   updateMemory(inventory: Inventory) {

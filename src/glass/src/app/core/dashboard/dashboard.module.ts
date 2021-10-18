@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgxEchartsModule } from 'ngx-echarts';
 
+import { DeviceUtilizationDashboardWidgetComponent } from '~/app/core/dashboard/widgets/device-utilization-dashboard-widget/device-utilization-dashboard-widget.component';
 import { EventsDashboardWidgetComponent } from '~/app/core/dashboard/widgets/events-dashboard-widget/events-dashboard-widget.component';
 import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/health-dashboard-widget/health-dashboard-widget.component';
 import { LoadDashboardWidgetComponent } from '~/app/core/dashboard/widgets/load-dashboard-widget/load-dashboard-widget.component';
@@ -21,7 +22,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     HealthDashboardWidgetComponent,
     SysInfoDashboardWidgetComponent,
     MemoryDashboardWidgetComponent,
-    LoadDashboardWidgetComponent
+    LoadDashboardWidgetComponent,
+    DeviceUtilizationDashboardWidgetComponent
   ],
   exports: [
     EventsDashboardWidgetComponent,
@@ -29,7 +31,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     HealthDashboardWidgetComponent,
     SysInfoDashboardWidgetComponent,
     MemoryDashboardWidgetComponent,
-    LoadDashboardWidgetComponent
+    LoadDashboardWidgetComponent,
+    DeviceUtilizationDashboardWidgetComponent
   ],
   imports: [
     CommonModule,

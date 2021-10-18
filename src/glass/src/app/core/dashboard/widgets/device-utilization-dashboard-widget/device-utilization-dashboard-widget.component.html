@@ -1,0 +1,9 @@
+<glass-widget [loadData]="loadData.bind(this)"
+              widgetTitle="{{ 'Device Utilization' | translate }}"
+              (loadDataEvent)="updateData($event)">
+  <div class="glass-device-utilization-dashboard-widget"
+       echarts
+       [initOpts]="initOpts"
+       [options]="options">
+  </div>
+</glass-widget>
