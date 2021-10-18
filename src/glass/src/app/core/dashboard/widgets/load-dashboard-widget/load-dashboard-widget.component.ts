@@ -59,7 +59,7 @@ export class LoadDashboardWidgetComponent {
 
   getStatusClass(percent: number): WidgetHealthStatus {
     if (percent <= 50) {
-      return WidgetHealthStatus.info;
+      return WidgetHealthStatus.success;
     } else if (percent > 50 && percent <= 100) {
       return WidgetHealthStatus.warning;
     }
