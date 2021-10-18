@@ -35,9 +35,8 @@ https://github.com/aquarist-labs/aquarium/blob/main/CONTRIBUTING.md
 <details>
 <summary>Show available Jenkins commands</summary>
 
-- `jenkins test tumbleweed`
 - `jenkins run tumbleweed`
-- `jenkins test leap`
 - `jenkins run leap`
+- `jenkins run ubuntu`
 
 </details>
