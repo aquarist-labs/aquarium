@@ -41,4 +41,10 @@
       }
     }
   }
+
+  .main {
+    .content {
+      overflow: scroll;
+    }
+  }
 }

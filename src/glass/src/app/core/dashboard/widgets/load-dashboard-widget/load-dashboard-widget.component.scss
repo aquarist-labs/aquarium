@@ -1,0 +1,19 @@
+@import 'styles.scss';
+
+.glass-load-dashboard-widget {
+  .row {
+    margin: 0;
+  }
+
+  .info {
+    @extend .glass-color-theme-info;
+  }
+
+  .warning {
+    @extend .glass-color-theme-warn;
+  }
+
+  .error {
+    @extend .glass-color-theme-error;
+  }
+}

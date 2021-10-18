@@ -3,19 +3,13 @@
 $card-title-height: 40px;
 
 div.glass-dashboard-widget {
-  // Needed for box shadow
-  margin: 5px;
-  height: calc(100% - 10px) !important;
-  min-height: calc(100% - 10px) !important;
-  width: calc(100% - 10px) !important;
-  min-width: calc(100% - 10px) !important;
-
   .card-body {
     padding: 0;
     background-color: $glass-color-theme-primary-complementary;
 
     .card-title {
-      height: 40px;
+      cursor: pointer;
+      height: $card-title-height;
       padding: $glass-padding;
 
       .btn {
@@ -25,30 +19,31 @@ div.glass-dashboard-widget {
       .dropdown-toggle::after {
         display: none;
       }
+
+      i:before {
+        vertical-align: middle;
+      }
     }
-
-    .card-text {
-      height: calc(100% - #{$card-title-height});
-      overflow: auto;
-    }
   }
 
-  &.info {
-    box-shadow: 0 0 5px 2px $glass-color-info !important;
+  &.status-info {
+    box-shadow: 0 0 1px 1px $glass-color-info !important;
   }
 
-  &.success {
-    box-shadow: 0 0 5px 2px $glass-color-success !important;
+  &.status-success {
+    box-shadow: 0 0 1px 1px $glass-color-success !important;
   }
 
-  &.warning {
-    box-shadow: 0 0 5px 2px $glass-color-warning !important;
+  &.status-warning {
+    box-shadow: 0 0 1px 1px $glass-color-warning !important;
+  }
+
+  &.status-error {
+    box-shadow: 0 0 1px 1px $glass-color-danger !important;
   }
 
   &.error {
     @extend .glass-color-theme-error;
-
-    box-shadow: 0 0 5px 2px $glass-color-danger !important;
 
     .card-body {
       background-color: transparent;

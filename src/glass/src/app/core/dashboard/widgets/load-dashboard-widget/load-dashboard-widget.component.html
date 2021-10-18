@@ -1,0 +1,16 @@
+<glass-widget [loadData]="loadData.bind(this)"
+              widgetTitle="{{ 'CPU Load' | translate }}"
+              [setStatus]="setStatus.bind(this)"
+              (loadDataEvent)="updateData($event)">
+  <div class="glass-load-dashboard-widget">
+    <div class="row">
+      <div *ngFor="let item of data; index as i"
+           class="col-4 text-center"
+           [ngClass]="getStatusClass(item.percent)"
+           title="{{ item.name }}: {{ item.percent }}%">
+        <div class="text-truncate">{{ item.name }}</div>
+        <div>{{ item.percent }}%</div>
+      </div>
+    </div>
+  </div>
+</glass-widget>

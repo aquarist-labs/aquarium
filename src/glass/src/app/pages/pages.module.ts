@@ -4,7 +4,6 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
-import { GridsterModule } from 'angular-gridster2';
 
 import { CoreModule } from '~/app/core/core.module';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
@@ -31,7 +30,6 @@ import { SharedModule } from '~/app/shared/shared.module';
     CommonModule,
     CoreModule,
     FlexLayoutModule,
-    GridsterModule,
     NgbModule,
     RouterModule,
     SharedModule,

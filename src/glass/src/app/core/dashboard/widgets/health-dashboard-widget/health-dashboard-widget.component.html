@@ -2,13 +2,10 @@
               widgetTitle="{{ 'Health' | translate }}"
               [setStatus]="setHealthStatusIndicator.bind(this)"
               (loadDataEvent)="setHealthStatus($event)">
-  <div class="glass-health-dashboard-widget"
+  <div class="glass-health-dashboard-widget d-flex align-items-center justify-content-center p-2"
        [class.glass-color-theme-ok]="isOkay"
        [class.glass-color-theme-error]="isError || !hasStatus"
-       [class.glass-color-theme-warn]="isWarn"
-       fxLayout="row"
-       fxLayoutAlign="center center"
-       fxFlexFill>
+       [class.glass-color-theme-warn]="isWarn">
     <i *ngIf="isOkay"
        class="mdi mdi-thumb-up"></i>
     <i *ngIf="isError"

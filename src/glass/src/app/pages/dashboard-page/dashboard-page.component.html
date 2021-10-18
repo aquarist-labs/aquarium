@@ -1,48 +1,13 @@
-<div class="glass-dashboard-page"
-     fxLayout="column">
-
-  <div class="header">
-    <div ngbDropdown>
-      <button class="btn btn-outline-default"
-              ngbDropdownToggle
-              translate>
-        Settings
-      </button>
-      <div ngbDropdownMenu>
-        <button *ngFor="let widget of widgets | sortBy:['title']"
-                ngbDropdownItem
-                (click)="onToggleWidget(widget.id)">
-          <i *ngIf="!enabled.includes(widget.id)"
-             class="{{ icons.checkboxBlank }} mr-1">
-          </i>
-          <i *ngIf="enabled.includes(widget.id)"
-             class="{{ icons.checkboxMarked }} mr-1">
-          </i>
-          <span>{{ widget.title | translate }}</span>
-        </button>
-      </div>
+<div class="glass-dashboard-page">
+  <div class="row">
+    <div class="widget col-12 col-md-6 col-lg-4">
+      <glass-health-dashboard-widget></glass-health-dashboard-widget>
+      <div class="m-4"></div>
+      <glass-load-dashboard-widget></glass-load-dashboard-widget>
     </div>
-  </div>
-
-  <div class="content">
-    <gridster [options]="gridsterConfig">
-      <gridster-item *ngFor="let item of gridsterItems"
-                     [item]="item">
-        <ng-container [ngSwitch]="item.type">
-          <ng-template [ngSwitchCase]="'volumes'">
-            <glass-volumes-dashboard-widget></glass-volumes-dashboard-widget>
-          </ng-template>
-          <ng-template [ngSwitchCase]="'health'">
-            <glass-health-dashboard-widget></glass-health-dashboard-widget>
-          </ng-template>
-          <ng-template [ngSwitchCase]="'sysInfo'">
-            <glass-sys-info-dashboard-widget></glass-sys-info-dashboard-widget>
-          </ng-template>
-          <ng-template [ngSwitchCase]="'events'">
-            <glass-events-dashboard-widget></glass-events-dashboard-widget>
-          </ng-template>
-        </ng-container>
-      </gridster-item>
-    </gridster>
+    <glass-memory-dashboard-widget class="widget col-12 col-md-6 col-lg-4"></glass-memory-dashboard-widget>
+    <glass-sys-info-dashboard-widget class="widget col-12 col-lg-4"></glass-sys-info-dashboard-widget>
+    <glass-events-dashboard-widget class="widget col-12 col-xxl-6"></glass-events-dashboard-widget>
+    <glass-volumes-dashboard-widget class="widget col-12 col-xxl-6"></glass-volumes-dashboard-widget>
   </div>
 </div>

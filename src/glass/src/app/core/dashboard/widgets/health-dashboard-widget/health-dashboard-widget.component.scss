@@ -1,10 +1,4 @@
-@use 'sass:math';
-
-@import 'styles.scss';
-
 .glass-health-dashboard-widget {
-  padding: math.div($glass-padding, 2);
-
   i:before {
     vertical-align: middle;
   }

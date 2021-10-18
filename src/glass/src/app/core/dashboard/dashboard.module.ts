@@ -8,6 +8,8 @@ import { NgxEchartsModule } from 'ngx-echarts';
 
 import { EventsDashboardWidgetComponent } from '~/app/core/dashboard/widgets/events-dashboard-widget/events-dashboard-widget.component';
 import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/health-dashboard-widget/health-dashboard-widget.component';
+import { LoadDashboardWidgetComponent } from '~/app/core/dashboard/widgets/load-dashboard-widget/load-dashboard-widget.component';
+import { MemoryDashboardWidgetComponent } from '~/app/core/dashboard/widgets/memory-dashboard-widget/memory-dashboard-widget.component';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
 import { VolumesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/volumes-dashboard-widget/volumes-dashboard-widget.component';
 import { SharedModule } from '~/app/shared/shared.module';
@@ -17,13 +19,17 @@ import { SharedModule } from '~/app/shared/shared.module';
     EventsDashboardWidgetComponent,
     VolumesDashboardWidgetComponent,
     HealthDashboardWidgetComponent,
-    SysInfoDashboardWidgetComponent
+    SysInfoDashboardWidgetComponent,
+    MemoryDashboardWidgetComponent,
+    LoadDashboardWidgetComponent
   ],
   exports: [
     EventsDashboardWidgetComponent,
     VolumesDashboardWidgetComponent,
     HealthDashboardWidgetComponent,
-    SysInfoDashboardWidgetComponent
+    SysInfoDashboardWidgetComponent,
+    MemoryDashboardWidgetComponent,
+    LoadDashboardWidgetComponent
   ],
   imports: [
     CommonModule,

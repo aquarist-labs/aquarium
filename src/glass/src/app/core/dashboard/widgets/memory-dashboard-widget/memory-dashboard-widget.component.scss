@@ -1,0 +1,12 @@
+.glass-memory-dashboard-widget {
+  .graph {
+    max-height: 130px;
+    min-height: 130px;
+    overflow: hidden;
+  }
+
+  .legend {
+    font-size: 0.75rem;
+    line-height: normal;
+  }
+}

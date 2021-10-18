@@ -1,0 +1,17 @@
+<glass-widget [loadData]="loadData.bind(this)"
+              widgetTitle="{{ 'Memory' | translate }}"
+              (loadDataEvent)="updateData($event)">
+  <div class="glass-memory-dashboard-widget d-flex ml-4 mr-4">
+    <div class="graph flex-grow-1"
+         echarts
+         [initOpts]="initOpts"
+         [options]="options">
+    </div>
+    <div class="legend">
+      <div *ngFor="let item of legend"
+           class="text-truncate">
+        {{ item }}
+      </div>
+    </div>
+  </div>
+</glass-widget>
