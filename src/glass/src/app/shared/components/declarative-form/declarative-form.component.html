@@ -310,7 +310,8 @@
                        [required]="field.validators?.required!"
                        [autofocus]="field.autofocus"
                        (paste)="onPaste(field, $event)"
-                       cbDimlessBinary>
+                       glassDimlessBinary
+                       [defaultUnit]="field.defaultUnit">
                 <div class="input-group-append">
                   <button *ngIf="field.hasCopyToClipboardButton"
                           type="button"

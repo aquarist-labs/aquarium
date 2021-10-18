@@ -75,6 +75,9 @@ export type FormFieldConfig = {
   // Specifies the size of the field in percent.
   flex?: number;
 
+  // --- binary ---
+  defaultUnit?: 'b' | 'k' | 'm' | 'g' | 't' | 'p' | 'e' | 'z' | 'y';
+
   // internal only
   id?: string;
 };
