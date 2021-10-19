@@ -18,9 +18,17 @@ export type Constraint = {
     | 'startsWith'
     | 'endsWith'
     | 'regexp';
-  arg0: Constraint | ConstraintProperty | boolean | number | string | Array<number | string>;
-  arg1?: Constraint | boolean | number | string | Array<number | string>;
+  arg0: ConstraintArg;
+  arg1?: ConstraintArg;
 };
+
+export type ConstraintArg =
+  | Constraint
+  | ConstraintProperty
+  | boolean
+  | number
+  | string
+  | Array<number | string>;
 
 export type ConstraintProperty = {
   // The path of the property, e.g. 'foo' or 'foo.bar.baz'.
