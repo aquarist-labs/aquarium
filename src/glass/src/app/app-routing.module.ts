@@ -14,7 +14,7 @@
  */
 /* eslint-disable max-len */
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Route, RouterModule, Routes } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layout.component';
@@ -34,75 +34,79 @@ import { UsersPageComponent } from '~/app/pages/users-page/users-page.component'
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 
-const routes: Routes = [
+const installerRoute: Route = {
+  path: 'installer',
+  component: InstallerLayoutComponent,
+  canActivateChild: [StatusRouteGuardService],
+  children: [
+    { path: '', redirectTo: 'welcome', pathMatch: 'full' },
+    {
+      path: 'welcome',
+      component: InstallWelcomePageComponent,
+      data: { breadcrumb: TEXT('Welcome') }
+    },
+    {
+      path: 'install-mode',
+      component: InstallModePageComponent,
+      data: { breadcrumb: TEXT('Installer mode') }
+    },
+    {
+      path: 'create',
+      component: InstallCreateWizardPageComponent,
+      data: { breadcrumb: TEXT('Create new cluster') }
+    },
+    {
+      path: 'join',
+      component: InstallJoinWizardPageComponent,
+      data: { breadcrumb: TEXT('Join existing cluster') }
+    }
+  ]
+};
+
+const dashboardRoute: Route = {
+  path: '',
+  component: MainLayoutComponent,
+  canActivateChild: [StatusRouteGuardService],
+  children: [
+    {
+      path: 'dashboard',
+      data: { breadcrumb: TEXT('Dashboard') },
+      canActivate: [AuthGuardService],
+      canActivateChild: [AuthGuardService],
+      children: [
+        { path: '', component: DashboardPageComponent },
+        { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } },
+        {
+          path: 'network',
+          component: NetworkPageComponent,
+          data: { breadcrumb: TEXT('Network') }
+        },
+        {
+          path: 'users',
+          data: { breadcrumb: TEXT('Users') },
+          children: [
+            { path: '', component: UsersPageComponent },
+            {
+              path: 'create',
+              component: UsersFormComponent,
+              data: { breadcrumb: TEXT('Create') }
+            },
+            {
+              path: 'edit/:name',
+              component: UsersFormComponent,
+              data: { breadcrumb: TEXT('Edit') }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const glassRoutes: Routes = [
   { path: '', redirectTo: 'installer', pathMatch: 'full' },
-  {
-    path: '',
-    component: MainLayoutComponent,
-    canActivateChild: [StatusRouteGuardService],
-    children: [
-      {
-        path: 'dashboard',
-        data: { breadcrumb: TEXT('Dashboard') },
-        canActivate: [AuthGuardService],
-        canActivateChild: [AuthGuardService],
-        children: [
-          { path: '', component: DashboardPageComponent },
-          { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } },
-          {
-            path: 'network',
-            component: NetworkPageComponent,
-            data: { breadcrumb: TEXT('Network') }
-          },
-          {
-            path: 'users',
-            children: [
-              { path: '', component: UsersPageComponent, data: { breadcrumb: TEXT('Users') } },
-              {
-                path: 'create',
-                component: UsersFormComponent,
-                data: { breadcrumb: TEXT('Create') }
-              },
-              {
-                path: 'edit/:name',
-                component: UsersFormComponent,
-                data: { breadcrumb: TEXT('Edit') }
-              }
-            ],
-            data: { breadcrumb: TEXT('Users') }
-          }
-        ]
-      }
-    ]
-  },
-  {
-    path: 'installer',
-    component: InstallerLayoutComponent,
-    canActivateChild: [StatusRouteGuardService],
-    children: [
-      { path: '', redirectTo: 'welcome', pathMatch: 'full' },
-      {
-        path: 'welcome',
-        component: InstallWelcomePageComponent,
-        data: { breadcrumb: TEXT('Welcome') }
-      },
-      {
-        path: 'install-mode',
-        component: InstallModePageComponent,
-        data: { breadcrumb: TEXT('Installer mode') }
-      },
-      {
-        path: 'create',
-        component: InstallCreateWizardPageComponent,
-        data: { breadcrumb: TEXT('Create new cluster') }
-      },
-      {
-        path: 'join',
-        component: InstallJoinWizardPageComponent,
-        data: { breadcrumb: TEXT('Join existing cluster') }
-      }
-    ]
-  },
+  dashboardRoute,
+  installerRoute,
   {
     path: '',
     component: BlankLayoutComponent,
@@ -119,7 +123,7 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, {
+    RouterModule.forRoot(glassRoutes, {
       useHash: true
     })
   ],
