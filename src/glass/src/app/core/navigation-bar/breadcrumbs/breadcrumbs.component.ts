@@ -33,27 +33,29 @@ export class BreadcrumbsComponent implements OnDestroy {
     url: string = '',
     breadcrumbs: IBreadcrumb[] = []
   ): IBreadcrumb[] {
+    let path: string = route.routeConfig?.path || '';
     let label = route.routeConfig?.data?.breadcrumb || '';
-    let path: string = route.routeConfig?.data ? (route.routeConfig.path as string) : '';
 
-    // If the route is dynamic route such as ':id', remove it
+    // With parameter
     const lastRoutePart = path.split('/').pop() || '';
-    if (lastRoutePart.startsWith(':') && !!route.snapshot) {
-      const paramName = lastRoutePart.split(':')[1];
-      path = path.replace(lastRoutePart, route.snapshot.params[paramName]);
-      label += ' ' + route.snapshot.params[paramName];
+    const hasParam = lastRoutePart.startsWith(':') && !!route.snapshot;
+    if (hasParam) {
+      const param = route.snapshot.params[lastRoutePart.split(':')[1]];
+      path = path.replace(lastRoutePart, param);
+      label += ' ' + param;
     }
 
     const nextUrl = path ? `${url}/${path}` : url;
-    const breadcrumb: IBreadcrumb = {
-      label,
-      path: nextUrl
-    };
-    const newBreadcrumbs = breadcrumb.label ? [...breadcrumbs, breadcrumb] : [...breadcrumbs];
-    if (route.firstChild) {
-      return this.buildBreadCrumb(route.firstChild, nextUrl, newBreadcrumbs);
+    if (label !== '') {
+      breadcrumbs.push({
+        label,
+        path: nextUrl
+      });
     }
-    return newBreadcrumbs;
+    if (route.firstChild) {
+      return this.buildBreadCrumb(route.firstChild, nextUrl, breadcrumbs);
+    }
+    return breadcrumbs;
   }
 }
 
