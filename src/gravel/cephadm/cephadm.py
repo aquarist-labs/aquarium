@@ -152,7 +152,11 @@ class Cephadm:
             addr,
             "--config",
             tmp_config.name,
-            "--skip-dashboard",
+            "--initial-dashboard-user",
+            "admin",
+            "--initial-dashboard-password",
+            "aquarium",
+            "--dashboard-password-noupdate",
             "--skip-monitoring-stack",
         ]
         return await self.call(cmd, noimage=False, outcb=outcb_handler)
