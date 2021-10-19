@@ -409,3 +409,13 @@ class Mon:
         if not r:
             logger.error("mon > unable to set osd pool default size: {size}")
         return r
+
+    def module_enable(self, module: str) -> bool:
+        assert module is not None and len(module) > 0
+        cmd = {"prefix": "mgr module enable", "module": module}
+        try:
+            self.call(cmd)
+        except CephCommandError as e:
+            logger.error(f"unable to enable module {module}: {e.message}")
+            return False
+        return True

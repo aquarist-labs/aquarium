@@ -457,6 +457,17 @@ class NodeMgr:
         if not res:
             logger.error("unable to disable insecure global id reclaim")
 
+        ctrcfg = self.gstate.config.options.containers
+        ctrimage = ctrcfg.get_image()
+        assert ctrimage is not None and len(ctrimage) > 0
+        res = mon.config_set("global", "container_image", ctrimage)
+        if not res:
+            logger.error("unable to set global container image")
+
+        res = mon.module_enable("bubbles")
+        if not res:
+            logger.error("unable to start bubbles")
+
     async def finish_deployment(self) -> None:
         assert self._state
 
