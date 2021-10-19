@@ -53,11 +53,17 @@ export class NetworkPageComponent {
       },
       {
         name: TEXT('Type'),
-        prop: 'config.bootproto'
+        prop: 'config.bootproto',
+        cellTemplateName: DatatableCellTemplateName.map,
+        cellTemplateConfig: {
+          dhcp: TEXT('DHCP'),
+          static: TEXT('Static')
+        }
       },
       {
         name: TEXT('Enabled'),
-        prop: 'config.enabled'
+        prop: 'config.enabled',
+        cellTemplateName: DatatableCellTemplateName.checkIcon
       },
       {
         name: '',
@@ -104,7 +110,8 @@ export class NetworkPageComponent {
                     type: 'text',
                     label: TEXT('Name'),
                     name: 'name',
-                    value: selected.name
+                    value: selected.name,
+                    readonly: true
                   },
                   {
                     type: 'select',
@@ -112,14 +119,13 @@ export class NetworkPageComponent {
                     label: TEXT('Type'),
                     value: selected.config.bootproto,
                     options: {
-                      dhcp: 'DHCP',
-                      static: 'static'
+                      dhcp: TEXT('DHCP'),
+                      static: TEXT('Static')
                     }
                   },
                   {
                     type: 'text',
                     label: TEXT('IP Address'),
-                    groupClass: 'ml-4',
                     name: 'addr',
                     value: selected.config.addr,
                     validators: {
@@ -144,7 +150,6 @@ export class NetworkPageComponent {
                   {
                     type: 'text',
                     label: TEXT('Netmask'),
-                    groupClass: 'ml-4',
                     name: 'netmask',
                     value: selected.config.netmask,
                     validators: {
@@ -169,7 +174,6 @@ export class NetworkPageComponent {
                   {
                     type: 'text',
                     label: TEXT('Gateway'),
-                    groupClass: 'ml-4',
                     name: 'gateway',
                     value: selected.config.gateway,
                     validators: {

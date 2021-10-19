@@ -16,7 +16,7 @@ export enum DatatableCellTemplateName {
   //   ...
   //   cellTemplateName: DatatableCellTemplateName.map,
   //   cellTemplateConfig: {
-  //     [key: any]: { value: any, class?: string }
+  //     [key: any]: any
   //   }
   // }
   map = 'map',
