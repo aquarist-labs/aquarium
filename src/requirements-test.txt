@@ -9,3 +9,4 @@ pytest-mock
 requests
 types-psutil
 types-PyYAML
+types-toml

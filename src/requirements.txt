@@ -11,3 +11,4 @@ pip
 psutil
 websockets==8.1
 PyYAML==5.4.1
+toml==0.10.2

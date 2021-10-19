@@ -22,8 +22,12 @@ from uuid import UUID
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
+from gravel.controllers.containers import (
+    ContainerPullError,
+    container_pull,
+    set_registry,
+)
 from gravel.controllers.errors import GravelError
-from gravel.controllers.containers import container_pull, ContainerPullError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError
 from gravel.controllers.nodes.conn import ConnMgr
@@ -84,10 +88,9 @@ class DeploymentContainerRegistryConfig(BaseModel):
 
 
 class DeploymentContainerConfig(BaseModel):
-    registry: Optional[DeploymentContainerRegistryConfig] = Field(
-        None, title="Container Registry Config"
-    )
-    image: Optional[str] = Field(None, title="Container image to use")
+    url: str = Field(title="Container registry URL")
+    secure: bool = Field(title="Container registry is secure")
+    image: str = Field(title="Container image to use")
 
 
 class DeploymentConfig(BaseModel):
@@ -96,7 +99,7 @@ class DeploymentConfig(BaseModel):
     token: str
     ntp_addr: str
     disks: DeploymentDisksConfig
-    container: DeploymentContainerConfig
+    container: Optional[DeploymentContainerConfig]
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -280,7 +283,7 @@ class NodeDeployment:
         pubkey: Optional[str],
         keyring: Optional[str],
         cephconf: Optional[str],
-        containerconf: DeploymentContainerConfig,
+        containerconf: Optional[DeploymentContainerConfig],
         is_join: bool,
         progress_cb: Optional[Callable[[int, Optional[str]], None]],
     ) -> None:
@@ -349,18 +352,16 @@ class NodeDeployment:
 
         progress(50, "Obtaining containers")
         ctrcfg = self._gstate.config.options.containers
-        if (
-            containerconf.registry is not None
-            and len(containerconf.registry.registry) > 0
-            and containerconf.image is not None
-            and len(containerconf.image) > 0
-        ):
-            ctrcfg.registry = containerconf.registry.registry
-            ctrcfg.secure = not containerconf.registry.insecure
+        if containerconf is not None:
+            assert len(containerconf.url) > 0
+            assert len(containerconf.image) > 0
+            ctrcfg.registry = containerconf.url
+            ctrcfg.secure = containerconf.secure
             ctrcfg.image = containerconf.image
 
         try:
-            await container_pull(ctrcfg.registry, ctrcfg.image, ctrcfg.secure)
+            await set_registry(ctrcfg.registry, ctrcfg.secure)
+            await container_pull(ctrcfg.registry, ctrcfg.image)
         except ContainerPullError as e:
             raise DeploymentError(msg=e.message)
 

@@ -158,20 +158,24 @@ async def test_deployment_progress(mocker: MockerFixture, gstate: GlobalState):
 
 @pytest.mark.asyncio
 async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
-    async def mock_container_pull(
-        registry: str, image: str, secure: bool
-    ) -> str:
+    async def mock_container_pull(registry: str, image: str) -> str:
         return "abcd"
+
+    async def mock_set_registry(registry: str, secure: bool) -> None:
+        pass
 
     mocker.patch(
         "gravel.controllers.nodes.deployment.container_pull",
         new=mock_container_pull,
     )
+    mocker.patch(
+        "gravel.controllers.nodes.deployment.set_registry",
+        new=mock_set_registry,
+    )
 
     from gravel.controllers.nodes.bootstrap import Bootstrap
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import (
-        DeploymentContainerConfig,
         DeploymentConfig,
         NodeDeployment,
     )
@@ -265,7 +269,7 @@ async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
             token="myfancytoken",
             ntp_addr="my.ntp.test",
             disks=disks,
-            container=DeploymentContainerConfig(),
+            container=None,
         ),
         post_bootstrap_cb=postbootstrap_cb,
         finisher=finisher_cb,

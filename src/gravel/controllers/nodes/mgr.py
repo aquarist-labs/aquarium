@@ -122,12 +122,21 @@ class JoiningNodeModel(BaseModel):
     address: str
 
 
+class DeployRegistryModel(BaseModel):
+    registry: str = Field(title="Registry URL")
+    secure: bool = Field(title="The registry is secure")
+    image: str = Field("opensuse/bubbles:master", title="Image to use")
+
+
 class DeployParamsBaseModel(BaseModel):
     hostname: str = Field(title="Hostname to use for this node")
 
 
 class DeployParamsModel(DeployParamsBaseModel):
     ntpaddr: str = Field(title="NTP address to be used")
+    registry: Optional[DeployRegistryModel] = Field(
+        None, title="Custom registry"
+    )
 
 
 class JoinParamsModel(DeployParamsBaseModel):
@@ -366,6 +375,14 @@ class NodeMgr:
         self._token = self._generate_token()
         assert self._state.address
 
+        ctrcfg: Optional[DeploymentContainerConfig] = None
+        if params.registry is not None:
+            ctrcfg = DeploymentContainerConfig(
+                url=params.registry.registry,
+                secure=params.registry.secure,
+                image=params.registry.image,
+            )
+
         logger.info("deploy node")
         await self._deployment.deploy(
             DeploymentConfig(
@@ -374,7 +391,7 @@ class NodeMgr:
                 token=self._token,
                 ntp_addr=params.ntpaddr,
                 disks=disks,
-                container=DeploymentContainerConfig(),
+                container=ctrcfg,
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment,
