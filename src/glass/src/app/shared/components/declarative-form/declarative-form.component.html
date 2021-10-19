@@ -1,9 +1,11 @@
 <div fxLayout="column"
+     [class]="config?.pageUse ? 'for-page-use' : 'for-modal-use'"
      fxLayoutAlign="start stretch">
   <glass-alert-panel *ngIf="config?.hint"
                      type="hint">
     <div [innerHTML]="config?.hint! | translate | sanitize:'html'"></div>
   </glass-alert-panel>
+  <h3 *ngIf="config?.title" [innerHTML]="config?.title! | translate | sanitize: 'html'"></h3>
   <p *ngIf="config?.subtitle"
      [innerHTML]="config?.subtitle! | translate | sanitize:'html'">
   </p>
