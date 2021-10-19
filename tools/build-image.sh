@@ -194,12 +194,17 @@ mkdir ${build}/{_out,_logs}
 
 kiwiargs=
 [[ -n "${cachedir}" ]] && kiwiargs="--shared-cache-dir=${cachedir}"
+if [ -t 1 ] ; then
+	kiwiargs+=" --debug"
+elif kiwi-ng --help | grep -q -- '--logfile stdout' ; then
+	kiwiargs+=" --logfile stdout"
+fi
 
 osid=$(grep '^ID=' /etc/os-release | sed -e 's/\(ID=["]*\)\(.\+\)/\2/' | tr -d '"')
 case $osid in
   opensuse-tumbleweed | opensuse-leap)
     (set -o pipefail
-    sudo kiwi-ng ${kiwiargs} --debug --profile=${profile} --type ${type}\
+    sudo kiwi-ng ${kiwiargs} --profile=${profile} --type ${type}\
       system build --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
@@ -207,7 +212,7 @@ case $osid in
     ;;
   debian | ubuntu)
     (set -o pipefail
-    kiwi-ng ${kiwiargs} --debug --profile=${profile} --type ${type}\
+    kiwi-ng ${kiwiargs} --profile=${profile} --type ${type}\
       system boxbuild --box leap -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
