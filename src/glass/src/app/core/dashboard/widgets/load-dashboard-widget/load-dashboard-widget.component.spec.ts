@@ -42,8 +42,8 @@ describe('LoadDashboardWidgetComponent', () => {
   });
 
   it('should return status [1]', () => {
-    expect(component.getStatusClass(1)).toBe(WidgetHealthStatus.info);
-    expect(component.getStatusClass(50)).toBe(WidgetHealthStatus.info);
+    expect(component.getStatusClass(1)).toBe(WidgetHealthStatus.success);
+    expect(component.getStatusClass(50)).toBe(WidgetHealthStatus.success);
   });
 
   it('should return status [2]', () => {
@@ -63,7 +63,7 @@ describe('LoadDashboardWidgetComponent', () => {
         { name: 'bar', percent: 30 },
         { name: 'baz', percent: 10 }
       ])
-    ).toBe(WidgetHealthStatus.info);
+    ).toBe(WidgetHealthStatus.success);
     expect(
       component.setStatus([
         { name: 'foo', percent: 44 },
