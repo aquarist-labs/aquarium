@@ -29,6 +29,7 @@ import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/insta
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
 import { NetworkPageComponent } from '~/app/pages/network-page/network-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
+import { UsersFormComponent } from '~/app/pages/users-page/users-form/users-form.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
@@ -48,11 +49,27 @@ const routes: Routes = [
         children: [
           { path: '', component: DashboardPageComponent },
           { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } },
-          { path: 'users', component: UsersPageComponent, data: { breadcrumb: TEXT('Users') } },
           {
             path: 'network',
             component: NetworkPageComponent,
             data: { breadcrumb: TEXT('Network') }
+          },
+          {
+            path: 'users',
+            children: [
+              { path: '', component: UsersPageComponent, data: { breadcrumb: TEXT('Users') } },
+              {
+                path: 'create',
+                component: UsersFormComponent,
+                data: { breadcrumb: TEXT('Create') }
+              },
+              {
+                path: 'edit/:name',
+                component: UsersFormComponent,
+                data: { breadcrumb: TEXT('Edit') }
+              }
+            ],
+            data: { breadcrumb: TEXT('Users') }
           }
         ]
       }
