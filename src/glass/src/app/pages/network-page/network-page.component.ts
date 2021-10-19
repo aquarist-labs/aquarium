@@ -13,19 +13,16 @@
  * GNU General Public License for more details.
  */
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
-import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
-import { translate } from '~/app/i18n.helper';
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
 import {
   DatatableCellTemplateName,
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
-import { DatatableData } from '~/app/shared/models/datatable-data.type';
 import { Interface, NetworkService } from '~/app/shared/services/api/network.service';
-import { DialogService } from '~/app/shared/services/dialog.service';
 
 @Component({
   selector: 'glass-network-page',
@@ -41,7 +38,7 @@ export class NetworkPageComponent {
   data: Interface[] = [];
   columns: DatatableColumn[];
 
-  constructor(private dialogService: DialogService, private networkService: NetworkService) {
+  constructor(private networkService: NetworkService, private router: Router) {
     this.columns = [
       {
         name: TEXT('Name'),
@@ -70,138 +67,25 @@ export class NetworkPageComponent {
         prop: '',
         unsortable: true,
         cellTemplateName: DatatableCellTemplateName.actionMenu,
-        cellTemplateConfig: this.onActionMenu.bind(this)
+        cellTemplateConfig: this.getActionMenu.bind(this)
       }
     ];
   }
 
   loadData(): void {
     this.loading = true;
-    this.networkService.interfaces().subscribe((data) => {
+    this.networkService.list().subscribe((data) => {
       this.data = data;
       this.loading = this.firstLoadComplete = true;
     });
   }
 
-  onActionMenu(selected: Interface): DatatableActionItem[] {
-    const result: DatatableActionItem[] = [
+  getActionMenu(selected: Interface): DatatableActionItem[] {
+    return [
       {
         title: TEXT('Edit'),
-        callback: (data: DatatableData) => {
-          this.dialogService.open(
-            DeclarativeFormModalComponent,
-            (res: Interface | boolean) => {
-              if (res) {
-                this.blockUI.start(translate(TEXT('Please wait, updating interface ...')));
-                //this.networkService
-                //  .update(UPDATE THE NETWORK INTERFACE)
-                //  .pipe(finalize(() => this.blockUI.stop()))
-                //  .subscribe(() => {
-                //    this.loadData();
-                //  });
-                this.blockUI.stop();
-              }
-            },
-            {
-              title: TEXT('Edit Interface'),
-              formConfig: {
-                fields: [
-                  {
-                    type: 'text',
-                    label: TEXT('Name'),
-                    name: 'name',
-                    value: selected.name,
-                    readonly: true
-                  },
-                  {
-                    type: 'select',
-                    name: 'type',
-                    label: TEXT('Type'),
-                    value: selected.config.bootproto,
-                    options: {
-                      dhcp: TEXT('DHCP'),
-                      static: TEXT('Static')
-                    }
-                  },
-                  {
-                    type: 'text',
-                    label: TEXT('IP Address'),
-                    name: 'addr',
-                    value: selected.config.addr,
-                    validators: {
-                      patternType: 'hostAddress',
-                      requiredIf: {
-                        operator: 'eq',
-                        arg0: { prop: 'type' },
-                        arg1: 'static'
-                      }
-                    },
-                    modifiers: [
-                      {
-                        type: 'readonly',
-                        constraint: {
-                          operator: 'eq',
-                          arg0: { prop: 'type' },
-                          arg1: 'dhcp'
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    type: 'text',
-                    label: TEXT('Netmask'),
-                    name: 'netmask',
-                    value: selected.config.netmask,
-                    validators: {
-                      patternType: 'hostAddress',
-                      requiredIf: {
-                        operator: 'eq',
-                        arg0: { prop: 'type' },
-                        arg1: 'static'
-                      }
-                    },
-                    modifiers: [
-                      {
-                        type: 'readonly',
-                        constraint: {
-                          operator: 'eq',
-                          arg0: { prop: 'type' },
-                          arg1: 'dhcp'
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    type: 'text',
-                    label: TEXT('Gateway'),
-                    name: 'gateway',
-                    value: selected.config.gateway,
-                    validators: {
-                      patternType: 'hostAddress',
-                      requiredIf: {
-                        operator: 'eq',
-                        arg0: { prop: 'type' },
-                        arg1: 'static'
-                      }
-                    },
-                    modifiers: [
-                      {
-                        type: 'readonly',
-                        constraint: {
-                          operator: 'eq',
-                          arg0: { prop: 'type' },
-                          arg1: 'dhcp'
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          );
-        }
+        callback: () => this.router.navigate([`dashboard/network/edit/${selected.name}`])
       }
     ];
-    return result;
   }
 }

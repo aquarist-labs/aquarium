@@ -27,6 +27,7 @@ import { InstallWelcomePageComponent } from '~/app/pages/install-welcome-page/in
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
 import { LoginPageComponent } from '~/app/pages/login-page/login-page.component';
+import { NetworkFormComponent } from '~/app/pages/network-page/network-form/network-form.component';
 import { NetworkPageComponent } from '~/app/pages/network-page/network-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { UsersFormComponent } from '~/app/pages/users-page/users-form/users-form.component';
@@ -78,8 +79,15 @@ const dashboardRoute: Route = {
         { path: 'hosts', component: HostsPageComponent, data: { breadcrumb: TEXT('Hosts') } },
         {
           path: 'network',
-          component: NetworkPageComponent,
-          data: { breadcrumb: TEXT('Network') }
+          data: { breadcrumb: TEXT('Network') },
+          children: [
+            { path: '', component: NetworkPageComponent },
+            {
+              path: 'edit/:name',
+              component: NetworkFormComponent,
+              data: { breadcrumb: TEXT('Edit') }
+            }
+          ]
         },
         {
           path: 'users',
