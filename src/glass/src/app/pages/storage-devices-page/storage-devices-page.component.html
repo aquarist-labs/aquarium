@@ -1,4 +1,4 @@
-<div class="glass-network-page"
+<div class="glass-storage-devices-page"
      fxLayout="column">
   <div class="page-content">
     <div *ngIf="!firstLoadComplete && loading"
@@ -7,7 +7,7 @@
     </div>
     <glass-datatable [data]="data"
                      [columns]="columns"
-                     [autoReload]="30000"
+                     [autoReload]="15000"
                      (loadData)="loadData()">
     </glass-datatable>
   </div>
