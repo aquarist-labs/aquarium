@@ -153,7 +153,14 @@ export class NetworkFormComponent implements OnInit {
 
   private setFormConfig(title: string, submitButtonText: string, submitFn: () => void) {
     this.formConfig = {
-      buttons: [{ type: 'submit', text: submitButtonText, click: submitFn }],
+      buttons: [
+        {
+          type: 'default',
+          text: TEXT('Cancel'),
+          click: () => this.router.navigate(['dashboard/network'])
+        },
+        { type: 'submit', text: submitButtonText, click: submitFn }
+      ],
       fields: [
         this.fields.name,
         this.fields.type,
@@ -161,8 +168,7 @@ export class NetworkFormComponent implements OnInit {
         this.fields.netmask,
         this.fields.gateway
       ],
-      title,
-      pageUse: true
+      title
     };
   }
 

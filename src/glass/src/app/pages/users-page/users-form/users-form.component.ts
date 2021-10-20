@@ -119,7 +119,14 @@ export class UsersFormComponent implements OnInit {
 
   private setFormConfig(title: string, submitButtonText: string, submitFn: () => void) {
     this.formConfig = {
-      buttons: [{ type: 'submit', text: submitButtonText, click: submitFn }],
+      buttons: [
+        {
+          type: 'default',
+          text: TEXT('Cancel'),
+          click: () => this.router.navigate(['dashboard/users'])
+        },
+        { type: 'submit', text: submitButtonText, click: submitFn }
+      ],
       fields: [
         this.fields.username,
         this.fields.fullName,
@@ -127,8 +134,7 @@ export class UsersFormComponent implements OnInit {
         this.fields.confirmPassword,
         this.fields.disabled
       ],
-      title,
-      pageUse: true
+      title
     };
   }
 

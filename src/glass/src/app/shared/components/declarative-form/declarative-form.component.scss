@@ -1,5 +1,11 @@
 @import 'styles.scss';
 
+.glass-declarative-form {
+  .title {
+    @extend .h3;
+  }
+}
+
 .form-container {
   align-items: baseline;
 
@@ -12,8 +18,4 @@
   *:not(:first-child) {
     @extend .ml-2;
   }
-}
-
-.for-page-use {
-  margin: 1rem;
 }
