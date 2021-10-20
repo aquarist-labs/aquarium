@@ -22,11 +22,11 @@ import { DeclarativeFormComponent } from '~/app/shared/components/declarative-fo
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 
 @Component({
-  selector: 'glass-hostname-step',
-  templateUrl: './hostname-step.component.html',
-  styleUrls: ['./hostname-step.component.scss']
+  selector: 'glass-host-step',
+  templateUrl: './host-step.component.html',
+  styleUrls: ['./host-step.component.scss']
 })
-export class HostnameStepComponent implements AfterViewInit, OnDestroy {
+export class HostStepComponent implements AfterViewInit, OnDestroy {
   @Input()
   context?: InstallWizardContext;
 

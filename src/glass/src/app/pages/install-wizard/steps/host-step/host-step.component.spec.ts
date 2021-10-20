@@ -16,12 +16,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
 
-import { HostnameStepComponent } from '~/app/pages/install-wizard/steps/hostname-step/hostname-step.component';
+import { HostStepComponent } from '~/app/pages/install-wizard/steps/host-step/host-step.component';
 import { PagesModule } from '~/app/pages/pages.module';
 
 describe('HostnameStepComponent', () => {
-  let component: HostnameStepComponent;
-  let fixture: ComponentFixture<HostnameStepComponent>;
+  let component: HostStepComponent;
+  let fixture: ComponentFixture<HostStepComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,7 +30,7 @@ describe('HostnameStepComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(HostnameStepComponent);
+    fixture = TestBed.createComponent(HostStepComponent);
     component = fixture.componentInstance;
     component.config = { fields: [] };
     fixture.detectChanges();
