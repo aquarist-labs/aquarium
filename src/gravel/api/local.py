@@ -66,7 +66,7 @@ async def get_volumes(
     if not latest:
         raise HTTPException(
             status_code=status.HTTP_425_TOO_EARLY,
-            detail="Volume list not yet available",
+            detail="Volume list not yet available.",
         )
     return latest.disks
 
@@ -119,7 +119,7 @@ async def get_inventory(
     if not latest:
         raise HTTPException(
             status_code=status.HTTP_425_TOO_EARLY,
-            detail="Inventory not available",
+            detail="Inventory not available.",
         )
     return latest
 

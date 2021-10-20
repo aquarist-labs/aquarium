@@ -97,7 +97,7 @@ async def node_get_disk_solution(
     if not nodemgr.available:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="node is not available",
+            detail="Node is not available.",
         )
 
     return Disks.gen_solution(request.app.state.gstate)
@@ -189,12 +189,12 @@ async def finish_deployment(
     except NodeNotDeployedError:
         raise HTTPException(
             status_code=status.HTTP_428_PRECONDITION_REQUIRED,
-            detail="Node has not been deployed",
+            detail="Node has not been deployed.",
         )
     except NodeAlreadyJoiningError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Node currently joining an existing cluster",
+            detail="Node currently joining an existing cluster.",
         )
     except NodeError:
         logger.error("api > unknown error on finished deployment")
@@ -210,7 +210,7 @@ async def node_join(
     if not req.address or not req.token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="leader address and token are required",
+            detail="Leader address and token are required.",
         )
 
     nodemgr = request.app.state.nodemgr

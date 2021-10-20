@@ -41,7 +41,7 @@ async def create_user(
     user_mgr = UserMgr(request.app.state.gstate.store)
     if await user_mgr.exists(user.username):
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR, detail="User already exists"
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail="User already exists."
         )
     user.hash_password()
     await user_mgr.put(user)
@@ -54,7 +54,7 @@ async def get_user(
     user_mgr = UserMgr(request.app.state.gstate.store)
     if not await user_mgr.exists(username):
         raise HTTPException(
-            status.HTTP_404_NOT_FOUND, detail="User does not exist"
+            status.HTTP_404_NOT_FOUND, detail="User does not exist."
         )
     return await user_mgr.get(username)  # type: ignore[return-value]
 
@@ -66,11 +66,11 @@ async def delete_user(
     user_mgr = UserMgr(request.app.state.gstate.store)
     if not await user_mgr.exists(username):
         raise HTTPException(
-            status.HTTP_404_NOT_FOUND, detail="User does not exist"
+            status.HTTP_404_NOT_FOUND, detail="User does not exist."
         )
     if token.sub == username:
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, detail="Cannot delete current user"
+            status.HTTP_400_BAD_REQUEST, detail="Cannot delete current user."
         )
     await user_mgr.remove(username)
 
@@ -88,11 +88,11 @@ async def patch_user(
     user = await user_mgr.get(username)
     if user is None:
         raise HTTPException(
-            status.HTTP_404_NOT_FOUND, detail="User does not exist"
+            status.HTTP_404_NOT_FOUND, detail="User does not exist."
         )
     if token.sub == username and update_user.disabled:
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, detail="Cannot disable current user"
+            status.HTTP_400_BAD_REQUEST, detail="Cannot disable current user."
         )
     if update_user.password:
         update_user.hash_password()

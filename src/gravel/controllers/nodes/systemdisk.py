@@ -117,9 +117,11 @@ class SystemDisk:
 
         # ascertain whether we can use this device
         if not device:
-            raise UnknownDeviceError(f"device {devicestr} not known")
+            raise UnknownDeviceError(f"Device {devicestr} not known.")
         elif not device.available:
-            raise UnavailableDeviceError(f"device {devicestr} is not available")
+            raise UnavailableDeviceError(
+                f"Device {devicestr} is not available."
+            )
 
         # create partitions
         logger.debug(f"prepare system disk: device: {device}")
@@ -184,7 +186,7 @@ class SystemDisk:
     async def unmount(self) -> None:
         aqrmnt: Path = Path("/aquarium")
         if not aqrmnt.exists():
-            raise MountError(msg="/aquarium mount point does not exist")
+            raise MountError(msg="The /aquarium mount point does not exist.")
 
         try:
             await aqr_run_cmd(shlex.split(f"umount {aqrmnt}"))
@@ -224,7 +226,7 @@ class SystemDisk:
                 )
             except Exception as e:
                 raise OverlayError(
-                    f"unable to overlay {upper} on {lower}: {str(e)}"
+                    f"Unable to overlay {upper} on {lower}: {str(e)}"
                 )
 
         for ours, theirs in self._bindmounts.items():
@@ -244,5 +246,5 @@ class SystemDisk:
                 )
             except Exception as e:
                 raise MountError(
-                    f"unable to bind mount {ourpath} to {theirpath}: {str(e)}"
+                    f"Unable to bind mount {ourpath} to {theirpath}: {str(e)}"
                 )

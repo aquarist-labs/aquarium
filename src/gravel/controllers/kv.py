@@ -64,7 +64,7 @@ class KV:
 
     def __init__(self):
         if "rados" not in sys.modules:
-            raise MissingSystemDependency("python3-rados module not found")
+            raise MissingSystemDependency("python3-rados module not found.")
         # TODO: this should be created somewhere else (src/gravel/controllers/config.py?)
         var_lib_aquarium: Path = Path("/var/lib/aquarium")
         if not var_lib_aquarium.exists():
@@ -125,7 +125,7 @@ class KV:
             # If self._cluster isn't there, something is really broken
             # (e.g. /etc/ceph/ceph.conf somehow not present yet), so raise
             # an exception
-            raise NoClusterExists(f"no cluster exists yet after {tries} tries")
+            raise NoClusterExists(f"No cluster exists yet after {tries} tries.")
 
     def _cluster_connect(self) -> None:
         logger.debug("Starting cluster connection thread")

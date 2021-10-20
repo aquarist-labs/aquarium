@@ -356,7 +356,7 @@ class NodeDeployment:
             await asyncio.wait_for(orch.wait_host_added(hostname), 30.0)
         except TimeoutError:
             logger.error("join > timeout waiting for host to be added")
-            raise NodeCantJoinError("host was not added to the cluster")
+            raise NodeCantJoinError("Host was not added to the cluster.")
         logger.debug("join > host added, continue")
 
         try:
@@ -385,7 +385,7 @@ class NodeDeployment:
         ntp_addr = config.ntp_addr
 
         if self._state.error:
-            raise NodeCantDeployError("node is in error state")
+            raise NodeCantDeployError("Node is in error state.")
 
         systemdisk = SystemDisk(self._gstate)
         try:
@@ -500,7 +500,7 @@ class NodeDeployment:
         try:
             orch = Orchestrator(self._gstate.ceph_mgr)
             if not orch.host_exists(hostname):
-                raise DeploymentError("host not part of cluster")
+                raise DeploymentError("Host not part of cluster.")
             orch.assimilate_devices(hostname, devices)
 
             # wait a few seconds so the orchestrator settles down

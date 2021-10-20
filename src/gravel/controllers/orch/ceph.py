@@ -99,12 +99,12 @@ class Ceph:
         self._check_config()
 
         if "rados" not in sys.modules:
-            raise MissingSystemDependency("python3-rados module not found")
+            raise MissingSystemDependency("python3-rados module not found.")
 
         if not self.is_connected():
             self.cluster = rados.Rados(conffile=self.conf_file)
             if not self.cluster:
-                raise CephError("error creating cluster handle")
+                raise CephError("Error creating cluster handle.")
 
             # apparently we can't rely on argument "timeout" because it's not really
             # supported by the C API, and thus the python bindings simply expose it
