@@ -13,3 +13,8 @@
     @extend .ml-2;
   }
 }
+
+.col-form-label.required::after {
+  color: $glass-color-danger;
+  content: '*';
+}
