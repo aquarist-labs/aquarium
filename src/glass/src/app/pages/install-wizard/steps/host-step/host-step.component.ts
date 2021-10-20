@@ -34,8 +34,15 @@ export class HostStepComponent implements AfterViewInit, OnDestroy {
   form?: DeclarativeFormComponent;
 
   public config: DeclarativeFormConfig = {
-    subtitle: TEXT('Please enter the hostname for this system.'),
     fields: [
+      {
+        type: 'divider',
+        title: TEXT('System configuration')
+      },
+      {
+        type: 'paragraph',
+        text: TEXT('Please enter the hostname for this system.')
+      },
       {
         name: 'hostname',
         type: 'text',
@@ -45,6 +52,92 @@ export class HostStepComponent implements AfterViewInit, OnDestroy {
           required: true
         },
         hint: TEXT('The hostname is a single word that identifies the system to the network.')
+      },
+      {
+        type: 'divider',
+        title: TEXT('Image registry configuration')
+      },
+      {
+        type: 'paragraph',
+        text: TEXT('Please select the installation image for this system.')
+      },
+      {
+        name: 'regDefault',
+        type: 'radio',
+        label: TEXT('Use custom image'),
+        value: false,
+        hint: TEXT(
+          'If you want to use your own custom image, please add the registry details below.'
+        )
+      },
+      {
+        name: 'registry',
+        type: 'text',
+        label: TEXT('Image registry URL'),
+        groupClass: 'ml-4',
+        validators: {
+          patternType: 'hostAddress',
+          requiredIf: {
+            operator: 'falsy',
+            arg0: { prop: 'regDefault' }
+          }
+        },
+        modifiers: [
+          {
+            type: 'readonly',
+            constraint: {
+              operator: 'eq',
+              arg0: { prop: 'regDefault' },
+              arg1: true
+            }
+          }
+        ]
+      },
+      {
+        name: 'image',
+        type: 'text',
+        label: TEXT('Image Name'),
+        groupClass: 'ml-4',
+        validators: {
+          requiredIf: {
+            operator: 'falsy',
+            arg0: { prop: 'regDefault' }
+          }
+        },
+        modifiers: [
+          {
+            type: 'readonly',
+            constraint: {
+              operator: 'eq',
+              arg0: { prop: 'regDefault' },
+              arg1: true
+            }
+          }
+        ]
+      },
+      {
+        name: 'secure',
+        type: 'checkbox',
+        label: TEXT('Enable SSL'),
+        groupClass: 'ml-4',
+        value: true,
+        modifiers: [
+          {
+            type: 'readonly',
+            constraint: {
+              operator: 'eq',
+              arg0: { prop: 'regDefault' },
+              arg1: true
+            }
+          }
+        ]
+      },
+      {
+        name: 'regDefault',
+        type: 'radio',
+        label: TEXT('Use the default image'),
+        value: true,
+        hint: TEXT('Use the default image for the installation.')
       }
     ]
   };
