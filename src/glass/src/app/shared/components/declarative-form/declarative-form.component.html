@@ -1,12 +1,16 @@
-<div fxLayout="column"
-     [class]="config?.pageUse ? 'for-page-use' : 'for-modal-use'"
+<div class="glass-declarative-form"
+     fxLayout="column"
      fxLayoutAlign="start stretch">
   <glass-alert-panel *ngIf="config?.hint"
                      type="hint">
     <div [innerHTML]="config?.hint! | translate | sanitize:'html'"></div>
   </glass-alert-panel>
-  <h3 *ngIf="config?.title" [innerHTML]="config?.title! | translate | sanitize: 'html'"></h3>
+  <div *ngIf="config?.title"
+       class="title"
+       [innerHTML]="config?.title! | translate | sanitize: 'html'">
+  </div>
   <p *ngIf="config?.subtitle"
+     class="subtitle"
      [innerHTML]="config?.subtitle! | translate | sanitize:'html'">
   </p>
   <form *ngIf="formGroup && config"
@@ -368,7 +372,7 @@
 
     <div class="form-actions"
          fxLayout="row"
-         fxLayoutAlign="{{ config.buttonAlign ?? 'start' }} center">
+         fxLayoutAlign="{{ config.buttonAlign ?? 'end' }} center">
       <ng-container *ngFor="let button of config.buttons">
         <ng-container [ngSwitch]="button.type">
           <ng-template [ngSwitchCase]="'default'">
