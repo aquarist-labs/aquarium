@@ -419,42 +419,18 @@ class NodeDeployment:
         assert welcome.cephconf
         assert welcome.keyring
 
-        # create system disk after we are certain we are joining.
-        # ensure all state writes happen only after the disk has been created.
-        systemdisk = SystemDisk(self._gstate)
-        try:
-            await systemdisk.create(disks.system)
-            await systemdisk.enable()
-        except GravelError as e:
-            raise NodeCantJoinError(e.message)
-
         self._state.mark_join()
-        await self._set_hostname(hostname)
-
-        authorized_keys: Path = Path("/root/.ssh/authorized_keys")
-        if not authorized_keys.parent.exists():
-            authorized_keys.parent.mkdir(0o700)
-        with authorized_keys.open("a") as fd:
-            fd.writelines([welcome.pubkey])
-            logger.debug(f"join > wrote pubkey to {authorized_keys}")
-
-        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
-        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
-        if not cephconf_path.parent.exists():
-            cephconf_path.parent.mkdir(0o755)
-        cephconf_path.write_text(welcome.cephconf)
-        keyring_path.write_text(welcome.keyring)
-        keyring_path.chmod(0o600)
-        cephconf_path.chmod(0o644)
-
-        # We've got ceph.conf and the admin keyring now, kick the kvstore
-        # to get a connection.
-        await self._gstate.store.ensure_connection()
-
-        # get NTP address
-        ntp_addr = await self._gstate.store.get("/nodes/ntp_addr")
-        assert ntp_addr
-        await self._set_ntp_addr(ntp_addr)
+        await self._prepare_node(
+            disks.system,
+            hostname,
+            ntpaddr=None,
+            pubkey=welcome.pubkey,
+            keyring=welcome.keyring,
+            cephconf=welcome.cephconf,
+            containerconf=None,
+            is_join=True,
+            progress_cb=None,
+        )
 
         readymsg = ReadyToAddMessageModel()
         await conn.send(
