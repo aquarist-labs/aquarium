@@ -22,10 +22,6 @@
   color: $glass-color-white;
   background-color: $glass-color-danger;
 }
-.glass-color-theme-ok {
-  color: $glass-color-white;
-  background-color: $glass-color-theme-primary;
-}
 .glass-color-theme-yellow-500,
 .glass-color-theme-warn {
   color: $glass-color-black;
@@ -35,6 +31,7 @@
   color: $glass-color-white;
   background-color: $glass-color-info;
 }
+.glass-color-theme-ok,
 .glass-color-theme-success {
   color: $glass-color-white;
   background-color: $glass-color-success;
