@@ -63,7 +63,7 @@ class Bootstrap:
             asyncio.create_task(self._do_bootstrap(address, cb))
         except Exception as e:
             logger.error(f"error starting bootstrap task: {str(e)}")
-            raise BootstrapError("error starting bootstrap task")
+            raise BootstrapError("Error starting bootstrap task.")
 
     @property
     def stage(self) -> BootstrapStage:

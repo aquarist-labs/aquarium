@@ -80,7 +80,7 @@ class CephFS:
         for fs in ls:
             if fs.name == name:
                 return fs
-        raise CephFSError(f"unknown filesystem {name}")
+        raise CephFSError(f"Unknown filesystem {name}.")
 
     def authorize(self, fsname: str, clientid: str) -> CephFSAuthorizationModel:
         assert fsname and clientid

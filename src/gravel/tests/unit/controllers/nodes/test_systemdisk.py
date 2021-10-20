@@ -198,7 +198,7 @@ async def test_mount_error(
     async def mock_call(
         cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
-        raise Exception("failed mount")
+        raise Exception("Failed mount.")
 
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_call
@@ -232,7 +232,7 @@ async def test_unmount_error(
     async def mock_call(
         cmd: List[str],
     ) -> Tuple[int, Optional[str], Optional[str]]:
-        raise Exception("failed unmount")
+        raise Exception("Failed unmount.")
 
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_call
@@ -253,7 +253,7 @@ async def test_unmount_error(
     try:
         await systemdisk.unmount()
     except MountError as e:
-        assert "failed unmount" in e.message
+        assert "failed unmount" in e.message.lower()
         throws = True
     assert throws
 
@@ -272,7 +272,7 @@ async def test_enable(
     )
 
     async def mount_fail() -> None:
-        raise MountError("failed mount")
+        raise MountError("Failed mount.")
 
     overlayed_paths = []
     bindmounts = []
@@ -290,7 +290,7 @@ async def test_enable(
             assert len(cmd) == 4
             bindmounts.append(cmd[3])
         else:
-            raise Exception(f"unknown call: {cmd}")
+            raise Exception(f"Unknown call: {cmd}")
         return 0, None, None
 
     # ensure we don't have a mounted fs
@@ -311,7 +311,7 @@ async def test_enable(
     try:
         await systemdisk.enable()
     except OverlayError as e:
-        assert "failed mount" in e.message
+        assert "failed mount" in e.message.lower()
         throws = True
     assert throws
 

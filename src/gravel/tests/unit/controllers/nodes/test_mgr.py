@@ -312,7 +312,7 @@ async def test_join_checks(gstate: GlobalState) -> None:
         )
     except NodeError as e:
         throws = True
-        assert "hostname" in e.message
+        assert "hostname" in e.message.lower()
     assert throws
 
 
@@ -343,7 +343,7 @@ async def test_join_check_disk_solution(
             "1.2.3.4", "751b-51fd-10d7-f7b4", JoinParamsModel(hostname="foobar")
         )
     except NodeCantJoinError as e:
-        assert e.message == "no disk deployment solution found"
+        assert e.message == "No disk deployment solution found."
         throws = True
     assert throws
 
@@ -492,7 +492,7 @@ async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
             DeployParamsModel(hostname="", ntpaddr="my.ntp.addr")
         )
     except NodeCantDeployError as e:
-        assert e.message == "missing hostname parameter"
+        assert e.message == "Missing hostname parameter."
         throws = True
     assert throws
 
@@ -500,7 +500,7 @@ async def test_deploy_checks(gstate: GlobalState, nodemgr: NodeMgr) -> None:
     try:
         await nodemgr.deploy(DeployParamsModel(hostname="barbaz", ntpaddr=""))
     except NodeCantDeployError as e:
-        assert e.message == "missing ntp server address"
+        assert e.message == "Missing NTP server address."
         throws = True
     assert throws
 
@@ -529,7 +529,7 @@ async def test_deploy_check_disk_solution(
             DeployParamsModel(hostname="barbaz", ntpaddr="my.ntp.addr")
         )
     except NodeCantDeployError as e:
-        assert e.message == "no possible deployment solution found"
+        assert e.message == "No possible deployment solution found."
         throws = True
     assert throws
 

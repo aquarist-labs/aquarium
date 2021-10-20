@@ -90,5 +90,5 @@ async def get_client_io_rates(
     except ClientIORateNotAvailableError:
         raise HTTPException(
             status_code=status.HTTP_412_PRECONDITION_FAILED,
-            detail="Client IO rates not available at the moment",
+            detail="Client IO rates not available at the moment.",
         )

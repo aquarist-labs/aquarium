@@ -184,7 +184,7 @@ class NodeMgr:
         logger.debug(f"start > {self._state}")
 
         if not self.deployment_state.can_start():
-            raise NodeError("unable to start unstartable node")
+            raise NodeError("Unable to start unstartable node.")
 
         assert self._init_stage == NodeInitStage.NONE
 
@@ -306,7 +306,7 @@ class NodeMgr:
             raise NodeCantJoinError()
 
         if not params.hostname or len(params.hostname) == 0:
-            raise NodeError("hostname parameter not provided")
+            raise NodeError("Hostname parameter not provided.")
 
         assert self._state
         assert self._state.address
@@ -316,7 +316,7 @@ class NodeMgr:
 
         disk_solution = Disks.gen_solution(self.gstate)
         if not disk_solution.possible:
-            raise NodeCantJoinError("no disk deployment solution found")
+            raise NodeCantJoinError("No disk deployment solution found.")
         assert disk_solution.systemdisk is not None
 
         disks = DeploymentDisksConfig(system=disk_solution.systemdisk.path)
@@ -361,13 +361,13 @@ class NodeMgr:
 
         # check parameters
         if not params.ntpaddr or len(params.ntpaddr) == 0:
-            raise NodeCantDeployError("missing ntp server address")
+            raise NodeCantDeployError("Missing NTP server address.")
         if not params.hostname or len(params.hostname) == 0:
-            raise NodeCantDeployError("missing hostname parameter")
+            raise NodeCantDeployError("Missing hostname parameter.")
 
         disk_solution = Disks.gen_solution(self.gstate)
         if not disk_solution.possible:
-            raise NodeCantDeployError("no possible deployment solution found")
+            raise NodeCantDeployError("No possible deployment solution found.")
         assert disk_solution.systemdisk is not None
 
         disks = DeploymentDisksConfig(system=disk_solution.systemdisk.path)
