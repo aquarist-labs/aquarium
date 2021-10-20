@@ -102,6 +102,8 @@ export type DeclarativeFormConfig = {
   hint?: string;
   subtitle?: string;
   fields: FormFieldConfig[];
+  title?: string;
+  pageUse?: boolean;
   buttons?: Array<FormButtonConfig>;
   buttonAlign?: 'start' | 'center' | 'end';
 };

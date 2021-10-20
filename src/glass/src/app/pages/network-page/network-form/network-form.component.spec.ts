@@ -16,27 +16,30 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { ToastrModule } from 'ngx-toastr';
 
 import { PagesModule } from '~/app/pages/pages.module';
-import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 
-describe('UsersPageComponent', () => {
-  let component: UsersPageComponent;
-  let fixture: ComponentFixture<UsersPageComponent>;
+import { NetworkFormComponent } from './network-form.component';
+
+describe('NetworkFormComponent', () => {
+  let component: NetworkFormComponent;
+  let fixture: ComponentFixture<NetworkFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        RouterTestingModule,
         PagesModule,
+        RouterTestingModule,
+        ToastrModule.forRoot(),
         TranslateModule.forRoot()
       ]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UsersPageComponent);
+    fixture = TestBed.createComponent(NetworkFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

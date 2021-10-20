@@ -14,6 +14,7 @@
  */
 
 import { Injectable } from '@angular/core';
+import _ from 'lodash';
 import { Observable, of } from 'rxjs';
 
 export type Interface = {
@@ -30,22 +31,38 @@ export type Interface = {
   providedIn: 'root'
 })
 export class NetworkService {
-  public interfaces(): Observable<Interface[]> {
-    const i1: Interface = {
-      name: 'interface 1',
+  mockInterfaces = [
+    {
+      name: 'interface-1',
       config: {
         bootproto: 'dhcp'
       }
-    };
-    const i2: Interface = {
-      name: 'interface 2',
+    },
+    {
+      name: 'interface-2',
       config: {
         addr: '173.25.46.155',
         bootproto: 'static',
         netmask: '255.255.255.0',
         gateway: '173.25.46.1'
       }
-    };
-    return of([i1, i2]);
+    }
+  ] as Interface[];
+
+  public list(): Observable<Interface[]> {
+    //return this.http.get<Interface[]>(`${this.url}/`);
+    return of(this.mockInterfaces);
+  }
+
+  public get(name: string): Observable<Interface> {
+    //return this.http.get<Interface>(`${this.url}/${name}`);
+    // @ts-ignore
+    return of(_.find(this.mockInterfaces, { name })) as Interface;
+  }
+
+  public update(networkInterface: Partial<Interface>): Observable<Interface> {
+    //return this.http.patch<Interface>(`${this.url}/${networkInterface.name}`, networkInterface);
+    // @ts-ignore
+    return of(networkInterface) as Interface;
   }
 }
