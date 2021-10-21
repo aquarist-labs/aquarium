@@ -15,7 +15,7 @@ export type FormFieldModifier = {
 };
 
 export type FormFieldConfig = {
-  name: string;
+  name?: string;
   type:
     | 'text'
     | 'number'
@@ -25,7 +25,8 @@ export type FormFieldConfig = {
     | 'select'
     | 'hidden'
     | 'binary'
-    | 'container';
+    | 'container'
+    | 'paragraph';
   label?: string;
   value?: any;
   placeholder?: string;
@@ -77,6 +78,11 @@ export type FormFieldConfig = {
 
   // --- binary ---
   defaultUnit?: 'b' | 'k' | 'm' | 'g' | 't' | 'p' | 'e' | 'z' | 'y';
+
+  // --- paragraph ---
+  title?: string;
+  text?: string;
+  hasDivider?: boolean;
 
   // internal only
   id?: string;
