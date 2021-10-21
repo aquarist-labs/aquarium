@@ -44,6 +44,11 @@ export class NavigationBarComponent implements OnInit {
       name: TEXT('Network'),
       icon: 'mdi mdi-lan',
       route: '/dashboard/network'
+    },
+    {
+      name: TEXT('Storage'),
+      icon: 'mdi mdi-harddisk',
+      route: '/dashboard/storage'
     }
   ];
 

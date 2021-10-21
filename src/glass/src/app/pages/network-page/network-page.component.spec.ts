@@ -12,14 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { NetworkPageComponent } from '~/app/pages/network-page/network-page.component';
 import { PagesModule } from '~/app/pages/pages.module';
-
-import { NetworkPageComponent } from './network-page.component';
+import { TestingModule } from '~/app/testing.module';
 
 describe('NetworkPageComponent', () => {
   let component: NetworkPageComponent;
@@ -27,12 +25,7 @@ describe('NetworkPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        PagesModule,
-        TranslateModule.forRoot()
-      ]
+      imports: [PagesModule, TestingModule, TranslateModule.forRoot()]
     }).compileComponents();
   });
 

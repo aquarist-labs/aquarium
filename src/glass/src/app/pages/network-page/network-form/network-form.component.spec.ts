@@ -16,10 +16,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
 
+import { NetworkFormComponent } from '~/app/pages/network-page/network-form/network-form.component';
 import { PagesModule } from '~/app/pages/pages.module';
 import { TestingModule } from '~/app/testing.module';
-
-import { NetworkFormComponent } from './network-form.component';
 
 describe('NetworkFormComponent', () => {
   let component: NetworkFormComponent;

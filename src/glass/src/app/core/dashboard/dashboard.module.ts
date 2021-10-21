@@ -12,13 +12,11 @@ import { HealthDashboardWidgetComponent } from '~/app/core/dashboard/widgets/hea
 import { LoadDashboardWidgetComponent } from '~/app/core/dashboard/widgets/load-dashboard-widget/load-dashboard-widget.component';
 import { MemoryDashboardWidgetComponent } from '~/app/core/dashboard/widgets/memory-dashboard-widget/memory-dashboard-widget.component';
 import { SysInfoDashboardWidgetComponent } from '~/app/core/dashboard/widgets/sys-info-dashboard-widget/sys-info-dashboard-widget.component';
-import { VolumesDashboardWidgetComponent } from '~/app/core/dashboard/widgets/volumes-dashboard-widget/volumes-dashboard-widget.component';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
   declarations: [
     EventsDashboardWidgetComponent,
-    VolumesDashboardWidgetComponent,
     HealthDashboardWidgetComponent,
     SysInfoDashboardWidgetComponent,
     MemoryDashboardWidgetComponent,
@@ -27,7 +25,6 @@ import { SharedModule } from '~/app/shared/shared.module';
   ],
   exports: [
     EventsDashboardWidgetComponent,
-    VolumesDashboardWidgetComponent,
     HealthDashboardWidgetComponent,
     SysInfoDashboardWidgetComponent,
     MemoryDashboardWidgetComponent,

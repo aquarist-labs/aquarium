@@ -16,12 +16,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { PagesModule } from '~/app/pages/pages.module';
-import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
+import { StorageDevicesPageComponent } from '~/app/pages/storage-devices-page/storage-devices-page.component';
 import { TestingModule } from '~/app/testing.module';
 
-describe('UsersPageComponent', () => {
-  let component: UsersPageComponent;
-  let fixture: ComponentFixture<UsersPageComponent>;
+describe('StorageDevicesPageComponent', () => {
+  let component: StorageDevicesPageComponent;
+  let fixture: ComponentFixture<StorageDevicesPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,7 +30,7 @@ describe('UsersPageComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UsersPageComponent);
+    fixture = TestBed.createComponent(StorageDevicesPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

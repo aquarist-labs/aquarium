@@ -17,9 +17,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ToastrModule } from 'ngx-toastr';
 
 import { PagesModule } from '~/app/pages/pages.module';
+import { UsersFormComponent } from '~/app/pages/users-page/users-form/users-form.component';
 import { TestingModule } from '~/app/testing.module';
-
-import { UsersFormComponent } from './users-form.component';
 
 describe('UsersFormComponent', () => {
   let component: UsersFormComponent;

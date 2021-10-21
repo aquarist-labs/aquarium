@@ -17,7 +17,7 @@ import { Component } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { EChartsOption } from 'echarts';
 import * as _ from 'lodash';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { bytesToSize, toBytes } from '~/app/functions.helper';
@@ -27,6 +27,7 @@ import {
   DevicesService,
   DeviceUtilization
 } from '~/app/shared/services/api/devices.service';
+import { LocalNodeService } from '~/app/shared/services/api/local.service';
 
 type Data = {
   name: string;
@@ -105,7 +106,7 @@ export class DeviceUtilizationDashboardWidgetComponent {
     ]
   };
 
-  constructor(private devicesService: DevicesService) {}
+  constructor(private devicesService: DevicesService, private localNodeService: LocalNodeService) {}
 
   updateData(deviceHost: DeviceHost) {
     const data: Array<Data> = [];
@@ -125,7 +126,10 @@ export class DeviceUtilizationDashboardWidgetComponent {
   }
 
   loadData(): Observable<DeviceHost> {
-    return this.devicesService.list().pipe(map((data) => _.get(_.values(data), 0)));
+    return forkJoin({
+      inventory: this.localNodeService.inventory(),
+      devices: this.devicesService.list()
+    }).pipe(map((res) => _.get(res.devices, res.inventory.hostname)));
   }
 
   getPaletteIndex(percent: number) {
