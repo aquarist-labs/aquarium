@@ -110,24 +110,6 @@ if [ "$(findmnt -snT / -o SOURCE)" != "$(findmnt -snT /var -o SOURCE)" ]; then
 fi
 EOF
 
-
-#=====================================
-# MircoOS added - ONIE additions
-#-------------------------------------
-if [[ "$kiwi_profiles" == *"onie"* ]]; then
-	systemctl enable onie-adjust-boottype
-	# For testing:
-	echo root:linux | chpasswd
-	systemctl enable salt-minion
-
-	cat >>/etc/fstab.script <<"EOF"
-# Grow the root filesystem. / is mounted read-only, so use /var instead.
-gawk -i inplace '$2 == "/var" { $4 = $4",x-growpart.grow,x-systemd.growfs" } { print $0 }' /etc/fstab
-# Remove the entry for the EFI partition
-gawk -i inplace '$2 != "/boot/efi"' /etc/fstab
-EOF
-fi
-
 #=====================================
 # MircoOS added - fstab finish
 #-------------------------------------
@@ -172,39 +154,6 @@ if rpm -q ignition-dracut-grub2; then
 	mv /usr/lib/dracut/modules.d/40network/module-setup.sh{,.orig}
 	sed 's#echo "kernel-network-modules $network_handler"$#echo kernel-network-modules network-legacy; mv /usr/lib/dracut/modules.d/40network/module-setup.sh{.orig,}#' \
 		/usr/lib/dracut/modules.d/40network/module-setup.sh.orig > /usr/lib/dracut/modules.d/40network/module-setup.sh
-fi
-
-
-#======================================
-# MicroOS added - Configure Pine64 
-#--------------------------------------
-if [[ "$kiwi_profiles" == *"Pine64"* ]]; then
-	echo 'add_drivers+=" fixed sunxi-mmc axp20x-regulator axp20x-rsb "' > /etc/dracut.conf.d/sunxi_modules.conf
-fi
-
-#======================================
-# MicroOS added - Configure Raspberry Pi
-# on TW it is done by raspberrypi-firmware
-#--------------------------------------
-if [[ "$kiwi_profiles" == *"RaspberryPi"* ]] && ! [[ -e /usr/lib/dracut/dracut.conf.d/raspberrypi_modules.conf ]]; then
-	# Add necessary kernel modules to initrd see 
-	# https://bugzilla.suse.com/show_bug.cgi?id=1084272
-	echo 'add_drivers+=" bcm2835_dma dwc2 "' > /etc/dracut.conf.d/raspberrypi_modules.conf
-
-	# Add necessary kernel modules to initrd 
-	# https://bugzilla.suse.com/show_bug.cgi?id=1162669
-	echo 'add_drivers+=" pcie-brcmstb "' >> /etc/dracut.conf.d/raspberrypi_modules.conf
-
-	# Work around network issues
-  	cat > /etc/modprobe.d/50-rpi3.conf <<-EOF
-		# Prevent too many page allocations (bsc#1012449)
-		options smsc95xx turbo_mode=N
-	EOF
-
-	cat > /usr/lib/sysctl.d/50-rpi3.conf <<-EOF
-		# Avoid running out of DMA pages for smsc95xx (bsc#1012449)
-		vm.min_free_kbytes = 2048
-	EOF
 fi
 
 #======================================
