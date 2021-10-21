@@ -217,7 +217,8 @@ if [[ "$kiwi_profiles" == *"Vagrant"* ]]; then
 fi
 
 pip install fastapi==0.63.0 uvicorn==0.13.3 websockets==8.1 \
-    bcrypt==3.2.0 pyjwt==2.1.0 python-multipart==0.0.5 toml==0.10.2
+    bcrypt==3.2.0 pyjwt==2.1.0 python-multipart==0.0.5 toml==0.10.2 \
+    psutil==5.8.0
 
 #======================================
 # Activate services
