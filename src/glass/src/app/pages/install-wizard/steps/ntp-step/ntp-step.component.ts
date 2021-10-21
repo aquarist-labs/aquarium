@@ -80,7 +80,7 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
         value: true,
         hint: TEXT(
           // eslint-disable-next-line max-len
-          'If you don not have your own NTP host configured, you can use an NTP server pool (pool.ntp.org) on the internet.<br><b>Please note:</b> This option requires access to the internet.'
+          'If you do not have your own NTP host configured, you can use an NTP server pool (pool.ntp.org) on the internet.<br><b>Please note:</b> This option requires access to the internet.'
         )
       }
     ]
