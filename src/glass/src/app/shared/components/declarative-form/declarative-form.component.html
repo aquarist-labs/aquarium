@@ -30,7 +30,8 @@
             <div class="form-group"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
-                     class="col-form-label">
+                     class="col-form-label"
+                     [ngClass]="{'required': field.validators?.required!}">
                 {{ field.label | translate }}
               </label>
               <div class="input-group">
@@ -97,7 +98,8 @@
             <div class="form-group"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
-                     class="col-form-label">
+                     class="col-form-label"
+                     [ngClass]="{'required': field.validators?.required!}">
                 {{ field.label | translate }}
               </label>
               <div class="input-group">
@@ -160,7 +162,8 @@
             <div class="form-group"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
-                     class="col-form-label">
+                     class="col-form-label"
+                     [ngClass]="{'required': field.validators?.required!}">
                 {{ field.label | translate }}
               </label>
               <div class="input-group">
@@ -222,6 +225,7 @@
                        [checked]="field.value"
                        [required]="field.validators?.required!">
                 <label class="form-check-label"
+                       [ngClass]="{'required': field.validators?.required!}"
                        [for]="field.id">
                   {{ field.label! | translate }}
                 </label>
@@ -269,7 +273,8 @@
             <div class="form-group"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
-                     class="col-form-label">
+                     class="col-form-label"
+                     [ngClass]="{'required': field.validators?.required!}">
                 {{ field.label | translate }}
               </label>
               <select class="form-control"
@@ -302,7 +307,8 @@
             <div class="form-group"
                  [class]="field.groupClass">
               <label *ngIf="field.label"
-                     class="col-form-label">
+                     class="col-form-label"
+                     [ngClass]="{'required': field.validators?.required!}">
                 {{ field.label | translate }}
               </label>
               <div class="input-group">
