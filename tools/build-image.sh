@@ -28,7 +28,6 @@ options:
   -n NAME | --name NAME     Specify build name (default: aquarium).
   -c | --clean              Cleanup an existing build directory before building.
   -t | --type IMGTYPE       Specify image type (default: vagrant).
-  -b | --base OSTYPE        Specify OS type (default: Tumbleweed).
   --rootdir PATH            Path to repository's root.
   --buildsdir PATH          Path to output builds directory.
   --cachedir PATH           Path to kiwi's shared cache directory.
@@ -40,10 +39,6 @@ allowed image types:
   self-install              Builds an image to be run on bare metal.
   live-iso                  Builds an live iso with persistent storage
                             on bare metal.
-
-allowed OS Types:
-  Tumbleweed                Builds a Tumbleweed base image.
-  MicroOS                   Builds a MicroOS base image.
 
 EOF
 
@@ -61,7 +56,6 @@ error_exit() {
 }
 
 imgtype="vagrant"
-ostype="Tumbleweed"
 build_name="aquarium"
 clean=0
 
@@ -79,10 +73,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -t|--type)
       imgtype=$2
-      shift 1
-      ;;
-    -b|--base)
-      ostype=$2
       shift 1
       ;;
     --rootdir)
@@ -134,38 +124,17 @@ srcdir=${rootdir}/src
   usage_error_exit "image type must be provided"
 
 profile=""
-case ${ostype} in 
-    Tumbleweed)
-        kiwi_conf_dir=aquarium
-        case ${imgtype} in
-            vagrant) profile="Ceph-Vagrant-libvirt" type="oem";;
-            virtualbox) profile="Ceph-Vagrant-VirtualBox" type="oem";;
-            self-install) profile="Ceph" type="oem";;
-            live-iso) profile="Ceph" type="iso";;
-            *)
-                usage_error_exit "unknown image type: '${imgtype}'"
-            ;;
-        esac
-	;;
-    MicroOS)
-        kiwi_conf_dir=MicroOS
-        case ${imgtype} in
-            vagrant) profile="ContainerHost-Vagrant" type="oem";;
-            virtualbox) profile="VirtualBox" type="oem";;
-            self-install) profile="ContainerHost-SelfInstall" type="oem";;
-            *)
-                usage_error_exit "unknown image type: '${imgtype}'"
-            ;;
-        esac
-    ;;
+case ${imgtype} in
+    vagrant) profile="ContainerHost-Vagrant" type="oem";;
+    virtualbox) profile="VirtualBox" type="oem";;
+    self-install) profile="ContainerHost-SelfInstall" type="oem";;
     *)
-        usage_error_exit "unknown OS type: '${ostype}'"
+        usage_error_exit "unknown image type: '${imgtype}'"
     ;;
 esac
 
 [[ -z "${profile}" ]] && \
   usage_error_exit "bad image type: '${imgtype}"
-
 
 
 if ! kiwi-ng --version &>/dev/null ; then
@@ -209,18 +178,18 @@ popd
 rm -rf ${tmpdir}
 
 # Extra files needed in system root
-pushd ${imgdir}/${kiwi_conf_dir}/root
+pushd ${imgdir}/aquarium/root
 tar --owner root --group root -czf ${build}/root.tar.gz .
 popd
 
 # Extra files needed in system root for live image
-pushd ${imgdir}/${kiwi_conf_dir}/aquarium_root
+pushd ${imgdir}/aquarium/aquarium_root
 tar --owner root --group root -czf ${build}/aquarium_user.tar.gz .
 popd
 
 
-cp ${imgdir}/${kiwi_conf_dir}/config.{sh,xml} \
-   ${imgdir}/${kiwi_conf_dir}/disk.sh \
+cp ${imgdir}/aquarium/config.{sh,xml} \
+   ${imgdir}/aquarium/disk.sh \
    ${build}/
 
 mkdir ${build}/{_out,_logs}
