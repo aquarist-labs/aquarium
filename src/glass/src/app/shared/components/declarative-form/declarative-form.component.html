@@ -372,6 +372,20 @@
               </div>
             </div>
           </ng-template>
+
+          <ng-template [ngSwitchCase]="'paragraph'">
+            <div class="form-paragraph">
+              <div *ngIf="field.title"
+                   class="title">
+                {{ field.title | translate }}
+              </div>
+              <hr *ngIf="field.hasDivider">
+              <div *ngIf="field.text"
+                   class="text">
+                {{ field.text | translate }}
+              </div>
+            </div>
+          </ng-template>
         </ng-container>
       </ng-template>
     </ng-container>
