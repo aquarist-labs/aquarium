@@ -214,6 +214,14 @@ if [[ "$kiwi_profiles" == *"Vagrant"* ]]; then
 	# insert the default insecure ssh key from here:
 	# https://github.com/hashicorp/vagrant/blob/master/keys/vagrant.pub
 	baseVagrantSetup
+
+ 	# Newer kiwi (9.24) puts vagrant-specific config in 99-vagrant.conf
+	SSHD_CONFIG=/etc/ssh/sshd_config.d/99-vagrant.conf
+	if [[ ! -e "$SSHD_CONFIG" ]] ; then
+		# Older kiwi (9.23) puts vagrant-specific config in sshd_config
+		SSHD_CONFIG=/etc/ssh/sshd_config
+	fi
+	echo -e "HostkeyAlgorithms +ssh-rsa\nPubkeyAcceptedAlgorithms +ssh-rsa" >> ${SSHD_CONFIG}
 fi
 
 pip install fastapi==0.63.0 uvicorn==0.13.3 websockets==8.1 \
