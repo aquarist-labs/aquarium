@@ -13,7 +13,7 @@ describe('Dive into Aquarium', () => {
     cy.contains('Start');
     cy.contains('Networking');
     cy.contains('Time');
-    cy.contains('Devices');
+    cy.contains('Storage');
     cy.contains('Installation');
     cy.contains('Finish');
     cy.contains('Next');
