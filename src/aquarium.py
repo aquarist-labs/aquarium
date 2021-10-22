@@ -183,4 +183,4 @@ def app_factory():
 
 
 if __name__ == "__main__":
-    uvicorn.run("aquarium:app_factory", host="0.0.0.0", port=1337, factory=True)
+    uvicorn.run("aquarium:app_factory", host="0.0.0.0", port=80, factory=True)

@@ -53,7 +53,7 @@ export class RegistrationStepComponent implements AfterViewInit, OnDestroy {
         name: 'port',
         type: 'number',
         label: TEXT('Port'),
-        value: 1337,
+        value: 80,
         validators: {
           required: true,
           min: 1,

@@ -83,7 +83,7 @@ class HTTPSession:
 
 
 @asynccontextmanager
-async def conn(port: int = 1337, login=False, username="admin", password="aquarium"):
+async def conn(port: int = 80, login=False, username="admin", password="aquarium"):
     clientsession = None
     try:
         clientsession = aiohttp.ClientSession()
