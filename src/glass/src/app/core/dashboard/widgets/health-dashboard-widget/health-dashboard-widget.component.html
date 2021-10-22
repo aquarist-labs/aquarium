@@ -3,15 +3,22 @@
               [setStatus]="setHealthStatusIndicator.bind(this)"
               (loadDataEvent)="setHealthStatus($event)">
   <div class="glass-health-dashboard-widget d-flex align-items-center justify-content-center p-2"
+       [class.glass-color-theme-info]="!hasStatus"
        [class.glass-color-theme-ok]="isOkay"
        [class.glass-color-theme-error]="isError || !hasStatus"
        [class.glass-color-theme-warn]="isWarn">
     <i *ngIf="isOkay"
-       class="mdi mdi-thumb-up"></i>
+       class="mdi mdi-thumb-up">
+    </i>
     <i *ngIf="isError"
-       class="mdi mdi-thumb-down"></i>
+       class="mdi mdi-thumb-down">
+    </i>
     <i *ngIf="isWarn"
-       class="mdi mdi-alert-circle-outline"></i>
+       class="mdi mdi-alert-circle-outline">
+    </i>
+    <i *ngIf="!hasStatus"
+       class="mdi mdi-help-circle-outline">
+    </i>
     <span class="ml-2">{{ statusText }}</span>
   </div>
 </glass-widget>

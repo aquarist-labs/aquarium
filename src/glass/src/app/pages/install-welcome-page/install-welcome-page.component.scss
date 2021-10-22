@@ -2,6 +2,7 @@
 
 .card {
   width: 80%;
+  min-width: 35rem;
 
   .card-actions {
     @extend .float-right;

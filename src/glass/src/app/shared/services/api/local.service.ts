@@ -21,7 +21,7 @@ import { map } from 'rxjs/operators';
 export enum DiskRejectionReasonEnum {
   InUse = 1,
   TooSmall = 2,
-  RemovableDevice = 3,
+  RemovableDevice = 3
 }
 
 export type Disk = {

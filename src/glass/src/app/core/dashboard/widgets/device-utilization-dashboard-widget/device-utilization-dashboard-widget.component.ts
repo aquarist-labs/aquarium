@@ -105,12 +105,13 @@ export class DeviceUtilizationDashboardWidgetComponent {
       }
     ]
   };
+  hasData = false;
 
   constructor(private devicesService: DevicesService, private localNodeService: LocalNodeService) {}
 
-  updateData(deviceHost: DeviceHost) {
+  updateData(devices: Device[]) {
     const data: Array<Data> = [];
-    _.forEach(deviceHost.devices, (device: Device) => {
+    _.forEach(devices, (device: Device) => {
       const value = device.utilization.utilization;
       const index = this.getPaletteIndex(value);
       data.push({
@@ -122,14 +123,20 @@ export class DeviceUtilizationDashboardWidgetComponent {
         }
       });
     });
+    this.hasData = data.length > 0;
     _.set(this.options, 'series[0].data', data);
   }
 
-  loadData(): Observable<DeviceHost> {
+  loadData(): Observable<Device[]> {
     return forkJoin({
       inventory: this.localNodeService.inventory(),
       devices: this.devicesService.list()
-    }).pipe(map((res) => _.get(res.devices, res.inventory.hostname)));
+    }).pipe(
+      map((res) => {
+        const deviceHost: DeviceHost = _.get(res.devices, res.inventory.hostname);
+        return deviceHost?.devices ?? [];
+      })
+    );
   }
 
   getPaletteIndex(percent: number) {

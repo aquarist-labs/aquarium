@@ -18,17 +18,17 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import {
+  DatatableCellTemplateName,
+  DatatableColumn
+} from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { Disk, DiskRejectionReasonEnum } from '~/app/shared/services/api/local.service';
-import {
-  DiskSolution,
-  NodesService
-} from '~/app/shared/services/api/nodes.service';
+import { DiskSolution, NodesService } from '~/app/shared/services/api/nodes.service';
 
 type TableEntry = {
   path?: string;
-  type: string;
+  rotational: boolean;
   size: number;
   useAs: string;
   isSystemDisk: boolean;
@@ -58,7 +58,14 @@ export class LocalDevicesStepComponent implements OnInit {
     },
     {
       name: TEXT('Type'),
-      prop: 'type'
+      prop: 'rotational',
+      cellTemplateName: DatatableCellTemplateName.badge,
+      cellTemplateConfig: {
+        map: {
+          true: { value: TEXT('HDD'), class: 'glass-color-theme-gray-600' },
+          false: { value: TEXT('NVMe/SSD'), class: 'glass-color-theme-yellow-500' }
+        }
+      }
     },
     {
       name: TEXT('Size'),
@@ -108,18 +115,11 @@ export class LocalDevicesStepComponent implements OnInit {
   }
 
   private consumeDisk(disk: Disk): TableEntry {
-    let typeStr = translate(TEXT('Unknown'));
-    if (disk.rotational) {
-      typeStr = translate(TEXT('HDD'));
-    } else {
-      typeStr = translate(TEXT('SSD'));
-    }
-
     const rejectReasons: string[] = this.getRejectedReasons(disk);
     return {
       path: disk.path,
       size: disk.size,
-      type: typeStr,
+      rotational: disk.rotational,
       useAs: translate(TEXT('N/A')),
       isAvailable: false,
       isSystemDisk: false,
