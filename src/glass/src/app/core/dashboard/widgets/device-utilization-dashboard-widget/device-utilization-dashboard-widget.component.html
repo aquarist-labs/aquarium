@@ -1,9 +1,16 @@
 <glass-widget [loadData]="loadData.bind(this)"
               widgetTitle="{{ 'Storage Utilization' | translate }}"
               (loadDataEvent)="updateData($event)">
-  <div class="glass-device-utilization-dashboard-widget"
-       echarts
-       [initOpts]="initOpts"
-       [options]="options">
+  <div class="glass-device-utilization-dashboard-widget">
+    <div *ngIf="hasData"
+         class="graph"
+         echarts
+         [initOpts]="initOpts"
+         [options]="options">
+    </div>
+    <div *ngIf="!hasData"
+         class="d-flex align-items-center justify-content-center text-muted m-2">
+      <span translate>No data available.</span>
+    </div>
   </div>
 </glass-widget>

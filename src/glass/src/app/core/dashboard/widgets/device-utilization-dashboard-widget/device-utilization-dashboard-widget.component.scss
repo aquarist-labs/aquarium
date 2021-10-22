@@ -1,5 +1,7 @@
 .glass-device-utilization-dashboard-widget {
-  max-height: 152px;
-  min-height: 152px;
-  overflow: hidden;
+  .graph {
+    max-height: 152px;
+    min-height: 152px;
+    overflow: hidden;
+  }
 }

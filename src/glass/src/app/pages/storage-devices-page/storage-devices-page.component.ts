@@ -61,13 +61,12 @@ export class StorageDevicesPageComponent {
       },
       {
         name: TEXT('Type'),
-        prop: 'human_readable_type',
+        prop: 'rotational',
         cellTemplateName: DatatableCellTemplateName.badge,
         cellTemplateConfig: {
           map: {
-            hdd: { value: TEXT('HDD'), class: 'glass-color-theme-gray-600' },
-            ssd: { value: TEXT('SSD'), class: 'glass-color-theme-cerulean-500' },
-            'nvme/ssd': { value: TEXT('NVMe/SSD'), class: 'glass-color-theme-yellow-500' }
+            true: { value: TEXT('HDD'), class: 'glass-color-theme-gray-600' },
+            false: { value: TEXT('NVMe/SSD'), class: 'glass-color-theme-yellow-500' }
           }
         }
       },
