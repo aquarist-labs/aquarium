@@ -25,10 +25,10 @@ from fastapi.staticfiles import StaticFiles
 from gravel.api import auth, devices, local, nodes, orch, status, users
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.gstate import GlobalState, setup_logging
+from gravel.controllers.inventory.inventory import Inventory
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
 from gravel.controllers.resources.devices import Devices
-from gravel.controllers.resources.inventory import Inventory
 from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
 
@@ -47,7 +47,7 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     nodemgr: NodeMgr = NodeMgr(gstate)
 
     # Prep cephadm
-    cephadm: Cephadm = Cephadm()
+    cephadm: Cephadm = Cephadm(gstate.config.options.containers)
     gstate.add_cephadm(cephadm)
 
     # Set up Ceph connections

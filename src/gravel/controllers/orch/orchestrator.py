@@ -69,7 +69,7 @@ class Orchestrator:
     def assimilate_devices(self, host: str, devices: List[str]) -> None:
         spec = {
             "service_type": "osd",
-            "service_id": "default_drive_group",
+            "service_id": f"aquarium_drivegroup_{host}",
             "placement": {"hosts": [host]},
             "data_devices": {"paths": devices},
         }

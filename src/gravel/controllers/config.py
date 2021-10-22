@@ -59,12 +59,27 @@ class AuthOptionsModel(BaseModel):
     )
 
 
+class ContainersOptionsModel(BaseModel):
+    registry: str = Field("registry.opensuse.org", title="Registry to use")
+    image: str = Field(
+        "filesystems/ceph/master/upstream/images/opensuse/ceph/ceph:latest",
+        title="Container image",
+    )
+    secure: bool = Field(True, title="Whether the registry is secure")
+
+    def get_image(self) -> str:
+        assert self.registry is not None and len(self.registry) > 0
+        assert self.image is not None and len(self.image) > 0
+        return f"{self.registry}/{self.image}"
+
+
 class OptionsModel(BaseModel):
     inventory: InventoryOptionsModel = Field(InventoryOptionsModel())
     storage: StorageOptionsModel = Field(StorageOptionsModel())
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
     auth: AuthOptionsModel = Field(AuthOptionsModel())
+    containers: ContainersOptionsModel = Field(ContainersOptionsModel())
 
 
 class ConfigModel(BaseModel):

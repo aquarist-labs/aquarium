@@ -11,64 +11,25 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from enum import Enum
 from logging import Logger
 from typing import List, Optional, Tuple
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.disks import DiskDevice
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 
 logger: Logger = fastapi_logger
 
 
-class DiskTypeEnum(int, Enum):
-    NONE = 0
-    HDD = 1
-    SSD = 2
-
-
-class DiskInfoModel(BaseModel):
-    vendor: str = Field("", title="disk's manufacturer")
-    model: str = Field("", title="disk's model")
-
-
-class DiskModel(BaseModel):
-    path: Optional[str] = Field(None, title="disk's device path")
-    size: int = Field(0, title="size in bytes")
-    type: DiskTypeEnum = Field(DiskTypeEnum.NONE, title="disk type")
-    info: DiskInfoModel = Field(
-        DiskInfoModel(), title="additional info about disk"
-    )
-
-
-class RejectedDiskModel(BaseModel):
-    disk: DiskModel = Field(title="rejected disk")
-    reasons: List[str] = Field([], title="reasons for rejection")
-
-
 class DiskSolution(BaseModel):
-    systemdisk: Optional[DiskModel] = Field(None, title="chosen system disk")
-    storage: List[DiskModel] = Field([], title="chosen storage disks")
+    systemdisk: Optional[DiskDevice] = Field(None, title="chosen system disk")
+    storage: List[DiskDevice] = Field([], title="chosen storage disks")
     storage_size: int = Field(0, title="total size for storage, in bytes")
-    rejected: List[RejectedDiskModel] = Field([], title="rejected disks")
+    rejected: List[DiskDevice] = Field([], title="rejected disks")
     possible: bool = Field(False, title="deployment possible")
-
-
-def _device_to_disk(device: VolumeDeviceModel) -> DiskModel:
-    def _get_disk_type(rotational: bool) -> DiskTypeEnum:
-        return DiskTypeEnum.HDD if rotational else DiskTypeEnum.SSD
-
-    return DiskModel(
-        path=device.path,
-        size=device.sys_api.size,
-        type=_get_disk_type(device.sys_api.rotational),
-        info=DiskInfoModel(
-            vendor=device.sys_api.vendor, model=device.sys_api.model
-        ),
-    )
 
 
 class Disks:
@@ -81,37 +42,37 @@ class Disks:
         nodeinfo: Optional[NodeInfoModel] = gstate.inventory.latest
         assert nodeinfo
 
-        hdds: List[VolumeDeviceModel] = []
-        ssds: List[VolumeDeviceModel] = []
-        rejected: List[VolumeDeviceModel] = []
+        hdds: List[DiskDevice] = []
+        ssds: List[DiskDevice] = []
+        rejected: List[DiskDevice] = []
 
         for device in nodeinfo.disks:
             if not device.available:
                 rejected.append(device)
                 continue
 
-            if device.sys_api.rotational:
+            if device.rotational:
                 hdds.append(device)
             else:
                 ssds.append(device)
 
         def _get_candidates(
-            lst: List[VolumeDeviceModel],
-        ) -> Tuple[Optional[VolumeDeviceModel], List[VolumeDeviceModel]]:
-            systemdisk: Optional[VolumeDeviceModel] = None
-            storage: List[VolumeDeviceModel] = []
+            lst: List[DiskDevice],
+        ) -> Tuple[Optional[DiskDevice], List[DiskDevice]]:
+            systemdisk: Optional[DiskDevice] = None
+            storage: List[DiskDevice] = []
             for entry in lst:
                 if not systemdisk:
                     systemdisk = entry
-                elif systemdisk.sys_api.size > entry.sys_api.size:
+                elif systemdisk.size > entry.size:
                     storage.append(systemdisk)
                     systemdisk = entry
                 else:
                     storage.append(entry)
             return systemdisk, storage
 
-        candidate_storage: List[VolumeDeviceModel] = []
-        candidate_systemdisk: Optional[VolumeDeviceModel] = None
+        candidate_storage: List[DiskDevice] = []
+        candidate_systemdisk: Optional[DiskDevice] = None
         candidate_systemdisk_hdd, hdd_lst = _get_candidates(hdds)
         candidate_systemdisk_ssd, ssd_lst = _get_candidates(ssds)
 
@@ -130,23 +91,16 @@ class Disks:
 
         solution = DiskSolution()
         solution.possible = candidate_systemdisk is not None
-
-        for device in rejected:
-            solution.rejected.append(
-                RejectedDiskModel(
-                    disk=_device_to_disk(device),
-                    reasons=device.rejected_reasons,
-                )
-            )
+        solution.rejected = rejected
 
         if not candidate_systemdisk:
             return solution
 
-        solution.systemdisk = _device_to_disk(candidate_systemdisk)
+        solution.systemdisk = candidate_systemdisk
+        solution.storage = candidate_storage
         total_storage = 0
         for device in candidate_storage:
-            solution.storage.append(_device_to_disk(device))
-            total_storage += device.sys_api.size
+            total_storage += device.size
         solution.storage_size = total_storage
 
         return solution

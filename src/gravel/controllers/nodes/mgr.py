@@ -23,10 +23,10 @@ from fastapi import status
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.cephadm.cephadm import CephadmError
-from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.auth import UserMgr, UserModel
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
+from gravel.controllers.inventory.subscriber import Subscriber
 from gravel.controllers.nodes.conn import (
     ConnMgr,
     IncomingConnection,
@@ -34,6 +34,7 @@ from gravel.controllers.nodes.conn import (
 )
 from gravel.controllers.nodes.deployment import (
     DeploymentConfig,
+    DeploymentContainerConfig,
     DeploymentDisksConfig,
     DeploymentState,
     NodeDeployment,
@@ -59,7 +60,6 @@ from gravel.controllers.nodes.messages import (
 )
 from gravel.controllers.orch.ceph import CephCommandError, Mon
 from gravel.controllers.orch.orchestrator import Orchestrator, OrchHostListModel
-from gravel.controllers.resources.inventory_sub import Subscriber
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
@@ -122,12 +122,21 @@ class JoiningNodeModel(BaseModel):
     address: str
 
 
+class DeployRegistryModel(BaseModel):
+    registry: str = Field(title="Registry URL")
+    secure: bool = Field(title="The registry is secure")
+    image: str = Field("opensuse/bubbles:master", title="Image to use")
+
+
 class DeployParamsBaseModel(BaseModel):
     hostname: str = Field(title="Hostname to use for this node")
 
 
 class DeployParamsModel(DeployParamsBaseModel):
     ntpaddr: str = Field(title="NTP address to be used")
+    registry: Optional[DeployRegistryModel] = Field(
+        None, title="Custom registry"
+    )
 
 
 class JoinParamsModel(DeployParamsBaseModel):
@@ -200,19 +209,6 @@ class NodeMgr:
     async def shutdown(self) -> None:
         pass
 
-    async def _obtain_images(self) -> bool:
-        cephadm = self.gstate.cephadm
-        try:
-            # Since removing etcd this gather structure is redundant
-            # (we're only invoking one awaitable), but I've left it
-            # here anyway in case it turns out we want to add other
-            # container images in future.
-            await asyncio.gather(cephadm.pull_images())
-        except CephadmError as e:
-            logger.error(f"unable to fetch ceph containers: {str(e)}")
-            return False
-        return True
-
     async def _node_prepare(self) -> None:
         async def _inventory_subscriber(nodeinfo: NodeInfoModel) -> None:
             logger.debug(f"inventory subscriber > node info: {nodeinfo}")
@@ -222,9 +218,7 @@ class NodeMgr:
                 await self._node_prestart()
 
         async def _task() -> None:
-            if not await self._obtain_images():
-                # xxx: find way to shutdown here?
-                return
+            logger.debug("subscribe inventory updates")
             self._inventory_sub = await self.gstate.inventory.subscribe(
                 _inventory_subscriber, once=False
             )
@@ -381,6 +375,14 @@ class NodeMgr:
         self._token = self._generate_token()
         assert self._state.address
 
+        ctrcfg: Optional[DeploymentContainerConfig] = None
+        if params.registry is not None:
+            ctrcfg = DeploymentContainerConfig(
+                url=params.registry.registry,
+                secure=params.registry.secure,
+                image=params.registry.image,
+            )
+
         logger.info("deploy node")
         await self._deployment.deploy(
             DeploymentConfig(
@@ -389,6 +391,7 @@ class NodeMgr:
                 token=self._token,
                 ntp_addr=params.ntpaddr,
                 disks=disks,
+                container=ctrcfg,
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment,
@@ -453,6 +456,17 @@ class NodeMgr:
         )
         if not res:
             logger.error("unable to disable insecure global id reclaim")
+
+        ctrcfg = self.gstate.config.options.containers
+        ctrimage = ctrcfg.get_image()
+        assert ctrimage is not None and len(ctrimage) > 0
+        res = mon.config_set("global", "container_image", ctrimage)
+        if not res:
+            logger.error("unable to set global container image")
+
+        res = mon.module_enable("bubbles")
+        if not res:
+            logger.error("unable to start bubbles")
 
     async def finish_deployment(self) -> None:
         assert self._state

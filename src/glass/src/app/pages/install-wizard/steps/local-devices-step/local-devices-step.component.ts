@@ -20,12 +20,10 @@ import { translate } from '~/app/i18n.helper';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
+import { Disk, DiskRejectionReasonEnum } from '~/app/shared/services/api/local.service';
 import {
-  Disk,
   DiskSolution,
-  DiskTypeEnum,
-  NodesService,
-  RejectedDisk
+  NodesService
 } from '~/app/shared/services/api/nodes.service';
 
 type TableEntry = {
@@ -99,10 +97,9 @@ export class LocalDevicesStepComponent implements OnInit {
           entry.useAs = translate(TEXT('Storage'));
           entries.push(entry);
         });
-        solution.rejected.forEach((rejected: RejectedDisk) => {
-          const entry = this.consumeDisk(rejected.disk);
+        solution.rejected.forEach((rejected: Disk) => {
+          const entry = this.consumeDisk(rejected);
           entry.isAvailable = false;
-          entry.rejectedReasons = rejected.reasons;
           entries.push(entry);
         });
         this.disks = entries;
@@ -112,11 +109,13 @@ export class LocalDevicesStepComponent implements OnInit {
 
   private consumeDisk(disk: Disk): TableEntry {
     let typeStr = translate(TEXT('Unknown'));
-    if (disk.type === DiskTypeEnum.hdd) {
+    if (disk.rotational) {
       typeStr = translate(TEXT('HDD'));
-    } else if (disk.type === DiskTypeEnum.ssd) {
+    } else {
       typeStr = translate(TEXT('SSD'));
     }
+
+    const rejectReasons: string[] = this.getRejectedReasons(disk);
     return {
       path: disk.path,
       size: disk.size,
@@ -125,7 +124,27 @@ export class LocalDevicesStepComponent implements OnInit {
       isAvailable: false,
       isSystemDisk: false,
       isStorageDisk: false,
-      rejectedReasons: []
+      rejectedReasons: rejectReasons
     };
+  }
+
+  private getRejectedReasons(disk: Disk): string[] {
+    const reasons: string[] = [];
+    disk.rejected_reasons.forEach((reason: DiskRejectionReasonEnum) => {
+      switch (reason) {
+        case DiskRejectionReasonEnum.InUse:
+          reasons.push(translate(TEXT('Currently being used')));
+          break;
+        case DiskRejectionReasonEnum.TooSmall:
+          reasons.push(translate(TEXT('Disk is too small')));
+          break;
+        case DiskRejectionReasonEnum.RemovableDevice:
+          reasons.push(translate(TEXT('Disk is a removable device')));
+          break;
+        default:
+          reasons.push(translate(TEXT('Unknown reason for rejection')));
+      }
+    });
+    return reasons;
   }
 }

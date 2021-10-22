@@ -3,4 +3,4 @@ tracefs /sys/kernel/debug/tracing tracefs rw,nosuid,nodev,noexec,relatime 0 0
 sunrpc /var/lib/nfs/rpc_pipefs rpc_pipefs rw,relatime 0 0
 nfsd /proc/fs/nfsd nfsd rw,relatime 0 0
 binfmt_misc /proc/sys/fs/binfmt_misc binfmt_misc rw,nosuid,nodev,noexec,relatime 0 0
-/dev/mapper/aquarium-systemdisk /aquarium whatever whatever whatever
+/dev/mapper/aquarium-systemdisk /var/lib/aquarium-system whatever whatever whatever

@@ -11,18 +11,47 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 import asyncio
 import random
 import string
 from logging import Logger
 from pathlib import Path
-from typing import List, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 from fastapi.logger import logger as fastapi_logger
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 from pydantic.tools import parse_file_as
 
 logger: Logger = fastapi_logger
+
+
+class HWEntryModel(BaseModel):
+    id: str
+    cls: str
+    claimed: Optional[bool]
+    product: Optional[str]
+    vendor: Optional[str]
+    logicalname: Optional[Union[str, List[str]]]
+    configuration: Optional[Dict[str, Any]]
+    capabilities: Optional[Dict[str, Any]]
+    size: Optional[int]
+    units: Optional[str]
+    capacity: Optional[int]
+    children: Optional[List[HWEntryModel]]
+
+    @root_validator(pre=True)
+    def class_to_cls(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if "class" in values:
+            values["cls"] = values["class"]
+            del values["class"]
+        return values
+
+
+# ensure pydantic updates forward references, because we're using a
+# self-referencing model.
+HWEntryModel.update_forward_refs()
 
 
 def _get_file_path(dirpath: Path, name: str) -> Path:
@@ -80,3 +109,18 @@ def random_string(length: int) -> str:
     :return: Returns a random string.
     """
     return "".join(random.choices(string.printable, k=length))
+
+
+async def lshw() -> HWEntryModel:
+    cmd = ["lshw", "-json"]
+    process = await asyncio.create_subprocess_exec(
+        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    assert process.stdout
+    assert process.stderr
+
+    retcode = await asyncio.wait_for(process.wait(), None)
+    assert retcode == 0
+    out = await process.stdout.read()
+    outstr = out.decode("utf-8")
+    return HWEntryModel.parse_raw(outstr)

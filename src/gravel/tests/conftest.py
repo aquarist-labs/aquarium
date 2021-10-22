@@ -25,6 +25,7 @@ from fastapi import FastAPI
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
 from pytest_mock import MockerFixture
 
+from gravel.controllers.config import ContainersOptionsModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.kv import KV
 
@@ -181,6 +182,7 @@ async def aquarium_startup(
         from fastapi.logger import logger as fastapi_logger
 
         from gravel.cephadm.cephadm import Cephadm
+        from gravel.controllers.inventory.inventory import Inventory
         from gravel.controllers.nodes.deployment import NodeDeployment
         from gravel.controllers.nodes.errors import NodeCantDeployError
         from gravel.controllers.nodes.mgr import (
@@ -190,7 +192,6 @@ async def aquarium_startup(
         )
         from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
         from gravel.controllers.resources.devices import Devices
-        from gravel.controllers.resources.inventory import Inventory
         from gravel.controllers.resources.status import Status
         from gravel.controllers.resources.storage import Storage
 
@@ -229,9 +230,13 @@ async def aquarium_startup(
                 return True
 
         class FakeCephadm(Cephadm):
+            def __init__(self):
+                super().__init__(ContainersOptionsModel())
+
             async def call(
                 self,
                 cmd: List[str],
+                noimage: bool = False,
                 outcb: Optional[Callable[[str], None]] = None,
             ) -> Tuple[str, str, int]:
                 # Implement expected calls to cephadm with testable responses

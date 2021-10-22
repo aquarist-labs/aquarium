@@ -22,6 +22,11 @@ from uuid import UUID
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
+from gravel.controllers.containers import (
+    ContainerPullError,
+    container_pull,
+    set_registry,
+)
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError
@@ -32,7 +37,6 @@ from gravel.controllers.nodes.errors import (
     NodeCantDeployError,
     NodeCantJoinError,
     NodeChronyRestartError,
-    NodeError,
     NodeHasBeenDeployedError,
     NodeHasJoinedError,
 )
@@ -78,12 +82,24 @@ class DeploymentDisksConfig(BaseModel):
     storage: List[str] = Field([], title="Devices to consume for storage")
 
 
+class DeploymentContainerRegistryConfig(BaseModel):
+    registry: str = Field(title="Container registry location")
+    insecure: bool = Field(title="Whether the container registry is insecure")
+
+
+class DeploymentContainerConfig(BaseModel):
+    url: str = Field(title="Container registry URL")
+    secure: bool = Field(title="Container registry is secure")
+    image: str = Field(title="Container image to use")
+
+
 class DeploymentConfig(BaseModel):
     hostname: str
     address: str
     token: str
     ntp_addr: str
     disks: DeploymentDisksConfig
+    container: Optional[DeploymentContainerConfig]
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -101,6 +117,10 @@ class DeploymentErrorState(BaseModel):
 
 
 class DeploymentError(GravelError):
+    pass
+
+
+class SystemDiskCreationError(DeploymentError):
     pass
 
 
@@ -255,6 +275,98 @@ class NodeDeployment:
 
         return 0
 
+    async def _prepare_node(
+        self,
+        sysdiskpath: str,
+        hostname: str,
+        ntpaddr: Optional[str],
+        pubkey: Optional[str],
+        keyring: Optional[str],
+        cephconf: Optional[str],
+        containerconf: Optional[DeploymentContainerConfig],
+        is_join: bool,
+        progress_cb: Optional[Callable[[int, Optional[str]], None]],
+    ) -> None:
+        def progress(value: int, msg: str) -> None:
+            if progress_cb is not None:
+                progress_cb(value, msg)
+
+        if is_join:
+            assert ntpaddr is None
+            assert pubkey is not None and len(pubkey) > 0
+            assert keyring is not None and len(keyring) > 0
+            assert cephconf is not None and len(cephconf) > 0
+        else:
+            assert ntpaddr is not None and len(ntpaddr) > 0
+            assert pubkey is None
+            assert keyring is None
+            assert cephconf is None
+
+        def _write_keys(pubkey: str, keyring: str, conf: str) -> None:
+            # write pubkey to authorized keys, allows cephadm to do stuff
+            authorized_keys = Path("/root/.ssh/authorized_keys")
+            authorized_keys.parent.mkdir(
+                exist_ok=True, parents=True, mode=0o700
+            )
+            with authorized_keys.open("a") as fd:
+                fd.writelines([pubkey])
+                logger.debug(f"prepare_node: wrote pubkey to {authorized_keys}")
+
+            # write ceph.conf, allows accessing the cluster
+            confpath = Path("/etc/ceph/ceph.conf")
+            keyringpath = Path("/etc/ceph/ceph.client.admin.keyring")
+            confpath.parent.mkdir(exist_ok=True, parents=True, mode=0o755)
+            confpath.write_text(conf)
+            keyringpath.write_text(keyring)
+            keyringpath.chmod(0o600)
+            confpath.chmod(0o644)
+
+        systemdisk = SystemDisk(self._gstate)
+        try:
+            progress(0, "Creating System Disk")
+            await systemdisk.create(sysdiskpath)
+            progress(10, "Enabling System Disk")
+            await systemdisk.enable()
+        except GravelError as e:
+            raise SystemDiskCreationError(msg=e.message)
+
+        if is_join:
+            # We're doing a join. It should be quick. Don't track progress.
+            assert (
+                pubkey is not None
+                and keyring is not None
+                and cephconf is not None
+            )
+            _write_keys(pubkey, keyring, cephconf)
+
+        progress(20, "Setting Hostname")
+        await self._set_hostname(hostname)
+
+        progress(30, "Setting NTP servers")
+        if is_join:
+            await self._gstate.store.ensure_connection()
+            ntpaddr = await self._gstate.store.get("/nodes/ntp_addr")
+
+        assert ntpaddr is not None and len(ntpaddr) > 0
+        await self._set_ntp_addr(ntpaddr)
+
+        progress(50, "Obtaining containers")
+        ctrcfg = self._gstate.config.options.containers
+        if containerconf is not None:
+            assert len(containerconf.url) > 0
+            assert len(containerconf.image) > 0
+            ctrcfg.registry = containerconf.url
+            ctrcfg.secure = containerconf.secure
+            ctrcfg.image = containerconf.image
+
+        try:
+            await set_registry(ctrcfg.registry, ctrcfg.secure)
+            await container_pull(ctrcfg.registry, ctrcfg.image)
+        except ContainerPullError as e:
+            raise DeploymentError(msg=e.message)
+
+        progress(100, "Finished preparing deployment")
+
     async def join(
         self,
         leader_address: str,
@@ -307,42 +419,18 @@ class NodeDeployment:
         assert welcome.cephconf
         assert welcome.keyring
 
-        # create system disk after we are certain we are joining.
-        # ensure all state writes happen only after the disk has been created.
-        systemdisk = SystemDisk(self._gstate)
-        try:
-            await systemdisk.create(disks.system)
-            await systemdisk.enable()
-        except GravelError as e:
-            raise NodeCantJoinError(e.message)
-
         self._state.mark_join()
-        await self._set_hostname(hostname)
-
-        authorized_keys: Path = Path("/root/.ssh/authorized_keys")
-        if not authorized_keys.parent.exists():
-            authorized_keys.parent.mkdir(0o700)
-        with authorized_keys.open("a") as fd:
-            fd.writelines([welcome.pubkey])
-            logger.debug(f"join > wrote pubkey to {authorized_keys}")
-
-        cephconf_path: Path = Path("/etc/ceph/ceph.conf")
-        keyring_path: Path = Path("/etc/ceph/ceph.client.admin.keyring")
-        if not cephconf_path.parent.exists():
-            cephconf_path.parent.mkdir(0o755)
-        cephconf_path.write_text(welcome.cephconf)
-        keyring_path.write_text(welcome.keyring)
-        keyring_path.chmod(0o600)
-        cephconf_path.chmod(0o644)
-
-        # We've got ceph.conf and the admin keyring now, kick the kvstore
-        # to get a connection.
-        await self._gstate.store.ensure_connection()
-
-        # get NTP address
-        ntp_addr = await self._gstate.store.get("/nodes/ntp_addr")
-        assert ntp_addr
-        await self._set_ntp_addr(ntp_addr)
+        await self._prepare_node(
+            disks.system,
+            hostname,
+            ntpaddr=None,
+            pubkey=welcome.pubkey,
+            keyring=welcome.keyring,
+            cephconf=welcome.cephconf,
+            containerconf=None,
+            is_join=True,
+            progress_cb=None,
+        )
 
         readymsg = ReadyToAddMessageModel()
         await conn.send(
@@ -381,18 +469,9 @@ class NodeDeployment:
 
         hostname = config.hostname
         address = config.address
-        token = config.token
-        ntp_addr = config.ntp_addr
 
         if self._state.error:
             raise NodeCantDeployError("Node is in error state.")
-
-        systemdisk = SystemDisk(self._gstate)
-        try:
-            await systemdisk.create(config.disks.system)
-            await systemdisk.enable()
-        except GravelError as e:
-            raise NodeCantDeployError(e.message)
 
         async def _start() -> None:
             assert self._state
@@ -454,9 +533,17 @@ class NodeDeployment:
 
         self._progress = ProgressEnum.PREPARING
 
-        await self._set_hostname(hostname)
-
-        await self._set_ntp_addr(ntp_addr)
+        await self._prepare_node(
+            config.disks.system,
+            config.hostname,
+            config.ntp_addr,
+            pubkey=None,
+            keyring=None,
+            cephconf=None,
+            is_join=False,
+            containerconf=config.container,
+            progress_cb=None,
+        )
 
         assert not self._bootstrapper
         await _start()

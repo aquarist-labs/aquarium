@@ -19,9 +19,10 @@ from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
 
-from gravel.cephadm.models import NodeInfoModel, VolumeDeviceModel
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.disks import DiskDevice
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
@@ -56,6 +57,9 @@ class MountEntry(BaseModel):
     dest: str
 
 
+AQR_SYSTEM_PATH = "/var/lib/aquarium-system"
+
+
 def get_mounts() -> List[MountEntry]:
     proc: Path = Path("/proc/mounts")
     assert proc.exists()
@@ -79,8 +83,8 @@ class SystemDisk:
         "etc": "/etc",
         "logs": "/var/log",
         "aquarium": "/var/lib/aquarium",
-        "containers": "/var/lib/containers",
         "roothome": "/root",
+        "sysctl": "/usr/lib/sysctl.d",
     }
     _bindmounts: Dict[str, str] = {"ceph": "/var/lib/ceph"}
 
@@ -93,7 +97,7 @@ class SystemDisk:
         for entry in mounts:
             if (
                 entry.source == "/dev/mapper/aquarium-systemdisk"
-                and entry.dest == "/aquarium"
+                and entry.dest == AQR_SYSTEM_PATH
             ):
                 return True
         return False
@@ -111,7 +115,7 @@ class SystemDisk:
         inventory: Optional[NodeInfoModel] = self._gstate.inventory.latest
         assert inventory is not None
 
-        device: Optional[VolumeDeviceModel] = next(
+        device: Optional[DiskDevice] = next(
             (d for d in inventory.disks if d.path == devicestr), None
         )
 
@@ -139,16 +143,21 @@ class SystemDisk:
             # create lvm volume
             await self.lvm(f"pvcreate {devpath}")
             await self.lvm(f"vgcreate aquarium {devpath} --addtag @aquarium")
-            await self.lvm("lvcreate -l 100%FREE -n systemdisk aquarium")
+            await self.lvm("lvcreate -l 50%VG -n systemdisk aquarium")
+            await self.lvm("lvcreate -l 50%VG -n containers aquarium")
 
             lvmdev: Path = Path("/dev/mapper/aquarium-systemdisk")
             assert lvmdev.exists()
+            ctrdev: Path = Path("/dev/mapper/aquarium-containers")
+            assert ctrdev.exists()
 
-            # format with xfs
+            # format systemdisk with xfs
             await aqr_run_cmd(shlex.split(f"mkfs.xfs -m bigtime=1 {lvmdev}"))
+            # format containers lv with btrfs
+            await aqr_run_cmd(shlex.split(f"mkfs.btrfs {ctrdev}"))
 
-            aqrmntpath: Path = Path("/aquarium")
-            aqrmntpath.mkdir(exist_ok=True)
+            aqrmntpath: Path = Path(AQR_SYSTEM_PATH)
+            aqrmntpath.mkdir(exist_ok=True, parents=True)
 
             await self.mount()
 
@@ -170,13 +179,16 @@ class SystemDisk:
             raise e
 
     async def mount(self) -> None:
-        aqrmntpath: Path = Path("/aquarium")
-        aqrdevpath: Path = Path("/dev/mapper/aquarium-systemdisk")
-        assert aqrdevpath.exists()
-        aqrmntpath.mkdir(exist_ok=True)
+        await self._mount("systemdisk", Path(AQR_SYSTEM_PATH))
+        await self._mount("containers", Path("/var/lib/containers"))
 
-        aqrdev: str = aqrdevpath.as_posix()
-        aqrmnt: str = aqrmntpath.as_posix()
+    async def _mount(self, src: str, dest: Path) -> None:
+        devpath = Path(f"/dev/mapper/aquarium-{src}")
+        assert devpath.exists()
+        dest.mkdir(exist_ok=True, parents=True)
+
+        aqrdev: str = devpath.as_posix()
+        aqrmnt: str = dest.as_posix()
 
         try:
             await aqr_run_cmd(shlex.split(f"mount {aqrdev} {aqrmnt}"))
@@ -184,12 +196,15 @@ class SystemDisk:
             raise MountError(msg=str(e))
 
     async def unmount(self) -> None:
-        aqrmnt: Path = Path("/aquarium")
-        if not aqrmnt.exists():
-            raise MountError(msg="The /aquarium mount point does not exist.")
+        await self._unmount(Path(AQR_SYSTEM_PATH))
+        await self._unmount(Path("/var/lib/containers"))
+
+    async def _unmount(self, mnt: Path) -> None:
+        if not mnt.exists():
+            raise MountError(msg=f"The {mnt} mount point does not exist.")
 
         try:
-            await aqr_run_cmd(shlex.split(f"umount {aqrmnt}"))
+            await aqr_run_cmd(shlex.split(f"umount {mnt}"))
         except Exception as e:
             raise MountError(msg=str(e))
 
@@ -209,7 +224,7 @@ class SystemDisk:
             await aqr_run_cmd(shlex.split(mntcmd))
 
         for upper, lower in self._overlaydirs.items():
-            aqrpath: Path = Path("/aquarium")
+            aqrpath: Path = Path(AQR_SYSTEM_PATH)
             upperpath: Path = aqrpath.joinpath(upper)
             overlaypath: Path = upperpath.joinpath("overlay")
             temppath: Path = upperpath.joinpath("temp")
@@ -230,7 +245,7 @@ class SystemDisk:
                 )
 
         for ours, theirs in self._bindmounts.items():
-            ourpath: Path = Path("/aquarium").joinpath(ours)
+            ourpath: Path = Path(AQR_SYSTEM_PATH).joinpath(ours)
             theirpath: Path = Path(theirs)
             assert ourpath.exists()
             theirpath.mkdir(parents=True, exist_ok=True)

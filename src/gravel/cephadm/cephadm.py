@@ -24,14 +24,9 @@ import pydantic
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
 
-from .models import (
-    HostFactsModel,
-    NodeCPUInfoModel,
-    NodeCPULoadModel,
-    NodeInfoModel,
-    NodeMemoryInfoModel,
-    VolumeDeviceModel,
-)
+from gravel.controllers.config import ContainersOptionsModel
+
+from .models import HostFactsModel, VolumeDeviceModel
 
 logger: Logger = fastapi_logger
 
@@ -41,7 +36,12 @@ class CephadmError(Exception):
 
 
 class Cephadm:
-    def __init__(self):
+
+    _config: ContainersOptionsModel
+    cephadm: List[str]
+
+    def __init__(self, config: ContainersOptionsModel):
+        self._config = config
         if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
             self.cephadm = ["sudo", "./gravel/cephadm/cephadm.bin"]
@@ -50,14 +50,25 @@ class Cephadm:
             self.cephadm = ["sudo", "cephadm"]
 
     async def call(
-        self, cmd: List[str], outcb: Optional[Callable[[str], None]] = None
+        self,
+        cmd: List[str],
+        noimage: bool = False,
+        outcb: Optional[Callable[[str], None]] = None,
     ) -> Tuple[str, str, int]:
 
-        logger.debug(f"call: {cmd}")
-        cmd = self.cephadm + cmd
+        assert len(cmd) > 0
+        cmdlst: List[str] = list(self.cephadm)
+        if not noimage:
+            image = self._config.get_image()
+            cmdlst.extend(["--image", image])
+        cmdlst.extend(cmd)
+        logger.debug(f"call with {self.cephadm}")
+        logger.debug(f"call: {cmdlst}")
 
         process = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *cmdlst,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         assert process.stdout
         assert process.stderr
@@ -135,18 +146,23 @@ class Cephadm:
         tmp_config: IO[str] = write_tmp(get_default_ceph_conf())
         cmd: List[str] = [
             "bootstrap",
+            "--skip-pull",
             "--skip-prepare-host",
             "--mon-ip",
             addr,
             "--config",
             tmp_config.name,
-            "--skip-dashboard",
+            "--initial-dashboard-user",
+            "admin",
+            "--initial-dashboard-password",
+            "aquarium",
+            "--dashboard-password-noupdate",
             "--skip-monitoring-stack",
         ]
-        return await self.call(cmd, outcb_handler)
+        return await self.call(cmd, noimage=False, outcb=outcb_handler)
 
     async def gather_facts(self) -> HostFactsModel:
-        stdout, stderr, rc = await self.call(["gather-facts"])
+        stdout, stderr, rc = await self.call(["gather-facts"], noimage=True)
         if rc != 0:
             raise CephadmError(stderr)
         try:
@@ -172,42 +188,6 @@ class Cephadm:
                 else:
                     d.human_readable_type = "ssd"
         return inventory
-
-    async def get_node_info(self) -> NodeInfoModel:
-        try:
-            facts = await self.gather_facts()
-            inventory = await self.get_volume_inventory()
-        except CephadmError as e:
-            raise CephadmError("error obtaining node info") from e
-
-        return NodeInfoModel(
-            hostname=facts.hostname,
-            model=facts.model,
-            vendor=facts.vendor,
-            kernel=facts.kernel,
-            operating_system=facts.operating_system,
-            system_uptime=facts.system_uptime,
-            current_time=facts.timestamp,
-            cpu=NodeCPUInfoModel(
-                arch=facts.arch,
-                model=facts.cpu_model,
-                cores=facts.cpu_cores,
-                count=facts.cpu_count,
-                threads=facts.cpu_threads,
-                load=NodeCPULoadModel(
-                    one_min=facts.cpu_load["1min"],
-                    five_min=facts.cpu_load["5min"],
-                    fifteen_min=facts.cpu_load["15min"],
-                ),
-            ),
-            nics=facts.interfaces,
-            memory=NodeMemoryInfoModel(
-                available_kb=facts.memory_available_kb,
-                free_kb=facts.memory_free_kb,
-                total_kb=facts.memory_total_kb,
-            ),
-            disks=inventory,
-        )
 
     async def pull_images(self) -> None:
         logger.debug("fetching ceph container image")

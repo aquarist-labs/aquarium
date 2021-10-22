@@ -136,17 +136,3 @@ class NodeMemoryInfoModel(BaseModel):
     available_kb: int
     free_kb: int
     total_kb: int
-
-
-class NodeInfoModel(BaseModel):
-    hostname: str
-    model: str
-    vendor: str
-    kernel: str
-    operating_system: str
-    system_uptime: float
-    current_time: int
-    cpu: NodeCPUInfoModel
-    nics: Dict[str, NICModel]
-    memory: NodeMemoryInfoModel
-    disks: List[VolumeDeviceModel]

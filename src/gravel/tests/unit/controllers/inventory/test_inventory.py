@@ -19,9 +19,9 @@ from typing import Callable
 import pytest
 from pytest_mock import MockerFixture
 
-from gravel.cephadm.models import NodeInfoModel
 from gravel.controllers.gstate import GlobalState
-from gravel.controllers.resources.inventory import Inventory
+from gravel.controllers.inventory.inventory import Inventory
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -34,7 +34,7 @@ async def test_inventory_subs(
 ):
 
     nodeinfo: NodeInfoModel = NodeInfoModel.parse_raw(
-        get_data_contents(DATA_DIR, "inventory_basic.json")
+        get_data_contents(DATA_DIR, "nodeinfo_real.json")
     )
 
     inventory: Inventory = gstate.inventory

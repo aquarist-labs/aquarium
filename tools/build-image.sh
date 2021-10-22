@@ -34,10 +34,12 @@ options:
   -h | --help               This message.
 
 allowed image types:
-  vagrant                   Builds a vagrant image
-  vagrant-virtualbox        Builds a vagrant virtualbox image
+  vagrant                   Builds a vagrant image.
+  virtualbox                Builds a virtualbox image.
   self-install              Builds an image to be run on bare metal.
-  live-iso		    Builds an live iso with persistent storage on bare metal.
+  live-iso                  Builds an live iso with persistent storage
+                            on bare metal.
+
 EOF
 
 }
@@ -123,17 +125,17 @@ srcdir=${rootdir}/src
 
 profile=""
 case ${imgtype} in
-  vagrant) profile="Ceph-Vagrant-libvirt" type="oem";;
-  vagrant-virtualbox) profile="Ceph-Vagrant-VirtualBox" type="oem";;
-  self-install) profile="Ceph" type="oem";;
-  live-iso) profile="Ceph" type="iso";;
-  *)
-    usage_error_exit "unknown image type: '${imgtype}'"
+    vagrant) profile="ContainerHost-Vagrant" type="oem";;
+    virtualbox) profile="VirtualBox" type="oem";;
+    self-install) profile="ContainerHost-SelfInstall" type="oem";;
+    *)
+        usage_error_exit "unknown image type: '${imgtype}'"
     ;;
 esac
 
 [[ -z "${profile}" ]] && \
   usage_error_exit "bad image type: '${imgtype}"
+
 
 if ! kiwi-ng --version &>/dev/null ; then
   error_exit "missing kiwi-ng"
@@ -213,7 +215,7 @@ case $osid in
   debian | ubuntu)
     (set -o pipefail
     kiwi-ng ${kiwiargs} --profile=${profile} --type ${type}\
-      system boxbuild --box leap -- --description ${build} \
+      system boxbuild --box tumbleweed -- --description ${build} \
       --target-dir ${build}/_out |\
       tee ${build}/_logs/${build_name}-build.log)
     [ $? -eq 0 ] || error_exit "Kiwi build failed"
