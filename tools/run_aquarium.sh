@@ -24,7 +24,7 @@ has_config=false
 config_path=""
 is_new=false
 with_systemdeps=true
-port=1337
+port=80
 
 while [[ $# -gt 0 ]]; do
   case $1 in

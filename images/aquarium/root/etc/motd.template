@@ -12,7 +12,7 @@ The webservice is running on
 
 <<network interfaces>>
 
-port 1337
+port 80
 
 
 Have a lot of fun...

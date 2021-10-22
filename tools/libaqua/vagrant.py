@@ -312,7 +312,8 @@ Vagrant.configure("2") do |config|
 
         """
 
-    host_port = 1337
+    aquarium_host_port = 8080
+    bubbles_host_port = 1337
     for nid in range(1, nodes+1):
 
         node_networks: str = ""
@@ -346,11 +347,15 @@ Vagrant.configure("2") do |config|
 
 
         is_primary_str = "true" if nid == 1 else "false"
+        node_aquarium_port = f"{nid}{aquarium_host_port}"
+        node_bubbles_port = f"{nid}{bubbles_host_port}"
         node_str: str = \
             f"""
     config.vm.define :"node{nid}", primary: {is_primary_str} do |node|
         node.vm.hostname = "node{nid}"
-        node.vm.network "forwarded_port", guest: 1337, host: {host_port}, host_ip: "*"
+        node.vm.network "forwarded_port", guest: 80, host: {node_aquarium_port},
+        host_ip: "*"
+        node.vm.network "forwarded_port", guest: 1337, host: {node_bubbles_port}, host_ip: "*"
         {node_networks}
 
         node.vm.provider "libvirt" do |lv|
@@ -362,7 +367,6 @@ Vagrant.configure("2") do |config|
             """
 
         template += node_str
-        host_port += 1
 
     template += \
         """

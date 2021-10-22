@@ -49,12 +49,13 @@ network name/address. If this fails, please check whether the firewall
 settings allow remote incoming connections.
 
 The provided `Vagrant` image will be forwarding ports to the local host. In the
-`localhost`, ports `1337` and `1338` will be used; the former for `node1`, the
-latter for `node2`.
+`localhost`, ports `18080` and `28080` will be used; the former for `node1`, the
+latter for `node2`. The `Bubbles` interface will be accessible through ports
+`11337` and `21337`, for `node1` and `node2` respectively.
 
-At this moment, although we spin-up both virtual machines, we do not
-support a multi-node deployment yet.
-
+Should more nodes be specified when creating a new deployment, the ports on the
+`localhost` will follow the format `NN8080` and `NN1337`, for `NN` being the
+node number.
 
 ## Why you currently need a physical setup
 
@@ -198,8 +199,8 @@ and running should not be much of a hurdle.
     need to use `sudo` to perform admin tasks.
 
 At this point you will have shell access to the node, and it is expected
-that Aquarium will be running. Accessing `http://localhost:1337` (or
-`1338` depending which node you are trying to access) should be
+that Aquarium will be running. Accessing `http://localhost:18080` (or
+`28080` depending which node you are trying to access) should be
 possible, and you should be presented with a nice frontend. If your
 connection is refused or reset, it might just be that you need to open
 firewall ports.
@@ -217,8 +218,8 @@ those changes.
 1. run `sudo systemctl stop aquarium`, which will stop the Aquarium daemon.
 
    You can confirm that this properly stopped the services by checking
-   that you can no longer access Aquarium on the host's port `1337` (or
-   `1338`, depending on which node the command was run).
+   that you can no longer access Aquarium on the host's port `18080` (or
+   `28080`, depending on which node the command was run).
 
 2. `cd /srv/aquarium` within the VM
 
@@ -230,7 +231,7 @@ those changes.
       by `setup-dev.sh` which is used for the purposes of the tools inside
       `tools/` (such as `aqua`).
 
-4. access your newly running environment at `http://localhost:1337`
+4. access your newly running environment at `http://localhost:18080`
 
 And this should cover the initial steps to allow one to start hacking on
 Aquarium. The next section will cover development in finer detail.
