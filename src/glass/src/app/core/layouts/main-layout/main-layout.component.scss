@@ -1,18 +1,29 @@
 @import 'styles.scss';
 
+$navigation-width: 15rem;
+
 .glass-main-layout {
-  height: 100%;
+  &.navigation-collapsed {
+    .navigation {
+      margin-left: -$navigation-width;
+    }
+
+    .main {
+      margin-left: 0;
+    }
+  }
 
   .navigation {
     background-color: $glass-color-menu-background;
-    margin-left: -15rem;
-    max-width: 15rem;
-    min-width: 15rem;
+    height: 100%;
+    left: 0;
+    margin-left: 0;
+    max-width: $navigation-width;
+    min-width: $navigation-width;
+    position: fixed;
+    top: 0;
     transition: all 0.3s;
-
-    &.visible {
-      margin-left: 0;
-    }
+    z-index: 1000;
 
     header {
       color: $glass-color-site-header-text;
@@ -39,6 +50,19 @@
           content: 'Aquarium';
         }
       }
+    }
+  }
+
+  .main {
+    margin-left: $navigation-width;
+    transition: all 0.3s;
+
+    header {
+      overflow-x: clip;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 1030;
     }
   }
 }
