@@ -61,7 +61,17 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
             operator: 'falsy',
             arg0: { prop: 'useDefault' }
           }
-        }
+        },
+        modifiers: [
+          {
+            type: 'readonly',
+            constraint: {
+              operator: 'eq',
+              arg0: { prop: 'useDefault' },
+              arg1: true
+            }
+          }
+        ]
       },
       {
         name: 'useDefault',
