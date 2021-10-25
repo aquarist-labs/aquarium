@@ -1,11 +1,7 @@
 <block-ui>
   <div class="glass-main-layout"
-       fxLayout="row"
-       fxLayoutAlign="start stretch">
-    <div class="navigation"
-         [ngClass]="{'visible': navigationVisible}"
-         fxLayout="column"
-         fxLayoutAlign="start none">
+       [ngClass]="{'navigation-collapsed': navigationCollapsed}">
+    <aside class="navigation">
       <nav>
         <header fxLayout="row"
                 fxLayoutAlign="start center">
@@ -14,12 +10,10 @@
         </header>
         <glass-navigation-bar></glass-navigation-bar>
       </nav>
-    </div>
-    <div class="main"
-         fxFlex
-         fxLayout="column">
+    </aside>
+    <div class="main">
       <header>
-        <glass-top-bar (toggleNavigation)="navigationVisible = !navigationVisible"></glass-top-bar>
+        <glass-top-bar (toggleNavigation)="navigationCollapsed = !navigationCollapsed"></glass-top-bar>
       </header>
       <div class="content">
         <router-outlet></router-outlet>
