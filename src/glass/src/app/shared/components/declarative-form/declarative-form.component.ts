@@ -125,7 +125,6 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     _.forEach(fields, (field: FormFieldConfig) => {
       _.defaultsDeep(field, {
         hasCopyToClipboardButton: false,
-        hasDivider: false,
         placeholder: '',
         options: {}
       });

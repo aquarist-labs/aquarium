@@ -6,7 +6,7 @@
   }
 }
 
-.form-paragraph {
+.form-divider {
   .title {
     @extend .h4;
   }
@@ -17,7 +17,9 @@
 
     width: 100%;
   }
+}
 
+.form-paragraph {
   .text {
     @extend .text-muted;
     @extend .mb-2;

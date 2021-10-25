@@ -26,6 +26,7 @@ export type FormFieldConfig = {
     | 'hidden'
     | 'binary'
     | 'container'
+    | 'divider'
     | 'paragraph';
   label?: string;
   value?: any;
@@ -79,10 +80,11 @@ export type FormFieldConfig = {
   // --- binary ---
   defaultUnit?: 'b' | 'k' | 'm' | 'g' | 't' | 'p' | 'e' | 'z' | 'y';
 
-  // --- paragraph ---
+  // --- divider ---
   title?: string;
+
+  // --- paragraph ---
   text?: string;
-  hasDivider?: boolean;
 
   // internal only
   id?: string;
