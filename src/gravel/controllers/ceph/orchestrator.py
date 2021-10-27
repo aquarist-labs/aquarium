@@ -19,8 +19,8 @@ import yaml
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
 
-from gravel.controllers.orch.ceph import CephCommandError, Mgr
-from gravel.controllers.orch.models import (
+from gravel.controllers.ceph.ceph import CephCommandError, Mgr
+from gravel.controllers.ceph.models import (
     OrchDevicesPerHostModel,
     OrchHostListModel,
 )

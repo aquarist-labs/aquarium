@@ -24,6 +24,8 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
 from gravel.controllers.auth import UserMgr, UserModel
+from gravel.controllers.ceph.ceph import CephCommandError, Mon
+from gravel.controllers.ceph.orchestrator import Orchestrator, OrchHostListModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.inventory.subscriber import Subscriber
@@ -58,8 +60,6 @@ from gravel.controllers.nodes.messages import (
     ReadyToAddMessageModel,
     WelcomeMessageModel,
 )
-from gravel.controllers.orch.ceph import CephCommandError, Mon
-from gravel.controllers.orch.orchestrator import Orchestrator, OrchHostListModel
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger

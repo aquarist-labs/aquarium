@@ -27,7 +27,7 @@ TEST_DIR = os.path.join(os.path.dirname(__file__), "../../../")
 
 def test_ceph_conf(fs: fake_filesystem.FakeFilesystem, mocker: MockerFixture):
     mock_ceph_modules(mocker)
-    from gravel.controllers.orch.ceph import Ceph
+    from gravel.controllers.ceph.ceph import Ceph
 
     # default location
     fs.add_real_file(  # pyright: reportUnknownMemberType=false
@@ -57,7 +57,7 @@ def test_mon_df(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str],
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     ceph = Ceph()
     mon = Mon(ceph)
@@ -74,7 +74,7 @@ def test_get_osdmap(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str],
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     ceph = Ceph()
     mon = Mon(ceph)
@@ -92,7 +92,7 @@ def test_get_pools(
     mocker: MockerFixture,
     get_data_contents: Callable[[str, str], str],
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     ceph = Ceph()
     mon = Mon(ceph)
@@ -109,7 +109,7 @@ def test_set_pool_size(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture,
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
         assert "prefix" in args
@@ -139,7 +139,7 @@ def test_config_get(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture,
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
         assert "prefix" in args
@@ -163,7 +163,7 @@ def test_config_set(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture,
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
         assert "prefix" in args
@@ -187,7 +187,7 @@ def test_set_pool_default_size(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture,
 ):
-    from gravel.controllers.orch.ceph import Ceph, Mon
+    from gravel.controllers.ceph.ceph import Ceph, Mon
 
     def argscheck(cls: Any, args: Dict[str, Any]) -> Any:
         assert "prefix" in args

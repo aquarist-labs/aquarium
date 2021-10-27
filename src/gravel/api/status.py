@@ -21,7 +21,7 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
-from gravel.controllers.orch.models import CephStatusModel
+from gravel.controllers.ceph.models import CephStatusModel
 from gravel.controllers.resources.status import (
     CephStatusNotAvailableError,
     ClientIORateNotAvailableError,

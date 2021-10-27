@@ -24,9 +24,9 @@ from typing import Dict, Type
 from fastapi.logger import logger as fastapi_logger
 
 from gravel.cephadm.cephadm import Cephadm
+from gravel.controllers.ceph.ceph import Mgr, Mon
 from gravel.controllers.config import Config
 from gravel.controllers.kv import KV
-from gravel.controllers.orch.ceph import Mgr, Mon
 
 if typing.TYPE_CHECKING:
     from gravel.controllers.inventory.inventory import Inventory

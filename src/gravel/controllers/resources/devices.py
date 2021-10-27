@@ -18,14 +18,14 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
 from gravel.cephadm.models import VolumeDeviceModel
-from gravel.controllers.gstate import Ticker
-from gravel.controllers.nodes.mgr import NodeMgr
-from gravel.controllers.orch.ceph import Mgr, Mon
-from gravel.controllers.orch.models import (
+from gravel.controllers.ceph.ceph import Mgr, Mon
+from gravel.controllers.ceph.models import (
     CephOSDDFModel,
     OrchDevicesPerHostModel,
 )
-from gravel.controllers.orch.orchestrator import Orchestrator
+from gravel.controllers.ceph.orchestrator import Orchestrator
+from gravel.controllers.gstate import Ticker
+from gravel.controllers.nodes.mgr import NodeMgr
 
 logger: Logger = fastapi_logger
 

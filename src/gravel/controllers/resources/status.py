@@ -17,13 +17,13 @@ from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
-from gravel.controllers.gstate import GlobalState, Ticker
-from gravel.controllers.nodes.mgr import NodeMgr
-from gravel.controllers.orch.ceph import Mon
-from gravel.controllers.orch.models import (
+from gravel.controllers.ceph.ceph import Mon
+from gravel.controllers.ceph.models import (
     CephOSDPoolStatsModel,
     CephStatusModel,
 )
+from gravel.controllers.gstate import GlobalState, Ticker
+from gravel.controllers.nodes.mgr import NodeMgr
 
 logger: Logger = fastapi_logger
 

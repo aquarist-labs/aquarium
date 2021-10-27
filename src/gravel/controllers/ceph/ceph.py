@@ -23,7 +23,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from fastapi.logger import logger as fastapi_logger
 from pydantic.tools import parse_obj_as
 
-from gravel.controllers.orch.models import (
+from gravel.controllers.ceph.models import (
     CephDFModel,
     CephOSDDFModel,
     CephOSDMapModel,

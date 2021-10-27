@@ -173,6 +173,7 @@ async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
         new=mock_set_registry,
     )
 
+    from gravel.controllers.ceph.orchestrator import Orchestrator
     from gravel.controllers.nodes.bootstrap import Bootstrap
     from gravel.controllers.nodes.conn import ConnMgr
     from gravel.controllers.nodes.deployment import (
@@ -180,7 +181,6 @@ async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
         NodeDeployment,
     )
     from gravel.controllers.nodes.systemdisk import SystemDisk
-    from gravel.controllers.orch.orchestrator import Orchestrator
 
     def mock_devices_assimilated(
         cls, hostname: str, devs: List[str]  # type: ignore
