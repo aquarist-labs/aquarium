@@ -23,7 +23,7 @@ from gravel.api import jwt_auth_scheme
 from gravel.cephadm.models import VolumeDeviceModel
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.nodes.deployment import NodeStageEnum
-from gravel.controllers.nodes.local import (
+from gravel.controllers.nodes.requirements import (
     LocalhostQualifiedModel,
     localhost_qualified,
 )

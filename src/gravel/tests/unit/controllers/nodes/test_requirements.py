@@ -14,7 +14,7 @@
 import pytest
 from pytest_mock import MockerFixture
 
-from gravel.controllers.nodes.local import (
+from gravel.controllers.nodes.requirements import (
     CPUQualifiedEnum,
     CPUQualifiedModel,
     LocalhostQualifiedModel,
