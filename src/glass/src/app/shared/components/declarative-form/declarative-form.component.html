@@ -373,15 +373,19 @@
             </div>
           </ng-template>
 
-          <ng-template [ngSwitchCase]="'paragraph'">
-            <div class="form-paragraph">
+          <ng-template [ngSwitchCase]="'divider'">
+            <div class="form-divider">
               <div *ngIf="field.title"
                    class="title">
                 {{ field.title | translate }}
               </div>
-              <hr *ngIf="field.hasDivider">
-              <div *ngIf="field.text"
-                   class="text">
+              <hr>
+            </div>
+          </ng-template>
+
+          <ng-template [ngSwitchCase]="'paragraph'">
+            <div class="form-paragraph">
+              <div class="text">
                 {{ field.text | translate }}
               </div>
             </div>
