@@ -86,28 +86,28 @@ export class InstallWelcomePageComponent implements OnInit {
         this.checked = true;
         if (res.localhost_qualified) {
           const hostQualified = res.localhost_qualified;
-          this.qualified = res.localhost_qualified.all_qualified;
+          this.qualified = res.localhost_qualified.qualified;
           this.status = [
             {
-              qualified: hostQualified.cpu_qualified.qualified,
+              qualified: hostQualified.cpu.qualified,
               name: 'CPU',
-              actual: String(hostQualified.cpu_qualified.actual_threads),
-              min: String(hostQualified.cpu_qualified.min_threads),
-              error: hostQualified.cpu_qualified.error
+              actual: String(hostQualified.cpu.actual_threads),
+              min: String(hostQualified.cpu.min_threads),
+              error: hostQualified.cpu.error
             },
             {
-              qualified: hostQualified.mem_qualified.qualified,
+              qualified: hostQualified.mem.qualified,
               name: 'Memory',
-              actual: bytesToSize(hostQualified.mem_qualified.actual_mem),
-              min: bytesToSize(hostQualified.mem_qualified.min_mem),
-              error: hostQualified.mem_qualified.error
+              actual: bytesToSize(hostQualified.mem.actual_mem),
+              min: bytesToSize(hostQualified.mem.min_mem),
+              error: hostQualified.mem.error
             },
             {
-              qualified: hostQualified.root_disk_qualified.qualified,
+              qualified: hostQualified.root_disk.qualified,
               name: 'Disk',
-              actual: bytesToSize(hostQualified.root_disk_qualified.actual_disk),
-              min: bytesToSize(hostQualified.root_disk_qualified.min_disk),
-              error: hostQualified.root_disk_qualified.error
+              actual: bytesToSize(hostQualified.root_disk.actual_disk),
+              min: bytesToSize(hostQualified.root_disk.min_disk),
+              error: hostQualified.root_disk.error
             }
           ];
         }

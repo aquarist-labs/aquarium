@@ -90,22 +90,22 @@ export enum StatusStageEnum {
 
 export type NodeStatus = {
   localhost_qualified?: {
-    all_qualified: boolean;
-    cpu_qualified: {
+    qualified: boolean;
+    cpu: {
       qualified: boolean;
       min_threads: number;
       actual_threads: number;
       error: string;
       status: 0 | 1;
     };
-    mem_qualified: {
+    mem: {
       qualified: boolean;
       min_mem: number;
       actual_mem: number;
       error: string;
       status: 0 | 1;
     };
-    root_disk_qualified: {
+    root_disk: {
       qualified: boolean;
       min_disk: number;
       actual_disk: number;

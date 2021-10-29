@@ -67,13 +67,11 @@ class RootDiskQualifiedModel(BaseModel):
     status: RootDiskQualifiedEnum = Field(RootDiskQualifiedEnum.QUALIFIED)
 
 
-class LocalhostQualifiedModel(BaseModel):
-    all_qualified: bool = Field("The localhost passes validation")
-    cpu_qualified: CPUQualifiedModel = Field("CPU qualification details")
-    mem_qualified: MemoryQualifiedModel = Field("Memory qualification details")
-    root_disk_qualified: RootDiskQualifiedModel = Field(
-        "Root disk qualification details"
-    )
+class RequirementsModel(BaseModel):
+    qualified: bool = Field("The localhost passes validation.")
+    cpu: CPUQualifiedModel = Field("CPU qualification details.")
+    mem: MemoryQualifiedModel = Field("Memory qualification details.")
+    root_disk: RootDiskQualifiedModel = Field("Root disk qualification details")
 
 
 async def validate_cpu() -> CPUQualifiedModel:
@@ -166,7 +164,7 @@ async def validate_root_disk() -> RootDiskQualifiedModel:
     )
 
 
-async def localhost_qualified() -> LocalhostQualifiedModel:
+async def localhost_qualified() -> RequirementsModel:
     """
     Validates whether the localhost is fully qualified (ie, meets all minium
     requirements).
@@ -187,10 +185,10 @@ async def localhost_qualified() -> LocalhostQualifiedModel:
     ):
         all_qualified = False
 
-    result = LocalhostQualifiedModel(
-        all_qualified=all_qualified,
-        cpu_qualified=cpu_qualified,
-        mem_qualified=mem_qualified,
-        root_disk_qualified=root_disk_qualified,
+    result = RequirementsModel(
+        qualified=all_qualified,
+        cpu=cpu_qualified,
+        mem=mem_qualified,
+        root_disk=root_disk_qualified,
     )
     return result
