@@ -11,21 +11,25 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# pyright: reportPrivateUsage=false
+
+import os
+from typing import Callable
+
 import pytest
 from pytest_mock import MockerFixture
 
+from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.requirements import (
     CPUQualifiedEnum,
     CPUQualifiedModel,
+    DisksQualifiedErrorEnum,
     MemoryQualifiedEnum,
     MemoryQualifiedModel,
     RequirementsModel,
-    RootDiskQualifiedEnum,
-    RootDiskQualifiedModel,
     localhost_qualified,
     validate_cpu,
     validate_memory,
-    validate_root_disk,
 )
 
 
@@ -37,6 +41,9 @@ class FakeMemory:
 class FakeDisk:
     def __init__(self, total: int):
         self.total = total
+
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 @pytest.mark.asyncio
@@ -91,38 +98,26 @@ async def test_validate_memory(mocker: MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_validate_root_disk(mocker: MockerFixture):
+async def test_localhost_qualified(
+    mocker: MockerFixture,
+    gstate: GlobalState,
+    get_data_contents: Callable[[str, str], str],
+):
     # Check when we pass
-    mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=20000000000))
-    results: RootDiskQualifiedModel = await validate_root_disk()
-    assert results.qualified is True
-    assert results.min_disk == 10737418240
-    assert results.actual_disk == 20000000000
-    assert results.error == ""
-    assert results.status == RootDiskQualifiedEnum.QUALIFIED
 
-    # Check when we fail
-    mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=1073741824))
-    results: RootDiskQualifiedModel = await validate_root_disk()
-    assert results.qualified is False
-    assert results.min_disk == 10737418240
-    assert results.actual_disk == 1073741824
-    assert results.error == (
-        "The node does not have sufficient space on the root disk. "
-        "Required: 10GB, Actual: 1GB."
+    from gravel.controllers.inventory.nodeinfo import NodeInfoModel
+    from gravel.controllers.nodes.disks import Disks, DiskSolution
+
+    fake_inventory: NodeInfoModel = NodeInfoModel.parse_raw(
+        get_data_contents(DATA_DIR, "disks_local_nodeinfo.json")
     )
-    assert results.status == RootDiskQualifiedEnum.INSUFFICIENT_SPACE
+    gstate.inventory._latest = fake_inventory
 
-
-@pytest.mark.asyncio
-async def test_localhost_qualified(mocker: MockerFixture):
-    # Check when we pass
     mocker.patch("psutil.cpu_count", return_value=8)
     mocker.patch(
         "psutil.virtual_memory", return_value=FakeMemory(total=33498816512)
     )
-    mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=20000000000))
-    results: RequirementsModel = await localhost_qualified()
+    results: RequirementsModel = await localhost_qualified(gstate)
     assert results.qualified is True
     assert results.cpu.qualified is True
     assert results.cpu.min_threads == 2
@@ -134,15 +129,18 @@ async def test_localhost_qualified(mocker: MockerFixture):
     assert results.mem.actual_mem == 33498816512
     assert results.mem.error == ""
     assert results.mem.status == MemoryQualifiedEnum.QUALIFIED
-    assert results.root_disk.qualified is True
-    assert results.root_disk.min_disk == 10737418240
-    assert results.root_disk.actual_disk == 20000000000
-    assert results.root_disk.error == ""
-    assert results.root_disk.status == RootDiskQualifiedEnum.QUALIFIED
+    assert results.disks.available.qualified
+    assert results.disks.available.status == DisksQualifiedErrorEnum.NONE
+    assert results.disks.available.min == 1
+    assert results.disks.available.actual == 4
+    assert results.disks.install.qualified
+    assert results.disks.install.status == DisksQualifiedErrorEnum.NONE
+    assert results.disks.install.min == 10737418240
+    assert results.disks.install.actual == 10737418240
 
     # Check when we fail just CPU
     mocker.patch("psutil.cpu_count", return_value=1)
-    results = await localhost_qualified()
+    results = await localhost_qualified(gstate)
     assert results.qualified is False
     assert results.cpu.qualified is False
     assert results.cpu.min_threads == 2
@@ -157,34 +155,3 @@ async def test_localhost_qualified(mocker: MockerFixture):
     assert results.mem.actual_mem == 33498816512
     assert results.mem.error == ""
     assert results.mem.status == MemoryQualifiedEnum.QUALIFIED
-    assert results.root_disk.qualified is True
-    assert results.root_disk.min_disk == 10737418240
-    assert results.root_disk.actual_disk == 20000000000
-    assert results.root_disk.error == ""
-    assert results.root_disk.status == RootDiskQualifiedEnum.QUALIFIED
-
-    # Check when we fail CPU + Disk
-    mocker.patch("psutil.cpu_count", return_value=1)
-    mocker.patch("psutil.disk_usage", return_value=FakeDisk(total=1073741824))
-    results = await localhost_qualified()
-    assert results.cpu.qualified is False
-    assert results.cpu.min_threads == 2
-    assert results.cpu.actual_threads == 1
-    assert results.cpu.error == (
-        "The node does not have a sufficient number of CPU cores. "
-        "Required: 2, Actual: 1."
-    )
-    assert results.cpu.status == CPUQualifiedEnum.INSUFFICIENT_CORES
-    assert results.mem.qualified is True
-    assert results.mem.min_mem == 2147483648
-    assert results.mem.actual_mem == 33498816512
-    assert results.mem.error == ""
-    assert results.mem.status == MemoryQualifiedEnum.QUALIFIED
-    assert results.root_disk.qualified is False
-    assert results.root_disk.min_disk == 10737418240
-    assert results.root_disk.actual_disk == 1073741824
-    assert results.root_disk.error == (
-        "The node does not have sufficient space on the root disk. "
-        "Required: 10GB, Actual: 1GB."
-    )
-    assert results.root_disk.status == RootDiskQualifiedEnum.INSUFFICIENT_SPACE

@@ -45,6 +45,7 @@ export class InstallWelcomePageComponent implements OnInit {
   public status: TableEntry[] = [];
   public checked = false;
   public qualified = false;
+  public impossible = true;
   public statusColumns: DatatableColumn[] = [];
 
   constructor(
@@ -87,6 +88,8 @@ export class InstallWelcomePageComponent implements OnInit {
         if (res.localhost_qualified) {
           const hostQualified = res.localhost_qualified;
           this.qualified = res.localhost_qualified.qualified;
+          this.impossible = hostQualified.impossible;
+
           this.status = [
             {
               qualified: hostQualified.cpu.qualified,
@@ -103,11 +106,18 @@ export class InstallWelcomePageComponent implements OnInit {
               error: hostQualified.mem.error
             },
             {
-              qualified: hostQualified.root_disk.qualified,
-              name: 'Disk',
-              actual: bytesToSize(hostQualified.root_disk.actual_disk),
-              min: bytesToSize(hostQualified.root_disk.min_disk),
-              error: hostQualified.root_disk.error
+              qualified: hostQualified.disks.available.qualified,
+              name: 'Available Disks',
+              actual: hostQualified.disks.available.actual.toString(),
+              min: hostQualified.disks.available.min.toString(),
+              error: hostQualified.disks.available.error
+            },
+            {
+              qualified: hostQualified.disks.install.qualified,
+              name: 'Largest Disk',
+              actual: bytesToSize(hostQualified.disks.install.actual),
+              min: bytesToSize(hostQualified.disks.install.min),
+              error: hostQualified.disks.install.error
             }
           ];
         }
