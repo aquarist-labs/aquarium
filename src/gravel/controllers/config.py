@@ -14,7 +14,7 @@
 import os
 from logging import Logger
 from pathlib import Path
-from typing import Optional, Type, TypeVar
+from typing import Dict, Optional, Type, TypeVar
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -103,6 +103,30 @@ class Config:
             self._saveConfig(initconf)
 
         self.config: ConfigModel = ConfigModel.parse_file(self.confpath)
+        self._registry_config_from_env()
+
+    def _registry_config_from_env(self):
+        keys: Dict[Optional[str], str] = {}
+        for k in ["URL", "IMAGE", "SECURE"]:
+            env: str = f"AQUARIUM_REGISTRY_{k}"
+            value: Optional[str] = os.getenv(env, None)
+            if value is None:
+                continue
+            if len(value) == 0:
+                logger.error(f"value for custom registry conf {env} is empty")
+                continue
+            keys[k.lower()] = value
+
+        if "url" in keys:
+            self.config.options.containers.registry = keys["url"]
+        if "image" in keys:
+            self.config.options.containers.image = keys["image"]
+        if "secure" in keys:
+            raw = keys["secure"].lower()
+            v: bool = raw == "true" or raw == "1"
+            self.config.options.containers.secure = v
+        if len(keys) > 0:
+            logger.warning("Using custom registry config from environment")
 
     def _saveConfig(self, conf: ConfigModel) -> None:
         logger.debug(f"Writing Aquarium config: {self.confpath}")
