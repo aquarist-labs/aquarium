@@ -1,0 +1,7 @@
+{
+    "exclude": [
+        "**/images/**",
+        "**/.tox/**",
+        "**cephadm.bin**"
+    ]
+}
