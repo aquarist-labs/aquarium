@@ -10,6 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
+import os
 from pathlib import Path
 
 from pyfakefs import fake_filesystem  # pyright: reportMissingTypeStubs=false
@@ -34,3 +35,14 @@ def test_config_path(fs: fake_filesystem.FakeFilesystem):
 
     config = Config(path="foo")
     assert config.confpath == Path("foo/config.json")
+
+
+def test_custom_registry(fs: fake_filesystem.FakeFilesystem) -> None:
+    os.environ["AQUARIUM_REGISTRY_URL"] = "foobar"
+    os.environ["AQUARIUM_REGISTRY_IMAGE"] = "bar"
+    os.environ["AQUARIUM_REGISTRY_SECURE"] = "false"
+
+    config = Config()
+    assert config.options.containers.registry == "foobar"
+    assert config.options.containers.image == "bar"
+    assert not config.options.containers.secure
