@@ -35,7 +35,7 @@
         <button type="button"
                 class="btn btn-warning"
                 routerLink="/installer/install-mode"
-                *ngIf="checked">
+                *ngIf="checked && !impossible">
           <span *ngIf="qualified"
                 translate>Next</span>
           <span *ngIf="!qualified"

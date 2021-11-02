@@ -13,9 +13,15 @@
 
 import asyncio
 from enum import Enum
+from typing import List, Optional
 
 import psutil
 from pydantic import BaseModel, Field
+
+from gravel.controllers.errors import GravelError
+from gravel.controllers.gstate import GlobalState
+from gravel.controllers.inventory.disks import DiskDevice
+from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 
 # Minimum requirements for individual host validation:
 # NOTE(jhesketh): These are obviously hardcoded for the moment, but may be
@@ -25,7 +31,8 @@ from pydantic import BaseModel, Field
 #                 tuning.
 AQUARIUM_MIN_CPU_THREADS = 2
 AQUARIUM_MIN_MEMORY = 2 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
-AQUARIUM_MIN_ROOT_DISK = 10 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
+AQUARIUM_MIN_SYSTEM_DISK = 10 * 1024 * 1024 * 1024  # 2 * KB * MB * GB
+AQUARIUM_MIN_AVAIL_DISKS = 1
 
 
 class CPUQualifiedEnum(int, Enum):
@@ -54,26 +61,35 @@ class MemoryQualifiedModel(BaseModel):
     status: MemoryQualifiedEnum = Field(MemoryQualifiedEnum.QUALIFIED)
 
 
-class RootDiskQualifiedEnum(int, Enum):
-    QUALIFIED = 0
-    INSUFFICIENT_SPACE = 1
+class DisksQualifiedErrorEnum(int, Enum):
+    NONE = 0
+    INSUFFICIENT_DISKS = 1
+    INSUFFICENT_SPACE = 2
 
 
-class RootDiskQualifiedModel(BaseModel):
-    qualified: bool = Field("The root disk size is sufficient")
-    min_disk: int = Field("Minimum size of root disk (bytes)")
-    actual_disk: int = Field("Actual size of root disk (bytes)")
-    error: str = Field("Root disk didn't meet requirements")
-    status: RootDiskQualifiedEnum = Field(RootDiskQualifiedEnum.QUALIFIED)
+class DisksQualifiedStatusModel(BaseModel):
+    qualified: bool = Field("Resource meets requirements.")
+    min: int = Field(title="Minimum of resource.")
+    actual: int = Field(title="Actual quantity of resource.")
+    error: str = Field(title="Error message.")
+    status: DisksQualifiedErrorEnum = Field(title="Error status code.")
 
 
-class LocalhostQualifiedModel(BaseModel):
-    all_qualified: bool = Field("The localhost passes validation")
-    cpu_qualified: CPUQualifiedModel = Field("CPU qualification details")
-    mem_qualified: MemoryQualifiedModel = Field("Memory qualification details")
-    root_disk_qualified: RootDiskQualifiedModel = Field(
-        "Root disk qualification details"
-    )
+class DisksQualifiedModel(BaseModel):
+    available: DisksQualifiedStatusModel = Field("Host's available disks.")
+    install: DisksQualifiedStatusModel = Field("Host's install disk.")
+
+    @property
+    def qualified(self) -> bool:
+        return self.available.qualified and self.install.qualified
+
+
+class RequirementsModel(BaseModel):
+    qualified: bool = Field(title="The localhost passes validation.")
+    impossible: bool = Field(title="Installation is impossible.")
+    cpu: CPUQualifiedModel = Field(title="CPU qualification details.")
+    mem: MemoryQualifiedModel = Field(title="Memory qualification details.")
+    disks: DisksQualifiedModel = Field(title="Disk qualification details.")
 
 
 async def validate_cpu() -> CPUQualifiedModel:
@@ -133,40 +149,60 @@ async def validate_memory() -> MemoryQualifiedModel:
     )
 
 
-async def validate_root_disk() -> RootDiskQualifiedModel:
-    """
-    Validates the localhost meets the minium disk requirements.
+async def validate_disks(gstate: GlobalState) -> DisksQualifiedModel:
+    nodeinfo: Optional[NodeInfoModel] = gstate.inventory.latest
+    if not nodeinfo:
+        raise GravelError("Node not ready.")
 
-    NOTE: This only verifies the total size of the root partition. It does
-          not validate the amount of free space etc.
-    """
-    qualified: bool = True
-    min_disk: int = AQUARIUM_MIN_ROOT_DISK
-    actual_disk: int = psutil.disk_usage("/").total
-    error: str = ""
-    status: RootDiskQualifiedEnum = RootDiskQualifiedEnum.QUALIFIED
+    avail: List[DiskDevice] = [d for d in nodeinfo.disks if d.available]
+    avail_min = AQUARIUM_MIN_AVAIL_DISKS
+    avail_actual = len(avail)
+    avail_status = DisksQualifiedErrorEnum.NONE
+    avail_error = ""
+    avail_qualified = avail_actual >= avail_min
 
-    if actual_disk < min_disk:
-        qualified = False
-        # 1024 kb / 1024 mb / 1024 gb
-        # NOTE(jhesketh): We round down to the nearest GB
-        min_disk_gb: int = int(min_disk / 1024 / 1024 / 1024)
-        actual_disk_gb: int = int(actual_disk / 1024 / 1024 / 1024)
-        error = (
-            "The node does not have sufficient space on the root disk. "
-            "Required: %dGB, Actual: %dGB." % (min_disk_gb, actual_disk_gb)
+    if not avail_qualified:
+        avail_status = DisksQualifiedErrorEnum.INSUFFICIENT_DISKS
+        avail_error = "The node doesn't have enough disks available."
+
+    install_min = AQUARIUM_MIN_SYSTEM_DISK
+    install_actual = 0
+    install_status = DisksQualifiedErrorEnum.NONE
+    install_error = ""
+
+    candidates: List[DiskDevice] = []
+    for disk in avail:
+        if disk.size >= install_min:
+            candidates.append(disk)
+        install_actual = max(disk.size, install_actual)
+
+    install_qualified = len(candidates) > 0
+    if not install_qualified:
+        install_status = DisksQualifiedErrorEnum.INSUFFICENT_SPACE
+        install_error = (
+            "The node doesn't have an available disk with sufficient "
+            "space for installation."
         )
-        status = RootDiskQualifiedEnum.INSUFFICIENT_SPACE
-    return RootDiskQualifiedModel(
-        qualified=qualified,
-        min_disk=min_disk,
-        actual_disk=actual_disk,
-        error=error,
-        status=status,
+
+    return DisksQualifiedModel(
+        available=DisksQualifiedStatusModel(
+            qualified=avail_qualified,
+            min=avail_min,
+            actual=avail_actual,
+            error=avail_error,
+            status=avail_status,
+        ),
+        install=DisksQualifiedStatusModel(
+            qualified=install_qualified,
+            min=install_min,
+            actual=install_actual,
+            error=install_error,
+            status=install_status,
+        ),
     )
 
 
-async def localhost_qualified() -> LocalhostQualifiedModel:
+async def localhost_qualified(gstate: GlobalState) -> RequirementsModel:
     """
     Validates whether the localhost is fully qualified (ie, meets all minium
     requirements).
@@ -175,22 +211,26 @@ async def localhost_qualified() -> LocalhostQualifiedModel:
 
     cpu_qualified: CPUQualifiedModel
     mem_qualified: MemoryQualifiedModel
-    root_disk_qualified: RootDiskQualifiedModel
-    cpu_qualified, mem_qualified, root_disk_qualified = await asyncio.gather(
-        validate_cpu(), validate_memory(), validate_root_disk()
+    disks_qualified: DisksQualifiedModel
+    cpu_qualified, mem_qualified, disks_qualified = await asyncio.gather(
+        validate_cpu(), validate_memory(), validate_disks(gstate)
     )
 
     if not (
         cpu_qualified.qualified
         and mem_qualified.qualified
-        and root_disk_qualified.qualified
+        and disks_qualified.qualified
     ):
         all_qualified = False
 
-    result = LocalhostQualifiedModel(
-        all_qualified=all_qualified,
-        cpu_qualified=cpu_qualified,
-        mem_qualified=mem_qualified,
-        root_disk_qualified=root_disk_qualified,
+    # if we don't qualify for disks, then it's impossible to install.
+    impossible = not disks_qualified.qualified
+
+    result = RequirementsModel(
+        qualified=all_qualified,
+        impossible=impossible,
+        cpu=cpu_qualified,
+        mem=mem_qualified,
+        disks=disks_qualified,
     )
     return result

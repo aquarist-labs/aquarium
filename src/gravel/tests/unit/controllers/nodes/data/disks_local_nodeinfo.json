@@ -69,7 +69,7 @@
       "path": "/dev/vdb",
       "product": "Unknown",
       "vendor": "Unknown",
-      "size": 8589934592,
+      "size": 10737418240,
       "rotational": true,
       "available": true,
       "rejected_reasons": []
@@ -80,7 +80,7 @@
       "path": "/dev/vdc",
       "product": "Unknown",
       "vendor": "Unknown",
-      "size": 8589934592,
+      "size": 10737418240,
       "rotational": true,
       "available": true,
       "rejected_reasons": []
@@ -91,7 +91,7 @@
       "path": "/dev/vdd",
       "product": "Unknown",
       "vendor": "Unknown",
-      "size": 8589934592,
+      "size": 10737418240,
       "rotational": true,
       "available": true,
       "rejected_reasons": []
@@ -102,7 +102,7 @@
       "path": "/dev/vde",
       "product": "Unknown",
       "vendor": "Unknown",
-      "size": 8589934592,
+      "size": 10737418240,
       "rotational": true,
       "available": true,
       "rejected_reasons": []

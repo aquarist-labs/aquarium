@@ -88,29 +88,35 @@ export enum StatusStageEnum {
   ready = 4
 }
 
+export type DisksQualifiedStatus = {
+  qualified: boolean;
+  min: number;
+  actual: number;
+  error: string;
+  status: 0 | 1 | 2;
+};
+
 export type NodeStatus = {
   localhost_qualified?: {
-    all_qualified: boolean;
-    cpu_qualified: {
+    qualified: boolean;
+    impossible: boolean;
+    cpu: {
       qualified: boolean;
       min_threads: number;
       actual_threads: number;
       error: string;
       status: 0 | 1;
     };
-    mem_qualified: {
+    mem: {
       qualified: boolean;
       min_mem: number;
       actual_mem: number;
       error: string;
       status: 0 | 1;
     };
-    root_disk_qualified: {
-      qualified: boolean;
-      min_disk: number;
-      actual_disk: number;
-      error: string;
-      status: 0 | 1;
+    disks: {
+      available: DisksQualifiedStatus;
+      install: DisksQualifiedStatus;
     };
   };
   inited: boolean;

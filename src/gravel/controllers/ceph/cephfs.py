@@ -16,14 +16,14 @@ from typing import List, Optional
 
 from pydantic.tools import parse_obj_as
 
-from gravel.controllers.orch.ceph import CephCommandError, Mgr, Mon
-from gravel.controllers.orch.models import (
+from gravel.controllers.ceph.ceph import CephCommandError, Mgr, Mon
+from gravel.controllers.ceph.models import (
     CephFSAuthorizationModel,
     CephFSListEntryModel,
     CephFSNameModel,
     CephFSVolumeListModel,
 )
-from gravel.controllers.orch.orchestrator import Orchestrator
+from gravel.controllers.ceph.orchestrator import Orchestrator
 
 
 class CephFSError(Exception):

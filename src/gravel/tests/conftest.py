@@ -182,6 +182,7 @@ async def aquarium_startup(
         from fastapi.logger import logger as fastapi_logger
 
         from gravel.cephadm.cephadm import Cephadm
+        from gravel.controllers.ceph.ceph import Ceph, Mgr, Mon
         from gravel.controllers.inventory.inventory import Inventory
         from gravel.controllers.nodes.deployment import NodeDeployment
         from gravel.controllers.nodes.errors import NodeCantDeployError
@@ -190,7 +191,6 @@ async def aquarium_startup(
             NodeInitStage,
             NodeMgr,
         )
-        from gravel.controllers.orch.ceph import Ceph, Mgr, Mon
         from gravel.controllers.resources.devices import Devices
         from gravel.controllers.resources.status import Status
         from gravel.controllers.resources.storage import Storage

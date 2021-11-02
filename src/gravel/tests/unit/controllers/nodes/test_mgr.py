@@ -743,8 +743,8 @@ async def test_postbootstrap_config(
         assert scope == who
         assert val == value
 
+    from gravel.controllers.ceph.ceph import Mon
     from gravel.controllers.nodes.mgr import NodeMgr
-    from gravel.controllers.orch.ceph import Mon
 
     mocker.patch.object(NodeMgr, "_init_state")
     mocker.patch.object(Mon, "config_set", new=config_set)
@@ -916,7 +916,7 @@ async def test_handle_join(
         called_conn_cb = True
 
     mocker.patch(
-        "gravel.controllers.orch.orchestrator.Orchestrator.get_public_key",
+        "gravel.controllers.ceph.orchestrator.Orchestrator.get_public_key",
         new=mocker.MagicMock(return_value="mypubkey"),  # type: ignore
     )
 

@@ -20,9 +20,9 @@ from typing import Callable, List
 from pydantic import parse_obj_as
 from pytest_mock import MockerFixture
 
+from gravel.controllers.ceph.models import OrchDevicesPerHostModel
+from gravel.controllers.ceph.orchestrator import Orchestrator
 from gravel.controllers.gstate import GlobalState
-from gravel.controllers.orch.models import OrchDevicesPerHostModel
-from gravel.controllers.orch.orchestrator import Orchestrator
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -57,7 +57,7 @@ def test_devices_assimilated(
         devicels[0].devices[1].available = True
         yield devicels
 
-    from gravel.controllers.orch.orchestrator import Orchestrator
+    from gravel.controllers.ceph.orchestrator import Orchestrator
 
     orch = Orchestrator(gstate.ceph_mgr)
 

@@ -22,6 +22,7 @@ from uuid import UUID
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
+from gravel.controllers.ceph.orchestrator import Orchestrator
 from gravel.controllers.containers import (
     ContainerPullError,
     container_pull,
@@ -51,7 +52,6 @@ from gravel.controllers.nodes.messages import (
 )
 from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.nodes.systemdisk import SystemDisk
-from gravel.controllers.orch.orchestrator import Orchestrator
 
 logger: Logger = fastapi_logger
 
