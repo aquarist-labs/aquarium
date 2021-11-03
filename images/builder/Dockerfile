@@ -24,7 +24,7 @@ RUN zypper --non-interactive install \
   git python3 python3-pip python3-rados \
   python3-kiwi nodejs-common npm \
   sudo which gptfdisk kpartx dosfstools e2fsprogs \
-  make qemu-tools xfsprogs
+  make qemu-tools xfsprogs btrfsprogs
 
 
 RUN mkdir -p /builder/{cache,bin,src,out}
