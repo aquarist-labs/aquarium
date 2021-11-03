@@ -6,7 +6,9 @@ pytest-asyncio
 pytest-cov
 pytest-datadir
 pytest-mock
-requests
 types-psutil
 types-PyYAML
 types-toml
+types-requests
+requests-mock
+
