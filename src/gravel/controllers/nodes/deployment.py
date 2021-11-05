@@ -461,18 +461,6 @@ class NodeDeployment:
         post_bootstrap_cb: Callable[[bool, Optional[str]], Awaitable[None]],
         finisher: Callable[[bool, Optional[str]], Awaitable[None]],
     ) -> None:
-
-        assert config.hostname
-        assert config.address
-        assert config.token
-        assert config.ntp_addr
-
-        hostname = config.hostname
-        address = config.address
-
-        if self._state.error:
-            raise NodeCantDeployError("Node is in error state.")
-
         async def _start() -> None:
             assert self._state
             assert self._state.nostage
@@ -530,6 +518,19 @@ class NodeDeployment:
             self._progress = ProgressEnum.ASSIMILATING
             await self._assimilate_devices(hostname, devices)
             logger.debug("deployment > devices assimilated")
+
+        assert config.hostname
+        assert config.address
+        assert config.token
+        assert config.ntp_addr
+
+        hostname = config.hostname
+        address = config.address
+
+        logger.debug(f"deploy > hostname: {hostname}, addr: {address}")
+
+        if self._state.error:
+            raise NodeCantDeployError("Node is in error state.")
 
         self._progress = ProgressEnum.PREPARING
 
