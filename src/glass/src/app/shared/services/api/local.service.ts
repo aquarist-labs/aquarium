@@ -166,4 +166,18 @@ export class LocalNodeService {
   public events(): Observable<Event[]> {
     return this.http.get<Event[]>(`${this.url}/events`);
   }
+
+  /**
+   * Reboot the system.
+   */
+  public reboot(): Observable<void> {
+    return this.http.post<void>(`${this.url}/reboot`, null);
+  }
+
+  /**
+   * Shutdown the system.
+   */
+  public shutdown(): Observable<void> {
+    return this.http.post<void>(`${this.url}/shutdown`, null);
+  }
 }

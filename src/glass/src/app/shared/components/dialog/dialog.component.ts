@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import _ from 'lodash';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { GLASS_DIALOG_DATA } from '~/app/shared/services/dialog.service';
@@ -74,11 +75,11 @@ export class DialogComponent implements OnInit {
         break;
       case 'warning':
         this.icon = this.icons.warning;
-        this.button1Class = `${this.button1Class} glass-color-theme-warn`;
+        this.button1Class = _.replace(this.button1Class, 'btn-submit', 'btn-warning');
         break;
       case 'danger':
         this.icon = this.icons.danger;
-        this.button1Class = `${this.button1Class} glass-color-theme-danger`;
+        this.button1Class = _.replace(this.button1Class, 'btn-submit', 'btn-danger');
         break;
       case 'question':
         this.icon = this.icons.question;

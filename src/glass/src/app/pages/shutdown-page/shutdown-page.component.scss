@@ -1,0 +1,14 @@
+@import 'styles.scss';
+
+.glass-shutdown-page {
+  @extend .glass-color-theme-primary;
+
+  // A background image makes no sense here because the webserver might
+  // be killed already, so the image can't be delivered anymore when the
+  // component/page is displayed.
+  height: 100%;
+
+  .icon.mdi::before {
+    font-size: 96px;
+  }
+}
