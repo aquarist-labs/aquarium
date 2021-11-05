@@ -25,6 +25,7 @@ import { StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
   DeploymentStartReply,
+  DeploymentStartRequest,
   DeploymentStatusReply,
   NodesService,
   NodeStageEnum
@@ -179,28 +180,34 @@ export class InstallCreateWizardPageComponent implements OnInit {
 
   private doBootstrap(): void {
     this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
-    this.nodesService
-      .deploymentStart({
-        ntpaddr: this.context.config.ntpAddress,
-        hostname: this.context.config.hostname
-      })
-      .subscribe({
-        next: (startReplay: DeploymentStartReply) => {
-          if (startReplay.success) {
-            this.context.stage = 'bootstrapping';
-            this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
-            this.pollBootstrapStatus();
-          } else {
-            this.handleError(
-              TEXT(`Failed to start bootstrapping the system: ${startReplay.error.message}`)
-            );
-          }
-        },
-        error: (err) => {
-          err.preventDefault();
-          this.handleError(err.message);
+    const data: DeploymentStartRequest = {
+      ntpaddr: this.context.config.ntpAddress,
+      hostname: this.context.config.hostname
+    };
+    if (!this.context.config.regDefault) {
+      data.registry = {
+        registry: this.context.config.registry,
+        image: this.context.config.image,
+        secure: this.context.config.secure
+      };
+    }
+    this.nodesService.deploymentStart(data).subscribe({
+      next: (startReplay: DeploymentStartReply) => {
+        if (startReplay.success) {
+          this.context.stage = 'bootstrapping';
+          this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
+          this.pollBootstrapStatus();
+        } else {
+          this.handleError(
+            TEXT(`Failed to start bootstrapping the system: ${startReplay.error.message}`)
+          );
         }
-      });
+      },
+      error: (err) => {
+        err.preventDefault();
+        this.handleError(err.message);
+      }
+    });
   }
 
   private pollBootstrapStatus(): void {

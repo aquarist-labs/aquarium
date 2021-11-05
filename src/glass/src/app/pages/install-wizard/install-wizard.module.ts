@@ -22,7 +22,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
-import { HostnameStepComponent } from '~/app/pages/install-wizard/steps/hostname-step/hostname-step.component';
+import { HostStepComponent } from '~/app/pages/install-wizard/steps/host-step/host-step.component';
 import { LocalDevicesStepComponent } from '~/app/pages/install-wizard/steps/local-devices-step/local-devices-step.component';
 import { NtpStepComponent } from '~/app/pages/install-wizard/steps/ntp-step/ntp-step.component';
 import { RegistrationStepComponent } from '~/app/pages/install-wizard/steps/registration-step/registration-step.component';
@@ -33,7 +33,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     InstallCreateWizardPageComponent,
     InstallJoinWizardPageComponent,
     NtpStepComponent,
-    HostnameStepComponent,
+    HostStepComponent,
     LocalDevicesStepComponent,
     RegistrationStepComponent
   ],

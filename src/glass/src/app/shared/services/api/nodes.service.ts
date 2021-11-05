@@ -18,9 +18,16 @@ export type DeploymentError = {
   message?: string;
 };
 
+export type DeploymentRegistry = {
+  registry: string;
+  image: string;
+  secure: boolean;
+};
+
 export type DeploymentStartRequest = {
   ntpaddr: string;
   hostname: string;
+  registry?: DeploymentRegistry;
 };
 
 export type JoinNodeRequest = {

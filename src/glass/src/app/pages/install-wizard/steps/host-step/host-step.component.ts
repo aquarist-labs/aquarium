@@ -22,11 +22,11 @@ import { DeclarativeFormComponent } from '~/app/shared/components/declarative-fo
 import { DeclarativeFormConfig } from '~/app/shared/models/declarative-form-config.type';
 
 @Component({
-  selector: 'glass-ntp-step',
-  templateUrl: './ntp-step.component.html',
-  styleUrls: ['./ntp-step.component.scss']
+  selector: 'glass-host-step',
+  templateUrl: './host-step.component.html',
+  styleUrls: ['./host-step.component.scss']
 })
-export class NtpStepComponent implements AfterViewInit, OnDestroy {
+export class HostStepComponent implements AfterViewInit, OnDestroy {
   @Input()
   context?: InstallWizardContext;
 
@@ -34,32 +34,52 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
   form?: DeclarativeFormComponent;
 
   public config: DeclarativeFormConfig = {
-    // eslint-disable-next-line max-len
-    subtitle: TEXT(
-      // eslint-disable-next-line max-len
-      'Your cluster environment needs to have the time synchronized with a reliable time source. You do have two options in order to configure the time synchronization:'
-    ),
     fields: [
       {
-        name: 'useDefault',
+        type: 'divider',
+        title: TEXT('System configuration')
+      },
+      {
+        type: 'paragraph',
+        text: TEXT('Please enter the hostname for this system.')
+      },
+      {
+        name: 'hostname',
+        type: 'text',
+        label: TEXT('Hostname'),
+        autofocus: true,
+        validators: {
+          required: true
+        },
+        hint: TEXT('The hostname is a single word that identifies the system to the network.')
+      },
+      {
+        type: 'divider',
+        title: TEXT('Image registry configuration')
+      },
+      {
+        type: 'paragraph',
+        text: TEXT('Please select the installation image for this system.')
+      },
+      {
+        name: 'regDefault',
         type: 'radio',
-        label: TEXT('Use your own NTP host'),
+        label: TEXT('Use custom image'),
         value: false,
         hint: TEXT(
-          'If you do have your own NTP host configured on the network, please add it below.'
+          'If you want to use your own custom image, please add the registry details below.'
         )
       },
       {
-        name: 'ntpAddress',
+        name: 'registry',
         type: 'text',
-        label: TEXT('NTP host IP/FQDN'),
+        label: TEXT('Image registry URL'),
         groupClass: 'ml-4',
-        hint: TEXT('The IP address or FQDN of the NTP host.'),
         validators: {
           patternType: 'hostAddress',
           requiredIf: {
             operator: 'falsy',
-            arg0: { prop: 'useDefault' }
+            arg0: { prop: 'regDefault' }
           }
         },
         modifiers: [
@@ -67,38 +87,67 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
             type: 'readonly',
             constraint: {
               operator: 'eq',
-              arg0: { prop: 'useDefault' },
+              arg0: { prop: 'regDefault' },
               arg1: true
             }
           }
         ]
       },
       {
-        name: 'useDefault',
-        type: 'radio',
-        label: TEXT('Use an NTP host on the Internet'),
+        name: 'image',
+        type: 'text',
+        label: TEXT('Image Name'),
+        groupClass: 'ml-4',
+        validators: {
+          requiredIf: {
+            operator: 'falsy',
+            arg0: { prop: 'regDefault' }
+          }
+        },
+        modifiers: [
+          {
+            type: 'readonly',
+            constraint: {
+              operator: 'eq',
+              arg0: { prop: 'regDefault' },
+              arg1: true
+            }
+          }
+        ]
+      },
+      {
+        name: 'secure',
+        type: 'checkbox',
+        label: TEXT('Enable SSL'),
+        groupClass: 'ml-4',
         value: true,
-        hint: TEXT(
-          // eslint-disable-next-line max-len
-          'If you do not have your own NTP host configured, you can use an NTP server pool (pool.ntp.org) on the internet.<br><b>Please note:</b> This option requires access to the internet.'
-        )
+        modifiers: [
+          {
+            type: 'readonly',
+            constraint: {
+              operator: 'eq',
+              arg0: { prop: 'regDefault' },
+              arg1: true
+            }
+          }
+        ]
+      },
+      {
+        name: 'regDefault',
+        type: 'radio',
+        label: TEXT('Use the default image'),
+        value: true,
+        hint: TEXT('Use the default image for the installation.')
       }
     ]
   };
 
-  private defaultNtpAddress = 'pool.ntp.org';
   private subscription?: Subscription;
 
   ngAfterViewInit(): void {
     if (this.context && this.form) {
       // Populate form fields with current values.
-      const useDefault = [undefined, this.defaultNtpAddress].includes(
-        this.context.config.ntpAddress
-      );
-      this.form.patchValues({
-        useDefault,
-        ntpAddress: useDefault ? '' : this.context.config.ntpAddress
-      });
+      this.form.patchValues(this.context.config);
     }
   }
 
@@ -113,9 +162,7 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
   updateContext(): void {
     if (this.context && this.completed) {
       const values = this.form!.values;
-      _.merge(this.context.config, {
-        ntpAddress: values.useDefault ? this.defaultNtpAddress : values.ntpAddress
-      });
+      _.merge(this.context.config, values);
     }
   }
 }
