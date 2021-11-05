@@ -69,7 +69,7 @@ async def registry_check(registry: str, image: str, secure: bool) -> None:
     # check for an existing registry
     #
     try:
-        req = requests.get(f"{proto}://{registry}/v2/")
+        req = requests.get(f"{proto}://{registry}/v2/", timeout=5)
         if req.status_code != requests.codes.ok:
             raise UnknownRegistryError(
                 registry,
