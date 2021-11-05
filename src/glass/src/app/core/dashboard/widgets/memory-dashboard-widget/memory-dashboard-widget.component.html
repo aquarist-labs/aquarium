@@ -5,7 +5,8 @@
     <div class="graph flex-grow-1"
          echarts
          [initOpts]="initOpts"
-         [options]="options">
+         [options]="options"
+         [merge]="updateOptions">
     </div>
     <div class="legend">
       <div *ngFor="let item of legend"
