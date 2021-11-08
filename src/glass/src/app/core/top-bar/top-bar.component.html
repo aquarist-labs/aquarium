@@ -51,6 +51,11 @@
       </div>
       <div class="dropdown-divider"></div>
       <button ngbDropdownItem
+              routerLink="/dashboard/users/edit/{{ username }}">
+        <i class="mdi mdi-lock mr-1"></i>
+        <span translate>Change password</span>
+      </button>
+      <button ngbDropdownItem
               (click)="onLogout()">
         <i class="mdi mdi-logout mr-1"></i>
         <span translate>Sign out</span>
