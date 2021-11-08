@@ -6,7 +6,8 @@
          class="graph"
          echarts
          [initOpts]="initOpts"
-         [options]="options">
+         [options]="options"
+         [merge]="updateOptions">
     </div>
     <div *ngIf="!hasData"
          class="d-flex align-items-center justify-content-center text-muted m-2">

@@ -104,6 +104,7 @@ export class MemoryDashboardWidgetComponent {
       }
     ]
   };
+  updateOptions: EChartsOption = {};
   legend: string[] = [];
 
   constructor(private localNodeService: LocalNodeService) {}
@@ -124,9 +125,7 @@ export class MemoryDashboardWidgetComponent {
       `${words.Used!}: ${this.ram.asString.used}`,
       `${words.Free!}: ${this.ram.asString.free}`
     ];
-    // Somehow TS can't figure out the subtypes of EChartsOption that are already defined.
-    // @ts-ignore
-    this.options.series[0].data = [{ value: this.ram.inPercent.used }];
+    this.updateOptions = { series: [{ data: [{ value: this.ram.inPercent.used }] }] };
   }
 
   private updateRamSpec(inventory: Inventory) {

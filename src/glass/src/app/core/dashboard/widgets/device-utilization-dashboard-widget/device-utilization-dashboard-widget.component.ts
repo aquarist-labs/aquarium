@@ -105,6 +105,7 @@ export class DeviceUtilizationDashboardWidgetComponent {
       }
     ]
   };
+  updateOptions: EChartsOption = {};
   hasData = false;
 
   constructor(private devicesService: DevicesService, private localNodeService: LocalNodeService) {}
@@ -124,7 +125,9 @@ export class DeviceUtilizationDashboardWidgetComponent {
       });
     });
     this.hasData = data.length > 0;
-    _.set(this.options, 'series[0].data', data);
+    if (this.hasData) {
+      this.updateOptions = { series: [{ data }] };
+    }
   }
 
   loadData(): Observable<Device[]> {
