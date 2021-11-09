@@ -55,12 +55,28 @@ class OverlayError(GravelError):
 class MountEntry(BaseModel):
     source: str
     dest: str
+    overlay: bool
 
 
 AQR_SYSTEM_PATH = "/var/lib/aquarium-system"
 
 
 def get_mounts() -> List[MountEntry]:
+    """Obtain mounts from the system."""
+
+    def _get_overlay_src(opts: str) -> str:
+        optlst: List[str] = opts.split(",")
+        upper: Optional[str] = None
+        for e in optlst:
+            if e.startswith("upperdir"):
+                path = Path(e.split("=")[1])
+                upper = path.parent.as_posix()
+        if upper is None or len(upper) == 0:
+            raise OverlayError(
+                f"Unable to find upper dir from options: {opts}."
+            )
+        return upper
+
     proc: Path = Path("/proc/mounts")
     assert proc.exists()
 
@@ -68,11 +84,21 @@ def get_mounts() -> List[MountEntry]:
     with proc.open(mode="r", encoding="utf-8") as f:
         for line in f.readlines():
             fields: List[str] = line.split(" ")
-            if len(fields) < 2:
+            if len(fields) < 4:
                 continue
-            src = fields[0].strip()
-            dst = fields[1].strip()
-            lst.append(MountEntry(source=src, dest=dst))
+
+            fields = [x.strip() for x in fields]
+            src, dst, fstype, opts = fields[0:4]
+            is_overlay = fstype == "overlay"
+            if is_overlay:
+                try:
+                    src = _get_overlay_src(opts)
+                except OverlayError as e:
+                    raise OverlayError(
+                        f"Unable to find overlay source for {dst}: {e.message}"
+                    )
+
+            lst.append(MountEntry(source=src, dest=dst, overlay=is_overlay))
     return lst
 
 
@@ -223,6 +249,15 @@ class SystemDisk:
             )
             await aqr_run_cmd(shlex.split(mntcmd))
 
+        mounts: List[MountEntry] = get_mounts()
+        def _is_mounted(src: str, dest: str, overlay: bool) -> bool:
+            for entry in mounts:
+                if overlay and entry.dest == dest and entry.source == src:
+                    return True
+                elif not overlay and entry.dest == dest:
+                    return True
+            return False
+
         for upper, lower in self._overlaydirs.items():
             aqrpath: Path = Path(AQR_SYSTEM_PATH)
             upperpath: Path = aqrpath.joinpath(upper)
@@ -231,6 +266,10 @@ class SystemDisk:
             lowerpath: Path = Path(lower)
             assert overlaypath.exists() and overlaypath.is_dir()
             assert temppath.exists() and temppath.is_dir()
+
+            if _is_mounted(upperpath.as_posix(), lower, True):
+                logger.info(f"{lower} is already overlayed in {upper}.")
+                continue
 
             lowerpath.mkdir(parents=True, exist_ok=True)
             assert lowerpath.exists() and lowerpath.is_dir()
@@ -248,6 +287,11 @@ class SystemDisk:
             ourpath: Path = Path(AQR_SYSTEM_PATH).joinpath(ours)
             theirpath: Path = Path(theirs)
             assert ourpath.exists()
+
+            if _is_mounted(ourpath.as_posix(), theirs, False):
+                logger.info(f"{ourpath} already mounted at {theirs}.")
+                continue
+
             theirpath.mkdir(parents=True, exist_ok=True)
 
             try:
