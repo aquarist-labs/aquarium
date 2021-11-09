@@ -29,6 +29,7 @@ from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.inventory.inventory import Inventory
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.resources.devices import Devices
+from gravel.controllers.resources.network import Network
 from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
 
@@ -80,6 +81,9 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
         gstate.config.options.storage.probe_interval, nodemgr, ceph_mon
     )
     gstate.add_storage(storage)
+
+    network: Network = Network(gstate.config.options.network.probe_interval)
+    gstate.add_network(network)
 
     await nodemgr.start()
     await gstate.start()

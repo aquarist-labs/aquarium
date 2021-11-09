@@ -49,6 +49,10 @@ class StatusOptionsModel(BaseModel):
     probe_interval: float = Field(1.0, title="Status Probe Interval")
 
 
+class NetworkOptionsModel(BaseModel):
+    probe_interval: float = Field(5.0, title="Network Probe Interval")
+
+
 class AuthOptionsModel(BaseModel):
     jwt_secret: str = Field(
         title="The access token secret",
@@ -78,6 +82,7 @@ class OptionsModel(BaseModel):
     storage: StorageOptionsModel = Field(StorageOptionsModel())
     devices: DevicesOptionsModel = Field(DevicesOptionsModel())
     status: StatusOptionsModel = Field(StatusOptionsModel())
+    network: NetworkOptionsModel = Field(NetworkOptionsModel())
     auth: AuthOptionsModel = Field(AuthOptionsModel())
     containers: ContainersOptionsModel = Field(ContainersOptionsModel())
 

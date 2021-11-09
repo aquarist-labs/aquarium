@@ -6,6 +6,7 @@ pytest-asyncio
 pytest-cov
 pytest-datadir
 pytest-mock
+types-atomicwrites
 types-psutil
 types-PyYAML
 types-toml

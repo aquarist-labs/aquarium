@@ -31,6 +31,7 @@ from gravel.controllers.kv import KV
 if typing.TYPE_CHECKING:
     from gravel.controllers.inventory.inventory import Inventory
     from gravel.controllers.resources.devices import Devices
+    from gravel.controllers.resources.network import Network
     from gravel.controllers.resources.status import Status
     from gravel.controllers.resources.storage import Storage
 
@@ -130,6 +131,7 @@ class GlobalState:
     devices: Devices
     status: Status
     inventory: Inventory
+    network: Network
     storage: Storage
     cephadm: Cephadm
     ceph_mgr: Mgr
@@ -161,6 +163,10 @@ class GlobalState:
     def add_inventory(self, inventory: Inventory):
         self.inventory = inventory
         self.add_ticker("inventory", inventory)
+
+    def add_network(self, network: Network):
+        self.network = network
+        self.add_ticker("network", network)
 
     def add_storage(self, storage: Storage):
         self.storage = storage
