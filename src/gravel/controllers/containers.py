@@ -8,8 +8,9 @@
 #
 import shlex
 from pathlib import Path
-from typing import Any, Dict, MutableMapping
+from typing import Any, Dict, MutableMapping, Optional
 
+import requests
 import toml
 
 from gravel.controllers.errors import GravelError
@@ -24,6 +25,90 @@ class ContainerError(GravelError):
 
 class ContainerPullError(ContainerError):
     pass
+
+
+class ContainerRegistryError(ContainerError):
+    registry: str
+
+    def __init__(self, registry: str, msg: Optional[str] = None) -> None:
+        super().__init__(msg)
+        self.registry = registry
+
+
+class UnknownRegistryError(ContainerRegistryError):
+    pass
+
+
+class RegistrySecurityError(ContainerRegistryError):
+    pass
+
+
+class ContainerImageError(ContainerError):
+    image: str
+
+    def __init__(self, image: str, msg: Optional[str] = None) -> None:
+        super().__init__(msg)
+        self.image = image
+
+
+class ImageNameError(ContainerImageError):
+    pass
+
+
+class UnknownImageError(ContainerImageError):
+    pass
+
+
+class UnknownImageTagError(ContainerImageError):
+    pass
+
+
+async def registry_check(registry: str, image: str, secure: bool) -> None:
+
+    proto = "https" if secure else "http"
+    # check for an existing registry
+    #
+    try:
+        req = requests.get(f"{proto}://{registry}/v2/", timeout=5)
+        if req.status_code != requests.codes.ok:
+            raise UnknownRegistryError(
+                registry,
+                msg=f"Error connecting to registry at '{registry}: {req.text}",
+            )
+    except requests.exceptions.SSLError:
+        req_proto = "https" if not secure else "http"
+        raise RegistrySecurityError(
+            registry,
+            msg=f"Registry at '{registry}' requires an {req_proto} connection.",
+        )
+    except requests.exceptions.ConnectionError as e:
+        raise UnknownRegistryError(
+            registry,
+            msg=f"Error connecting to registry at '{registry}': {str(e)}",
+        )
+
+    # check for image:tag
+    #
+    img = image.split(":")
+    if len(img) != 2:
+        raise ImageNameError(image, msg="Missing tag information from image.")
+    (imgname, imgtag) = img
+
+    try:
+        req = requests.get(f"{proto}://{registry}/v2/{imgname}/tags/list")
+    except Exception as e:
+        raise ContainerError(msg=str(e))
+
+    if req.status_code != requests.codes.ok:
+        raise UnknownImageError(
+            imgname, msg=f"Could not find image '{imgname}'."
+        )
+    res = req.json()
+    assert res["name"] == imgname
+    if imgtag not in res["tags"]:
+        raise UnknownImageTagError(
+            image, msg=f"Could not find image '{imgname}' with tag '{imgtag}'."
+        )
 
 
 async def container_pull(registry: str, image: str) -> str:

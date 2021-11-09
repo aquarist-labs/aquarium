@@ -26,6 +26,7 @@ from gravel.controllers.ceph.orchestrator import Orchestrator
 from gravel.controllers.containers import (
     ContainerPullError,
     container_pull,
+    registry_check,
     set_registry,
 )
 from gravel.controllers.errors import GravelError
@@ -275,6 +276,25 @@ class NodeDeployment:
 
         return 0
 
+    async def _prepare_check(
+        self,
+        containerconf: Optional[DeploymentContainerConfig] = None,
+    ) -> None:
+
+        # check container image exists
+        #
+        ctrcfg = self._gstate.config.options.containers
+        if containerconf is not None:
+            assert len(containerconf.url) > 0
+            assert len(containerconf.image) > 0
+            ctrcfg.registry = containerconf.url
+            ctrcfg.secure = containerconf.secure
+            ctrcfg.image = containerconf.image
+
+        logger.debug(f"prepare_check > registry: {ctrcfg}")
+        # propagate exceptions to caller, let them handle the various errors.
+        await registry_check(ctrcfg.registry, ctrcfg.image, ctrcfg.secure)
+
     async def _prepare_node(
         self,
         sysdiskpath: str,
@@ -283,7 +303,6 @@ class NodeDeployment:
         pubkey: Optional[str],
         keyring: Optional[str],
         cephconf: Optional[str],
-        containerconf: Optional[DeploymentContainerConfig],
         is_join: bool,
         progress_cb: Optional[Callable[[int, Optional[str]], None]],
     ) -> None:
@@ -352,13 +371,6 @@ class NodeDeployment:
 
         progress(50, "Obtaining containers")
         ctrcfg = self._gstate.config.options.containers
-        if containerconf is not None:
-            assert len(containerconf.url) > 0
-            assert len(containerconf.image) > 0
-            ctrcfg.registry = containerconf.url
-            ctrcfg.secure = containerconf.secure
-            ctrcfg.image = containerconf.image
-
         try:
             await set_registry(ctrcfg.registry, ctrcfg.secure)
             await container_pull(ctrcfg.registry, ctrcfg.image)
@@ -427,7 +439,6 @@ class NodeDeployment:
             pubkey=welcome.pubkey,
             keyring=welcome.keyring,
             cephconf=welcome.cephconf,
-            containerconf=None,
             is_join=True,
             progress_cb=None,
         )
@@ -461,18 +472,6 @@ class NodeDeployment:
         post_bootstrap_cb: Callable[[bool, Optional[str]], Awaitable[None]],
         finisher: Callable[[bool, Optional[str]], Awaitable[None]],
     ) -> None:
-
-        assert config.hostname
-        assert config.address
-        assert config.token
-        assert config.ntp_addr
-
-        hostname = config.hostname
-        address = config.address
-
-        if self._state.error:
-            raise NodeCantDeployError("Node is in error state.")
-
         async def _start() -> None:
             assert self._state
             assert self._state.nostage
@@ -531,6 +530,25 @@ class NodeDeployment:
             await self._assimilate_devices(hostname, devices)
             logger.debug("deployment > devices assimilated")
 
+        assert config.hostname
+        assert config.address
+        assert config.token
+        assert config.ntp_addr
+
+        hostname = config.hostname
+        address = config.address
+
+        logger.debug(f"deploy > hostname: {hostname}, addr: {address}")
+
+        if self._state.error:
+            raise NodeCantDeployError("Node is in error state.")
+
+        try:
+            await self._prepare_check(containerconf=config.container)
+        except Exception:
+            logger.error("Unable to start deployment: prepare checks failed.")
+            raise NodeCantDeployError("failure checking node")
+
         self._progress = ProgressEnum.PREPARING
 
         await self._prepare_node(
@@ -541,7 +559,6 @@ class NodeDeployment:
             keyring=None,
             cephconf=None,
             is_join=False,
-            containerconf=config.container,
             progress_cb=None,
         )
 

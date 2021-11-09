@@ -172,6 +172,10 @@ async def test_deploy(mocker: MockerFixture, gstate: GlobalState):
         "gravel.controllers.nodes.deployment.set_registry",
         new=mock_set_registry,
     )
+    mocker.patch(
+        "gravel.controllers.nodes.deployment.registry_check",
+        new=mocker.AsyncMock(),
+    )
 
     from gravel.controllers.ceph.orchestrator import Orchestrator
     from gravel.controllers.nodes.bootstrap import Bootstrap
