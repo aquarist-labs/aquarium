@@ -23,6 +23,7 @@ import {
   DatatableCellTemplateName,
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
+import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
 import { DeviceHost, DevicesService } from '~/app/shared/services/api/devices.service';
 import { Disk, Inventory, LocalNodeService } from '~/app/shared/services/api/local.service';
 
@@ -73,7 +74,8 @@ export class StorageDevicesPageComponent {
       {
         name: TEXT('Size'),
         prop: 'size',
-        compareProp: 'size'
+        compareProp: 'size',
+        pipe: new BytesToSizePipe()
       },
       {
         name: TEXT('Utilization'),
