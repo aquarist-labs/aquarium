@@ -107,13 +107,16 @@ export class DatatableComponent implements OnInit, OnDestroy {
     if (this.columns) {
       // Sanitize the columns.
       _.forEach(this.columns, (column: DatatableColumn) => {
+        _.defaultsDeep(column, {
+          sortable: true
+        });
         if (_.isString(column.cellTemplateName)) {
           column.cellTemplate = this.cellTemplates[column.cellTemplateName];
           switch (column.cellTemplateName) {
             case 'actionMenu':
               column.name = '';
               column.prop = '_action'; // Add a none existing name here.
-              column.unsortable = true;
+              column.sortable = false;
               break;
           }
         }
@@ -131,7 +134,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
       });
     }
     this.sortableColumns = this.columns
-      .filter((c) => !c.unsortable)
+      .filter((c) => c.sortable === true)
       .map((c) => this.getSortProp(c));
     if (!this.sortHeader && this.sortableColumns.length > 0) {
       this.sortHeader = this.sortableColumns[0];
@@ -180,7 +183,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
 
   setHeaderClasses(column: DatatableColumn): string {
     let css = column.css || '';
-    if (column.unsortable) {
+    if (column.sortable !== true) {
       return css;
     }
     css += ' sortable';
