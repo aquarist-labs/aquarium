@@ -102,6 +102,15 @@ def get_mounts() -> List[MountEntry]:
     return lst
 
 
+async def lvm(args: List[str]) -> str:
+    cmd: List[str] = ["lvm"] + args
+    retcode, out, err = await aqr_run_cmd(cmd)
+
+    if retcode != 0:
+        raise LVMError(msg=err)
+    return out if out is not None else ""
+
+
 class SystemDisk:
 
     _overlaydirs: Dict[str, str] = {
@@ -126,13 +135,6 @@ class SystemDisk:
             ):
                 return True
         return False
-
-    async def lvm(self, args: str) -> None:
-        cmd: List[str] = ["lvm"] + shlex.split(args)
-        retcode, _, err = await aqr_run_cmd(cmd)
-
-        if retcode != 0:
-            raise LVMError(msg=err)
 
     async def create(self, gstate: GlobalState, devicestr: str) -> None:
 
@@ -166,10 +168,12 @@ class SystemDisk:
 
         try:
             # create lvm volume
-            await self.lvm(f"pvcreate {devpath}")
-            await self.lvm(f"vgcreate aquarium {devpath} --addtag @aquarium")
-            await self.lvm("lvcreate -l 50%VG -n systemdisk aquarium")
-            await self.lvm("lvcreate -l 50%VG -n containers aquarium")
+            await lvm(shlex.split(f"pvcreate {devpath}"))
+            await lvm(
+                shlex.split(f"vgcreate aquarium {devpath} --addtag @aquarium")
+            )
+            await lvm(shlex.split("lvcreate -l 50%VG -n systemdisk aquarium"))
+            await lvm(shlex.split("lvcreate -l 50%VG -n containers aquarium"))
 
             lvmdev: Path = Path("/dev/mapper/aquarium-systemdisk")
             assert lvmdev.exists()
@@ -249,6 +253,7 @@ class SystemDisk:
             await aqr_run_cmd(shlex.split(mntcmd))
 
         mounts: List[MountEntry] = get_mounts()
+
         def _is_mounted(src: str, dest: str, overlay: bool) -> bool:
             for entry in mounts:
                 if overlay and entry.dest == dest and entry.source == src:

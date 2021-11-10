@@ -109,20 +109,20 @@ async def test_lvm(mocker: MockerFixture) -> None:
         called_lvm_failure = True
         return 1, None, "foobar"
 
+    from gravel.controllers.nodes.systemdisk import LVMError, lvm
+
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_success_call
     )
-    from gravel.controllers.nodes.systemdisk import LVMError, SystemDisk
 
-    systemdisk = SystemDisk()
-    await systemdisk.lvm("foo bar baz")
+    await lvm(["foo", "bar", "baz"])
     assert called_lvm_success
 
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_failure_call
     )
     try:
-        await systemdisk.lvm("foo bar baz")
+        await lvm(["foo", "bar", "baz"])
     except LVMError as e:
         assert e.message == "foobar"
     assert called_lvm_failure
@@ -164,10 +164,10 @@ async def test_create(
     inventory._latest = nodeinfo
 
     systemdisk = SystemDisk()
-    systemdisk.lvm = mock_lvm
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_call
     )
+    mocker.patch("gravel.controllers.nodes.systemdisk.lvm", new=mock_lvm)
     throws = False
     try:
         await systemdisk.create(gstate, "/dev/foobar")
