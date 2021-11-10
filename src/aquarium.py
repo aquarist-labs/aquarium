@@ -16,6 +16,7 @@
 import logging
 import logging.config
 import os
+import sys
 
 import uvicorn
 from fastapi import FastAPI
@@ -25,6 +26,11 @@ from fastapi.staticfiles import StaticFiles
 from gravel.api import auth, devices, local, nodes, orch, status, users
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.ceph.ceph import Ceph, Mgr, Mon
+from gravel.controllers.deployment.mgr import (
+    DeploymentError,
+    DeploymentMgr,
+    InitError,
+)
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.inventory.inventory import Inventory
 from gravel.controllers.nodes.mgr import NodeMgr
@@ -40,6 +46,20 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
     setup_logging(lvl)
     logger.info("Aquarium startup!")
+
+    deployment = DeploymentMgr()
+
+    try:
+        await deployment.preinit()
+    except DeploymentError as e:
+        logger.error(f"Unable to pre-init the node: {e.message}")
+        sys.exit(1)
+
+    try:
+        await deployment.init()
+    except InitError as e:
+        logger.error(f"Unable to init node: {e.message}")
+        sys.exit(1)
 
     gstate: GlobalState = GlobalState()
 
