@@ -65,7 +65,6 @@ export class NetworkPageComponent {
       {
         name: '',
         prop: '',
-        unsortable: true,
         cellTemplateName: DatatableCellTemplateName.actionMenu,
         cellTemplateConfig: this.getActionMenu.bind(this)
       }

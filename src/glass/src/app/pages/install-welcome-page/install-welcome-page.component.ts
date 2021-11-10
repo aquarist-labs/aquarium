@@ -59,7 +59,7 @@ export class InstallWelcomePageComponent implements OnInit {
         name: TEXT('Qualified'),
         prop: 'qualified',
         cellTemplate: this.qualifiedColTpl,
-        unsortable: true
+        sortable: false
       },
       {
         name: TEXT('Name'),

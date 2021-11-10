@@ -143,7 +143,7 @@ describe('DatatableComponent', () => {
   });
 
   it('should not sort not sortable columns', () => {
-    component.columns[0].unsortable = true;
+    component.columns[0].sortable = false;
     fixture.detectChanges();
     expect(component.sortHeader).toBe('bar');
     component.updateSorting(columns[0]);
