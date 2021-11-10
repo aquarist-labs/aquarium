@@ -137,7 +137,7 @@ describe('DatatableComponent', () => {
     component.columns[1].cols = 12;
     expect(() => fixture.detectChanges()).toThrow(
       new Error(
-        'Only 12 cols can be used in one row by bootstrap, please redefine the "DatatableColumn.cols" values'
+        'Only 12 cols can be used in one row by Bootstrap, please redefine the "DatatableColumn.cols" values'
       )
     );
   });
