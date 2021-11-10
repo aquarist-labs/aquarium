@@ -104,7 +104,6 @@ def get_mounts() -> List[MountEntry]:
 
 class SystemDisk:
 
-    _gstate: GlobalState
     _overlaydirs: Dict[str, str] = {
         "etc": "/etc",
         "logs": "/var/log",
@@ -114,8 +113,8 @@ class SystemDisk:
     }
     _bindmounts: Dict[str, str] = {"ceph": "/var/lib/ceph"}
 
-    def __init__(self, gstate: GlobalState) -> None:
-        self._gstate = gstate
+    def __init__(self) -> None:
+        pass
 
     @property
     def mounted(self):
@@ -135,10 +134,10 @@ class SystemDisk:
         if retcode != 0:
             raise LVMError(msg=err)
 
-    async def create(self, devicestr: str) -> None:
+    async def create(self, gstate: GlobalState, devicestr: str) -> None:
 
         logger.debug(f"prepare system disk: {devicestr}")
-        inventory: Optional[NodeInfoModel] = self._gstate.inventory.latest
+        inventory: Optional[NodeInfoModel] = gstate.inventory.latest
         assert inventory is not None
 
         device: Optional[DiskDevice] = next(

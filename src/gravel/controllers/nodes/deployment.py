@@ -340,10 +340,10 @@ class NodeDeployment:
             keyringpath.chmod(0o600)
             confpath.chmod(0o644)
 
-        systemdisk = SystemDisk(self._gstate)
+        systemdisk = SystemDisk()
         try:
             progress(0, "Creating System Disk")
-            await systemdisk.create(sysdiskpath)
+            await systemdisk.create(self._gstate, sysdiskpath)
             progress(10, "Enabling System Disk")
             await systemdisk.enable()
         except GravelError as e:

@@ -61,9 +61,7 @@ def test_silly_mounts(fs: fake_filesystem.FakeFilesystem) -> None:
     assert lst[1].source == "asd" and lst[1].dest == "fgh"
 
 
-def test_mounted(
-    fs: fake_filesystem.FakeFilesystem, gstate: GlobalState
-) -> None:
+def test_mounted(fs: fake_filesystem.FakeFilesystem) -> None:
 
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_with_aquarium.raw"),
@@ -72,13 +70,11 @@ def test_mounted(
 
     from gravel.controllers.nodes.systemdisk import SystemDisk
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     assert systemdisk.mounted
 
 
-def test_not_mounted(
-    fs: fake_filesystem.FakeFilesystem, gstate: GlobalState
-) -> None:
+def test_not_mounted(fs: fake_filesystem.FakeFilesystem) -> None:
 
     fs.add_real_file(
         source_path=os.path.join(DATA_DIR, "mounts_without_aquarium.raw"),
@@ -87,12 +83,12 @@ def test_not_mounted(
 
     from gravel.controllers.nodes.systemdisk import SystemDisk
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     assert not systemdisk.mounted
 
 
 @pytest.mark.asyncio
-async def test_lvm(mocker: MockerFixture, gstate: GlobalState) -> None:
+async def test_lvm(mocker: MockerFixture) -> None:
 
     called_lvm_success = False
     called_lvm_failure = False
@@ -118,7 +114,7 @@ async def test_lvm(mocker: MockerFixture, gstate: GlobalState) -> None:
     )
     from gravel.controllers.nodes.systemdisk import LVMError, SystemDisk
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     await systemdisk.lvm("foo bar baz")
     assert called_lvm_success
 
@@ -167,14 +163,14 @@ async def test_create(
     inventory.probe = mocker.AsyncMock()
     inventory._latest = nodeinfo
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     systemdisk.lvm = mock_lvm
     mocker.patch(
         "gravel.controllers.nodes.systemdisk.aqr_run_cmd", new=mock_call
     )
     throws = False
     try:
-        await systemdisk.create("/dev/foobar")
+        await systemdisk.create(gstate, "/dev/foobar")
     except UnknownDeviceError:
         throws = True
         pass
@@ -183,19 +179,18 @@ async def test_create(
     nodeinfo.disks[0].available = False
     throws = False
     try:
-        await systemdisk.create("/dev/vda")
+        await systemdisk.create(gstate, "/dev/vda")
     except UnavailableDeviceError:
         throws = True
         pass
     assert throws
 
     nodeinfo.disks[0].available = True
-    await systemdisk.create("/dev/vda")
+    await systemdisk.create(gstate, "/dev/vda")
 
 
 @pytest.mark.asyncio
 async def test_mount_error(
-    gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
     mocker: MockerFixture,
 ) -> None:
@@ -209,7 +204,7 @@ async def test_mount_error(
     )
     from gravel.controllers.nodes.systemdisk import MountError, SystemDisk
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     asserted = False
     try:
         await systemdisk.mount()
@@ -229,7 +224,6 @@ async def test_mount_error(
 
 @pytest.mark.asyncio
 async def test_unmount_error(
-    gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
     mocker: MockerFixture,
 ) -> None:
@@ -243,7 +237,7 @@ async def test_unmount_error(
     )
     from gravel.controllers.nodes.systemdisk import MountError, SystemDisk
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     throws = False
     try:
         await systemdisk.unmount()
@@ -264,7 +258,6 @@ async def test_unmount_error(
 
 @pytest.mark.asyncio
 async def test_enable(
-    gstate: GlobalState,
     fs: fake_filesystem.FakeFilesystem,
     mocker: MockerFixture,
 ) -> None:
@@ -303,7 +296,7 @@ async def test_enable(
         target_path="/proc/mounts",
     )
 
-    systemdisk = SystemDisk(gstate)
+    systemdisk = SystemDisk()
     assert not systemdisk.mounted
     systemdisk.mount = mount_fail
 
