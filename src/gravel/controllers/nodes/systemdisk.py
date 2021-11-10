@@ -136,6 +136,30 @@ class SystemDisk:
                 return True
         return False
 
+    async def exists(self) -> bool:
+        """Checks whether a System Disk exists in the system."""
+
+        lvmcmd = shlex.split("lvs --noheadings -o vg_name,lv_name @aquarium")
+        try:
+            out = await lvm(lvmcmd)
+        except LVMError:
+            return False
+
+        lst = [x.strip() for x in out.split("\n") if len(x) > 0]
+        if len(lst) == 0:
+            return False
+
+        lvs = [lv.split()[1] for lv in lst]
+        if "containers" not in lvs:
+            # systemdisk does not have a containers LV, we're in error state.
+            raise LVMError(msg="System Disk missing Containers LV.")
+        elif "systemdisk" not in lvs:
+            # systemdisk does not have a persistent state LV, we're in error
+            # state.
+            raise LVMError(msg="System Disk missing persistent state LV.")
+
+        return True
+
     async def create(self, gstate: GlobalState, devicestr: str) -> None:
 
         logger.debug(f"prepare system disk: {devicestr}")
