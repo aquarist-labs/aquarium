@@ -1,13 +1,9 @@
 @import 'styles.scss';
 
-.glass-hosts-page {
-  margin: $glass-margin;
+.page-actions {
+  margin-bottom: 8px;
 
-  .page-actions {
-    margin-bottom: 8px;
-
-    button {
-      @extend .btn-outline-default;
-    }
+  button {
+    @extend .btn-outline-default;
   }
 }

@@ -112,7 +112,8 @@
              let-items="items"
              let-row="row">
   <div ngbDropdown>
-    <button class="btn"
+    <button *ngIf="items.length"
+            class="btn"
             title="{{ 'Actions' | translate }}"
             ngbDropdownToggle>
       <i class="mdi mdi-dots-vertical"></i>
@@ -121,6 +122,7 @@
       <ng-container *ngFor="let item of items">
         <button *ngIf="item.type !== 'divider'"
                 ngbDropdownItem
+                [disabled]="item.disabled"
                 (click)="item.callback(row)">
           <span>{{ item.title | translate }}</span>
         </button>

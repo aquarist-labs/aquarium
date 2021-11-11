@@ -17,6 +17,7 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { finalize } from 'rxjs/operators';
 
 import { DeclarativeFormModalComponent } from '~/app/core/modals/declarative-form/declarative-form-modal.component';
+import { PageStatus } from '~/app/shared/components/content-page/content-page.component';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
 import { NodesService, TokenReply } from '~/app/shared/services/api/nodes.service';
 import { Host, OrchService } from '~/app/shared/services/api/orch.service';
@@ -28,10 +29,11 @@ import { DialogService } from '~/app/shared/services/dialog.service';
   styleUrls: ['./hosts-page.component.scss']
 })
 export class HostsPageComponent {
-  loading = false;
-  firstLoadComplete = false;
+  pageStatus: PageStatus = PageStatus.none;
   data: Host[] = [];
   columns: DatatableColumn[];
+
+  private firstLoadComplete = false;
 
   constructor(
     private dialogService: DialogService,
@@ -51,17 +53,23 @@ export class HostsPageComponent {
   }
 
   loadData(): void {
-    this.loading = true;
+    if (!this.firstLoadComplete) {
+      this.pageStatus = PageStatus.loading;
+    }
     this.orchService
       .hosts()
       .pipe(
         finalize(() => {
-          this.loading = this.firstLoadComplete = true;
+          this.firstLoadComplete = true;
         })
       )
-      .subscribe((data) => {
-        this.data = data;
-      });
+      .subscribe(
+        (data) => {
+          this.data = data;
+          this.pageStatus = PageStatus.ready;
+        },
+        () => (this.pageStatus = PageStatus.loadingError)
+      );
   }
 
   onShowToken(): void {

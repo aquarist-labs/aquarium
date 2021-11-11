@@ -31,6 +31,7 @@ import { NetworkFormComponent } from '~/app/pages/network-page/network-form/netw
 import { NetworkPageComponent } from '~/app/pages/network-page/network-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { StorageDevicesPageComponent } from '~/app/pages/storage-devices-page/storage-devices-page.component';
+import { StorageSmartFormComponent } from '~/app/pages/storage-devices-page/storage-smart-form/storage-smart-form.component';
 import { UsersFormComponent } from '~/app/pages/users-page/users-form/users-form.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
@@ -109,8 +110,15 @@ const dashboardRoute: Route = {
         },
         {
           path: 'storage',
-          component: StorageDevicesPageComponent,
-          data: { breadcrumb: TEXT('Storage') }
+          data: { breadcrumb: TEXT('Storage') },
+          children: [
+            { path: '', component: StorageDevicesPageComponent },
+            {
+              path: 'smart/:path',
+              component: StorageSmartFormComponent,
+              data: { breadcrumb: TEXT('S.M.A.R.T.') }
+            }
+          ]
         }
       ]
     }

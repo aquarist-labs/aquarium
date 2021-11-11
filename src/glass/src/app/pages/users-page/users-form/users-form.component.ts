@@ -21,6 +21,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { Observable, of, timer } from 'rxjs';
 import { finalize, map, switchMapTo } from 'rxjs/operators';
 
+import { PageStatus } from '~/app/shared/components/content-page/content-page.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import {
   DeclarativeFormConfig,
@@ -36,8 +37,11 @@ import { User, UsersService } from '~/app/shared/services/api/users.service';
 export class UsersFormComponent implements OnInit {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
+
   @BlockUI()
   blockUI!: NgBlockUI;
+
+  pageStatus: PageStatus = PageStatus.none;
   fields: { [fieldName: string]: FormFieldConfig } = {
     username: {
       type: 'text',
@@ -90,9 +94,21 @@ export class UsersFormComponent implements OnInit {
     private usersService: UsersService,
     private router: Router
   ) {
-    this.route.params.subscribe((p: { name?: string }) =>
-      p.name ? this.usersService.get(p.name!).subscribe((user) => this.edit(user)) : this.add()
-    );
+    this.route.params.subscribe((p: { name?: string }) => {
+      if (p.name) {
+        this.pageStatus = PageStatus.loading;
+        this.usersService.get(p.name!).subscribe(
+          (user) => {
+            this.pageStatus = PageStatus.ready;
+            this.edit(user);
+          },
+          () => (this.pageStatus = PageStatus.loadingError)
+        );
+      } else {
+        this.pageStatus = PageStatus.ready;
+        this.add();
+      }
+    });
   }
 
   ngOnInit(): void {}
@@ -100,6 +116,7 @@ export class UsersFormComponent implements OnInit {
   add() {
     this.fields.username.validators = { required: true, asyncCustom: this.nameValidator() };
     this.fields.password.validators = { required: true };
+
     this.setFormConfig(TEXT('Add User'), TEXT('Add'), () =>
       this.userAction('create', TEXT('Please wait, creating user ...'))
     );

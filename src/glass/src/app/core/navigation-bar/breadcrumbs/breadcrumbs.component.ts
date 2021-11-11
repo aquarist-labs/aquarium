@@ -42,7 +42,7 @@ export class BreadcrumbsComponent implements OnDestroy {
     if (hasParam) {
       const param = route.snapshot.params[lastRoutePart.split(':')[1]];
       path = path.replace(lastRoutePart, param);
-      label += ' ' + param;
+      label += ' ' + decodeURIComponent(param);
     }
 
     const nextUrl = path ? `${url}/${path}` : url;

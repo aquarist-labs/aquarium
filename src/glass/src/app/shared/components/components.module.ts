@@ -6,6 +6,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { AlertPanelComponent } from '~/app/shared/components/alert-panel/alert-panel.component';
+import { ContentPageComponent } from '~/app/shared/components/content-page/content-page.component';
 import { DatatableComponent } from '~/app/shared/components/datatable/datatable.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
@@ -23,7 +24,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     LanguageButtonComponent,
     WidgetComponent,
     DeclarativeFormComponent,
-    AlertPanelComponent
+    AlertPanelComponent,
+    ContentPageComponent
   ],
   exports: [
     SubmitButtonComponent,
@@ -32,7 +34,8 @@ import { PipesModule } from '~/app/shared/pipes/pipes.module';
     LanguageButtonComponent,
     WidgetComponent,
     DeclarativeFormComponent,
-    AlertPanelComponent
+    AlertPanelComponent,
+    ContentPageComponent
   ],
   imports: [
     CommonModule,

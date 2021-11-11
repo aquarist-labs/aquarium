@@ -1,22 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '~/app/core/core.module';
-import { TopBarComponent } from '~/app/core/top-bar/top-bar.component';
+import { ContentPageComponent } from '~/app/shared/components/content-page/content-page.component';
 import { TestingModule } from '~/app/testing.module';
 
-describe('TopBarComponent', () => {
-  let component: TopBarComponent;
-  let fixture: ComponentFixture<TopBarComponent>;
+describe('ContentPageComponent', () => {
+  let component: ContentPageComponent;
+  let fixture: ComponentFixture<ContentPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModule, TestingModule, TranslateModule.forRoot()]
+      imports: [CoreModule, TestingModule]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(TopBarComponent);
+    fixture = TestBed.createComponent(ContentPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

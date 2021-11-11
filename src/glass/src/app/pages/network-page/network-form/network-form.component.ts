@@ -19,6 +19,7 @@ import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { PageStatus } from '~/app/shared/components/content-page/content-page.component';
 import { DeclarativeFormComponent } from '~/app/shared/components/declarative-form/declarative-form.component';
 import {
   DeclarativeFormConfig,
@@ -34,8 +35,11 @@ import { Interface, NetworkService } from '~/app/shared/services/api/network.ser
 export class NetworkFormComponent implements OnInit {
   @ViewChild(DeclarativeFormComponent, { static: false })
   form!: DeclarativeFormComponent;
+
   @BlockUI()
   blockUI!: NgBlockUI;
+
+  pageStatus: PageStatus = PageStatus.none;
   fields: { [fieldName: string]: FormFieldConfig } = {
     name: {
       type: 'text',
@@ -131,9 +135,16 @@ export class NetworkFormComponent implements OnInit {
     private networkService: NetworkService,
     private router: Router
   ) {
-    this.route.params.subscribe((p: { name?: string }) =>
-      this.networkService.get(p.name!).subscribe((network) => this.edit(network))
-    );
+    this.route.params.subscribe((p: { name?: string }) => {
+      this.pageStatus = PageStatus.loading;
+      this.networkService.get(p.name!).subscribe(
+        (network) => {
+          this.pageStatus = PageStatus.ready;
+          this.edit(network);
+        },
+        () => (this.pageStatus = PageStatus.loadingError)
+      );
+    });
   }
 
   ngOnInit(): void {}

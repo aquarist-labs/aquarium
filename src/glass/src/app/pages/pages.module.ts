@@ -16,6 +16,7 @@ import { NetworkFormComponent } from '~/app/pages/network-page/network-form/netw
 import { NetworkPageComponent } from '~/app/pages/network-page/network-page.component';
 import { NotFoundPageComponent } from '~/app/pages/not-found-page/not-found-page.component';
 import { StorageDevicesPageComponent } from '~/app/pages/storage-devices-page/storage-devices-page.component';
+import { StorageSmartFormComponent } from '~/app/pages/storage-devices-page/storage-smart-form/storage-smart-form.component';
 import { UsersFormComponent } from '~/app/pages/users-page/users-form/users-form.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
 import { SharedModule } from '~/app/shared/shared.module';
@@ -32,7 +33,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     UsersPageComponent,
     UsersFormComponent,
     NetworkFormComponent,
-    StorageDevicesPageComponent
+    StorageDevicesPageComponent,
+    StorageSmartFormComponent
   ],
   imports: [
     CommonModule,

@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 import sys
 from json.decoder import JSONDecodeError
@@ -30,6 +31,7 @@ from gravel.controllers.ceph.models import (
     CephOSDPoolEntryModel,
     CephOSDPoolStatsModel,
     CephStatusModel,
+    SmartCtlModel,
 )
 
 # Attempt to import rados
@@ -213,6 +215,34 @@ class Mon:
         cmd: Dict[str, str] = {"prefix": "osd df", "format": "json"}
         result: Dict[str, Any] = self.call(cmd)
         return CephOSDDFModel.parse_obj(result)
+
+    def device_smart_metrics(self, device_id: str) -> Optional[SmartCtlModel]:
+        """
+        Get the latest valid SMART metrics from the given device.
+        :param device_id: The device identifier.
+        :return: Returns the SMART metrics or None.
+        """
+        cmd = {
+            "prefix": "device get-health-metrics",
+            "devid": device_id,
+            "format": "json",
+        }
+        metrics: Dict[str, dict] = self.call(cmd)
+        # In some cases the returned dict is empty, then return None.
+        if not metrics:
+            return None
+        # Find the latest entry.
+        ts_format = "%Y%m%d-%H%M%S"
+        all_ts = [
+            datetime.datetime.strptime(ts, ts_format) for ts in metrics.keys()
+        ]
+        latest_ts = max(all_ts)
+        # Make sure we are processing valid metrics only. If the key
+        # 'error' exists, then return None.
+        latest_metric = metrics[latest_ts.strftime(ts_format)]
+        if "error" in latest_metric:
+            return None
+        return SmartCtlModel.parse_obj(latest_metric)
 
     def get_osdmap(self) -> CephOSDMapModel:
         cmd: Dict[str, str] = {"prefix": "osd dump", "format": "json"}

@@ -1,5 +1,5 @@
-<div class="glass-users-page"
-     fxLayout="column">
+<glass-content-page [pageStatus]="pageStatus"
+                    fxLayout="column">
   <div class="page-actions"
        fxLayout="row"
        fxLayoutAlign="end center">
@@ -10,14 +10,10 @@
     </button>
   </div>
   <div class="page-content">
-    <div *ngIf="!firstLoadComplete && loading"
-         class="progress">
-      <div class="progress-bar indeterminate"></div>
-    </div>
     <glass-datatable [data]="data"
                      [columns]="columns"
                      [autoReload]="15000"
                      (loadData)="loadData()">
     </glass-datatable>
   </div>
-</div>
+</glass-content-page>
