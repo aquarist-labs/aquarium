@@ -42,31 +42,7 @@ from gravel.controllers.resources.storage import Storage
 logger: logging.Logger = fastapi_logger
 
 
-async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
-    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
-    setup_logging(lvl)
-    logger.info("Aquarium startup!")
-
-    deployment = DeploymentMgr()
-
-    try:
-        await deployment.preinit()
-    except DeploymentError as e:
-        logger.error(f"Unable to pre-init the node: {e.message}")
-        sys.exit(1)
-
-    try:
-        await deployment.init()
-    except InitError as e:
-        logger.error(f"Unable to init node: {e.message}")
-        sys.exit(1)
-
-    gstate: GlobalState = GlobalState()
-
-    # init node mgr
-    logger.info("starting node manager")
-    nodemgr: NodeMgr = NodeMgr(gstate)
-
+def gstate_init(gstate: GlobalState, nodemgr: NodeMgr) -> None:
     # Prep cephadm
     cephadm: Cephadm = Cephadm(gstate.config.options.containers)
     gstate.add_cephadm(cephadm)
@@ -104,6 +80,34 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
 
     network: Network = Network(gstate.config.options.network.probe_interval)
     gstate.add_network(network)
+
+
+async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
+    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
+    setup_logging(lvl)
+    logger.info("Aquarium startup!")
+
+    deployment = DeploymentMgr()
+
+    try:
+        await deployment.preinit()
+    except DeploymentError as e:
+        logger.error(f"Unable to pre-init the node: {e.message}")
+        sys.exit(1)
+
+    gstate: GlobalState = GlobalState()
+
+    try:
+        await deployment.init()
+    except InitError as e:
+        logger.error(f"Unable to init node: {e.message}")
+        sys.exit(1)
+
+    # init node mgr
+    logger.info("starting node manager")
+    nodemgr: NodeMgr = NodeMgr(gstate)
+
+    gstate_init(gstate, nodemgr)
 
     await nodemgr.start()
     await gstate.start()
