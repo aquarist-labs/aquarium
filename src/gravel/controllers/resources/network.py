@@ -60,6 +60,12 @@ class RouteModel(BaseModel):
     interface: str = Field("-", title="Interface")
 
 
+class NetworkConfigModel(BaseModel):
+    interfaces: Dict[str, InterfaceModel]
+    nameservers: List[str]
+    routes: List[RouteModel]
+
+
 class Network(Ticker):
 
     _interfaces: Dict[str, InterfaceModel] = {}
@@ -223,6 +229,8 @@ class Network(Ticker):
             # No routes for this interface, delete config file if present
             path.unlink(missing_ok=True)
 
+    # TODO: This should probably just take a NetworkConfigModel,
+    # rather that separate interfaces, nameservers, routes.
     async def apply_config(
         self,
         interfaces: Dict[str, InterfaceModel],

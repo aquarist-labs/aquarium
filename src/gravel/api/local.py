@@ -29,7 +29,7 @@ from gravel.controllers.nodes.requirements import (
     RequirementsModel,
     localhost_qualified,
 )
-from gravel.controllers.resources.network import InterfaceModel, RouteModel
+from gravel.controllers.resources.network import NetworkConfigModel
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
@@ -49,12 +49,6 @@ class EventModel(BaseModel):
     ts: int = Field(title="The Unix time stamp")
     severity: Literal["info", "warn", "danger"]
     message: str
-
-
-class NetworkConfigModel(BaseModel):
-    interfaces: Dict[str, InterfaceModel]
-    nameservers: List[str]
-    routes: List[RouteModel]
 
 
 @router.get(
