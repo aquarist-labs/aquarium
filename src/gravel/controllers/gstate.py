@@ -175,6 +175,7 @@ class GlobalState:
     async def start(self) -> None:
         if self._is_shutting_down:
             return
+        self._config.init()
         self._kvstore.start()
         self.tick_task = asyncio.create_task(self.tick())
 
