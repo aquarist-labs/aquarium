@@ -91,6 +91,10 @@ class DeploymentMgr:
         self._preinited = False
         self._inited = False
 
+    @property
+    def installed(self) -> bool:
+        return self._init_state == InitStateEnum.INSTALLED
+
     async def preinit(self) -> None:
         """
         Prepare node init by checking for a System Disk and enabling it if

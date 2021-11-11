@@ -96,21 +96,22 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
         sys.exit(1)
 
     gstate: GlobalState = GlobalState()
-
-    try:
-        await deployment.init()
-    except InitError as e:
-        logger.error(f"Unable to init node: {e.message}")
-        sys.exit(1)
-
-    # init node mgr
-    logger.info("starting node manager")
     nodemgr: NodeMgr = NodeMgr(gstate)
 
-    gstate_init(gstate, nodemgr)
+    if deployment.installed:
+        try:
+            await deployment.init()
+        except InitError as e:
+            logger.error(f"Unable to init node: {e.message}")
+            sys.exit(1)
 
-    await nodemgr.start()
-    await gstate.start()
+        # init node mgr
+        logger.info("starting node manager")
+
+        gstate_init(gstate, nodemgr)
+
+        await nodemgr.start()
+        await gstate.start()
 
     # Add instances into FastAPI's state:
     aquarium_api.state.gstate = gstate
