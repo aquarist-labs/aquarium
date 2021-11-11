@@ -18,8 +18,10 @@ LABEL aquarium.github="https://github.com/aquarist-labs/aquarium"
 LABEL version="0.1.0"
 LABEL description="Aquarium image builder"
 
+# Use the latest Kiwi version.
+RUN zypper ar --repo http://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/openSUSE_Leap_15.3/Virtualization:Appliances:Builder.repo
 
-RUN zypper ref
+RUN zypper --gpg-auto-import-keys ref
 RUN zypper --non-interactive install \
   git python3 python3-pip python3-rados \
   python3-kiwi nodejs-common npm \
