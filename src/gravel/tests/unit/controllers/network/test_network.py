@@ -33,7 +33,8 @@ async def test_network(
         return 0, None, None
 
     mocker.patch(
-        "gravel.controllers.utils.aqr_run_cmd", new=mock_restart_network
+        "gravel.controllers.resources.network.aqr_run_cmd",
+        new=mock_restart_network,
     )
 
     from gravel.controllers.resources.network import (
