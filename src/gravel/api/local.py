@@ -144,10 +144,9 @@ async def get_status(
     """
 
     nodemgr: NodeMgr = request.app.state.nodemgr
-    gstate: GlobalState = request.app.state.gstate
 
     return NodeStatusReplyModel(
-        localhost_qualified=await localhost_qualified(gstate),
+        localhost_qualified=await localhost_qualified(),
         inited=nodemgr.available,
         node_stage=nodemgr.deployment_state.stage,
     )
