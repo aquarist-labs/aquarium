@@ -23,7 +23,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
 
-from gravel.api import auth, devices, local, nodes, orch, status, users
+from gravel.api import auth, deploy, devices, local, nodes, orch, status, users
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.ceph.ceph import Ceph, Mgr, Mon
 from gravel.controllers.deployment.mgr import (
@@ -116,6 +116,7 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     # Add instances into FastAPI's state:
     aquarium_api.state.gstate = gstate
     aquarium_api.state.nodemgr = nodemgr
+    aquarium_api.state.deployment = deployment
 
 
 async def aquarium_shutdown(_: FastAPI, aquarium_api: FastAPI):
@@ -160,6 +161,10 @@ def aquarium_factory(
             "name": "users",
             "description": "Operations related to user management",
         },
+        {
+            "name": "deployment",
+            "description": "Operations related to the current deployment.",
+        },
     ]
 
     aquarium_app = FastAPI(docs_url=None)
@@ -187,6 +192,7 @@ def aquarium_factory(
     aquarium_api.include_router(devices.router)
     aquarium_api.include_router(auth.router)
     aquarium_api.include_router(users.router)
+    aquarium_api.include_router(deploy.router)
 
     #
     # mounts

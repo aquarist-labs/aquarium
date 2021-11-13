@@ -15,12 +15,18 @@ from enum import Enum
 from json import JSONDecodeError
 from logging import Logger
 from pathlib import Path
+from typing import List
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ValidationError
 
 from gravel.controllers.errors import GravelError
+from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
+from gravel.controllers.nodes.requirements import (
+    RequirementsModel,
+    localhost_qualified,
+)
 from gravel.controllers.nodes.systemdisk import (
     MountError,
     OverlayError,
@@ -46,8 +52,10 @@ class InitStateEnum(int, Enum):
 
 class DeploymentStateEnum(int, Enum):
     NONE = 0
-    DEPLOYING = 1
-    DEPLOYED = 2
+    INSTALLING = 1
+    INSTALLED = 2
+    DEPLOYING = 3
+    DEPLOYED = 4
 
 
 class DeploymentStateModel(BaseModel):
@@ -94,6 +102,10 @@ class DeploymentMgr:
     @property
     def installed(self) -> bool:
         return self._init_state == InitStateEnum.INSTALLED
+
+    @property
+    def state(self) -> DeploymentStateEnum:
+        return self._deployment_state
 
     async def preinit(self) -> None:
         """
@@ -171,4 +183,13 @@ class DeploymentMgr:
         self._deployment_state = state.deployment
         self._inited = True
 
-        pass
+    async def get_requirements(self) -> RequirementsModel:
+        """Obtain node requirements."""
+        return await localhost_qualified()
+
+    async def get_devices(self) -> List[DiskDevice]:
+        """Obtain storage devices."""
+        try:
+            return await get_storage_devices()
+        except Exception:
+            return []
