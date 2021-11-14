@@ -299,7 +299,6 @@ class NodeDeployment:
 
     async def _prepare_node(
         self,
-        sysdiskpath: str,
         hostname: str,
         ntpaddr: Optional[str],
         network: Optional[NetworkConfigModel],
@@ -342,15 +341,6 @@ class NodeDeployment:
             keyringpath.write_text(keyring)
             keyringpath.chmod(0o600)
             confpath.chmod(0o644)
-
-        systemdisk = SystemDisk()
-        try:
-            progress(0, "Creating System Disk")
-            await systemdisk.create(self._gstate, sysdiskpath)
-            progress(10, "Enabling System Disk")
-            await systemdisk.enable()
-        except GravelError as e:
-            raise SystemDiskCreationError(msg=e.message)
 
         if is_join:
             # We're doing a join. It should be quick. Don't track progress.
@@ -443,7 +433,6 @@ class NodeDeployment:
 
         self._state.mark_join()
         await self._prepare_node(
-            disks.system,
             hostname,
             ntpaddr=None,
             network=network,
@@ -563,7 +552,6 @@ class NodeDeployment:
         self._progress = ProgressEnum.PREPARING
 
         await self._prepare_node(
-            config.disks.system,
             config.hostname,
             config.ntp_addr,
             config.network,
