@@ -21,7 +21,7 @@ from pydantic.main import BaseModel
 
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
-from gravel.controllers.inventory.disks import DiskDevice
+from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.utils import aqr_run_cmd
 
@@ -160,14 +160,12 @@ class SystemDisk:
 
         return True
 
-    async def create(self, gstate: GlobalState, devicestr: str) -> None:
+    async def create(self, devicestr: str) -> None:
 
         logger.debug(f"prepare system disk: {devicestr}")
-        inventory: Optional[NodeInfoModel] = gstate.inventory.latest
-        assert inventory is not None
-
+        devs: List[DiskDevice] = await get_storage_devices()
         device: Optional[DiskDevice] = next(
-            (d for d in inventory.disks if d.path == devicestr), None
+            (d for d in devs if d.path == devicestr), None
         )
 
         # ascertain whether we can use this device

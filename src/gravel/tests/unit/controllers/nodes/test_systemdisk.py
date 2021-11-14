@@ -170,7 +170,7 @@ async def test_create(
     mocker.patch("gravel.controllers.nodes.systemdisk.lvm", new=mock_lvm)
     throws = False
     try:
-        await systemdisk.create(gstate, "/dev/foobar")
+        await systemdisk.create("/dev/foobar")
     except UnknownDeviceError:
         throws = True
         pass
@@ -179,14 +179,14 @@ async def test_create(
     nodeinfo.disks[0].available = False
     throws = False
     try:
-        await systemdisk.create(gstate, "/dev/vda")
+        await systemdisk.create("/dev/vda")
     except UnavailableDeviceError:
         throws = True
         pass
     assert throws
 
     nodeinfo.disks[0].available = True
-    await systemdisk.create(gstate, "/dev/vda")
+    await systemdisk.create("/dev/vda")
 
 
 @pytest.mark.asyncio
