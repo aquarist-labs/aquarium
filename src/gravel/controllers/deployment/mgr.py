@@ -273,6 +273,15 @@ class DeploymentMgr:
         self._deployment_state = state.deployment
         self._inited = True
 
+    def get_status(self) -> DeploymentStatusModel:
+        """Obtain node deployment status."""
+        return DeploymentStatusModel(
+            state=DeploymentStateModel(
+                init=self._init_state,
+                deployment=self._deployment_state,
+            ),
+            error=self._error,
+        )
 
     async def get_requirements(self) -> RequirementsModel:
         """Obtain node requirements."""

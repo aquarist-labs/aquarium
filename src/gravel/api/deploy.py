@@ -23,6 +23,7 @@ from gravel.api import jwt_auth_scheme
 from gravel.controllers.deployment.mgr import (
     DeploymentMgr,
     DeploymentStateEnum,
+    DeploymentStatusModel,
     NodeInstalledError,
 )
 from gravel.controllers.inventory.disks import DiskDevice
@@ -36,7 +37,7 @@ router: APIRouter = APIRouter(prefix="/deploy", tags=["deploy"])
 
 class DeployStatusReplyModel(BaseModel):
     installed: bool = Field(title="Node has been installed.")
-    state: DeploymentStateEnum = Field(title="Deployment state.")
+    status: DeploymentStatusModel = Field(title="Deployment status.")
 
 
 class DeployInstallReplyModel(BaseModel):
@@ -63,8 +64,7 @@ async def deploy_status(
 
     dep: DeploymentMgr = request.app.state.deployment
     return DeployStatusReplyModel(
-        installed=dep.installed,
-        state=dep.state,
+        installed=dep.installed, status=dep.get_status()
     )
 
 
