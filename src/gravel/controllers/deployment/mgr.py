@@ -318,6 +318,7 @@ class DeploymentMgr:
             error.code = DeploymentErrorEnum.UNKNOWN_ERROR
             error.msg = f"Unknown error: {str(e)}"
         if error.code > DeploymentErrorEnum.NONE:
+            self._deployment_state = DeploymentStateEnum.NONE
             return error
 
         logger.info(f"Enabling system disk from {device}")
