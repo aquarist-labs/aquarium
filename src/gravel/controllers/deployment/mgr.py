@@ -11,11 +11,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# pyright: reportUnknownMemberType=false
+
+import asyncio
 from enum import Enum
 from json import JSONDecodeError
 from logging import Logger
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -31,6 +34,8 @@ from gravel.controllers.nodes.systemdisk import (
     MountError,
     OverlayError,
     SystemDisk,
+    UnavailableDeviceError,
+    UnknownDeviceError,
 )
 from gravel.controllers.utils import read_model, write_model
 
@@ -58,10 +63,34 @@ class DeploymentStateEnum(int, Enum):
     DEPLOYED = 4
 
 
+class DeploymentErrorEnum(int, Enum):
+    NONE = 0
+    DEVICE_UNKNOWN = 1
+    DEVICE_UNAVAILABLE = 2
+    UNKNOWN_ERROR = 3
+    ENABLING = 4
+
+
 class DeploymentStateModel(BaseModel):
     init: InitStateEnum = Field(InitStateEnum.NONE, title="Init state.")
     deployment: DeploymentStateEnum = Field(
         DeploymentStateEnum.NONE, title="Deployment state."
+    )
+
+
+class DeploymentErrorModel(BaseModel):
+    code: DeploymentErrorEnum = Field(
+        DeploymentErrorEnum.NONE, title="Deployment error code."
+    )
+    msg: str = Field("", title="Deployment error message, if any.")
+
+
+class DeploymentStatusModel(BaseModel):
+    state: DeploymentStateModel = Field(
+        DeploymentStateModel(), title="Current deployment state."
+    )
+    error: DeploymentErrorModel = Field(
+        DeploymentErrorModel(), title="Current deployment error."
     )
 
 
@@ -85,6 +114,10 @@ class NotPreInitedError(DeploymentError):
     pass
 
 
+class NodeInstalledError(DeploymentError):
+    pass
+
+
 class DeploymentMgr:
     """Handles the deployment procedure for the node."""
 
@@ -92,20 +125,74 @@ class DeploymentMgr:
     _deployment_state: DeploymentStateEnum
     _preinited: bool
     _inited: bool
+    _task_main: Optional[asyncio.Task]
+    _task_install: Optional[asyncio.Task]
+    _running: bool
+    _error: DeploymentErrorModel
 
     def __init__(self) -> None:
         self._init_state = InitStateEnum.NONE
         self._deployment_state = DeploymentStateEnum.NONE
         self._preinited = False
         self._inited = False
+        self._task_main = None
+        self._task_install = None
+        self._running = False
+        self._error = DeploymentErrorModel()
 
     @property
     def installed(self) -> bool:
-        return self._init_state == InitStateEnum.INSTALLED
+        return self._init_state >= InitStateEnum.INSTALLED
+
+    @property
+    def deployed(self) -> bool:
+        return self._init_state == InitStateEnum.DEPLOYED
 
     @property
     def state(self) -> DeploymentStateEnum:
         return self._deployment_state
+
+    async def _task_main_func(self) -> None:
+        while self._running:
+            if self._task_install is not None and self._task_install.done():
+                ret: DeploymentErrorModel = await self._task_install
+                if ret.code > DeploymentErrorEnum.NONE:
+                    self._error = ret
+                else:
+                    self._deployment_state = DeploymentStateEnum.INSTALLED
+                    self._init_state = InitStateEnum.INSTALLED
+                self._task_install = None
+
+            if self.deployed:
+                break
+
+            await asyncio.sleep(1.0)
+
+    async def start_main_task(self) -> None:
+        logger.debug("Starting main task.")
+        if self._running:
+            logger.warn("Attempting to start running main task.")
+            return
+        elif self._init_state >= InitStateEnum.DEPLOYED:
+            logger.warn("Attempting to start main task on deployed node.")
+            return
+        self._running = True
+        self._task_main = asyncio.create_task(self._task_main_func())
+
+    async def stop_main_task(self) -> None:
+        logger.debug("Stopping main task.")
+        if not self._running:
+            return
+        assert self._task_main is not None
+        self._running = False
+        await self._task_main
+        self._task_main = None
+
+    async def shutdown(self) -> None:
+        await self.stop_main_task()
+        if self._task_install is not None:
+            await self._task_install
+            self._task_install = None
 
     async def preinit(self) -> None:
         """
@@ -118,6 +205,9 @@ class DeploymentMgr:
         elif self._preinited:
             raise AlreadyPreInitedError("Node has already been pre-inited.")
 
+        await self.start_main_task()
+        assert self._running
+        assert self._task_main is not None
         self._preinited = True
 
         sd = SystemDisk()
@@ -183,6 +273,9 @@ class DeploymentMgr:
         self._deployment_state = state.deployment
         self._inited = True
 
+        if self._init_state == InitStateEnum.DEPLOYED:
+            await self.stop_main_task()
+
     async def get_requirements(self) -> RequirementsModel:
         """Obtain node requirements."""
         return await localhost_qualified()
@@ -193,3 +286,48 @@ class DeploymentMgr:
             return await get_storage_devices()
         except Exception:
             return []
+
+    async def install(self, device: str) -> None:
+        logger.debug(f"Attempt installing on {device}.")
+        if self.installed:
+            raise NodeInstalledError("Node is already installed.")
+        if self._deployment_state >= DeploymentStateEnum.INSTALLING:
+            logger.info("Node is currently installing; no op.")
+            return
+
+        assert self._task_main is not None
+        assert not self._task_main.done()
+        assert self._task_install is None
+
+        self._task_install = asyncio.create_task(self._install_task(device))
+
+    async def _install_task(self, device: str) -> DeploymentErrorModel:
+        logger.info(f"Start installing on device {device}.")
+        self._deployment_state = DeploymentStateEnum.INSTALLING
+        error: DeploymentErrorModel = DeploymentErrorModel()
+        sd = SystemDisk()
+        try:
+            await sd.create(device)
+        except UnknownDeviceError:
+            error.code = DeploymentErrorEnum.DEVICE_UNKNOWN
+            error.msg = f"Unknown device '{device}'"
+        except UnavailableDeviceError as e:
+            error.code = DeploymentErrorEnum.DEVICE_UNAVAILABLE
+            error.msg = f"Device '{device}' is not available."
+        except Exception as e:
+            error.code = DeploymentErrorEnum.UNKNOWN_ERROR
+            error.msg = f"Unknown error: {str(e)}"
+        if error.code > DeploymentErrorEnum.NONE:
+            return error
+
+        logger.info(f"Enabling system disk from {device}")
+        try:
+            await sd.enable()
+        except (OverlayError, MountError) as e:
+            error.code = DeploymentErrorEnum.ENABLING
+            error.msg = f"Unable to enable device '{device}: {e.message}"
+            return error
+
+        logger.info(f"Successfully installed and enabled device {device}.")
+        assert error.code == DeploymentErrorEnum.NONE
+        return error

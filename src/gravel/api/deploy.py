@@ -20,7 +20,11 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme
-from gravel.controllers.deployment.mgr import DeploymentMgr, DeploymentStateEnum
+from gravel.controllers.deployment.mgr import (
+    DeploymentMgr,
+    DeploymentStateEnum,
+    NodeInstalledError,
+)
 from gravel.controllers.inventory.disks import DiskDevice
 from gravel.controllers.nodes.requirements import (
     RequirementsModel,
@@ -71,8 +75,17 @@ async def deploy_install(
     _=Depends(jwt_auth_scheme),
 ) -> DeployInstallReplyModel:
     """Start installing this node."""
+
+    dep: DeploymentMgr = request.app.state.deployment
+    try:
+        await dep.install(params.device)
+    except NodeInstalledError:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail="Node already installed.",
+        )
     return DeployInstallReplyModel(
-        state=DeploymentStateEnum.NONE,
+        state=dep.state,
     )
 
 
