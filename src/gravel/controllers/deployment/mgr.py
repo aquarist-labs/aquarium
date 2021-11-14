@@ -297,6 +297,8 @@ class DeploymentMgr:
         assert not self._task_main.done()
         assert self._task_install is None
 
+        # reset error, if any
+        self._error = DeploymentErrorModel()
         self._task_install = asyncio.create_task(self._install_task(device))
 
     async def _install_task(self, device: str) -> DeploymentErrorModel:
