@@ -273,8 +273,6 @@ class DeploymentMgr:
         self._deployment_state = state.deployment
         self._inited = True
 
-        if self._init_state == InitStateEnum.DEPLOYED:
-            await self.stop_main_task()
 
     async def get_requirements(self) -> RequirementsModel:
         """Obtain node requirements."""
