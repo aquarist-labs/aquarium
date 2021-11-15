@@ -12,14 +12,14 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import jwt_auth_scheme, install_gate
 from gravel.controllers.nodes.conn import IncomingConnection
 from gravel.controllers.nodes.deployment import (
     DeploymentErrorEnum,
@@ -91,7 +91,9 @@ class SetHostnameRequest(BaseModel):
 
 @router.get("/deployment/disksolution", response_model=DiskSolution)
 async def node_get_disk_solution(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> DiskSolution:
     """
     Obtain the list of disks and a deployment solution, if possible.
@@ -110,7 +112,10 @@ async def node_get_disk_solution(
 
 @router.post("/deployment/start", response_model=DeployStartReplyModel)
 async def node_deploy(
-    request: Request, req_params: DeployParamsModel, _=Depends(jwt_auth_scheme)
+    request: Request,
+    req_params: DeployParamsModel,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> DeployStartReplyModel:
     """
     Start deploying this node. The host will be configured according to user
@@ -155,7 +160,9 @@ async def node_deploy(
 
 @router.get("/deployment/status", response_model=DeployStatusReplyModel)
 async def get_deployment_status(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> DeployStatusReplyModel:
     """
     Get deployment status from this node.
@@ -182,7 +189,9 @@ async def get_deployment_status(
 
 @router.post("/deployment/finished", response_model=bool)
 async def finish_deployment(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> bool:
     """
     Mark a deployment as finished. Triggers internal actions required for node
@@ -209,7 +218,10 @@ async def finish_deployment(
 
 @router.post("/join")
 async def node_join(
-    req: NodeJoinRequestModel, request: Request, _=Depends(jwt_auth_scheme)
+    req: NodeJoinRequestModel,
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ):
     logger.debug(f"api > join {req.address} with {req.token}")
     if not req.address or not req.token:
@@ -227,7 +239,11 @@ async def node_join(
 
 
 @router.get("/token", response_model=TokenReplyModel)
-async def nodes_get_token(request: Request, _=Depends(jwt_auth_scheme)):
+async def nodes_get_token(
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
+):
     nodemgr = request.app.state.nodemgr
     token: Optional[str] = nodemgr.token
     return TokenReplyModel(token=(token if token is not None else ""))

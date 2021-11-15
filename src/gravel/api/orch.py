@@ -12,14 +12,14 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import jwt_auth_scheme, install_gate
 from gravel.controllers.ceph.models import OrchDevicesPerHostModel
 from gravel.controllers.ceph.orchestrator import Orchestrator
 
@@ -51,7 +51,11 @@ class HostsDevicesModel(BaseModel):
 
 
 @router.get("/hosts", response_model=List[HostModel])
-def get_hosts(request: Request, _=Depends(jwt_auth_scheme)) -> List[HostModel]:
+def get_hosts(
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
+) -> List[HostModel]:
     orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_hosts = orch.host_ls()
     hosts: List[HostModel] = []
@@ -62,7 +66,9 @@ def get_hosts(request: Request, _=Depends(jwt_auth_scheme)) -> List[HostModel]:
 
 @router.get("/devices", response_model=Dict[str, HostsDevicesModel])
 def get_devices(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> Dict[str, HostsDevicesModel]:
     orch = Orchestrator(request.app.state.gstate.ceph_mgr)
     orch_devs_per_host: List[OrchDevicesPerHostModel] = orch.devices_ls()
@@ -93,7 +99,11 @@ def get_devices(
 
 
 @router.get("/pubkey")
-async def get_pubkey(request: Request, _=Depends(jwt_auth_scheme)) -> str:
+async def get_pubkey(
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
+) -> str:
     try:
         orch = Orchestrator(request.app.state.gstate.ceph_mgr)
         return orch.get_public_key()

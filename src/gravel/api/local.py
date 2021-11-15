@@ -12,14 +12,14 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Callable, Dict, List, Literal
+from typing import Any, Callable, List, Literal
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import jwt_auth_scheme, install_gate
 from gravel.cephadm.models import VolumeDeviceModel
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
@@ -57,7 +57,9 @@ class EventModel(BaseModel):
     response_model=List[VolumeDeviceModel],
 )
 async def get_volumes(
-    request: Request, _: Callable = Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> List[VolumeDeviceModel]:
     """
     List this node's volumes.
@@ -81,7 +83,9 @@ async def get_volumes(
     response_model=NodeInfoModel,
 )
 async def get_node_info(
-    request: Request, _: Callable = Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> NodeInfoModel:
     """
     Obtain this node's information and facts.
@@ -103,7 +107,9 @@ async def get_node_info(
     response_model=NodeInfoModel,
 )
 async def get_inventory(
-    request: Request, _: Callable = Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> NodeInfoModel:
     """
     Obtain this node's inventory.
@@ -134,7 +140,9 @@ async def get_inventory(
     response_model=NodeStatusReplyModel,
 )
 async def get_status(
-    request: Request, _: Callable = Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> NodeStatusReplyModel:
     """
     Obtain this node's current status.
@@ -158,7 +166,9 @@ async def get_status(
     response_model=List[EventModel],
 )
 async def get_events(
-    request: Request, _: Callable = Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> List[EventModel]:
     # ToDo: Replace mocked data by live data.
     events = [

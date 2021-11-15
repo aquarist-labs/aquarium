@@ -13,14 +13,14 @@
 
 from logging import Logger
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import jwt_auth_scheme, install_gate
 from gravel.controllers.ceph.models import CephStatusModel
 from gravel.controllers.resources.status import (
     CephStatusNotAvailableError,
@@ -40,7 +40,9 @@ class StatusModel(BaseModel):
 
 @router.get("/", response_model=StatusModel)
 async def get_status(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> StatusModel:
 
     status_ctrl: Status = request.app.state.gstate.status
@@ -57,7 +59,10 @@ async def get_status(
 
 
 @router.get("/logs")
-async def get_logs(_=Depends(jwt_auth_scheme)) -> str:
+async def get_logs(
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
+) -> str:
 
     logfile: Path = Path("/tmp/aquarium.log")
     if not logfile.exists():
@@ -71,7 +76,9 @@ async def get_logs(_=Depends(jwt_auth_scheme)) -> str:
     response_model=OverallClientIORateModel,
 )
 async def get_client_io_rates(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> OverallClientIORateModel:
     """
     Obtain the cluster's overal IO rates, and service-specific IO rates.

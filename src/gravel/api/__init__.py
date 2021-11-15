@@ -15,8 +15,10 @@ from typing import Optional
 
 from fastapi import HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
+from starlette import status as status_codes
 
 from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr, UserModel
+from gravel.controllers.deployment.mgr import DeploymentMgr
 
 
 class JWTAuthSchema(OAuth2PasswordBearer):
@@ -61,4 +63,18 @@ class JWTAuthSchema(OAuth2PasswordBearer):
         return raw_token
 
 
+class NodeStateGateKeeper:
+    def __init__(self):
+        pass
+
+    def __call__(self, request: Request) -> None:
+        dep: DeploymentMgr = request.app.state.deployment
+        if not dep.installed:
+            raise HTTPException(
+                status_code=status_codes.HTTP_405_METHOD_NOT_ALLOWED,
+                detail="Node hasn't been installed.",
+            )
+
+
 jwt_auth_scheme = JWTAuthSchema()
+install_gate = NodeStateGateKeeper()
