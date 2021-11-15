@@ -156,7 +156,7 @@ class NodeMgr:
     _state: NodeStateModel
     _token: Optional[str]
     _joining: Dict[str, JoiningNodeModel]
-    _deployment: NodeDeployment
+    _deployment: Optional[NodeDeployment]
     _inventory_sub: Optional[Subscriber]
 
     gstate: GlobalState
@@ -167,11 +167,12 @@ class NodeMgr:
         self._connmgr = get_conn_mgr()
         self._token = None
         self._joining = {}
-        self._deployment = NodeDeployment(gstate, self._connmgr)
+        self._deployment = None
         self._inventory_sub = None
 
         self.gstate = gstate
 
+    def init(self) -> None:
         try:
             self._init_state()
         except NodeError as e:
@@ -195,6 +196,9 @@ class NodeMgr:
     async def start(self) -> None:
         assert self._state
         logger.debug(f"start > {self._state}")
+
+        if self._deployment is None:
+            self._deployment = NodeDeployment(self.gstate, self._connmgr)
 
         if not self.deployment_state.can_start():
             raise NodeError("Unable to start unstartable node.")

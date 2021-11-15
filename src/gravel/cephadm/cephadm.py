@@ -40,14 +40,17 @@ class Cephadm:
     _config: ContainersOptionsModel
     cephadm: List[str]
 
-    def __init__(self, config: ContainersOptionsModel):
-        self._config = config
+    def __init__(self) -> None:
+        self._config = ContainersOptionsModel()
         if os.path.exists("./gravel/cephadm/cephadm.bin"):
             # dev environment
             self.cephadm = ["sudo", "./gravel/cephadm/cephadm.bin"]
         else:
             # deployment environment
             self.cephadm = ["sudo", "cephadm"]
+
+    def set_config(self, config: ContainersOptionsModel) -> None:
+        self._config = config
 
     async def call(
         self,
