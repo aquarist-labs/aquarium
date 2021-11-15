@@ -545,8 +545,10 @@ class NodeDeployment:
 
         try:
             await self._prepare_check(containerconf=config.container)
-        except Exception:
-            logger.error("Unable to start deployment: prepare checks failed.")
+        except Exception as e:
+            logger.error(
+                f"Unable to start deployment: prepare checks failed: {str(e)}"
+            )
             raise NodeCantDeployError("failure checking node")
 
         self._progress = ProgressEnum.PREPARING
