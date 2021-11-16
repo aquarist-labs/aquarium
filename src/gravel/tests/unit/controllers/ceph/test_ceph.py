@@ -69,6 +69,43 @@ def test_mon_df(
     assert res.stats.total_bytes == 0
 
 
+def test_mon_dev_health_metrics_1(
+    ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
+    mocker: MockerFixture,
+    get_data_contents: Callable[[str, str], str],
+):
+    from gravel.controllers.ceph.ceph import Ceph, Mon
+
+    ceph = Ceph()
+    mon = Mon(ceph)
+    mon.call = mocker.MagicMock(
+        return_value=json.loads(
+            get_data_contents(DATA_DIR, "health_metrics.json")
+        )
+    )
+
+    res = mon.device_smart_metrics("foo")
+    assert res.serial_number == "WKD034CW"
+
+
+def test_mon_dev_health_metrics_2(
+    ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
+    mocker: MockerFixture,
+    get_data_contents: Callable[[str, str], str],
+):
+    from gravel.controllers.ceph.ceph import Ceph, Mon
+
+    metrics = json.loads(get_data_contents(DATA_DIR, "health_metrics.json"))
+    metrics.pop("20211111-102345")
+
+    ceph = Ceph()
+    mon = Mon(ceph)
+    mon.call = mocker.MagicMock(return_value=metrics)
+
+    res = mon.device_smart_metrics("foo")
+    assert res is None
+
+
 def test_get_osdmap(
     ceph_conf_file_fs: Generator[fake_filesystem.FakeFilesystem, None, None],
     mocker: MockerFixture,

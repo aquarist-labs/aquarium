@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -22,6 +22,7 @@ from gravel.controllers.ceph.ceph import Mgr, Mon
 from gravel.controllers.ceph.models import (
     CephOSDDFModel,
     OrchDevicesPerHostModel,
+    SmartCtlModel,
 )
 from gravel.controllers.ceph.orchestrator import Orchestrator
 from gravel.controllers.gstate import Ticker
@@ -45,6 +46,9 @@ class DeviceModel(BaseModel):
     vendor: str
     model: str
     utilization: DeviceUtilizationModel = Field(DeviceUtilizationModel())
+    smart_metrics: Optional[SmartCtlModel] = Field(
+        title="The smartctl JSON output"
+    )
 
 
 class DeviceHostModel(BaseModel):
@@ -109,6 +113,10 @@ class Devices(Ticker):
                         # not a ceph lv
                         continue
 
+                    smart_metrics: Optional[
+                        SmartCtlModel
+                    ] = mon.device_smart_metrics(dev.device_id)
+
                     osd_entries[lv.osd_id] = DeviceModel(
                         host=host,
                         osd_id=lv.osd_id,
@@ -116,6 +124,7 @@ class Devices(Ticker):
                         rotational=dev.sys_api.rotational,
                         vendor=dev.sys_api.vendor,
                         model=dev.sys_api.model,
+                        smart_metrics=smart_metrics,
                     )
                     osds.append(lv.osd_id)
 

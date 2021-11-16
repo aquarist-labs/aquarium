@@ -1,0 +1,12 @@
+<glass-content-page [pageStatus]="pageStatus">
+  <glass-alert-panel *ngIf="!data.length"
+                     type="info">
+    <span translate>No S.M.A.R.T. data available.</span>
+  </glass-alert-panel>
+  <glass-datatable *ngIf="data.length"
+                   [data]="data"
+                   [columns]="columns"
+                   [autoReload]="60000"
+                   (loadData)="loadData()">
+  </glass-datatable>
+</glass-content-page>

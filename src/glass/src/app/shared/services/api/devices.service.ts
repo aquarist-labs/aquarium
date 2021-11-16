@@ -17,6 +17,58 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export type SmartCtlDevice = {
+  info_name: string;
+  name: string;
+  protocol: string;
+  type: string;
+};
+
+export type SmartCtlAtaSmartAttributeFlags = {
+  auto_keep: boolean;
+  error_rate: boolean;
+  event_count: boolean;
+  performance: boolean;
+  prefailure: boolean;
+  // eslint-disable-next-line id-blacklist
+  string: string;
+  updated_online: boolean;
+  value: number;
+};
+
+export type SmartCtlAtaSmartAttributeRaw = {
+  // eslint-disable-next-line id-blacklist
+  string: string;
+  value: number;
+};
+
+export type SmartCtlAtaSmartAttribute = {
+  flags: SmartCtlAtaSmartAttributeFlags;
+  id: number;
+  name: string;
+  raw: SmartCtlAtaSmartAttributeRaw;
+  thresh: number;
+  value: number;
+  when_failed: string;
+  worst: number;
+};
+
+export type SmartCtlAtaSmartAttributes = {
+  revision: number;
+  table: Array<SmartCtlAtaSmartAttribute>;
+};
+
+export type SmartCtl = {
+  device: SmartCtlDevice;
+  model_name: string;
+  serial_number: string;
+  firmware_version: string;
+  logical_block_size: number;
+  physical_block_size: number;
+  rotation_rate: number;
+  ata_smart_attributes: SmartCtlAtaSmartAttributes;
+};
+
 export type DeviceUtilization = {
   total_kb: number;
   avail_kb: number;
@@ -32,6 +84,7 @@ export type Device = {
   vendor: string;
   model: string;
   utilization: DeviceUtilization;
+  smart_metrics: SmartCtl;
 };
 
 export type DeviceHost = {

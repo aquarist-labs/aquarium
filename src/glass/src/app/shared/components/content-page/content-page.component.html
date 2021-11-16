@@ -1,0 +1,13 @@
+<div *ngIf="pageStatus === 2"
+     class="progress">
+  <div class="progress-bar indeterminate"></div>
+</div>
+<div class="m-3">
+  <glass-alert-panel *ngIf="pageStatus === 3"
+                     type="danger">
+    {{ loadingErrorText! | translate }}
+  </glass-alert-panel>
+  <div *ngIf="[1, 3].includes(pageStatus)">
+    <ng-content></ng-content>
+  </div>
+</div>

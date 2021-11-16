@@ -239,3 +239,55 @@ class CephOSDPoolStatsModel(BaseModel):
     recovery: CephOSDPoolRecoveryStatsModel
     recovery_rate: Dict[str, Any]
     client_io_rate: CephOSDPoolClientIORateModel
+
+
+class SmartCtlDeviceModel(BaseModel):
+    info_name: str
+    name: str
+    protocol: str
+    type: str
+
+
+class SmartCtlAtaSmartAttributeFlagsModel(BaseModel):
+    auto_keep: bool
+    error_rate: bool
+    event_count: bool
+    performance: bool
+    prefailure: bool
+    string: str
+    updated_online: bool
+    value: int
+
+
+class SmartCtlAtaSmartAttributeRawModel(BaseModel):
+    string: str
+    value: int
+
+
+class SmartCtlAtaSmartAttributeModel(BaseModel):
+    flags: SmartCtlAtaSmartAttributeFlagsModel
+    id: int
+    name: str
+    raw: SmartCtlAtaSmartAttributeRawModel
+    thresh: int
+    value: int
+    when_failed: str
+    worst: int
+
+
+class SmartCtlAtaSmartAttributesModel(BaseModel):
+    revision: int
+    table: List[SmartCtlAtaSmartAttributeModel]
+
+
+class SmartCtlModel(BaseModel):
+    # Note, these are the properties of most interest, there are
+    # much more. Please extend them if necessary.
+    device: SmartCtlDeviceModel
+    model_name: str
+    serial_number: str
+    firmware_version: str
+    logical_block_size: int
+    physical_block_size: int
+    rotation_rate: int
+    ata_smart_attributes: SmartCtlAtaSmartAttributesModel

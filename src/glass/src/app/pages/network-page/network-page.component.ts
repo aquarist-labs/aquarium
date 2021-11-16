@@ -16,7 +16,9 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
+import { finalize } from 'rxjs/operators';
 
+import { PageStatus } from '~/app/shared/components/content-page/content-page.component';
 import { DatatableActionItem } from '~/app/shared/models/datatable-action-item.type';
 import {
   DatatableCellTemplateName,
@@ -33,10 +35,11 @@ export class NetworkPageComponent {
   @BlockUI()
   blockUI!: NgBlockUI;
 
-  loading = false;
-  firstLoadComplete = false;
+  pageStatus: PageStatus = PageStatus.none;
   data: Interface[] = [];
   columns: DatatableColumn[];
+
+  private firstLoadComplete = false;
 
   constructor(private networkService: NetworkService, private router: Router) {
     this.columns = [
@@ -72,11 +75,23 @@ export class NetworkPageComponent {
   }
 
   loadData(): void {
-    this.loading = true;
-    this.networkService.list().subscribe((data) => {
-      this.data = data;
-      this.loading = this.firstLoadComplete = true;
-    });
+    if (!this.firstLoadComplete) {
+      this.pageStatus = PageStatus.loading;
+    }
+    this.networkService
+      .list()
+      .pipe(
+        finalize(() => {
+          this.firstLoadComplete = true;
+        })
+      )
+      .subscribe(
+        (data) => {
+          this.pageStatus = PageStatus.ready;
+          this.data = data;
+        },
+        () => (this.pageStatus = PageStatus.loadingError)
+      );
   }
 
   getActionMenu(selected: Interface): DatatableActionItem[] {
