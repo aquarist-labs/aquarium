@@ -136,6 +136,8 @@ async def aquarium_main_task(
     await nodemgr.start()
     await gstate.start()
 
+    deployment.postinit(gstate, nodemgr)
+
     app.state.gstate = gstate
     app.state.nodemgr = nodemgr
 

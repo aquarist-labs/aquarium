@@ -12,19 +12,21 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import List
+from typing import Any, List, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import jwt_auth_scheme, install_gate
 from gravel.controllers.deployment.mgr import (
     DeploymentMgr,
     DeploymentStateEnum,
     DeploymentStatusModel,
+    NodeDeployedError,
     NodeInstalledError,
+    NotPostInitedError,
 )
 from gravel.controllers.inventory.disks import DiskDevice
 from gravel.controllers.nodes.requirements import (
@@ -56,16 +58,32 @@ class DeployDevicesReplyModel(BaseModel):
     devices: List[DiskDevice]
 
 
+class RegistryParamsModel(BaseModel):
+    registry: str = Field(title="Registry URL.")
+    secure: bool = Field(title="Whether registry is secure.")
+    image: str = Field(title="Image to use.")
+
+
+class CreateParamsModel(BaseModel):
+    hostname: str = Field(title="Hostname to use for this node.")
+    ntpaddr: str = Field(title="NTP address to be used.")
+    registry: Optional[RegistryParamsModel] = Field(
+        None, title="Custom registry."
+    )
+
+
+def _get_status(dep: DeploymentMgr) -> DeployStatusReplyModel:
+    return DeployStatusReplyModel(
+        installed=dep.installed, status=dep.get_status()
+    )
+
+
 @router.get("/status", response_model=DeployStatusReplyModel)
 async def deploy_status(
     request: Request, _=Depends(jwt_auth_scheme)
 ) -> DeployStatusReplyModel:
     """Obtain the status of this node's deployment."""
-
-    dep: DeploymentMgr = request.app.state.deployment
-    return DeployStatusReplyModel(
-        installed=dep.installed, status=dep.get_status()
-    )
+    return _get_status(request.app.state.deployment)
 
 
 @router.post("/install", response_model=DeployInstallReplyModel)
@@ -110,3 +128,30 @@ async def deploy_devices(
     dep: DeploymentMgr = request.app.state.deployment
     devs = await dep.get_devices()
     return DeployDevicesReplyModel(devices=devs)
+
+
+@router.post("/create", response_model=DeployStatusReplyModel)
+async def deploy_create(
+    request: Request,
+    req_params: CreateParamsModel,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
+) -> DeployStatusReplyModel:
+    """
+    Create a new deployment on this node.
+
+    The host will be configured according to the user's specification.
+    A minimal Ceph cluster will be created.
+
+    This is an asynchronous call. The consumer should poll '/deploy/status' to
+    gather progress on the operation.
+    """
+    logger.debug("Create new deployment.")
+    dep: DeploymentMgr = request.app.state.deployment
+    try:
+        await dep.create(req_params.hostname, req_params.ntpaddr)
+    except (NotPostInitedError, NodeDeployedError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
+        )
+    return _get_status(dep)

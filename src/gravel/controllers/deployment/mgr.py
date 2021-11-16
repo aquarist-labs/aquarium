@@ -23,9 +23,18 @@ from typing import List, Optional
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ValidationError
+from gravel.controllers.deployment.create import (
+    AlreadyCreatingError,
+    CreateConfig,
+    CreateStateEnum,
+    CreationError,
+    DeploymentCreator,
+)
 
 from gravel.controllers.errors import GravelError
+from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
+from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.requirements import (
     RequirementsModel,
     localhost_qualified,
@@ -69,6 +78,7 @@ class DeploymentErrorEnum(int, Enum):
     DEVICE_UNAVAILABLE = 2
     UNKNOWN_ERROR = 3
     ENABLING = 4
+    CREATING = 5
 
 
 class DeploymentStateModel(BaseModel):
@@ -114,7 +124,19 @@ class NotPreInitedError(DeploymentError):
     pass
 
 
+class NotPostInitedError(DeploymentError):
+    pass
+
+
 class NodeInstalledError(DeploymentError):
+    pass
+
+
+class NodeDeployedError(DeploymentError):
+    pass
+
+
+class NotReadyYetError(DeploymentError):
     pass
 
 
@@ -125,20 +147,28 @@ class DeploymentMgr:
     _deployment_state: DeploymentStateEnum
     _preinited: bool
     _inited: bool
+    _postinited: bool
     _task_main: Optional[asyncio.Task]
     _task_install: Optional[asyncio.Task]
     _running: bool
     _error: DeploymentErrorModel
+    _gstate: Optional[GlobalState]
+    _nodemgr: Optional[NodeMgr]
+    _creator: Optional[DeploymentCreator]
 
     def __init__(self) -> None:
         self._init_state = InitStateEnum.NONE
         self._deployment_state = DeploymentStateEnum.NONE
         self._preinited = False
         self._inited = False
+        self._postinited = False
         self._task_main = None
         self._task_install = None
         self._running = False
         self._error = DeploymentErrorModel()
+        self._gstate = None
+        self._nodemgr = None
+        self._creator = None
 
     @property
     def installed(self) -> bool:
@@ -154,7 +184,9 @@ class DeploymentMgr:
 
     async def _task_main_func(self) -> None:
         while self._running:
+            logger.debug("Checking deployment state")
             if self._task_install is not None and self._task_install.done():
+                logger.debug("Install done.")
                 ret: DeploymentErrorModel = await self._task_install
                 if ret.code > DeploymentErrorEnum.NONE:
                     self._error = ret
@@ -163,10 +195,23 @@ class DeploymentMgr:
                     self._init_state = InitStateEnum.INSTALLED
                 self._task_install = None
 
+            elif self._creator is not None and self._creator.done:
+                logger.debug("Create done.")
+                progress = await self._creator.wait()
+                self._creator = None
+                if progress.state == CreateStateEnum.CREATED:
+                    self._deployment_state = DeploymentStateEnum.DEPLOYED
+                elif progress.error:
+                    assert progress.progress == 0
+                    logger.error(f"Error creating deployment: {progress.msg}")
+                    self._error.msg = progress.msg
+                    self._error.code = DeploymentErrorEnum.CREATING
+
             if self.deployed:
                 break
 
             await asyncio.sleep(1.0)
+        logger.debug("Main task done.")
 
     async def start_main_task(self) -> None:
         logger.debug("Starting main task.")
@@ -187,6 +232,12 @@ class DeploymentMgr:
         self._running = False
         await self._task_main
         self._task_main = None
+        if self._creator is not None:
+            if self._creator.done:
+                await self._creator.wait()
+            else:
+                await self._creator.die()
+            self._creator = None
 
     async def shutdown(self) -> None:
         await self.stop_main_task()
@@ -273,6 +324,19 @@ class DeploymentMgr:
         self._deployment_state = state.deployment
         self._inited = True
 
+    def postinit(self, gstate: GlobalState, nodemgr: NodeMgr) -> None:
+        """Called after all state has been inited, prepares for deployment."""
+        assert gstate is not None
+        assert gstate.ready
+        assert nodemgr is not None
+        assert self._running
+        assert self._task_install is None
+        assert self._init_state >= InitStateEnum.INSTALLED
+        logger.debug("Post-init Deployment Manager.")
+        self._gstate = gstate
+        self._nodemgr = nodemgr
+        self._postinited = True
+
     def get_status(self) -> DeploymentStatusModel:
         """Obtain node deployment status."""
         return DeploymentStatusModel(
@@ -295,6 +359,8 @@ class DeploymentMgr:
             return []
 
     async def install(self, device: str) -> None:
+        """Install Aquarium onto a specified device."""
+
         logger.debug(f"Attempt installing on {device}.")
         if self.installed:
             raise NodeInstalledError("Node is already installed.")
@@ -311,6 +377,8 @@ class DeploymentMgr:
         self._task_install = asyncio.create_task(self._install_task(device))
 
     async def _install_task(self, device: str) -> DeploymentErrorModel:
+        """Task responsible for asynchronously installing Aquarium."""
+
         logger.info(f"Start installing on device {device}.")
         self._deployment_state = DeploymentStateEnum.INSTALLING
         error: DeploymentErrorModel = DeploymentErrorModel()
@@ -341,3 +409,44 @@ class DeploymentMgr:
         logger.info(f"Successfully installed and enabled device {device}.")
         assert error.code == DeploymentErrorEnum.NONE
         return error
+
+    async def create(self, hostname: str, ntpaddr: str) -> None:
+        """Create new deployment on current node."""
+
+        logger.info("Attempt to create a new deployment.")
+        if not self._postinited:
+            raise NotPostInitedError("Node has not been post-inited.")
+        elif self._init_state >= InitStateEnum.DEPLOYED:
+            raise NodeDeployedError("Node has already been deployed.")
+        elif self._deployment_state == DeploymentStateEnum.DEPLOYING:
+            logger.info("Node already being deployed; no-op.")
+            return
+
+        assert self._nodemgr is not None
+        if not self._nodemgr.available:
+            raise NotReadyYetError("Node not ready yet.")
+
+        assert self._gstate is not None
+        assert self._creator is None
+        self._creator = DeploymentCreator(self._gstate)
+
+        addr: str = self._nodemgr.address
+        assert addr is not None and len(addr) > 0
+
+        config = CreateConfig(
+            hostname=hostname,
+            ntp_addr=ntpaddr,
+            address=addr,
+        )
+
+        try:
+            await self._creator.create(config)
+        except AlreadyCreatingError:
+            logger.info("Already creating a new deployment.")
+            return
+        except CreationError as e:
+            msg = f"Error creating a new deployment: {e.message}"
+            logger.error(msg)
+            raise DeploymentError(msg)
+
+        self._deployment_state = DeploymentStateEnum.DEPLOYING
