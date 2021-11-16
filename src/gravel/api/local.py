@@ -29,6 +29,7 @@ from gravel.controllers.nodes.requirements import (
     RequirementsModel,
     localhost_qualified,
 )
+from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
 
@@ -178,3 +179,23 @@ async def get_events(
         },
     ]
     return [EventModel.parse_obj(event) for event in events]
+
+
+@router.post("/reboot", name="Reboot the system")
+async def reboot(_: Callable = Depends(jwt_auth_scheme)) -> None:
+    ret, _, stderr = await aqr_run_cmd(["systemctl", "reboot"])  # type: ignore
+    if ret:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unable to reboot the system: {stderr}",
+        )
+
+
+@router.post("/shutdown", name="Shutdown the system")
+async def shutdown(_: Callable = Depends(jwt_auth_scheme)) -> None:
+    ret, _, stderr = await aqr_run_cmd(["systemctl", "poweroff"])  # type: ignore
+    if ret:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unable to shutdown the system: {stderr}",
+        )
