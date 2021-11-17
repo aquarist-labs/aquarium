@@ -21,7 +21,7 @@ Creates a deployment on the current node.
 import asyncio
 from enum import Enum
 from logging import Logger
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -81,6 +81,15 @@ class CreateProgress(BaseModel):
     error: bool = Field(False, title="Progress is in an error state.")
 
 
+class ProgressEnum(int, Enum):
+    START = 0  # start creation process
+    CONTAINERS = 1  # obtain containers
+    DEPLOYING = 2  # start deployment / bootstrap
+    CONFIGURE = 3  # configure cluster
+    ASSIMILATE = 4  # assimilate devices
+    DONE = 5  # fully created
+
+
 class DeploymentCreator:
     """Manages the creation of a deployment on the node."""
 
@@ -91,6 +100,15 @@ class DeploymentCreator:
     _done: bool
     _hostname: Optional[str]
     _storage_devices: List[str]
+
+    _progress_bounds: Dict[ProgressEnum, int] = {
+        ProgressEnum.START: 0,
+        ProgressEnum.CONTAINERS: 10,
+        ProgressEnum.DEPLOYING: 25,
+        ProgressEnum.CONFIGURE: 85,
+        ProgressEnum.ASSIMILATE: 90,
+        ProgressEnum.DONE: 100,
+    }
 
     def __init__(self, gstate: GlobalState) -> None:
         self._gstate = gstate
@@ -106,7 +124,9 @@ class DeploymentCreator:
         """Return current progress. If none, return empty progress."""
         if not self._progress:
             return CreateProgress()
-        return self._progress
+        p = self._progress.copy()
+        p.progress = self._prog(self._progress.progress)
+        return p
 
     @property
     def done(self) -> bool:
@@ -184,13 +204,15 @@ class DeploymentCreator:
         assert self._bootstrapper is None
 
         self._mark_state(CreateStateEnum.CREATING)
-        self._mark_progress(0, "Starting to create new deployment.")
+        self._mark_progress(
+            ProgressEnum.START, "Starting to create new deployment."
+        )
         try:
             await self._prepare_node(config.hostname, config.ntp_addr)
         except CreationError as e:
             self._mark_error(e.message)
             return
-        self._mark_progress(25, "Deploying.")
+        self._mark_progress(ProgressEnum.DEPLOYING, "Deploying.")
 
         self._bootstrapper = Bootstrap(self._gstate)
         try:
@@ -228,7 +250,7 @@ class DeploymentCreator:
             logger.error(msg)
             raise CreationError(msg)
 
-        self._mark_progress(10, "Obtaining containers")
+        self._mark_progress(ProgressEnum.CONTAINERS, "Obtaining containers")
         ctrcfg = self._gstate.config.options.containers
         try:
             await set_registry(ctrcfg.registry, ctrcfg.secure)
@@ -251,12 +273,14 @@ class DeploymentCreator:
             return
         logger.info(f"Bootstrap complete with success.")
 
-        self._mark_progress(85, "Configuring deployment.")
+        self._mark_progress(ProgressEnum.CONFIGURE, "Configuring deployment.")
         if not self._postbootstrap_config():
             self._mark_error("Failed configuring the deployment.")
             return
 
-        self._mark_progress(90, "Assimilating storage devices.")
+        self._mark_progress(
+            ProgressEnum.ASSIMILATE, "Assimilating storage devices."
+        )
         if not await self._add_host():
             self._mark_error("Failed adding host to cluster.")
             return
@@ -265,7 +289,7 @@ class DeploymentCreator:
             self._mark_error("Failed assimilating storage devices.")
             return
 
-        self._mark_progress(100, "Deployment Complete.")
+        self._mark_progress(ProgressEnum.DONE, "Deployment Complete.")
         self._mark_state(CreateStateEnum.CREATED)
         self._done = True
 
@@ -354,8 +378,9 @@ class DeploymentCreator:
             return False
         return True
 
-    def _mark_progress(self, value: int, msg: str) -> None:
+    def _mark_progress(self, prog: ProgressEnum, msg: str) -> None:
         """Mark current progress."""
+        value = self._progress_bounds[prog]
         logger.debug(f"Create progress: {value}%, {msg}")
         assert self._progress is not None
         self._progress.msg = msg
@@ -377,3 +402,19 @@ class DeploymentCreator:
         self._progress.progress = 0
         self._progress.error = True
         self._progress.msg = msg
+
+    def _prog(self, value: int) -> int:
+
+        delta = 0
+        last_stage = ProgressEnum.START
+        for stage, bound in self._progress_bounds.items():
+            if value < bound:
+                delta = bound - self._progress_bounds[last_stage]
+                break
+            last_stage = stage
+        if last_stage == ProgressEnum.DEPLOYING:
+            assert self._bootstrapper is not None
+            p = self._bootstrapper.progress
+            pmin = self._progress_bounds[ProgressEnum.DEPLOYING]
+            return pmin + int((p * delta) / 100)
+        return self._progress_bounds[last_stage]

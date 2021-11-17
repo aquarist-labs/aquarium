@@ -89,6 +89,11 @@ class DeploymentStateModel(BaseModel):
     )
 
 
+class ProgressModel(BaseModel):
+    value: int = Field(0, title="Current progress percentage.")
+    msg: str = Field("", title="Current progress message.")
+
+
 class DeploymentErrorModel(BaseModel):
     code: DeploymentErrorEnum = Field(
         DeploymentErrorEnum.NONE, title="Deployment error code."
@@ -99,6 +104,9 @@ class DeploymentErrorModel(BaseModel):
 class DeploymentStatusModel(BaseModel):
     state: DeploymentStateModel = Field(
         DeploymentStateModel(), title="Current deployment state."
+    )
+    progress: Optional[ProgressModel] = Field(
+        None, title="Insights into current progress."
     )
     error: DeploymentErrorModel = Field(
         DeploymentErrorModel(), title="Current deployment error."
@@ -340,11 +348,18 @@ class DeploymentMgr:
 
     def get_status(self) -> DeploymentStatusModel:
         """Obtain node deployment status."""
+        progress: Optional[ProgressModel] = None
+
+        if self._creator is not None:
+            create = self._creator.progress
+            progress = ProgressModel(value=create.progress, msg=create.msg)
+
         return DeploymentStatusModel(
             state=DeploymentStateModel(
                 init=self._init_state,
                 deployment=self._deployment_state,
             ),
+            progress=progress,
             error=self._error,
         )
 
