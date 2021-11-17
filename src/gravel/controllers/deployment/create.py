@@ -25,6 +25,8 @@ from typing import List, Optional
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
+from gravel.controllers.ceph.ceph import CephCommandError, Mon
+from gravel.controllers.ceph.orchestrator import Orchestrator
 
 from gravel.controllers.containers import (
     ContainerPullError,
@@ -55,15 +57,11 @@ class ContainerConfig(BaseModel):
     secure: bool = Field(title="Whether container registry is secure.")
 
 
-class StorageDisks(BaseModel):
-    storage: List[str] = Field([], title="Devices to consume for storage.")
-
-
 class CreateConfig(BaseModel):
     hostname: str
     address: str
     ntp_addr: str
-    # disks: StorageDisks
+    storage: List[str] = Field([], title="Devices to consume for storage.")
     container: Optional[ContainerConfig]
 
 
@@ -91,6 +89,8 @@ class DeploymentCreator:
     _progress: Optional[CreateProgress]
     _bootstrapper: Optional[Bootstrap]
     _done: bool
+    _hostname: Optional[str]
+    _storage_devices: List[str]
 
     def __init__(self, gstate: GlobalState) -> None:
         self._gstate = gstate
@@ -98,6 +98,8 @@ class DeploymentCreator:
         self._progress = None
         self._bootstrapper = None
         self._done = False
+        self._hostname = None
+        self._storage_devices = []
 
     @property
     def progress(self) -> CreateProgress:
@@ -139,6 +141,11 @@ class DeploymentCreator:
         assert config.hostname
         assert config.address
         assert config.ntp_addr
+        assert config.storage is not None
+
+        # keep track of hostname because we need it for post-bootstrap actions.
+        self._hostname = config.hostname
+        self._storage_devices = config.storage
 
         try:
             await self._prechecks(config.container)
@@ -234,15 +241,118 @@ class DeploymentCreator:
     async def _finish_bootstrap_cb(
         self, success: bool, error: Optional[str]
     ) -> None:
-
+        """
+        Called once bootstrap is finished, allows us to configure the system to
+        our needs.
+        """
         if not success:
             logger.error(f"Bootstrap failed: {error}")
             self._mark_error(f"Failed deploying cluster: {error}")
             return
         logger.info(f"Bootstrap complete with success.")
+
+        self._mark_progress(85, "Configuring deployment.")
+        if not self._postbootstrap_config():
+            self._mark_error("Failed configuring the deployment.")
+            return
+
+        self._mark_progress(90, "Assimilating storage devices.")
+        if not await self._add_host():
+            self._mark_error("Failed adding host to cluster.")
+            return
+
+        if not await self._assimilate_devices():
+            self._mark_error("Failed assimilating storage devices.")
+            return
+
         self._mark_progress(100, "Deployment Complete.")
         self._mark_state(CreateStateEnum.CREATED)
         self._done = True
+
+    def _postbootstrap_config(self) -> bool:
+        """Perform required post-bootstrap configurations."""
+        mon: Mon = self._gstate.ceph_mon
+        try:
+            mon.set_allow_pool_size_one()
+        except CephCommandError as e:
+            logger.error(f"Unable to set 'allow pool size one': {str(e)}")
+            return False
+
+        try:
+            mon.disable_warn_on_no_redundancy()
+        except CephCommandError as e:
+            logger.error("Unable to disable redundancy warning.")
+            return False
+
+        res: bool = mon.set_default_ruleset()
+        if not res:
+            logger.error("Unable to set default ruleset.")
+            return False
+
+        res = mon.config_set(
+            "mgr", "mgr/cephadm/manage_etc_ceph_ceph_conf", "true"
+        )
+        if not res:
+            logger.error("Unable to enable managed ceph.conf by cephadm.")
+            return False
+
+        res = mon.config_set(
+            "global", "auth_allow_insecure_global_id_reclaim", "false"
+        )
+        if not res:
+            logger.error("Unable to disable insecure global id reclaim.")
+            return False
+
+        ctrcfg = self._gstate.config.options.containers
+        ctrimage = ctrcfg.get_image()
+        assert ctrimage is not None and len(ctrimage) > 0
+        res = mon.config_set("global", "container_image", ctrimage)
+        if not res:
+            logger.error("Unable to set global container image.")
+            return False
+
+        res = mon.module_enable("bubbles")
+        if not res:
+            logger.error("Unable to start Bubbles.")
+            return False
+
+        return True
+
+    async def _add_host(self) -> bool:
+        """Add current host to the cluster."""
+        assert self._hostname is not None
+        try:
+            orch = Orchestrator(self._gstate.ceph_mgr)
+            logger.debug("Wait for host to be added.")
+            await asyncio.wait_for(orch.wait_host_added(self._hostname), 30.0)
+        except TimeoutError:
+            logger.error("Timed out waiting for host to be added.")
+            return False
+        return True
+
+    async def _assimilate_devices(self) -> bool:
+        """Assimilate storage devices."""
+        assert self._hostname is not None
+        if len(self._storage_devices) == 0:
+            return True
+
+        logger.debug(f"Assimilating storage devices: {self._storage_devices}")
+        try:
+            orch = Orchestrator(self._gstate.ceph_mgr)
+            if not orch.host_exists(self._hostname):
+                logger.error("Host is not part of the cluster.")
+                return False
+            orch.assimilate_devices(self._hostname, self._storage_devices)
+            while not orch.devices_assimilated(
+                self._hostname, self._storage_devices
+            ):
+                await asyncio.sleep(1.0)
+        except CephCommandError as e:
+            logger.error(
+                f"Command error while assimilating devices: {e.message}"
+            )
+            return False
+        return True
 
     def _mark_progress(self, value: int, msg: str) -> None:
         """Mark current progress."""

@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ValidationError
 from gravel.controllers.deployment.create import (
     AlreadyCreatingError,
+    ContainerConfig,
     CreateConfig,
     CreateStateEnum,
     CreationError,
@@ -410,7 +411,13 @@ class DeploymentMgr:
         assert error.code == DeploymentErrorEnum.NONE
         return error
 
-    async def create(self, hostname: str, ntpaddr: str) -> None:
+    async def create(
+        self,
+        hostname: str,
+        ntpaddr: str,
+        containers: Optional[ContainerConfig],
+        storage: List[str],
+    ) -> None:
         """Create new deployment on current node."""
 
         logger.info("Attempt to create a new deployment.")
@@ -437,6 +444,8 @@ class DeploymentMgr:
             hostname=hostname,
             ntp_addr=ntpaddr,
             address=addr,
+            storage=storage,
+            container=containers,
         )
 
         try:

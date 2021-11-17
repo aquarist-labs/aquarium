@@ -20,7 +20,9 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme, install_gate
+from gravel.controllers.deployment.create import ContainerConfig
 from gravel.controllers.deployment.mgr import (
+    DeploymentError,
     DeploymentMgr,
     DeploymentStateEnum,
     DeploymentStatusModel,
@@ -70,6 +72,7 @@ class CreateParamsModel(BaseModel):
     registry: Optional[RegistryParamsModel] = Field(
         None, title="Custom registry."
     )
+    storage: List[str] = Field([], title="Devices to be consumed for storage.")
 
 
 def _get_status(dep: DeploymentMgr) -> DeployStatusReplyModel:
@@ -133,7 +136,7 @@ async def deploy_devices(
 @router.post("/create", response_model=DeployStatusReplyModel)
 async def deploy_create(
     request: Request,
-    req_params: CreateParamsModel,
+    params: CreateParamsModel,
     jwt: Any = Depends(jwt_auth_scheme),
     gate: Any = Depends(install_gate),
 ) -> DeployStatusReplyModel:
@@ -149,9 +152,22 @@ async def deploy_create(
     logger.debug("Create new deployment.")
     dep: DeploymentMgr = request.app.state.deployment
     try:
-        await dep.create(req_params.hostname, req_params.ntpaddr)
+        ctrcfg: Optional[ContainerConfig] = None
+        if params.registry is not None:
+            ctrcfg = ContainerConfig(
+                url=params.registry.registry,
+                image=params.registry.image,
+                secure=params.registry.secure,
+            )
+        await dep.create(
+            params.hostname, params.ntpaddr, ctrcfg, params.storage
+        )
     except (NotPostInitedError, NodeDeployedError) as e:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
+        )
+    except DeploymentError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=e.message
         )
     return _get_status(dep)
