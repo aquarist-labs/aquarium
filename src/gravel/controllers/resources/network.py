@@ -205,6 +205,7 @@ class Network(Ticker):
         return rawconf
 
     def _update_config(self, path: Path, new_config: Dict[str, str]):
+        new_config = new_config.copy()
         with path.open("r") as fin, atomic_write(path, overwrite=True) as fout:
             for line in fin:
                 stripped = line.strip()
@@ -214,7 +215,13 @@ class Network(Ticker):
                     if field in new_config:
                         # TODO: doesn't handle embedded quotes (but we're unlikely to care right now)
                         line = f'{field}="{new_config[field]}"\n'
+                        del new_config[field]
                 fout.write(line)
+            # This last bit adds any new fields that weren't already
+            # present to the end of the config file.
+            for field in new_config:
+                # (also doesn't handle embedded quotes, as above)
+                fout.write(f'{field}="{new_config[field]}"\n')
 
     def _update_route_file(
         self, path: Path, interface: str, routes: List[RouteModel]

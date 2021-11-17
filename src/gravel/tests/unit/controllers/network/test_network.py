@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 import os
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 import pytest
@@ -118,3 +119,31 @@ async def test_network(
     assert os.path.exists("/etc/sysconfig/network/routes")
     assert os.path.exists("/etc/sysconfig/network/ifroute-bond0")
     assert len(network.routes) == 2
+
+
+def test_update_config(
+    fs: fake_filesystem.FakeFilesystem,
+) -> None:
+    from gravel.controllers.resources.network import Network
+
+    config = Path("/etc/sysconfig/network/config")
+    fs.create_file(
+        config, contents='NETCONFIG_DNS_STATIC_SERVERS=""\n# comment\n'
+    )
+    network = Network(5.0)
+    network._update_config(
+        config,
+        {
+            "NETCONFIG_DNS_STATIC_SERVERS": "8.8.8.8",
+            "NEW_THING": "very important data",
+            "ANOTHER_NEW_THING": "more important data",
+        },
+    )
+    with config.open("r") as f:
+        contents = f.readlines()
+    assert contents == [
+        'NETCONFIG_DNS_STATIC_SERVERS="8.8.8.8"\n',
+        "# comment\n",
+        'NEW_THING="very important data"\n',
+        'ANOTHER_NEW_THING="more important data"\n',
+    ]
