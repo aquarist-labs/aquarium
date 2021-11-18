@@ -60,6 +60,7 @@ from gravel.controllers.nodes.messages import (
     ReadyToAddMessageModel,
     WelcomeMessageModel,
 )
+from gravel.controllers.resources.network import NetworkConfigModel
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
@@ -130,6 +131,9 @@ class DeployRegistryModel(BaseModel):
 
 class DeployParamsBaseModel(BaseModel):
     hostname: str = Field(title="Hostname to use for this node")
+    network: Optional[NetworkConfigModel] = Field(
+        None, title="Network configuration"
+    )
 
 
 class DeployParamsModel(DeployParamsBaseModel):
@@ -326,6 +330,7 @@ class NodeMgr:
                 params.hostname,
                 self._state.address,
                 disks,
+                params.network,
             )
 
             if not res:
@@ -392,6 +397,7 @@ class NodeMgr:
                 ntp_addr=params.ntpaddr,
                 disks=disks,
                 container=ctrcfg,
+                network=params.network,
             ),
             self._post_bootstrap_finisher,
             self._finish_deployment,

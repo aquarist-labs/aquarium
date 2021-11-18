@@ -582,6 +582,7 @@
         <package name="xfsprogs"/>
         <package name="python38-pip"/>
         <package name="python38-aiofiles"/>
+        <package name="python38-atomicwrites"/>
         <package name="python38-requests"/>
         <package name="python38-PyYAML"/>
         <package name="python3-rados"/>

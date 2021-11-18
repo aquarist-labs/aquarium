@@ -39,6 +39,7 @@ from gravel.controllers.nodes.mgr import (
     JoinParamsModel,
     NodeMgr,
 )
+from gravel.controllers.resources.network import NetworkConfigModel
 
 logger: Logger = fastapi_logger
 router = APIRouter(prefix="/nodes", tags=["nodes"])
@@ -73,7 +74,11 @@ class DeployStatusReplyModel(BaseModel):
 class NodeJoinRequestModel(BaseModel):
     address: str
     token: str
+    # Should we maybe collapse these next two params into a
+    # JoinParamsModel, which we could then pass straight through
+    # to nodemgr.join?
     hostname: str
+    network: Optional[NetworkConfigModel]
 
 
 class TokenReplyModel(BaseModel):
@@ -215,7 +220,9 @@ async def node_join(
 
     nodemgr = request.app.state.nodemgr
     return await nodemgr.join(
-        req.address, req.token, JoinParamsModel(hostname=req.hostname)
+        req.address,
+        req.token,
+        JoinParamsModel(hostname=req.hostname, network=req.network),
     )
 
 

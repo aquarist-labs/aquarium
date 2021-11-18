@@ -53,6 +53,7 @@ from gravel.controllers.nodes.messages import (
 )
 from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.nodes.systemdisk import SystemDisk
+from gravel.controllers.resources.network import NetworkConfigModel
 
 logger: Logger = fastapi_logger
 
@@ -101,6 +102,7 @@ class DeploymentConfig(BaseModel):
     ntp_addr: str
     disks: DeploymentDisksConfig
     container: Optional[DeploymentContainerConfig]
+    network: Optional[NetworkConfigModel]
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -300,6 +302,7 @@ class NodeDeployment:
         sysdiskpath: str,
         hostname: str,
         ntpaddr: Optional[str],
+        network: Optional[NetworkConfigModel],
         pubkey: Optional[str],
         keyring: Optional[str],
         cephconf: Optional[str],
@@ -358,6 +361,12 @@ class NodeDeployment:
             )
             _write_keys(pubkey, keyring, cephconf)
 
+        if network:
+            progress(15, "Applying Network Configuration")
+            await self._gstate.network.apply_config(
+                network.interfaces, network.nameservers, network.routes
+            )
+
         progress(20, "Setting Hostname")
         await self._set_hostname(hostname)
 
@@ -387,6 +396,7 @@ class NodeDeployment:
         hostname: str,
         address: str,
         disks: DeploymentDisksConfig,
+        network: Optional[NetworkConfigModel],
     ) -> bool:
         logger.debug(f"join > with leader {leader_address}, token: {token}")
 
@@ -436,6 +446,7 @@ class NodeDeployment:
             disks.system,
             hostname,
             ntpaddr=None,
+            network=network,
             pubkey=welcome.pubkey,
             keyring=welcome.keyring,
             cephconf=welcome.cephconf,
@@ -555,6 +566,7 @@ class NodeDeployment:
             config.disks.system,
             config.hostname,
             config.ntp_addr,
+            config.network,
             pubkey=None,
             keyring=None,
             cephconf=None,

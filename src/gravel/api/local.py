@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Callable, List, Literal
+from typing import Callable, Dict, List, Literal
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
@@ -29,6 +29,7 @@ from gravel.controllers.nodes.requirements import (
     RequirementsModel,
     localhost_qualified,
 )
+from gravel.controllers.resources.network import NetworkConfigModel
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger
@@ -199,3 +200,43 @@ async def shutdown(_: Callable = Depends(jwt_auth_scheme)) -> None:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unable to shutdown the system: {stderr}",
         )
+
+
+@router.get(
+    "/network/config",
+    name="Obtain local node's network configuration",
+    response_model=NetworkConfigModel,
+)
+async def get_network_config(
+    request: Request, _=Depends(jwt_auth_scheme)
+) -> NetworkConfigModel:
+    """
+    Obtain this node's network configuration.
+    """
+
+    network = request.app.state.gstate.network
+    return NetworkConfigModel(
+        interfaces=network.interfaces,
+        nameservers=network.nameservers,
+        routes=network.routes,
+    )
+
+
+@router.post(
+    "/network/config",
+    name="Apply network config",
+    response_model=bool,
+)
+async def apply_network_config(
+    request: Request,
+    req_params: NetworkConfigModel,
+    _=Depends(jwt_auth_scheme),
+) -> bool:
+
+    network = request.app.state.gstate.network
+    await network.apply_config(
+        req_params.interfaces, req_params.nameservers, req_params.routes
+    )
+
+    # TODO: Make this return something sensible on failure
+    return True

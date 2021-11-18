@@ -1,0 +1,24 @@
+## Path:	Network/General
+## Description:	Global network configuration
+#
+# Note: 
+# Most of the options can and should be overridden by per-interface
+# settings in the ifcfg-* files.
+#
+# Note: The ISC dhclient started by the NetworkManager is not using any
+# of these options -- NetworkManager is not using any sysconfig settings.
+#
+
+#
+# List of DNS nameserver IP addresses to use for host-name lookup.
+# When the NETCONFIG_DNS_FORWARDER variable is set to "resolver",
+# the name servers are written directly to /etc/resolv.conf.
+# Otherwise, the nameserver are written into a forwarder specific
+# configuration file and the /etc/resolv.conf does not contain any
+# nameservers causing the glibc to use the name server on the local
+# machine (the forwarder). See also netconfig(8) manual page.
+#
+NETCONFIG_DNS_STATIC_SERVERS=""
+
+# Note: there's usually a lot more in this file on a real system
+# -- tserong@suse.com

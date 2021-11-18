@@ -24,6 +24,7 @@ from gravel.controllers.gstate import GlobalState
 from gravel.controllers.nodes.conn import IncomingConnection
 from gravel.controllers.nodes.messages import MessageModel
 from gravel.controllers.nodes.mgr import DeployParamsModel, NodeMgr
+from gravel.controllers.resources.network import NetworkConfigModel
 
 
 @pytest.fixture
@@ -399,6 +400,7 @@ async def test_join(
         hostname: str,
         address: str,
         disks: DeploymentDisksConfig,
+        network: Optional[NetworkConfigModel],
     ) -> bool:
         assert leader_address == "10.1.2.3"
         assert token == "751b-51fd-10d7-f7b4"
