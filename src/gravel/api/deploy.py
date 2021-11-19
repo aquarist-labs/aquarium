@@ -82,9 +82,7 @@ def _get_status(dep: DeploymentMgr) -> DeployStatusReplyModel:
 
 
 @router.get("/status", response_model=DeployStatusReplyModel)
-async def deploy_status(
-    request: Request, _=Depends(jwt_auth_scheme)
-) -> DeployStatusReplyModel:
+async def deploy_status(request: Request) -> DeployStatusReplyModel:
     """Obtain the status of this node's deployment."""
     return _get_status(request.app.state.deployment)
 
@@ -93,7 +91,6 @@ async def deploy_status(
 async def deploy_install(
     request: Request,
     params: DeployInstallParamsModel,
-    _=Depends(jwt_auth_scheme),
 ) -> DeployInstallReplyModel:
     """Start installing this node."""
 
@@ -137,8 +134,6 @@ async def deploy_devices(
 async def deploy_create(
     request: Request,
     params: CreateParamsModel,
-    jwt: Any = Depends(jwt_auth_scheme),
-    gate: Any = Depends(install_gate),
 ) -> DeployStatusReplyModel:
     """
     Create a new deployment on this node.
