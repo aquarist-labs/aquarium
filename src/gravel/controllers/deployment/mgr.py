@@ -479,10 +479,12 @@ class DeploymentMgr:
             await self._creator.create(config)
         except AlreadyCreatingError:
             logger.info("Already creating a new deployment.")
+            self._creator = None
             return
         except CreationError as e:
             msg = f"Error creating a new deployment: {e.message}"
             logger.error(msg)
+            self._creator = None
             raise DeploymentError(msg)
 
         self._deployment_state = DeploymentStateEnum.DEPLOYING
