@@ -55,6 +55,8 @@ installed system. We will keep track of information that is relevant to track
 the deployment state, and will persist it as needed.
 """
 
+CONFDIR = "/etc/aquarium"
+
 
 logger: Logger = fastapi_logger
 
@@ -209,7 +211,17 @@ class DeploymentMgr:
                 progress = await self._creator.wait()
                 self._creator = None
                 if progress.state == CreateStateEnum.CREATED:
+                    self._init_state = InitStateEnum.DEPLOYED
                     self._deployment_state = DeploymentStateEnum.DEPLOYED
+                    confdir = Path(CONFDIR)
+                    write_model(
+                        confdir,
+                        "state",
+                        DeploymentStateModel(
+                            init=self._init_state,
+                            deployment=self._deployment_state,
+                        ),
+                    )
                 elif progress.error:
                     assert progress.progress == 0
                     logger.error(f"Error creating deployment: {progress.msg}")
@@ -302,7 +314,7 @@ class DeploymentMgr:
 
         logger.info("Initing node from on-disk state.")
 
-        confdir = Path("/etc/aquarium")
+        confdir = Path(CONFDIR)
         try:
             state: DeploymentStateModel = read_model(
                 confdir, "state", DeploymentStateModel
