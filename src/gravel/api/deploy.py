@@ -132,6 +132,7 @@ async def deploy_devices(
 async def deploy_create(
     request: Request,
     params: CreateParamsModel,
+    gate: Any = Depends(install_gate),
 ) -> DeployStatusReplyModel:
     """
     Create a new deployment on this node.
