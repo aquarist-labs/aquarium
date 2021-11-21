@@ -45,7 +45,7 @@ class DeployStatusReplyModel(BaseModel):
 
 
 class DeployInstallReplyModel(BaseModel):
-    state: DeploymentStateEnum = Field(title="Deployment state.")
+    success: bool = Field(title="Whether the operation request was successful.")
 
 
 class DeployInstallParamsModel(BaseModel):
@@ -102,9 +102,7 @@ async def deploy_install(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
             detail="Node already installed.",
         )
-    return DeployInstallReplyModel(
-        state=dep.state,
-    )
+    return DeployInstallReplyModel(success=True)
 
 
 @router.get("/requirements", response_model=DeployRequirementsReplyModel)
