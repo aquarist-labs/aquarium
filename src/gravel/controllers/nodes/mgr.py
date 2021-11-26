@@ -528,6 +528,12 @@ class NodeMgr:
     def token(self) -> Optional[str]:
         return self._token
 
+    @property
+    def uuid(self) -> UUID:
+        if self._state is None:
+            raise NodeNotStartedError()
+        return self._state.uuid
+
     async def _obtain_state(self) -> None:
         def _watcher(key: str, value: str) -> None:
             if key == "/nodes/token":

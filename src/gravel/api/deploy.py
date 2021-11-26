@@ -21,16 +21,26 @@ from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme, install_gate
 from gravel.controllers.deployment.create import ContainerConfig
+from gravel.controllers.deployment.join import (
+    AlreadyJoinedError,
+    BadTokenError,
+    HostnameExistsError,
+    JoinError,
+    JoinReadyParamsModel,
+    JoinReadyReplyModel,
+    JoinRequestParamsModel,
+    JoinRequestReplyModel,
+)
 from gravel.controllers.deployment.mgr import (
     DeploymentError,
     DeploymentMgr,
-    DeploymentStateEnum,
     DeploymentStatusModel,
     NodeDeployedError,
     NodeInstalledError,
     NodeUnrecoverableError,
     NotPostInitedError,
     NotReadyYetError,
+    ParamsError,
 )
 from gravel.controllers.inventory.disks import DiskDevice
 from gravel.controllers.nodes.requirements import (
@@ -79,6 +89,18 @@ class CreateParamsModel(BaseModel):
 
 class DeployTokenReplyModel(BaseModel):
     token: str = Field(title="The cluster token, required to join.")
+
+
+class JoinParamsModel(BaseModel):
+    address: str = Field(title="Address of node to contact.")
+    token: str = Field(title="Token to join the cluster.")
+    hostname: str = Field(title="Hostname to use when joining.")
+    storage: List[str] = Field(title="Devices to be used for storage.")
+
+
+class JoinReplyModel(BaseModel):
+    success: bool = Field(title="Whether the request was successful.")
+    msg: str = Field(title="A response message, if any.")
 
 
 def _get_status(dep: DeploymentMgr) -> DeployStatusReplyModel:
@@ -192,3 +214,110 @@ async def get_token(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
         )
     return DeployTokenReplyModel(token=token)
+
+
+@router.post("/join", response_model=JoinReplyModel)
+async def deploy_join(
+    request: Request,
+    params: JoinParamsModel,
+    gate: Any = Depends(install_gate),
+) -> JoinReplyModel:
+    """
+    Start joining an existing cluster.
+
+    This endpoint should be called on the node wanting to join, with
+    information specifying which node to contact.
+    """
+    remote_addr: str = params.address.strip()
+    token: str = params.token.strip()
+    hostname: str = params.hostname.strip()
+    storage: List[str] = params.storage
+
+    logger.debug(f"Join existing deployment at {remote_addr}")
+    dep: DeploymentMgr = request.app.state.deployment
+    try:
+        await dep.join(remote_addr, token, hostname, storage)
+    except (NotPostInitedError, NodeDeployedError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
+        )
+    except NodeUnrecoverableError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.message
+        )
+    except ParamsError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    return JoinReplyModel(success=True, msg="")
+
+
+@router.post("/join/request", response_model=JoinRequestReplyModel)
+async def deploy_join_request(
+    request: Request,
+    params: JoinRequestParamsModel,
+    gate: Any = Depends(install_gate),
+) -> JoinRequestReplyModel:
+    """
+    Request from another node to join our existing cluster.
+
+    This endpoint should be called from a node outside the cluster and wanting
+    to join our existing cluster. If we are not part of a cluster, an error
+    should be returned to the caller.
+    """
+    logger.debug(f"Join Request: {params}")
+    hostname = params.hostname.strip()
+    addr = params.address.strip()
+    token = params.token.strip()
+
+    if not hostname or not addr or not token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    dep: DeploymentMgr = request.app.state.deployment
+    try:
+        reply = await dep.handle_join_request(
+            params.uuid, hostname, addr, token
+        )
+    except NotReadyYetError as e:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
+        )
+    except BadTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Bad token."
+        )
+    except (HostnameExistsError, AlreadyJoinedError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=e.message
+        )
+    except JoinError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    return reply
+
+
+@router.post("/join/ready", response_model=JoinReadyReplyModel)
+async def deploy_join_ready(
+    request: Request,
+    params: JoinReadyParamsModel,
+    gate: Any = Depends(install_gate),
+) -> JoinReadyReplyModel:
+    """
+    Acknowledgement from another node that they are ready to be added to the
+    cluster.
+    """
+    logger.debug(f"Join Ready for UUID {params.uuid}")
+    uuid = params.uuid
+
+    dep: DeploymentMgr = request.app.state.deployment
+    try:
+        await dep.handle_join_ready(uuid)
+    except HostnameExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=e.message
+        )
+    except JoinError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+    return JoinReadyReplyModel(success=True, msg="")

@@ -19,6 +19,7 @@ from json import JSONDecodeError
 from logging import Logger
 from pathlib import Path
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
@@ -30,6 +31,13 @@ from gravel.controllers.deployment.create import (
     CreateStateEnum,
     CreationError,
     DeploymentCreator,
+)
+from gravel.controllers.deployment.join import (
+    AlreadyJoinedError,
+    AlreadyJoiningError,
+    JoinHandlerMgr,
+    JoinRequestMgr,
+    JoinRequestReplyModel,
 )
 
 from gravel.controllers.errors import GravelError
@@ -84,6 +92,7 @@ class DeploymentErrorEnum(int, Enum):
     UNKNOWN_ERROR = 3
     ENABLING = 4
     CREATING = 5
+    JOINING = 6
 
 
 class DeploymentStateModel(BaseModel):
@@ -157,6 +166,10 @@ class NotReadyYetError(DeploymentError):
     pass
 
 
+class ParamsError(DeploymentError):
+    pass
+
+
 class DeploymentMgr:
     """Handles the deployment procedure for the node."""
 
@@ -172,6 +185,8 @@ class DeploymentMgr:
     _gstate: Optional[GlobalState]
     _nodemgr: Optional[NodeMgr]
     _creator: Optional[DeploymentCreator]
+    _join_handler: Optional[JoinHandlerMgr]
+    _join_requester: Optional[JoinRequestMgr]
 
     def __init__(self) -> None:
         self._init_state = InitStateEnum.NONE
@@ -186,6 +201,8 @@ class DeploymentMgr:
         self._gstate = None
         self._nodemgr = None
         self._creator = None
+        self._join_handler = None
+        self._join_requester = None
 
     @property
     def installed(self) -> bool:
@@ -247,7 +264,25 @@ class DeploymentMgr:
                     self._error.code = DeploymentErrorEnum.CREATING
                     self._deployment_state = DeploymentStateEnum.ERROR
 
+            elif self._join_requester is not None and self._join_requester.done:
+                logger.debug("Join request finished.")
+                progress = await self._join_requester.wait()
+                self._join_requester = None
+                if progress.joined:
+                    self._init_state = InitStateEnum.DEPLOYED
+                    self._deployment_state = DeploymentStateEnum.DEPLOYED
+                    self._write_state()
+                elif progress.error:
+                    logger.error(f"Error joining cluster: {progress.msg}")
+                    self._error.msg = progress.msg
+                    self._error.code = DeploymentErrorEnum.JOINING
+                    self._deployment_state = DeploymentStateEnum.ERROR
+
+            if self._join_handler is not None:
+                self._join_handler.prune()
+
             if self.deployed:
+                await self._start_join_handler()
                 break
 
             await asyncio.sleep(1.0)
@@ -279,11 +314,23 @@ class DeploymentMgr:
                 await self._creator.die()
             self._creator = None
 
+    async def _start_join_handler(self) -> None:
+        if self._join_handler is not None:
+            return
+        assert self._gstate is not None
+        self._join_handler = JoinHandlerMgr(self._gstate)
+
+    async def _stop_join_handler(self) -> None:
+        if self._join_handler is None:
+            return
+        pass
+
     async def shutdown(self) -> None:
         await self.stop_main_task()
         if self._task_install is not None:
             await self._task_install
             self._task_install = None
+        await self._stop_join_handler()
 
     async def preinit(self) -> None:
         """
@@ -384,6 +431,9 @@ class DeploymentMgr:
         if self._creator is not None:
             create = self._creator.progress
             progress = ProgressModel(value=create.progress, msg=create.msg)
+        elif self._join_requester is not None:
+            joiner = self._join_requester.progress
+            progress = ProgressModel(value=joiner.progress, msg=joiner.msg)
 
         return DeploymentStatusModel(
             state=DeploymentStateModel(
@@ -511,3 +561,63 @@ class DeploymentMgr:
             raise DeploymentError(msg)
 
         self._deployment_state = DeploymentStateEnum.DEPLOYING
+
+    async def join(
+        self, remote_addr: str, token: str, hostname: str, storage: List[str]
+    ) -> None:
+        """Start a join request from this node to the specified node."""
+        if not self._postinited:
+            raise NotPostInitedError("Node has not been post-inited.")
+        elif self._init_state == InitStateEnum.DEPLOYED:
+            raise NodeDeployedError("Node has already been deployed.")
+        elif self._deployment_state == DeploymentStateEnum.DEPLOYING:
+            logger.info("Node already being deployed; no-op.")
+            return
+        elif self._deployment_state == DeploymentStateEnum.ERROR:
+            logger.error("Node is in unrecoverable error state.")
+            raise NodeUnrecoverableError(
+                "Node is in an unrecoverable error state."
+            )
+
+        if not remote_addr or not token or not hostname:
+            raise ParamsError()
+
+        assert self._join_requester is None
+        assert self._gstate is not None
+        assert self._nodemgr is not None
+        self._join_requester = JoinRequestMgr(self._gstate, self._nodemgr)
+
+        addr: str = self._nodemgr.address
+        assert addr is not None and len(addr) > 0
+        try:
+            await self._join_requester.join(
+                remote_addr, token, addr, hostname, storage
+            )
+        except (AlreadyJoiningError, AlreadyJoinedError):
+            # this should never happen
+            logger.error("Already joining or joined an existing cluster.")
+            assert False
+        self._deployment_state = DeploymentStateEnum.DEPLOYING
+
+    async def handle_join_request(
+        self, uuid: UUID, hostname: str, addr: str, token: str
+    ) -> JoinRequestReplyModel:
+        """Handle a Join request from another node."""
+        if self._join_handler is None:
+            raise NotReadyYetError("Node has not been deployed.")
+
+        # let the caller handle raised exceptions
+        return await self._join_handler.handle_request(
+            uuid, hostname, addr, token
+        )
+
+    async def handle_join_ready(self, uuid: UUID) -> None:
+        """
+        Handle a request stating a joining node is ready to be added to
+        the cluster
+        """
+        if self._join_handler is None:
+            raise NotReadyYetError("Node has not been deployed.")
+
+        # let the caller handle raised exceptions
+        return await self._join_handler.handle_ready(uuid)
