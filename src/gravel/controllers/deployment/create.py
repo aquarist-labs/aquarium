@@ -134,7 +134,10 @@ class DeploymentCreator:
         return (
             self._task_create is not None
             and self._task_create.done()
-            and self._done
+            and (
+                self._done
+                or (self._progress is not None and self._progress.error)
+            )
         )
 
     async def wait(self) -> CreateProgress:
