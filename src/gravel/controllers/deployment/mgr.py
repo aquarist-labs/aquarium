@@ -198,6 +198,17 @@ class DeploymentMgr:
     def state(self) -> DeploymentStateEnum:
         return self._deployment_state
 
+    def _write_state(self) -> None:
+        confdir = Path(CONFDIR)
+        write_model(
+            confdir,
+            "state",
+            DeploymentStateModel(
+                init=self._init_state,
+                deployment=self._deployment_state,
+            ),
+        )
+
     async def _task_main_func(self) -> None:
         while self._running:
             logger.debug("Checking deployment state")
@@ -218,15 +229,7 @@ class DeploymentMgr:
                 if progress.state == CreateStateEnum.CREATED:
                     self._init_state = InitStateEnum.DEPLOYED
                     self._deployment_state = DeploymentStateEnum.DEPLOYED
-                    confdir = Path(CONFDIR)
-                    write_model(
-                        confdir,
-                        "state",
-                        DeploymentStateModel(
-                            init=self._init_state,
-                            deployment=self._deployment_state,
-                        ),
-                    )
+                    self._write_state()
                 elif progress.error:
                     assert progress.progress == 0
                     logger.error(f"Error creating deployment: {progress.msg}")
