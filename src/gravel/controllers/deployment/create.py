@@ -27,6 +27,7 @@ from typing import Dict, List, Optional
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 
+from gravel.controllers.auth import UserMgr, UserModel
 from gravel.controllers.ceph.ceph import CephCommandError, Mon
 from gravel.controllers.ceph.orchestrator import Orchestrator
 from gravel.controllers.containers import (
@@ -313,6 +314,11 @@ class DeploymentCreator:
         await kv.put("/nodes/ntp_addr", self._ntpaddr)
         await kv.put("/nodes/token", self._generate_token())
         await kv.put("/nodes/containers", ctrcfg.json())
+
+        admin_user = UserModel(username="admin", password="aquarium")
+        admin_user.hash_password()
+        user_mgr = UserMgr(self._gstate.store)
+        await user_mgr.put(admin_user)
 
         self._mark_progress(ProgressEnum.DONE, "Deployment Complete.")
         self._mark_state(CreateStateEnum.CREATED)
