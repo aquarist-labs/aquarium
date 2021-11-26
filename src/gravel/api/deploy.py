@@ -28,6 +28,7 @@ from gravel.controllers.deployment.mgr import (
     DeploymentStatusModel,
     NodeDeployedError,
     NodeInstalledError,
+    NodeUnrecoverableError,
     NotPostInitedError,
 )
 from gravel.controllers.inventory.disks import DiskDevice
@@ -159,6 +160,10 @@ async def deploy_create(
     except (NotPostInitedError, NodeDeployedError) as e:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
+        )
+    except NodeUnrecoverableError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.message
         )
     except DeploymentError as e:
         raise HTTPException(

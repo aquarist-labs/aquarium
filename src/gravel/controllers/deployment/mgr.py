@@ -73,6 +73,7 @@ class DeploymentStateEnum(int, Enum):
     INSTALLED = 2
     DEPLOYING = 3
     DEPLOYED = 4
+    ERROR = 5
 
 
 class DeploymentErrorEnum(int, Enum):
@@ -144,6 +145,10 @@ class NodeInstalledError(DeploymentError):
 
 
 class NodeDeployedError(DeploymentError):
+    pass
+
+
+class NodeUnrecoverableError(DeploymentError):
     pass
 
 
@@ -227,6 +232,7 @@ class DeploymentMgr:
                     logger.error(f"Error creating deployment: {progress.msg}")
                     self._error.msg = progress.msg
                     self._error.code = DeploymentErrorEnum.CREATING
+                    self._deployment_state = DeploymentStateEnum.ERROR
 
             if self.deployed:
                 break
@@ -455,6 +461,10 @@ class DeploymentMgr:
         elif self._deployment_state == DeploymentStateEnum.DEPLOYING:
             logger.info("Node already being deployed; no-op.")
             return
+        elif self._deployment_state == DeploymentStateEnum.ERROR:
+            raise NodeUnrecoverableError(
+                "Node is in an unrecoverable error state."
+            )
 
         assert self._nodemgr is not None
         if not self._nodemgr.available:
