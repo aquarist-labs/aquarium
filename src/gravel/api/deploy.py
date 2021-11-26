@@ -30,6 +30,7 @@ from gravel.controllers.deployment.mgr import (
     NodeInstalledError,
     NodeUnrecoverableError,
     NotPostInitedError,
+    NotReadyYetError,
 )
 from gravel.controllers.inventory.disks import DiskDevice
 from gravel.controllers.nodes.requirements import (
@@ -74,6 +75,10 @@ class CreateParamsModel(BaseModel):
         None, title="Custom registry."
     )
     storage: List[str] = Field([], title="Devices to be consumed for storage.")
+
+
+class DeployTokenReplyModel(BaseModel):
+    token: str = Field(title="The cluster token, required to join.")
 
 
 def _get_status(dep: DeploymentMgr) -> DeployStatusReplyModel:
@@ -170,3 +175,20 @@ async def deploy_create(
             status_code=status.HTTP_400_BAD_REQUEST, detail=e.message
         )
     return _get_status(dep)
+
+
+@router.get("/token", response_model=DeployTokenReplyModel)
+async def get_token(
+    request: Request,
+    install_gate: Any = Depends(install_gate),
+    jwt_gate: Any = Depends(jwt_auth_scheme),
+) -> DeployTokenReplyModel:
+    """Obtain the cluster token"""
+    dep: DeploymentMgr = request.app.state.deployment
+    try:
+        token = await dep.get_token()
+    except NotReadyYetError as e:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message
+        )
+    return DeployTokenReplyModel(token=token)

@@ -35,6 +35,7 @@ from gravel.controllers.deployment.create import (
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
+from gravel.controllers.kv import KV
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.requirements import (
     RequirementsModel,
@@ -197,6 +198,15 @@ class DeploymentMgr:
     @property
     def state(self) -> DeploymentStateEnum:
         return self._deployment_state
+
+    async def get_token(self) -> str:
+        if not self.deployed:
+            raise NotReadyYetError("Node hasn't been deployed.")
+        assert self._gstate is not None
+        store: KV = self._gstate.store
+        tkn = await store.get("/nodes/token")
+        assert tkn is not None and len(tkn) > 0
+        return tkn
 
     def _write_state(self) -> None:
         confdir = Path(CONFDIR)
