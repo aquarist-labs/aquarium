@@ -19,15 +19,16 @@ Creates a deployment on the current node.
 """
 
 import asyncio
+import random
 from enum import Enum
 from logging import Logger
 from typing import Dict, List, Optional
 
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
+
 from gravel.controllers.ceph.ceph import CephCommandError, Mon
 from gravel.controllers.ceph.orchestrator import Orchestrator
-
 from gravel.controllers.containers import (
     ContainerPullError,
     container_pull,
@@ -36,9 +37,10 @@ from gravel.controllers.containers import (
 )
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
+from gravel.controllers.kv import KV
 from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError
-from gravel.controllers.nodes.host import set_hostname, HostnameCtlError
-from gravel.controllers.nodes.ntp import set_ntp_addr, NodeChronyRestartError
+from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
+from gravel.controllers.nodes.ntp import NodeChronyRestartError, set_ntp_addr
 
 logger: Logger = fastapi_logger
 
@@ -99,6 +101,7 @@ class DeploymentCreator:
     _bootstrapper: Optional[Bootstrap]
     _done: bool
     _hostname: Optional[str]
+    _ntpaddr: Optional[str]
     _storage_devices: List[str]
 
     _progress_bounds: Dict[ProgressEnum, int] = {
@@ -117,6 +120,7 @@ class DeploymentCreator:
         self._bootstrapper = None
         self._done = False
         self._hostname = None
+        self._ntpaddr = None
         self._storage_devices = []
 
     @property
@@ -168,6 +172,7 @@ class DeploymentCreator:
 
         # keep track of hostname because we need it for post-bootstrap actions.
         self._hostname = config.hostname
+        self._ntpaddr = config.ntp_addr
         self._storage_devices = config.storage
 
         try:
@@ -263,6 +268,13 @@ class DeploymentCreator:
             logger.error(msg)
             raise CreationError(msg)
 
+    def _generate_token(self) -> str:
+        def gen() -> str:
+            return "".join(random.choice("0123456789abcdef") for _ in range(4))
+
+        tokenstr = "-".join(gen() for _ in range(4))
+        return tokenstr
+
     async def _finish_bootstrap_cb(
         self, success: bool, error: Optional[str]
     ) -> None:
@@ -291,6 +303,16 @@ class DeploymentCreator:
         if not await self._assimilate_devices():
             self._mark_error("Failed assimilating storage devices.")
             return
+
+        logger.debug("Set values in KV store.")
+        kv: KV = self._gstate.store
+        await kv.ensure_connection()
+
+        ctrcfg = self._gstate.config.options.containers
+        assert self._ntpaddr is not None
+        await kv.put("/nodes/ntp_addr", self._ntpaddr)
+        await kv.put("/nodes/token", self._generate_token())
+        await kv.put("/nodes/containers", ctrcfg.json())
 
         self._mark_progress(ProgressEnum.DONE, "Deployment Complete.")
         self._mark_state(CreateStateEnum.CREATED)
