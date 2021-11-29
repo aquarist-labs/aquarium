@@ -13,6 +13,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import faulthandler
+import signal
+
 import asyncio
 import logging
 import logging.config
@@ -44,6 +47,9 @@ from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
 
 logger: logging.Logger = fastapi_logger
+
+
+faulthandler.register(signal.SIGUSR1.value)
 
 
 def gstate_preinit(gstate: GlobalState) -> None:
