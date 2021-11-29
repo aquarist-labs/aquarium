@@ -346,6 +346,8 @@ class JoinRequestMgr:
             return
 
         self._mark_progress(ProgressEnum.DONE, "Joined.")
+        self._done = True
+        self._progress.joined = True
 
     async def _prepare_node(self, hostname: str) -> None:
         """Prepare the node."""
