@@ -28,7 +28,10 @@ import * as _ from 'lodash';
 import { Subscription, timer } from 'rxjs';
 
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
+import {
+  DatatableCellTemplateName,
+  DatatableColumn
+} from '~/app/shared/models/datatable-column.type';
 import { DatatableData } from '~/app/shared/models/datatable-data.type';
 
 export enum SortDirection {
@@ -48,6 +51,8 @@ export class DatatableComponent implements OnInit, OnDestroy {
   checkIconTpl?: TemplateRef<any>;
   @ViewChild('yesNoIconTpl', { static: true })
   yesNoIconTpl?: TemplateRef<any>;
+  @ViewChild('rowSelectTpl', { static: true })
+  rowSelectTpl?: TemplateRef<any>;
   @ViewChild('actionMenuTpl', { static: true })
   actionMenuTpl?: TemplateRef<any>;
   @ViewChild('mapTpl', { static: true })
@@ -85,8 +90,25 @@ export class DatatableComponent implements OnInit, OnDestroy {
   @Input()
   autoReload: number | boolean = 15000;
 
+  // Row property used as unique identifier for the shown data. Only used if
+  // the row selection is enabled. Will throw an error if property not found
+  // in given columns. Defaults to 'id'.
+  @Input()
+  identifier = 'id';
+
+  // Defines the following row selection types:
+  // none: no row selection
+  // single: allows single-select
+  // multi: allows multi-select
+  // Defaults to no row selection.
+  @Input()
+  selectionType: 'single' | 'multi' | 'none' = 'none';
+
   @Output()
   loadData = new EventEmitter();
+
+  @Output()
+  selectionChange = new EventEmitter<DatatableData[]>();
 
   // Internal
   public icons = Icon;
@@ -97,6 +119,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
   protected _data: Array<DatatableData> = [];
   protected subscriptions: Subscription = new Subscription();
 
+  private selected: Array<DatatableData> = [];
   private sortableColumns: string[] = [];
   private tableData: DatatableData[] = [];
 
@@ -122,6 +145,20 @@ export class DatatableComponent implements OnInit, OnDestroy {
           }
         }
       });
+
+      if (this.selectionType !== 'none') {
+        if (!_.find(this.columns, ['prop', this.identifier])) {
+          throw new Error(`Identifier "${this.identifier}" not found in defined columns.`);
+        }
+        this.columns.unshift({
+          name: '',
+          prop: '_rowSelect',
+          cellTemplate: this.cellTemplates[DatatableCellTemplateName.rowSelect],
+          cols: 1,
+          sortable: false,
+          align: 'center'
+        });
+      }
       // Get the columns to be displayed.
       this.displayedColumns = _.map(this.columns, 'prop');
     }
@@ -152,6 +189,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
       icon: this.iconTpl!,
       checkIcon: this.checkIconTpl!,
       yesNoIcon: this.yesNoIconTpl!,
+      rowSelect: this.rowSelectTpl!,
       actionMenu: this.actionMenuTpl!,
       map: this.mapTpl!,
       badge: this.badgeTpl!
@@ -163,7 +201,25 @@ export class DatatableComponent implements OnInit, OnDestroy {
     if (column.pipe && _.isFunction(column.pipe.transform)) {
       value = column.pipe.transform(value);
     }
+    if (column.prop === '_rowSelect') {
+      const item = _.find(this.selected, [this.identifier, row[this.identifier]]);
+      if (item) {
+        value = true;
+      }
+    }
     return value;
+  }
+
+  renderCellDisabled(row: DatatableData, column: DatatableColumn): any {
+    if (column.prop === '_rowSelect') {
+      if (this.selectionType === 'single') {
+        const item = _.find(this.selected, [this.identifier, row[this.identifier]]);
+        if (!item && this.selected.length > 0) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   updateSorting(c: DatatableColumn): void {
@@ -201,8 +257,13 @@ export class DatatableComponent implements OnInit, OnDestroy {
       : css + 'sort-descending';
   }
 
+  getSelected(): DatatableData[] {
+    return this.selected;
+  }
+
   reloadData(): void {
     this.loadData.emit();
+    this.updateSelection();
   }
 
   get filteredData(): DatatableData[] {
@@ -219,6 +280,29 @@ export class DatatableComponent implements OnInit, OnDestroy {
   onPageSizeChange(pageSize: number): void {
     this.pageSize = pageSize;
     this.reloadData();
+  }
+
+  onSelectionChange($event: any, row: DatatableData) {
+    if ($event.target.checked) {
+      this.selected.push(row);
+    } else {
+      const selectedIndex = _.findIndex(this.selected, [this.identifier, row[this.identifier]]);
+      if (selectedIndex >= 0) {
+        this.selected.splice(selectedIndex, 1);
+      }
+    }
+    this.selectionChange.emit(this.selected);
+  }
+
+  private updateSelection(): void {
+    const updatedSelection: Array<DatatableData> = [];
+    this.selected.forEach((selectedItem) => {
+      const item = _.find(this.data, [this.identifier, selectedItem[this.identifier]]);
+      if (item) {
+        updatedSelection.push(item);
+      }
+    });
+    this.selected = updatedSelection;
   }
 
   private getSortProp(column: DatatableColumn): string {
