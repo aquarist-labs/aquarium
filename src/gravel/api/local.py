@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Any, Callable, List, Literal
+from typing import Any, List, Literal
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
@@ -21,9 +21,7 @@ from pydantic import BaseModel, Field
 
 from gravel.api import jwt_auth_scheme, install_gate
 from gravel.cephadm.models import VolumeDeviceModel
-from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
-from gravel.controllers.nodes.deployment import NodeStageEnum
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.requirements import (
     RequirementsModel,
@@ -42,7 +40,6 @@ class NodeStatusReplyModel(BaseModel):
         title="Validation results of localhost"
     )
     inited: bool = Field("Node has been inited and can be used")
-    node_stage: NodeStageEnum = Field("Node Deployment Stage")
 
 
 class EventModel(BaseModel):
@@ -156,7 +153,6 @@ async def get_status(
     return NodeStatusReplyModel(
         localhost_qualified=await localhost_qualified(),
         inited=nodemgr.available,
-        node_stage=nodemgr.deployment_state.stage,
     )
 
 

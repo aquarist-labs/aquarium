@@ -133,15 +133,17 @@ async def aquarium_main_task(
         logger.error(f"Unable to init node: {e.message}")
         sys.exit(1)
 
-    logger.info("Starting Node Manager.")
+    logger.info("Init Node Manager.")
     config.init()
     kvstore.init()
     gstate_init(gstate, nodemgr)
     nodemgr.init()
 
+    logger.info("Starting Node Manager.")
     await nodemgr.start()
     await gstate.start()
 
+    logger.info("Post-Init Deployment.")
     deployment.postinit(gstate, nodemgr)
 
     app.state.gstate = gstate

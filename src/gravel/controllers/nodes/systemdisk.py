@@ -20,9 +20,7 @@ from fastapi.logger import logger as fastapi_logger
 from pydantic.main import BaseModel
 
 from gravel.controllers.errors import GravelError
-from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
-from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.utils import aqr_run_cmd
 
 logger: Logger = fastapi_logger

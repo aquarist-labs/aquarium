@@ -258,6 +258,7 @@ class DeploymentMgr:
                     self._init_state = InitStateEnum.DEPLOYED
                     self._deployment_state = DeploymentStateEnum.DEPLOYED
                     self._write_state()
+                    self._mark_deployed()
                 elif progress.error:
                     assert progress.progress == 0
                     logger.error(f"Error creating deployment: {progress.msg}")
@@ -273,6 +274,7 @@ class DeploymentMgr:
                     self._init_state = InitStateEnum.DEPLOYED
                     self._deployment_state = DeploymentStateEnum.DEPLOYED
                     self._write_state()
+                    self._mark_deployed()
                 elif progress.error:
                     logger.error(f"Error joining cluster: {progress.msg}")
                     self._error.msg = progress.msg
@@ -424,6 +426,16 @@ class DeploymentMgr:
         self._gstate = gstate
         self._nodemgr = nodemgr
         self._postinited = True
+
+        if self._deployment_state == DeploymentStateEnum.DEPLOYED:
+            self._mark_deployed()
+
+    def _mark_deployed(self) -> None:
+        logger.debug("Marking Node Manager Deployed.")
+        if self._nodemgr is None:
+            logger.error("Error: We don't have a Node Manager yet!")
+            return
+        self._nodemgr.mark_deployed()
 
     def get_status(self) -> DeploymentStatusModel:
         """Obtain node deployment status."""

@@ -66,10 +66,7 @@ class Storage(Ticker):
         await self._update()
 
     async def _should_tick(self) -> bool:
-        return (
-            self.nodemgr.deployment_state.deployed
-            or self.nodemgr.deployment_state.ready
-        ) and self.nodemgr.started
+        return self.nodemgr.ready
 
     @property
     def available(self) -> int:

@@ -28,7 +28,7 @@ class JWTAuthSchema(OAuth2PasswordBearer):
     async def __call__(self, request: Request) -> Optional[JWT]:  # type: ignore[override]
         state = request.app.state
         # Disable authentication as long as the node is not ready.
-        if not state.deployment.deployed:
+        if not state.nodemgr.ready:
             return None
         # Get and validate the token.
         token = JWTMgr.get_token_from_cookie(request)
