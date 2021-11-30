@@ -46,6 +46,7 @@ from gravel.controllers.inventory.disks import DiskDevice
 from gravel.controllers.nodes.requirements import (
     RequirementsModel,
 )
+from gravel.controllers.resources.network import NetworkConfigModel
 
 logger: Logger = fastapi_logger
 router: APIRouter = APIRouter(prefix="/deploy", tags=["deploy"])
@@ -84,6 +85,9 @@ class CreateParamsModel(BaseModel):
     registry: Optional[RegistryParamsModel] = Field(
         None, title="Custom registry."
     )
+    network: Optional[NetworkConfigModel] = Field(
+        None, title="Network configuration."
+    )
     storage: List[str] = Field([], title="Devices to be consumed for storage.")
 
 
@@ -96,6 +100,9 @@ class JoinParamsModel(BaseModel):
     token: str = Field(title="Token to join the cluster.")
     hostname: str = Field(title="Hostname to use when joining.")
     storage: List[str] = Field(title="Devices to be used for storage.")
+    network: Optional[NetworkConfigModel] = Field(
+        title="Network configuration."
+    )
 
 
 class JoinReplyModel(BaseModel):
@@ -182,7 +189,11 @@ async def deploy_create(
                 secure=params.registry.secure,
             )
         await dep.create(
-            params.hostname, params.ntpaddr, ctrcfg, params.storage
+            params.hostname,
+            params.ntpaddr,
+            ctrcfg,
+            params.network,
+            params.storage,
         )
     except (NotPostInitedError, NodeDeployedError) as e:
         raise HTTPException(
@@ -232,11 +243,12 @@ async def deploy_join(
     token: str = params.token.strip()
     hostname: str = params.hostname.strip()
     storage: List[str] = params.storage
+    network: Optional[NetworkConfigModel] = params.network
 
     logger.debug(f"Join existing deployment at {remote_addr}")
     dep: DeploymentMgr = request.app.state.deployment
     try:
-        await dep.join(remote_addr, token, hostname, storage)
+        await dep.join(remote_addr, token, hostname, network, storage)
     except (NotPostInitedError, NodeDeployedError) as e:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=e.message

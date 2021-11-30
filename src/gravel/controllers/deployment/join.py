@@ -50,6 +50,7 @@ from gravel.controllers.nodes.errors import NodeChronyRestartError
 from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.ntp import set_ntp_addr
+from gravel.controllers.resources.network import NetworkConfigModel
 
 
 logger: Logger = fastapi_logger
@@ -127,6 +128,7 @@ class JoinRequestState(int, Enum):
 class JoinRequestEntry(BaseModel):
     hostname: str
     address: str
+    network: Optional[NetworkConfigModel]
     state: JoinRequestState
     last_seen: dt
 
@@ -199,6 +201,7 @@ class JoinRequestMgr:
         token: str,
         addr: str,
         hostname: str,
+        network: Optional[NetworkConfigModel],
         storage: List[str],
     ) -> None:
         """
@@ -225,7 +228,9 @@ class JoinRequestMgr:
             raise ValueError()
 
         self._task = asyncio.create_task(
-            self._join_task(remote_addr, token, addr, hostname, storage)
+            self._join_task(
+                remote_addr, token, addr, hostname, network, storage
+            )
         )
 
     async def _join_task(
@@ -234,6 +239,7 @@ class JoinRequestMgr:
         token: str,
         addr: str,
         hostname: str,
+        network: Optional[NetworkConfigModel],
         storage: List[str],
     ) -> None:
         """Handle the join process as a separate task."""
@@ -280,7 +286,7 @@ class JoinRequestMgr:
         self._write_keys(details.pubkey, details.keyring, details.cephconf)
 
         try:
-            await self._prepare_node(hostname)
+            await self._prepare_node(hostname, network)
         except JoinError as e:
             logger.error(f"Error preparing node: {e.message}")
             self._mark_error(e.message)
@@ -349,10 +355,18 @@ class JoinRequestMgr:
         self._done = True
         self._progress.joined = True
 
-    async def _prepare_node(self, hostname: str) -> None:
+    async def _prepare_node(
+        self, hostname: str, network: Optional[NetworkConfigModel]
+    ) -> None:
         """Prepare the node."""
         assert hostname is not None and len(hostname) > 0
         assert self._gstate is not None
+
+        if network:
+            logger.debug("Apply network configuration.")
+            await self._gstate.network.apply_config(
+                network.interfaces, network.nameservers, network.routes
+            )
 
         try:
             await set_hostname(hostname)

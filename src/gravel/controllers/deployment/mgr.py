@@ -56,6 +56,7 @@ from gravel.controllers.nodes.systemdisk import (
     UnavailableDeviceError,
     UnknownDeviceError,
 )
+from gravel.controllers.resources.network import NetworkConfigModel
 from gravel.controllers.utils import read_model, write_model
 
 """
@@ -512,6 +513,7 @@ class DeploymentMgr:
         hostname: str,
         ntpaddr: str,
         containers: Optional[ContainerConfig],
+        network: Optional[NetworkConfigModel],
         storage: List[str],
     ) -> None:
         """Create new deployment on current node."""
@@ -546,6 +548,7 @@ class DeploymentMgr:
             address=addr,
             storage=storage,
             container=containers,
+            network=network,
         )
 
         try:
@@ -563,7 +566,12 @@ class DeploymentMgr:
         self._deployment_state = DeploymentStateEnum.DEPLOYING
 
     async def join(
-        self, remote_addr: str, token: str, hostname: str, storage: List[str]
+        self,
+        remote_addr: str,
+        token: str,
+        hostname: str,
+        network: Optional[NetworkConfigModel],
+        storage: List[str],
     ) -> None:
         """Start a join request from this node to the specified node."""
         if not self._postinited:
@@ -591,7 +599,7 @@ class DeploymentMgr:
         assert addr is not None and len(addr) > 0
         try:
             await self._join_requester.join(
-                remote_addr, token, addr, hostname, storage
+                remote_addr, token, addr, hostname, network, storage
             )
         except (AlreadyJoiningError, AlreadyJoinedError):
             # this should never happen

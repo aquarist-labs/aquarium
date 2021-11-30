@@ -42,6 +42,7 @@ from gravel.controllers.kv import KV
 from gravel.controllers.nodes.bootstrap import Bootstrap, BootstrapError
 from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.nodes.ntp import NodeChronyRestartError, set_ntp_addr
+from gravel.controllers.resources.network import NetworkConfigModel
 
 logger: Logger = fastapi_logger
 
@@ -66,6 +67,7 @@ class CreateConfig(BaseModel):
     ntp_addr: str
     storage: List[str] = Field([], title="Devices to consume for storage.")
     container: Optional[ContainerConfig]
+    network: Optional[NetworkConfigModel]
 
 
 class CreateStateEnum(int, Enum):
@@ -217,7 +219,9 @@ class DeploymentCreator:
             ProgressEnum.START, "Starting to create new deployment."
         )
         try:
-            await self._prepare_node(config.hostname, config.ntp_addr)
+            await self._prepare_node(
+                config.hostname, config.ntp_addr, config.network
+            )
         except CreationError as e:
             self._mark_error(e.message)
             return
@@ -234,12 +238,20 @@ class DeploymentCreator:
             raise CreationError(f"Unable to bootstrap: {e.message}")
         logger.debug("Create task exit.")
 
-    async def _prepare_node(self, hostname: str, ntpaddr: str) -> None:
+    async def _prepare_node(
+        self, hostname: str, ntpaddr: str, network: Optional[NetworkConfigModel]
+    ) -> None:
         """
         Prepare the node. This must happen before bootstrapping the cluster.
         """
         assert hostname is not None and len(hostname) > 0
         assert ntpaddr is not None and len(ntpaddr) > 0
+
+        if network:
+            logger.debug("Applying network configuration.")
+            await self._gstate.network.apply_config(
+                network.interfaces, network.nameservers, network.routes
+            )
 
         try:
             await set_hostname(hostname)
