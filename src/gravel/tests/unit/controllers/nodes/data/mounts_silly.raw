@@ -1,3 +1,3 @@
 tmpfs
-foo bar
-asd fgh
+foo bar myfs myopts
+asd fgh myfs2 myopts2

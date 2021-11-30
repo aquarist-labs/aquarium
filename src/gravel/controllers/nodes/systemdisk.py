@@ -55,12 +55,28 @@ class OverlayError(GravelError):
 class MountEntry(BaseModel):
     source: str
     dest: str
+    overlay: bool
 
 
 AQR_SYSTEM_PATH = "/var/lib/aquarium-system"
 
 
 def get_mounts() -> List[MountEntry]:
+    """Obtain mounts from the system."""
+
+    def _get_overlay_src(opts: str) -> str:
+        optlst: List[str] = opts.split(",")
+        upper: Optional[str] = None
+        for e in optlst:
+            if e.startswith("upperdir"):
+                path = Path(e.split("=")[1])
+                upper = path.parent.as_posix()
+        if upper is None or len(upper) == 0:
+            raise OverlayError(
+                f"Unable to find upper dir from options: {opts}."
+            )
+        return upper
+
     proc: Path = Path("/proc/mounts")
     assert proc.exists()
 
@@ -68,17 +84,35 @@ def get_mounts() -> List[MountEntry]:
     with proc.open(mode="r", encoding="utf-8") as f:
         for line in f.readlines():
             fields: List[str] = line.split(" ")
-            if len(fields) < 2:
+            if len(fields) < 4:
                 continue
-            src = fields[0].strip()
-            dst = fields[1].strip()
-            lst.append(MountEntry(source=src, dest=dst))
+
+            fields = [x.strip() for x in fields]
+            src, dst, fstype, opts = fields[0:4]
+            is_overlay = fstype == "overlay"
+            if is_overlay:
+                try:
+                    src = _get_overlay_src(opts)
+                except OverlayError as e:
+                    raise OverlayError(
+                        f"Unable to find overlay source for {dst}: {e.message}"
+                    )
+
+            lst.append(MountEntry(source=src, dest=dst, overlay=is_overlay))
     return lst
+
+
+async def lvm(args: List[str]) -> str:
+    cmd: List[str] = ["lvm"] + args
+    retcode, out, err = await aqr_run_cmd(cmd)
+
+    if retcode != 0:
+        raise LVMError(msg=err)
+    return out if out is not None else ""
 
 
 class SystemDisk:
 
-    _gstate: GlobalState
     _overlaydirs: Dict[str, str] = {
         "etc": "/etc",
         "logs": "/var/log",
@@ -88,8 +122,8 @@ class SystemDisk:
     }
     _bindmounts: Dict[str, str] = {"ceph": "/var/lib/ceph"}
 
-    def __init__(self, gstate: GlobalState) -> None:
-        self._gstate = gstate
+    def __init__(self) -> None:
+        pass
 
     @property
     def mounted(self):
@@ -102,17 +136,34 @@ class SystemDisk:
                 return True
         return False
 
-    async def lvm(self, args: str) -> None:
-        cmd: List[str] = ["lvm"] + shlex.split(args)
-        retcode, _, err = await aqr_run_cmd(cmd)
+    async def exists(self) -> bool:
+        """Checks whether a System Disk exists in the system."""
 
-        if retcode != 0:
-            raise LVMError(msg=err)
+        lvmcmd = shlex.split("lvs --noheadings -o vg_name,lv_name @aquarium")
+        try:
+            out = await lvm(lvmcmd)
+        except LVMError:
+            return False
 
-    async def create(self, devicestr: str) -> None:
+        lst = [x.strip() for x in out.split("\n") if len(x) > 0]
+        if len(lst) == 0:
+            return False
+
+        lvs = [lv.split()[1] for lv in lst]
+        if "containers" not in lvs:
+            # systemdisk does not have a containers LV, we're in error state.
+            raise LVMError(msg="System Disk missing Containers LV.")
+        elif "systemdisk" not in lvs:
+            # systemdisk does not have a persistent state LV, we're in error
+            # state.
+            raise LVMError(msg="System Disk missing persistent state LV.")
+
+        return True
+
+    async def create(self, gstate: GlobalState, devicestr: str) -> None:
 
         logger.debug(f"prepare system disk: {devicestr}")
-        inventory: Optional[NodeInfoModel] = self._gstate.inventory.latest
+        inventory: Optional[NodeInfoModel] = gstate.inventory.latest
         assert inventory is not None
 
         device: Optional[DiskDevice] = next(
@@ -141,10 +192,12 @@ class SystemDisk:
 
         try:
             # create lvm volume
-            await self.lvm(f"pvcreate {devpath}")
-            await self.lvm(f"vgcreate aquarium {devpath} --addtag @aquarium")
-            await self.lvm("lvcreate -l 50%VG -n systemdisk aquarium")
-            await self.lvm("lvcreate -l 50%VG -n containers aquarium")
+            await lvm(shlex.split(f"pvcreate {devpath}"))
+            await lvm(
+                shlex.split(f"vgcreate aquarium {devpath} --addtag @aquarium")
+            )
+            await lvm(shlex.split("lvcreate -l 50%VG -n systemdisk aquarium"))
+            await lvm(shlex.split("lvcreate -l 50%VG -n containers aquarium"))
 
             lvmdev: Path = Path("/dev/mapper/aquarium-systemdisk")
             assert lvmdev.exists()
@@ -223,6 +276,16 @@ class SystemDisk:
             )
             await aqr_run_cmd(shlex.split(mntcmd))
 
+        mounts: List[MountEntry] = get_mounts()
+
+        def _is_mounted(src: str, dest: str, overlay: bool) -> bool:
+            for entry in mounts:
+                if overlay and entry.dest == dest and entry.source == src:
+                    return True
+                elif not overlay and entry.dest == dest:
+                    return True
+            return False
+
         for upper, lower in self._overlaydirs.items():
             aqrpath: Path = Path(AQR_SYSTEM_PATH)
             upperpath: Path = aqrpath.joinpath(upper)
@@ -231,6 +294,10 @@ class SystemDisk:
             lowerpath: Path = Path(lower)
             assert overlaypath.exists() and overlaypath.is_dir()
             assert temppath.exists() and temppath.is_dir()
+
+            if _is_mounted(upperpath.as_posix(), lower, True):
+                logger.info(f"{lower} is already overlayed in {upper}.")
+                continue
 
             lowerpath.mkdir(parents=True, exist_ok=True)
             assert lowerpath.exists() and lowerpath.is_dir()
@@ -248,6 +315,11 @@ class SystemDisk:
             ourpath: Path = Path(AQR_SYSTEM_PATH).joinpath(ours)
             theirpath: Path = Path(theirs)
             assert ourpath.exists()
+
+            if _is_mounted(ourpath.as_posix(), theirs, False):
+                logger.info(f"{ourpath} already mounted at {theirs}.")
+                continue
+
             theirpath.mkdir(parents=True, exist_ok=True)
 
             try:
