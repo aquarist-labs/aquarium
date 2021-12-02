@@ -22,7 +22,8 @@
         <div *ngIf="!(column.cellTemplateName || column.cellTemplate)">{{ renderCellValue(row, column) }}</div>
         <ng-template *ngIf="column.cellTemplate"
                      [ngTemplateOutlet]="column.cellTemplate"
-                     [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined }">
+                     [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined,
+                     disabled: column.prop ? renderCellDisabled(row, column) : false }">
         </ng-template>
       </td>
     </tr>
@@ -69,6 +70,16 @@
                   (pageChange)="reloadData()">
   </ngb-pagination>
 </div>
+
+<ng-template #rowSelectTpl
+             let-value="value"
+             let-row="row"
+             let-disabled="disabled">
+  <input type="checkbox"
+         [checked]="value"
+         [disabled]="disabled"
+         (change)="onSelectionChange($event, row)">
+</ng-template>
 
 <ng-template #yesNoIconTpl
              let-value="value">

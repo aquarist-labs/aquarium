@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
+import * as _ from 'lodash';
 
 import { ComponentsModule } from '~/app/shared/components/components.module';
 import {
@@ -185,5 +186,37 @@ describe('DatatableComponent', () => {
     const oldTableData = component.filteredData;
     component.data = [data.c, data.b, data.a];
     expect(oldTableData).toBe(component.filteredData);
+  });
+
+  it(
+    'should throw an error if property `id` not present in columns and ' + 'row selection enabled',
+    () => {
+      component.selectionType = 'single';
+      expect(() => fixture.detectChanges()).toThrow(
+        new Error('Identifier "id" not found in defined columns.')
+      );
+    }
+  );
+
+  it('should not show row selection checkboxes by default', () => {
+    expect(component.selectionType).toBe('none');
+    const rowSelectionColumn = _.find(component.columns, ['prop', '_rowSelect']);
+    expect(rowSelectionColumn).toBeUndefined();
+  });
+
+  it('should show row selection checkboxes if selection type single', () => {
+    component.selectionType = 'single';
+    component.identifier = 'bar';
+    fixture.detectChanges();
+    const rowSelectionColumn = _.find(component.columns, ['prop', '_rowSelect']);
+    expect(rowSelectionColumn).toBeDefined();
+  });
+
+  it('should show row selection checkboxes if selection type multi', () => {
+    component.selectionType = 'multi';
+    component.identifier = 'bar';
+    fixture.detectChanges();
+    const rowSelectionColumn = _.find(component.columns, ['prop', '_rowSelect']);
+    expect(rowSelectionColumn).toBeDefined();
   });
 });
