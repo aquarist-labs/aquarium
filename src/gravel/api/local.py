@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Any, List, Literal
+from typing import Any, List, Literal, Callable
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
