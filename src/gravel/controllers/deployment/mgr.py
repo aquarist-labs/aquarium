@@ -103,11 +103,6 @@ class DeploymentStateModel(BaseModel):
     )
 
 
-class ProgressModel(BaseModel):
-    value: int = Field(0, title="Current progress percentage.")
-    msg: str = Field("", title="Current progress message.")
-
-
 class DeploymentErrorModel(BaseModel):
     code: DeploymentErrorEnum = Field(
         DeploymentErrorEnum.NONE, title="Deployment error code."
@@ -115,11 +110,25 @@ class DeploymentErrorModel(BaseModel):
     msg: str = Field("", title="Deployment error message, if any.")
 
 
+class DeploymentTypeEnum(int, Enum):
+    NONE = 0
+    CREATE = 1
+    JOIN = 2
+
+
+class DeploymentProgressModel(BaseModel):
+    type: DeploymentTypeEnum = Field(
+        DeploymentTypeEnum.NONE, title="Deployment Type"
+    )
+    value: int = Field(0, title="Current progress percentage.")
+    msg: str = Field("", title="Current progress message.")
+
+
 class DeploymentStatusModel(BaseModel):
     state: DeploymentStateModel = Field(
         DeploymentStateModel(), title="Current deployment state."
     )
-    progress: Optional[ProgressModel] = Field(
+    progress: DeploymentProgressModel = Field(
         None, title="Insights into current progress."
     )
     error: DeploymentErrorModel = Field(
@@ -183,6 +192,7 @@ class DeploymentMgr:
     _task_install: Optional[asyncio.Task]
     _running: bool
     _error: DeploymentErrorModel
+    _progress: DeploymentProgressModel
     _gstate: Optional[GlobalState]
     _nodemgr: Optional[NodeMgr]
     _creator: Optional[DeploymentCreator]
@@ -199,6 +209,7 @@ class DeploymentMgr:
         self._task_install = None
         self._running = False
         self._error = DeploymentErrorModel()
+        self._progress = DeploymentProgressModel()
         self._gstate = None
         self._nodemgr = None
         self._creator = None
@@ -240,6 +251,9 @@ class DeploymentMgr:
     async def _task_main_func(self) -> None:
         while self._running:
             logger.debug("Checking deployment state")
+
+            self._update_progress()
+
             if self._task_install is not None and self._task_install.done():
                 logger.debug("Install done.")
                 ret: DeploymentErrorModel = await self._task_install
@@ -437,23 +451,31 @@ class DeploymentMgr:
             return
         self._nodemgr.mark_deployed()
 
-    def get_status(self) -> DeploymentStatusModel:
-        """Obtain node deployment status."""
-        progress: Optional[ProgressModel] = None
-
+    def _update_progress(self) -> None:
+        """Update our deployment progress."""
         if self._creator is not None:
             create = self._creator.progress
-            progress = ProgressModel(value=create.progress, msg=create.msg)
+            self._progress = DeploymentProgressModel(
+                type=DeploymentTypeEnum.CREATE,
+                value=create.progress,
+                msg=create.msg,
+            )
         elif self._join_requester is not None:
             joiner = self._join_requester.progress
-            progress = ProgressModel(value=joiner.progress, msg=joiner.msg)
+            self._progress = DeploymentProgressModel(
+                type=DeploymentTypeEnum.JOIN,
+                value=joiner.progress,
+                msg=joiner.msg,
+            )
 
+    def get_status(self) -> DeploymentStatusModel:
+        """Obtain node deployment status."""
         return DeploymentStatusModel(
             state=DeploymentStateModel(
                 init=self._init_state,
                 deployment=self._deployment_state,
             ),
-            progress=progress,
+            progress=self._progress,
             error=self._error,
         )
 
