@@ -297,10 +297,8 @@ class DeploymentMgr:
 
             if self._join_handler is not None:
                 self._join_handler.prune()
-
-            if self.deployed:
+            elif self.deployed:
                 await self._start_join_handler()
-                break
 
             await asyncio.sleep(1.0)
         logger.debug("Main task done.")
