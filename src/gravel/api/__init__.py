@@ -79,7 +79,7 @@ class JWTAuthSchema(OAuth2PasswordBearer):
         return raw_token
 
 
-class NodeStateGateKeeper:
+class InstallGateKeeper:
     def __init__(self):
         pass
 
@@ -93,4 +93,4 @@ class NodeStateGateKeeper:
 
 
 jwt_auth_scheme = JWTAuthSchema()
-install_gate = NodeStateGateKeeper()
+install_gate = InstallGateKeeper()
