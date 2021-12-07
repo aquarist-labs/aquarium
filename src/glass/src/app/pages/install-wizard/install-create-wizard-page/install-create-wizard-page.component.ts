@@ -14,28 +14,22 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
-import { forkJoin } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard/models/install-wizard-context.type';
 import { Icon } from '~/app/shared/enum/icon.enum';
-import { StatusStageEnum } from '~/app/shared/services/api/local.service';
-import { LocalNodeService, NodeStatus } from '~/app/shared/services/api/local.service';
 import {
-  DeploymentStartReply,
-  DeploymentStartRequest,
-  DeploymentStatusReply,
-  NodesService,
-  NodeStageEnum
-} from '~/app/shared/services/api/nodes.service';
+  DeployCreateParams,
+  DeploymentStateEnum,
+  DeployService,
+  DeployStatusReply,
+  InitStateEnum,
+  Progress
+} from '~/app/shared/services/api/deploy.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
-
-type InstallCreateWizardContext = InstallWizardContext & {
-  stage: 'unknown' | 'bootstrapping' | 'bootstrapped' | 'deployed';
-};
 
 @Component({
   selector: 'glass-install-create-wizard-page',
@@ -48,67 +42,54 @@ export class InstallCreateWizardPageComponent implements OnInit {
 
   public icons = Icon;
   public activeId = 1;
-  public context: InstallCreateWizardContext = {
-    config: {},
-    stage: 'unknown'
+  public context: InstallWizardContext = {
+    config: {}
   };
   public pageIndex = {
     start: 1,
     networking: 2,
     time: 3,
     devices: 4,
-    installation: 5,
+    deployment: 5,
     finish: 6
   };
+  public deployed = false;
+  public error: boolean | string = false;
 
   constructor(
-    private localNodeService: LocalNodeService,
-    private nodesService: NodesService,
+    private deployService: DeployService,
     private notificationService: NotificationService,
     private pollService: PollService
   ) {}
 
   ngOnInit(): void {
-    this.blockUI.start(translate(TEXT(`Please wait, checking system status ...`)));
-    forkJoin({
-      deploymentStatusReply: this.nodesService.deploymentStatus(),
-      nodeStatus: this.localNodeService.status()
-    }).subscribe({
-      next: (res) => {
-        this.blockUI.stop();
-        switch (res.nodeStatus.node_stage) {
-          case StatusStageEnum.bootstrapped:
-            this.context.stage = 'bootstrapped';
-            // Jump to the 'Finish' step.
-            this.activeId = this.pageIndex.finish;
-            break;
-          case StatusStageEnum.ready:
-            this.context.stage = 'deployed';
-            // Jump to the 'Finish' step.
+    this.startProgress(TEXT(`Please wait, checking system status ...`));
+    this.deployService.status().subscribe({
+      next: (res: DeployStatusReply) => {
+        this.stopProgress();
+        switch (res.status.state.init) {
+          case InitStateEnum.deployed:
+            this.deployed = true;
             this.activeId = this.pageIndex.finish;
             break;
           default:
-            switch (res.deploymentStatusReply.stage) {
-              case NodeStageEnum.bootstrapping:
-                this.context.stage = 'bootstrapping';
-                // Jump to the 'Installation' step.
-                this.activeId = this.pageIndex.installation;
-                // Immediately show the progress message.
-                this.blockUI.start(
-                  translate(
-                    TEXT(
-                      `Please wait, deployment in progress (${res.deploymentStatusReply.progress}%) ...`
-                    )
-                  )
-                );
-                this.pollBootstrapStatus();
+            switch (res.status.state.deployment) {
+              case DeploymentStateEnum.none:
+                this.deployed = false;
+                this.activeId = this.pageIndex.start;
                 break;
-              case NodeStageEnum.deployed:
-                this.context.stage = 'bootstrapped';
-                // Jump to the 'Finish' step.
+              case DeploymentStateEnum.deploying:
+                this.deployed = false;
+                this.activeId = this.pageIndex.deployment;
+                this.startProgress();
+                this.pollStatus();
+                break;
+              case DeploymentStateEnum.deployed:
+                this.deployed = true;
                 this.activeId = this.pageIndex.finish;
                 break;
-              case NodeStageEnum.none:
+              case DeploymentStateEnum.error:
+                this.handleError(res.status.error.msg!, true);
                 break;
             }
         }
@@ -120,87 +101,31 @@ export class InstallCreateWizardPageComponent implements OnInit {
     });
   }
 
-  /**
-   * This step starts the bootstrap process
-   */
-  startBootstrap(): void {
-    this.blockUI.start(translate(TEXT('Please wait, checking node status ...')));
-    this.pollNodeStatus();
+  onInstall(): void {
+    this.doDeployment();
   }
 
-  finishDeployment(): void {
-    this.blockUI.start(translate(TEXT(`Please wait, finishing deployment ...`)));
-    this.nodesService.markDeploymentFinished().subscribe(
-      (success: boolean) => {
-        this.blockUI.stop();
-        if (success) {
-          this.activeId++;
-        } else {
-          this.handleError(TEXT('Unable to finish deployment.'));
-        }
-      },
-      (err) => {
-        err.preventDefault();
-        this.handleError(err.message);
-      }
-    );
-  }
-
-  private handleError(message: string): void {
-    this.blockUI.stop();
-    this.notificationService.show(message, {
-      type: 'error'
-    });
-  }
-
-  private pollNodeStatus(): void {
-    this.localNodeService
-      .status()
-      .pipe(
-        this.pollService.poll(
-          (status: NodeStatus) => !status.inited,
-          10,
-          TEXT('Bootstrapping not possible at the moment, please retry later.'),
-          1000
-        )
-      )
-      .subscribe(
-        (status: NodeStatus) => {
-          this.blockUI.stop();
-          if (status.inited) {
-            this.doBootstrap();
-          }
-        },
-        (err) => {
-          err.preventDefault();
-          this.handleError(err.message);
-        }
-      );
-  }
-
-  private doBootstrap(): void {
-    this.blockUI.start(translate(TEXT('Please wait, bootstrapping will be started ...')));
-    const data: DeploymentStartRequest = {
+  private doDeployment(): void {
+    const params: DeployCreateParams = {
       ntpaddr: this.context.config.ntpAddress,
-      hostname: this.context.config.hostname
+      hostname: this.context.config.hostname,
+      storage: this.context.config.storage
     };
     if (!this.context.config.regDefault) {
-      data.registry = {
+      params.registry = {
         registry: this.context.config.registry,
         image: this.context.config.image,
         secure: this.context.config.secure
       };
     }
-    this.nodesService.deploymentStart(data).subscribe({
-      next: (startReplay: DeploymentStartReply) => {
-        if (startReplay.success) {
-          this.context.stage = 'bootstrapping';
-          this.blockUI.update(translate(TEXT('Please wait, bootstrapping in progress ...')));
-          this.pollBootstrapStatus();
+    this.deployService.create(params).subscribe({
+      next: (res: DeployStatusReply) => {
+        // Is there an error?
+        if (_.isString(res.status.error.msg) && !_.isEmpty(res.status.error.msg)) {
+          this.handleError(res.status.error.msg, true);
         } else {
-          this.handleError(
-            TEXT(`Failed to start bootstrapping the system: ${startReplay.error.message}`)
-          );
+          this.startProgress();
+          this.pollStatus();
         }
       },
       error: (err) => {
@@ -210,44 +135,69 @@ export class InstallCreateWizardPageComponent implements OnInit {
     });
   }
 
-  private pollBootstrapStatus(): void {
-    this.nodesService
-      .deploymentStatus()
+  private pollStatus(): void {
+    this.deployService
+      .status()
       .pipe(
-        tap((statusReply: DeploymentStatusReply) => {
-          this.blockUI.update(
-            translate(TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`))
-          );
-        }),
-        this.pollService.poll(
-          (statusReply) => statusReply.stage === NodeStageEnum.bootstrapping,
-          Infinity,
-          TEXT('Failed to bootstrap the system.')
-        )
+        this.pollService.poll((res: DeployStatusReply) => {
+          // Is there an error?
+          if (_.isString(res.status.error.msg) && !_.isEmpty(res.status.error.msg)) {
+            this.handleError(res.status.error.msg, true);
+            return false;
+          }
+          this.updateProgress(res.status.progress);
+          return res.status.state.deployment === DeploymentStateEnum.deploying;
+        })
       )
       .subscribe(
-        (statusReply: DeploymentStatusReply) => {
-          switch (statusReply.stage) {
-            case NodeStageEnum.error:
-              this.handleError(TEXT('Failed to bootstrap the system.'));
+        (res: DeployStatusReply) => {
+          this.stopProgress();
+          switch (res.status.state.init) {
+            case InitStateEnum.deployed:
+              this.deployed = true;
+              this.activeId = this.pageIndex.finish;
               break;
-            case NodeStageEnum.none:
-            case NodeStageEnum.deployed:
-              this.blockUI.update(
-                translate(
-                  TEXT(`Please wait, bootstrapping in progress (${statusReply.progress}%) ...`)
-                )
-              );
-              this.context.stage = 'bootstrapped';
-              this.blockUI.stop();
-              this.finishDeployment();
+            default:
+              // Nothing to do here.
               break;
           }
         },
         (err) => {
           err.preventDefault();
-          this.handleError(TEXT('Failed to bootstrap the system.'));
+          this.handleError(TEXT('Failed to deploy the system.'));
         }
       );
+  }
+
+  private startProgress(text?: string): void {
+    if (!_.isString(text)) {
+      text = TEXT('Please wait, deployment in progress ...');
+    }
+    this.blockUI.start(translate(text));
+  }
+
+  private updateProgress(progress?: Progress): void {
+    if (_.isNull(progress) || _.isUndefined(progress)) {
+      this.blockUI.update(translate(TEXT('Please wait, deployment in progress ...')));
+    } else {
+      this.blockUI.update(
+        translate(TEXT(`Please wait, deployment in progress (${progress.value}%) ...`))
+      );
+    }
+  }
+
+  private stopProgress(): void {
+    this.blockUI.stop();
+  }
+
+  private handleError(message: string, failHard = false): void {
+    this.stopProgress();
+    if (failHard) {
+      this.error = message;
+    } else {
+      this.notificationService.show(message, {
+        type: 'error'
+      });
+    }
   }
 }

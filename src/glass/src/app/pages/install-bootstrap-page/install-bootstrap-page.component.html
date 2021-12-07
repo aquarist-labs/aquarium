@@ -1,0 +1,41 @@
+<div class="glass-install-bootstrap-page"
+     fxLayout="column"
+     fxLayoutAlign="center center">
+  <glass-alert-panel *ngIf="error"
+                     fxFlexFill
+                     type="danger">
+    <span translate>Failed to bootstrap the system: {{ error }}</span>
+  </glass-alert-panel>
+  <div *ngIf="!error && !bootstrapping"
+       class="card">
+    <div class="card-header">
+      <div class="card-title"
+           translate>
+        Basic installation
+      </div>
+      <div class="card-text"
+           translate>
+        Please select a device to install the operating system.
+      </div>
+    </div>
+    <div class="card-body">
+      <glass-datatable [data]="devices"
+                       sortHeader="path"
+                       identifier="path"
+                       selectionType="single"
+                       (selectionChange)="onSelectionChange($event)"
+                       [columns]="devicesColumns">
+      </glass-datatable>
+    </div>
+    <div class="card-footer">
+      <div class="card-actions">
+        <button type="button"
+                class="btn btn-warning"
+                [disabled]="!targetDevice"
+                (click)="onInstall()">
+          <span translate>Install</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

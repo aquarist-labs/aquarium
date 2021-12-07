@@ -22,6 +22,7 @@ import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/in
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
+import { InstallBootstrapPageComponent } from '~/app/pages/install-bootstrap-page/install-bootstrap-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { InstallWelcomePageComponent } from '~/app/pages/install-welcome-page/install-welcome-page.component';
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
@@ -50,9 +51,14 @@ const installerRoute: Route = {
       data: { breadcrumb: TEXT('Welcome') }
     },
     {
+      path: 'bootstrap',
+      component: InstallBootstrapPageComponent,
+      data: { breadcrumb: TEXT('Bootstrapping') }
+    },
+    {
       path: 'install-mode',
       component: InstallModePageComponent,
-      data: { breadcrumb: TEXT('Installer mode') }
+      data: { breadcrumb: TEXT('Installation mode') }
     },
     {
       path: 'create',

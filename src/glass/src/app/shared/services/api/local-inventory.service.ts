@@ -21,7 +21,7 @@ import {
   Inventory,
   LocalNodeService,
   Nic,
-  NodeStatus
+  NodeStatusReply
 } from '~/app/shared/services/api/local.service';
 import { PollService } from '~/app/shared/services/poll.service';
 
@@ -41,9 +41,9 @@ export class LocalInventoryService {
   constructor(private localService: LocalNodeService, private pollService: PollService) {
     this.localService
       .status()
-      .pipe(this.pollService.poll((status: NodeStatus) => !status.inited))
+      .pipe(this.pollService.poll((status: NodeStatusReply) => !status.inited))
       .subscribe({
-        next: (status: NodeStatus) => {
+        next: (status: NodeStatusReply) => {
           console.log('checking node status: ', status);
           if (status.inited) {
             this.obtainInventory();

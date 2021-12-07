@@ -29,8 +29,8 @@ import {
   DatatableCellTemplateName,
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
+import { DeployService, DeployTokenReply } from '~/app/shared/services/api/deploy.service';
 import { Inventory, LocalNodeService } from '~/app/shared/services/api/local.service';
-import { NodesService, TokenReply } from '~/app/shared/services/api/nodes.service';
 import { Host, OrchService } from '~/app/shared/services/api/orch.service';
 import { DialogService } from '~/app/shared/services/dialog.service';
 
@@ -54,7 +54,7 @@ export class HostsPageComponent {
   constructor(
     private dialogService: DialogService,
     private localNodeService: LocalNodeService,
-    private nodesService: NodesService,
+    private deployService: DeployService,
     private orchService: OrchService,
     private router: Router
   ) {
@@ -105,7 +105,7 @@ export class HostsPageComponent {
   }
 
   onShowToken(): void {
-    this.nodesService.token().subscribe((res: TokenReply) => {
+    this.deployService.token().subscribe((res: DeployTokenReply) => {
       this.dialogService.open(DeclarativeFormModalComponent, undefined, {
         title: TEXT('Authentication Token'),
         subtitle: TEXT('Use this token to authenticate a new node when adding it to the cluster.'),

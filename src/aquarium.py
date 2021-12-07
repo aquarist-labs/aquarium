@@ -116,6 +116,7 @@ async def aquarium_main_task(
     logger.debug("Starting main Aquarium task.")
 
     app.state.deployment = deployment
+    app.state.nodemgr = nodemgr
 
     while not _shutting_down and not deployment.installed:
         logger.debug("Waiting for node to be installed.")
@@ -146,7 +147,6 @@ async def aquarium_main_task(
     deployment.postinit(gstate, nodemgr)
 
     app.state.gstate = gstate
-    app.state.nodemgr = nodemgr
 
 
 async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):

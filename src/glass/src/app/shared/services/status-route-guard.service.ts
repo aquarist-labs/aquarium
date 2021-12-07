@@ -26,36 +26,46 @@ import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import {
-  LocalNodeService,
-  NodeStatus,
-  StatusStageEnum
-} from '~/app/shared/services/api/local.service';
+  DeploymentErrorEnum,
+  DeploymentState,
+  DeploymentStateEnum,
+  DeployService,
+  DeployStatusReply,
+  InitStateEnum
+} from '~/app/shared/services/api/deploy.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StatusRouteGuardService implements CanActivate, CanActivateChild {
-  constructor(private router: Router, private localNodeService: LocalNodeService) {}
+  constructor(private router: Router, private deployService: DeployService) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    return this.localNodeService.status().pipe(
+    return this.deployService.status().pipe(
       catchError((err) => {
         // Do not show an error notification.
         if (_.isFunction(err.preventDefault)) {
           err.preventDefault();
         }
-        const res: NodeStatus = {
-          /* eslint-disable @typescript-eslint/naming-convention */
-          inited: false,
-          node_stage: StatusStageEnum.unknown
+        const res: DeployStatusReply = {
+          installed: false,
+          status: {
+            state: {
+              init: InitStateEnum.none,
+              deployment: DeploymentStateEnum.error
+            },
+            error: {
+              code: DeploymentErrorEnum.unknownError
+            }
+          }
         };
         return of(res);
       }),
-      map((res: NodeStatus): boolean | UrlTree => {
-        const url = this.isUrlChangeNeeded(res.node_stage, state.url);
+      map((res: DeployStatusReply): boolean | UrlTree => {
+        const url = this.isUrlChangeNeeded(res.status.state, state.url);
         return _.isString(url) ? this.router.parseUrl(url) : true;
       })
     );
@@ -68,22 +78,41 @@ export class StatusRouteGuardService implements CanActivate, CanActivateChild {
     return this.canActivate(childRoute, state);
   }
 
-  private isUrlChangeNeeded(stage: StatusStageEnum, currentUrl: string): string | boolean {
-    const stageAndUrl = (isStage: StatusStageEnum, urls: string[]): string | boolean => {
+  private isUrlChangeNeeded(state: DeploymentState, currentUrl: string): string | boolean {
+    const stageAndUrl = (
+      initState: InitStateEnum,
+      deploymentState: DeploymentStateEnum,
+      urls: string[]
+    ): string | boolean => {
       const redirectUrl = urls[0];
       return (
-        stage === isStage &&
+        state.init === initState &&
+        state.deployment === deploymentState &&
         !urls.includes(currentUrl) &&
         !currentUrl.startsWith(redirectUrl) &&
         redirectUrl
       );
     };
     return (
-      stageAndUrl(StatusStageEnum.none, ['/installer']) ||
-      stageAndUrl(StatusStageEnum.bootstrapping, ['/installer/create']) ||
-      stageAndUrl(StatusStageEnum.bootstrapped, ['/installer/create', '/dashboard']) ||
-      stageAndUrl(StatusStageEnum.joining, ['/installer/join']) ||
-      stageAndUrl(StatusStageEnum.ready, ['/dashboard', '/hosts', '/services'])
+      stageAndUrl(InitStateEnum.none, DeploymentStateEnum.none, [
+        '/installer/welcome',
+        '/installer/bootstrap'
+      ]) ||
+      stageAndUrl(InitStateEnum.none, DeploymentStateEnum.installing, ['/installer/bootstrap']) ||
+      stageAndUrl(InitStateEnum.installed, DeploymentStateEnum.none, [
+        '/installer/install-mode',
+        '/installer/create',
+        '/installer/join'
+      ]) ||
+      stageAndUrl(InitStateEnum.installed, DeploymentStateEnum.deploying, [
+        '/installer/create',
+        '/installer/join'
+      ]) ||
+      stageAndUrl(InitStateEnum.deployed, DeploymentStateEnum.deployed, [
+        '/dashboard',
+        '/hosts',
+        '/services'
+      ])
     );
   }
 }

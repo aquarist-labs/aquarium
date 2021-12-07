@@ -5,9 +5,14 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@a
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
-import { LocalNodeService, StatusStageEnum } from '~/app/shared/services/api/local.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
 import DoneCallback = jest.DoneCallback;
+import {
+  DeploymentErrorEnum,
+  DeploymentStateEnum,
+  DeployService,
+  InitStateEnum
+} from '~/app/shared/services/api/deploy.service';
 
 const fakeRouterStateSnapshot = (url: string): RouterStateSnapshot =>
   ({
@@ -16,7 +21,7 @@ const fakeRouterStateSnapshot = (url: string): RouterStateSnapshot =>
 
 describe('StatusRouteGuardService', () => {
   let service: StatusRouteGuardService;
-  let localNodeService: LocalNodeService;
+  let deployService: DeployService;
   let router: Router;
   let httpTestingController: HttpTestingController;
   let urlTree: (url: string) => UrlTree;
@@ -25,13 +30,17 @@ describe('StatusRouteGuardService', () => {
 
   const expectRouting = (
     url: string,
-    status: StatusStageEnum,
+    init: InitStateEnum,
+    deployment: DeploymentStateEnum,
     result: boolean | UrlTree,
     done: DoneCallback
   ) => {
-    jest
-      .spyOn(localNodeService, 'status')
-      .mockReturnValue(of({ inited: true, node_stage: status }));
+    jest.spyOn(deployService, 'status').mockReturnValue(
+      of({
+        installed: false,
+        status: { state: { init, deployment }, error: { code: DeploymentErrorEnum.none } }
+      })
+    );
     service.canActivate(activatedRouteSnapshot, fakeRouterStateSnapshot(url)).subscribe((res) => {
       expect(res).toEqual(result);
       done();
@@ -45,7 +54,7 @@ describe('StatusRouteGuardService', () => {
     });
 
     service = TestBed.inject(StatusRouteGuardService);
-    localNodeService = TestBed.inject(LocalNodeService);
+    deployService = TestBed.inject(DeployService);
     router = TestBed.inject(Router);
     httpTestingController = TestBed.inject(HttpTestingController);
 
@@ -56,8 +65,14 @@ describe('StatusRouteGuardService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should redirect', (done) => {
-    expectRouting('/foo', StatusStageEnum.none, urlTree('/installer'), done);
+  it('should redirect (1)', (done) => {
+    expectRouting(
+      '/foo',
+      InitStateEnum.none,
+      DeploymentStateEnum.none,
+      urlTree('/installer/welcome'),
+      done
+    );
   });
 
   it('should redirect with error', (done) => {
@@ -67,54 +82,84 @@ describe('StatusRouteGuardService', () => {
       done();
     });
     httpTestingController
-      .expectOne('api/local/status')
+      .expectOne('api/deploy/status')
       .error(new ErrorEvent('Unknown Error'), { status: 500 });
     httpTestingController.verify();
   });
 
-  it('should not redirect [bootstrapping]', (done) => {
-    expectRouting('/installer/create', StatusStageEnum.bootstrapping, true, done);
-  });
-
-  it('should redirect [bootstrapping]', (done) => {
+  it('should redirect (2)', (done) => {
     expectRouting(
       '/installer/welcome',
-      StatusStageEnum.bootstrapping,
+      InitStateEnum.installed,
+      DeploymentStateEnum.deploying,
       urlTree('/installer/create'),
       done
     );
   });
 
-  it('should not redirect [bootstrapped]', (done) => {
-    expectRouting('/installer/create', StatusStageEnum.bootstrapped, true, done);
+  it('should redirect (3)', (done) => {
+    expectRouting(
+      '/bar',
+      InitStateEnum.deployed,
+      DeploymentStateEnum.deployed,
+      urlTree('/dashboard'),
+      done
+    );
   });
 
-  it('should not redirect [bootstrapped] on dashboard', (done) => {
-    expectRouting('/dashboard', StatusStageEnum.bootstrapped, true, done);
+  it('should redirect (5)', (done) => {
+    expectRouting(
+      '/baz',
+      InitStateEnum.none,
+      DeploymentStateEnum.none,
+      urlTree('/installer/welcome'),
+      done
+    );
   });
 
-  it('should redirect [bootstrapped]', (done) => {
+  it('should not redirect (1)', (done) => {
+    expectRouting(
+      '/installer/create',
+      InitStateEnum.installed,
+      DeploymentStateEnum.none,
+      true,
+      done
+    );
+  });
+
+  it('should not redirect (2)', (done) => {
+    expectRouting('/dashboard', InitStateEnum.deployed, DeploymentStateEnum.deployed, true, done);
+  });
+
+  it('should not redirect (3)', (done) => {
     expectRouting(
       '/installer/install-mode',
-      StatusStageEnum.bootstrapped,
-      urlTree('/installer/create'),
+      InitStateEnum.installed,
+      DeploymentStateEnum.none,
+      true,
       done
     );
   });
 
-  it('should redirect [ready]', (done) => {
-    expectRouting('/bar', StatusStageEnum.ready, urlTree('/dashboard'), done);
+  it('should not redirect (4)', (done) => {
+    expectRouting(
+      '/installer/create',
+      InitStateEnum.installed,
+      DeploymentStateEnum.none,
+      true,
+      done
+    );
   });
 
-  it('should not redirect [none,1]', (done) => {
-    expectRouting('/installer/install-mode', StatusStageEnum.none, true, done);
+  it('should not redirect (5)', (done) => {
+    expectRouting('/installer/join', InitStateEnum.installed, DeploymentStateEnum.none, true, done);
   });
 
-  it('should not redirect [none,2]', (done) => {
-    expectRouting('/installer/create/wizard', StatusStageEnum.none, true, done);
+  it('should not redirect (6)', (done) => {
+    expectRouting('/installer/welcome', InitStateEnum.none, DeploymentStateEnum.none, true, done);
   });
 
-  it('should redirect [none]', (done) => {
-    expectRouting('/baz', StatusStageEnum.none, urlTree('/installer'), done);
+  it('should not redirect (7)', (done) => {
+    expectRouting('/installer/bootstrap', InitStateEnum.none, DeploymentStateEnum.none, true, done);
   });
 });

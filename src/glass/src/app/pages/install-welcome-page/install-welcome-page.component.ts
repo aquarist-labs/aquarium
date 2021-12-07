@@ -18,7 +18,7 @@ import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 import { bytesToSize } from '~/app/functions.helper';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import { DatatableColumn } from '~/app/shared/models/datatable-column.type';
-import { LocalNodeService } from '~/app/shared/services/api/local.service';
+import { DeployRequirementsReply, DeployService } from '~/app/shared/services/api/deploy.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 
 type TableEntry = {
@@ -49,7 +49,7 @@ export class InstallWelcomePageComponent implements OnInit {
   public statusColumns: DatatableColumn[] = [];
 
   constructor(
-    private localNodeService: LocalNodeService,
+    private deployService: DeployService,
     private notificationService: NotificationService
   ) {}
 
@@ -82,42 +82,42 @@ export class InstallWelcomePageComponent implements OnInit {
   }
 
   checkRequirements(): void {
-    this.localNodeService.status().subscribe(
-      (res) => {
+    this.deployService.requirements().subscribe(
+      (res: DeployRequirementsReply) => {
         this.checked = true;
-        if (res.localhost_qualified) {
-          const hostQualified = res.localhost_qualified;
-          this.qualified = res.localhost_qualified.qualified;
-          this.impossible = hostQualified.impossible;
+        const requirements = res.requirements;
+        if (!requirements.qualified) {
+          this.qualified = requirements.qualified;
+          this.impossible = requirements.impossible;
 
           this.status = [
             {
-              qualified: hostQualified.cpu.qualified,
-              name: 'CPU',
-              actual: String(hostQualified.cpu.actual_threads),
-              min: String(hostQualified.cpu.min_threads),
-              error: hostQualified.cpu.error
+              qualified: requirements.cpu.qualified,
+              name: TEXT('CPU'),
+              actual: String(requirements.cpu.actual_threads),
+              min: String(requirements.cpu.min_threads),
+              error: requirements.cpu.error
             },
             {
-              qualified: hostQualified.mem.qualified,
-              name: 'Memory',
-              actual: bytesToSize(hostQualified.mem.actual_mem),
-              min: bytesToSize(hostQualified.mem.min_mem),
-              error: hostQualified.mem.error
+              qualified: requirements.mem.qualified,
+              name: TEXT('Memory'),
+              actual: bytesToSize(requirements.mem.actual_mem),
+              min: bytesToSize(requirements.mem.min_mem),
+              error: requirements.mem.error
             },
             {
-              qualified: hostQualified.disks.available.qualified,
-              name: 'Available Disks',
-              actual: hostQualified.disks.available.actual.toString(),
-              min: hostQualified.disks.available.min.toString(),
-              error: hostQualified.disks.available.error
+              qualified: requirements.disks.available.qualified,
+              name: TEXT('Available Disks'),
+              actual: requirements.disks.available.actual.toString(),
+              min: requirements.disks.available.min.toString(),
+              error: requirements.disks.available.error
             },
             {
-              qualified: hostQualified.disks.install.qualified,
-              name: 'Largest Disk',
-              actual: bytesToSize(hostQualified.disks.install.actual),
-              min: bytesToSize(hostQualified.disks.install.min),
-              error: hostQualified.disks.install.error
+              qualified: requirements.disks.install.qualified,
+              name: TEXT('Largest Disk'),
+              actual: bytesToSize(requirements.disks.install.actual),
+              min: bytesToSize(requirements.disks.install.min),
+              error: requirements.disks.install.error
             }
           ];
         }

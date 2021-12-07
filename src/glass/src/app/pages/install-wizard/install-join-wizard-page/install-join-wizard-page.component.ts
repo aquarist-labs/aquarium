@@ -14,23 +14,21 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import * as _ from 'lodash';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 
 import { translate } from '~/app/i18n.helper';
 import { InstallWizardContext } from '~/app/pages/install-wizard/models/install-wizard-context.type';
 import { Icon } from '~/app/shared/enum/icon.enum';
 import {
-  LocalNodeService,
-  NodeStatus,
-  StatusStageEnum
-} from '~/app/shared/services/api/local.service';
-import { NodesService } from '~/app/shared/services/api/nodes.service';
+  DeploymentStateEnum,
+  DeployService,
+  DeployStatusReply,
+  InitStateEnum,
+  Progress
+} from '~/app/shared/services/api/deploy.service';
 import { NotificationService } from '~/app/shared/services/notification.service';
 import { PollService } from '~/app/shared/services/poll.service';
-
-type InstallJoinWizardContext = InstallWizardContext & {
-  stage: 'unknown' | 'joining' | 'joined';
-};
 
 @Component({
   selector: 'glass-install-join-wizard-page',
@@ -43,9 +41,8 @@ export class InstallJoinWizardPageComponent implements OnInit {
 
   public icons = Icon;
   public activeId = 1;
-  public context: InstallJoinWizardContext = {
-    config: {},
-    stage: 'unknown'
+  public context: InstallWizardContext = {
+    config: {}
   };
   public pageIndex = {
     start: 1,
@@ -55,36 +52,45 @@ export class InstallJoinWizardPageComponent implements OnInit {
     join: 5,
     finish: 6
   };
+  public joined = false;
+  public error: boolean | string = false;
 
   constructor(
-    private localNodeService: LocalNodeService,
-    private nodesService: NodesService,
+    private deployService: DeployService,
     private notificationService: NotificationService,
     private pollService: PollService
   ) {}
 
   ngOnInit(): void {
-    this.blockUI.start(translate(TEXT(`Please wait, checking system status ...`)));
-    this.localNodeService.status().subscribe(
-      (res: NodeStatus) => {
-        this.blockUI.stop();
-        switch (res.node_stage) {
-          case StatusStageEnum.joining:
-            this.context.stage = 'joining';
-            // Jump to the 'Summary' step.
-            this.activeId = this.pageIndex.join;
-            // Immediately show the progress message.
-            this.blockUI.start(
-              translate(TEXT('Please wait, joining existing cluster in progress ...'))
-            );
-            this.pollJoiningStatus();
-            break;
-          case StatusStageEnum.ready:
-            this.context.stage = 'joined';
-            // Jump to the 'Finish' step.
+    this.startProgress(TEXT(`Please wait, checking system status ...`));
+    this.deployService.status().subscribe(
+      (res: DeployStatusReply) => {
+        this.stopProgress();
+        switch (res.status.state.init) {
+          case InitStateEnum.deployed:
+            this.joined = true;
             this.activeId = this.pageIndex.finish;
             break;
           default:
+            switch (res.status.state.deployment) {
+              case DeploymentStateEnum.none:
+                this.joined = false;
+                this.activeId = this.pageIndex.start;
+                break;
+              case DeploymentStateEnum.deploying:
+                this.joined = false;
+                this.activeId = this.pageIndex.join;
+                this.startProgress();
+                this.pollStatus();
+                break;
+              case DeploymentStateEnum.deployed:
+                this.joined = true;
+                this.activeId = this.pageIndex.finish;
+                break;
+              case DeploymentStateEnum.error:
+                this.handleError(res.status.error.msg!, true);
+                break;
+            }
             break;
         }
       },
@@ -92,63 +98,95 @@ export class InstallJoinWizardPageComponent implements OnInit {
     );
   }
 
-  doJoin(): void {
-    this.context.stage = 'joining';
-    this.blockUI.start(translate(TEXT('Please wait, start joining existing cluster ...')));
-    this.nodesService
+  onJoin(): void {
+    this.doJoin();
+  }
+
+  private doJoin(): void {
+    this.deployService
       .join({
         address: `${this.context.config.address}:${this.context.config.port}`,
         token: this.context.config.token,
-        hostname: this.context.config.hostname
+        hostname: this.context.config.hostname,
+        storage: this.context.config.storage
       })
       .subscribe({
-        next: (success: boolean) => {
-          if (success) {
-            this.blockUI.update(
-              translate(TEXT('Please wait, joining existing cluster in progress ...'))
-            );
-            this.pollJoiningStatus();
-          } else {
-            this.handleError(TEXT('Failed to join existing cluster.'));
-          }
+        next: () => {
+          this.startProgress();
+          this.pollStatus();
         },
-        error: (err) => this.handleError(err.message)
+        error: (err) => {
+          err.preventDefault();
+          this.handleError(err.message);
+        }
       });
   }
 
-  private handleError(err: any): void {
-    this.blockUI.stop();
-    this.notificationService.show(err.toString(), {
-      type: 'error'
-    });
-  }
-
-  private pollJoiningStatus(): void {
-    this.localNodeService
+  private pollStatus(): void {
+    this.deployService
       .status()
       .pipe(
-        this.pollService.poll(
-          (res: NodeStatus) => res.node_stage === StatusStageEnum.joining,
-          undefined,
-          TEXT('Failed to join existing cluster.')
-        )
+        this.pollService.poll((res: DeployStatusReply) => {
+          // Is there an error?
+          if (_.isString(res.status.error.msg) && !_.isEmpty(res.status.error.msg)) {
+            this.handleError(res.status.error.msg, true);
+            return false;
+          }
+          this.updateProgress(res.status.progress);
+          return res.status.state.deployment === DeploymentStateEnum.deploying;
+        })
       )
       .subscribe(
-        (res: NodeStatus) => {
-          switch (res.node_stage) {
-            case StatusStageEnum.none:
-            case StatusStageEnum.unknown:
-              this.context.stage = 'unknown';
-              this.handleError(TEXT('Failed to join existing cluster.'));
+        (res: DeployStatusReply) => {
+          this.stopProgress();
+          switch (res.status.state.init) {
+            case InitStateEnum.deployed:
+              this.joined = true;
+              this.activeId = this.pageIndex.finish;
               break;
-            case StatusStageEnum.ready:
-              this.context.stage = 'joined';
-              this.blockUI.stop();
-              this.activeId++;
+            default:
+              // Nothing to do here.
               break;
           }
         },
-        (err) => this.handleError(err.message)
+        (err) => {
+          err.preventDefault();
+          this.handleError(TEXT('Failed to deploy the system.'));
+        }
       );
+  }
+
+  private startProgress(text?: string): void {
+    if (!_.isString(text)) {
+      text = TEXT('Please wait, joining existing cluster in progress ...');
+    }
+    this.blockUI.start(translate(text));
+  }
+
+  private updateProgress(progress?: Progress): void {
+    if (_.isNull(progress) || _.isUndefined(progress)) {
+      this.blockUI.update(translate(TEXT('Please wait, joining existing cluster in progress ...')));
+    } else {
+      this.blockUI.update(
+        translate(
+          TEXT(`Please wait, joining existing cluster in progress (${progress.value}%) ...`)
+        )
+      );
+    }
+  }
+
+  private stopProgress(): void {
+    this.blockUI.stop();
+  }
+
+  private handleError(message: string, failHard = false): void {
+    this.stopProgress();
+    if (failHard) {
+      this.error = message;
+    } else {
+      this.notificationService.show(message, {
+        type: 'error'
+      });
+    }
   }
 }
