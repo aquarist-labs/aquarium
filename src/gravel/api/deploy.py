@@ -52,6 +52,22 @@ logger: Logger = fastapi_logger
 router: APIRouter = APIRouter(prefix="/deploy", tags=["deploy"])
 
 
+class PostDeploymentGateKeeper:
+    def __init__(self):
+        pass
+
+    def __call__(self, request: Request) -> None:
+        dep: DeploymentMgr = request.app.state.deployment
+        if dep.deployed:
+            raise HTTPException(
+                status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                detail="Method not available after node deployment.",
+            )
+
+
+postdep_gate = PostDeploymentGateKeeper()
+
+
 class DeployStatusReplyModel(BaseModel):
     installed: bool = Field(title="Node has been installed.")
     status: DeploymentStatusModel = Field(title="Deployment status.")
@@ -143,7 +159,7 @@ async def deploy_install(
 @router.get("/requirements", response_model=DeployRequirementsReplyModel)
 async def deploy_requirements(
     request: Request,
-    _=Depends(jwt_auth_scheme),
+    postdep: Any = Depends(postdep_gate),
 ) -> DeployRequirementsReplyModel:
     """Obtain system requirements for install."""
     dep: DeploymentMgr = request.app.state.deployment
@@ -155,7 +171,8 @@ async def deploy_requirements(
 
 @router.get("/devices", response_model=DeployDevicesReplyModel)
 async def deploy_devices(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    postdep: Any = Depends(postdep_gate),
 ) -> DeployDevicesReplyModel:
     """Obtain storage devices."""
     dep: DeploymentMgr = request.app.state.deployment
@@ -167,7 +184,8 @@ async def deploy_devices(
 async def deploy_create(
     request: Request,
     params: CreateParamsModel,
-    gate: Any = Depends(install_gate),
+    install: Any = Depends(install_gate),
+    postdep: Any = Depends(postdep_gate),
 ) -> DeployStatusReplyModel:
     """
     Create a new deployment on this node.
@@ -231,7 +249,8 @@ async def get_token(
 async def deploy_join(
     request: Request,
     params: JoinParamsModel,
-    gate: Any = Depends(install_gate),
+    install: Any = Depends(install_gate),
+    postdep: Any = Depends(postdep_gate),
 ) -> JoinReplyModel:
     """
     Start joining an existing cluster.
