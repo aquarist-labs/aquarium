@@ -24,6 +24,7 @@ from uuid import UUID
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ValidationError
+
 from gravel.controllers.deployment.create import (
     AlreadyCreatingError,
     ContainerConfig,
@@ -39,7 +40,6 @@ from gravel.controllers.deployment.join import (
     JoinRequestMgr,
     JoinRequestReplyModel,
 )
-
 from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices

@@ -19,7 +19,7 @@ from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme, install_gate
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.deployment.create import ContainerConfig
 from gravel.controllers.deployment.join import (
     AlreadyJoinedError,
@@ -43,9 +43,7 @@ from gravel.controllers.deployment.mgr import (
     ParamsError,
 )
 from gravel.controllers.inventory.disks import DiskDevice
-from gravel.controllers.nodes.requirements import (
-    RequirementsModel,
-)
+from gravel.controllers.nodes.requirements import RequirementsModel
 from gravel.controllers.resources.network import NetworkConfigModel
 
 logger: Logger = fastapi_logger

@@ -20,7 +20,7 @@ from fastapi.routing import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme, install_gate
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr
 
 logger: Logger = fastapi_logger

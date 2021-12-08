@@ -67,8 +67,8 @@ async def test_preinit_fails() -> None:
 @pytest.mark.asyncio
 async def test_preinit(mocker: MockerFixture) -> None:
     from gravel.controllers.deployment.mgr import (
-        DeploymentMgr,
         DeploymentError,
+        DeploymentMgr,
         InitStateEnum,
     )
     from gravel.controllers.nodes.systemdisk import OverlayError
@@ -119,9 +119,9 @@ async def test_init(fs: fake_filesystem.FakeFilesystem) -> None:
 
     from gravel.controllers.deployment.mgr import (
         AlreadyInitedError,
+        DeploymentMgr,
         InitError,
         InitStateEnum,
-        DeploymentMgr,
         NotPreInitedError,
     )
 

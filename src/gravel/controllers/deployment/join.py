@@ -32,9 +32,9 @@ import requests
 from fastapi.logger import logger as fastapi_logger
 from pydantic import BaseModel, Field
 from pydantic.error_wrappers import ValidationError
+
 from gravel.controllers.ceph.ceph import CephCommandError
 from gravel.controllers.ceph.models import OrchHostListModel
-
 from gravel.controllers.ceph.orchestrator import Orchestrator, UnknownHostError
 from gravel.controllers.config import ContainersOptionsModel
 from gravel.controllers.containers import (
@@ -51,7 +51,6 @@ from gravel.controllers.nodes.host import HostnameCtlError, set_hostname
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.ntp import set_ntp_addr
 from gravel.controllers.resources.network import NetworkConfigModel
-
 
 logger: Logger = fastapi_logger
 

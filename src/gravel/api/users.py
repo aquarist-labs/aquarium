@@ -18,7 +18,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 
-from gravel.api import jwt_auth_scheme, install_gate
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.auth import JWT, UserMgr, UserModel
 
 logger: Logger = fastapi_logger

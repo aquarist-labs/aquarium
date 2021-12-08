@@ -12,14 +12,14 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Any, List, Literal, Callable
+from typing import Any, Callable, List, Literal
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme, install_gate
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.cephadm.models import VolumeDeviceModel
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.nodes.mgr import NodeMgr

@@ -19,7 +19,7 @@ from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 from pydantic import BaseModel
 
-from gravel.api import jwt_auth_scheme, install_gate
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.ceph.models import OrchDevicesPerHostModel
 from gravel.controllers.ceph.orchestrator import Orchestrator
 

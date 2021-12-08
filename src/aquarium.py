@@ -13,13 +13,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import faulthandler
-import signal
-
 import asyncio
+import faulthandler
 import logging
 import logging.config
 import os
+import signal
 import sys
 from typing import Optional
 
