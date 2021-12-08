@@ -266,32 +266,32 @@ class DeploymentMgr:
 
             elif self._creator is not None and self._creator.done:
                 logger.debug("Create done.")
-                progress = await self._creator.wait()
+                create = await self._creator.wait()
                 self._creator = None
-                if progress.state == CreateStateEnum.CREATED:
+                if create.state == CreateStateEnum.CREATED:
                     self._init_state = InitStateEnum.DEPLOYED
                     self._deployment_state = DeploymentStateEnum.DEPLOYED
                     self._write_state()
                     self._mark_deployed()
-                elif progress.error:
-                    assert progress.progress == 0
-                    logger.error(f"Error creating deployment: {progress.msg}")
-                    self._error.msg = progress.msg
+                elif create.error:
+                    assert create.progress == 0
+                    logger.error(f"Error creating deployment: {create.msg}")
+                    self._error.msg = create.msg
                     self._error.code = DeploymentErrorEnum.CREATING
                     self._deployment_state = DeploymentStateEnum.ERROR
 
             elif self._join_requester is not None and self._join_requester.done:
                 logger.debug("Join request finished.")
-                progress = await self._join_requester.wait()
+                join = await self._join_requester.wait()
                 self._join_requester = None
-                if progress.joined:
+                if join.joined:
                     self._init_state = InitStateEnum.DEPLOYED
                     self._deployment_state = DeploymentStateEnum.DEPLOYED
                     self._write_state()
                     self._mark_deployed()
-                elif progress.error:
-                    logger.error(f"Error joining cluster: {progress.msg}")
-                    self._error.msg = progress.msg
+                elif join.error:
+                    logger.error(f"Error joining cluster: {join.msg}")
+                    self._error.msg = join.msg
                     self._error.code = DeploymentErrorEnum.JOINING
                     self._deployment_state = DeploymentStateEnum.ERROR
 
