@@ -13,15 +13,13 @@
 
 import asyncio
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 import psutil
 from pydantic import BaseModel, Field
 
-from gravel.controllers.errors import GravelError
 from gravel.controllers.gstate import GlobalState
-from gravel.controllers.inventory.disks import DiskDevice
-from gravel.controllers.inventory.nodeinfo import NodeInfoModel
+from gravel.controllers.inventory.disks import DiskDevice, get_storage_devices
 
 # Minimum requirements for individual host validation:
 # NOTE(jhesketh): These are obviously hardcoded for the moment, but may be
@@ -149,12 +147,10 @@ async def validate_memory() -> MemoryQualifiedModel:
     )
 
 
-async def validate_disks(gstate: GlobalState) -> DisksQualifiedModel:
-    nodeinfo: Optional[NodeInfoModel] = gstate.inventory.latest
-    if not nodeinfo:
-        raise GravelError("Node not ready.")
+async def validate_disks() -> DisksQualifiedModel:
+    devices: List[DiskDevice] = await get_storage_devices()
 
-    avail: List[DiskDevice] = [d for d in nodeinfo.disks if d.available]
+    avail: List[DiskDevice] = [d for d in devices if d.available]
     avail_min = AQUARIUM_MIN_AVAIL_DISKS
     avail_actual = len(avail)
     avail_status = DisksQualifiedErrorEnum.NONE
@@ -202,7 +198,7 @@ async def validate_disks(gstate: GlobalState) -> DisksQualifiedModel:
     )
 
 
-async def localhost_qualified(gstate: GlobalState) -> RequirementsModel:
+async def localhost_qualified() -> RequirementsModel:
     """
     Validates whether the localhost is fully qualified (ie, meets all minium
     requirements).
@@ -213,7 +209,7 @@ async def localhost_qualified(gstate: GlobalState) -> RequirementsModel:
     mem_qualified: MemoryQualifiedModel
     disks_qualified: DisksQualifiedModel
     cpu_qualified, mem_qualified, disks_qualified = await asyncio.gather(
-        validate_cpu(), validate_memory(), validate_disks(gstate)
+        validate_cpu(), validate_memory(), validate_disks()
     )
 
     if not (

@@ -19,7 +19,7 @@ import time
 import typing
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Dict, Type
+from typing import Dict
 
 from fastapi.logger import logger as fastapi_logger
 
@@ -128,6 +128,8 @@ class GlobalState:
     _is_shutting_down: bool
     _tickers: Dict[str, Ticker]
     _kvstore: KV
+    _preinited: bool
+    _inited: bool
     devices: Devices
     status: Status
     inventory: Inventory
@@ -137,11 +139,24 @@ class GlobalState:
     ceph_mgr: Mgr
     ceph_mon: Mon
 
-    def __init__(self, kv_class: Type[KV] = KV):
-        self._config = Config()
+    def __init__(self, config: Config, kvstore: KV):
+        self._config = config
         self._is_shutting_down = False
         self._tickers = {}
-        self._kvstore = kv_class()
+        self._kvstore = kvstore
+        self._preinited = False
+        self._inited = False
+
+    def preinit(self) -> None:
+        self._preinited = True
+
+    def init(self) -> None:
+        self.cephadm.set_config(self._config.options.containers)
+        self._inited = True
+
+    @property
+    def ready(self) -> bool:
+        return self._preinited and self._inited
 
     def add_cephadm(self, cephadm: Cephadm):
         self.cephadm = cephadm

@@ -20,20 +20,25 @@ from gravel.controllers.config import Config
 
 def test_config_version(fs: fake_filesystem.FakeFilesystem):
     config = Config()
+    config.init()
     assert config.config.version == 1
 
 
 def test_config_options(fs: fake_filesystem.FakeFilesystem):
-    opts = Config().options
+    config = Config()
+    config.init()
+    opts = config.options
     assert opts.inventory.probe_interval == 60
     assert opts.storage.probe_interval == 30.0
 
 
 def test_config_path(fs: fake_filesystem.FakeFilesystem):
     config = Config()
+    config.init()
     assert config.confpath == Path("/etc/aquarium/config.json")
 
     config = Config(path="foo")
+    config.init()
     assert config.confpath == Path("foo/config.json")
 
 
@@ -43,6 +48,7 @@ def test_custom_registry(fs: fake_filesystem.FakeFilesystem) -> None:
     os.environ["AQUARIUM_REGISTRY_SECURE"] = "false"
 
     config = Config()
+    config.init()
     assert config.options.containers.registry == "foobar"
     assert config.options.containers.image == "bar"
     assert not config.options.containers.secure

@@ -104,6 +104,9 @@ class FakeKV(KV):
         self._watchers: Dict[str, Dict[int, Callable[[str, str], None]]] = {}
         self._watch_id_count = 0
 
+    def init(self) -> None:
+        pass
+
     async def ensure_connection(self) -> None:
         """Open k/v store connection"""
         self._is_open = True
@@ -183,14 +186,9 @@ async def aquarium_startup(
 
         from gravel.cephadm.cephadm import Cephadm
         from gravel.controllers.ceph.ceph import Ceph, Mgr, Mon
+        from gravel.controllers.config import Config
         from gravel.controllers.inventory.inventory import Inventory
-        from gravel.controllers.nodes.deployment import NodeDeployment
-        from gravel.controllers.nodes.errors import NodeCantDeployError
-        from gravel.controllers.nodes.mgr import (
-            NodeError,
-            NodeInitStage,
-            NodeMgr,
-        )
+        from gravel.controllers.nodes.mgr import NodeInitStage, NodeMgr
         from gravel.controllers.resources.devices import Devices
         from gravel.controllers.resources.network import Network
         from gravel.controllers.resources.status import Status
@@ -198,41 +196,23 @@ async def aquarium_startup(
 
         logger: logging.Logger = fastapi_logger
 
-        class FakeNodeDeployment(NodeDeployment):
-            # Do we still need this thing since removing etcd?
-            pass
-
         class FakeNodeMgr(NodeMgr):
             def __init__(self, gstate: GlobalState):
                 super().__init__(gstate)
-                self._deployment = FakeNodeDeployment(gstate, self._connmgr)
 
             async def start(self) -> None:
                 assert self._state
                 logger.debug(f"start > {self._state}")
 
-                if not self.deployment_state.can_start():
-                    raise NodeError("unable to start unstartable node")
-
-                assert self._init_stage == NodeInitStage.NONE
-
-                if self.deployment_state.nostage:
-                    await self._node_prepare()
-                else:
-                    assert (
-                        self.deployment_state.ready
-                        or self.deployment_state.deployed
-                    )
-                    assert self._state.hostname
-                    assert self._state.address
-                    await self.gstate.store.ensure_connection()
+                assert self._init_stage == NodeInitStage.INITED
+                self._init_stage = NodeInitStage.AVAILABLE
 
             async def _obtain_images(self) -> bool:
                 return True
 
         class FakeCephadm(Cephadm):
             def __init__(self):
-                super().__init__(ContainersOptionsModel())
+                super().__init__()
 
             async def call(
                 self,
@@ -274,14 +254,20 @@ async def aquarium_startup(
             available = 2000  # type: ignore
             total = 2000  # type: ignore
 
-        gstate: GlobalState = GlobalState(FakeKV)
+        config = Config()
+        kvstore = FakeKV()
+        gstate: GlobalState = GlobalState(config, kvstore)
+        config.init()
+        kvstore.init()
 
         # init node mgr
         nodemgr: NodeMgr = FakeNodeMgr(gstate)
+        nodemgr.init()
 
         # Prep cephadm
         cephadm: Cephadm = FakeCephadm()
         gstate.add_cephadm(cephadm)
+        cephadm.set_config(gstate.config.options.containers)
 
         # Set up Ceph connections
         ceph: Ceph = FakeCeph()

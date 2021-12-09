@@ -24,8 +24,13 @@ from gravel.controllers.ceph.models import (
     OrchDevicesPerHostModel,
     OrchHostListModel,
 )
+from gravel.controllers.errors import GravelError
 
 logger: Logger = fastapi_logger
+
+
+class UnknownHostError(GravelError):
+    pass
 
 
 class Orchestrator:
@@ -51,6 +56,13 @@ class Orchestrator:
             if h.hostname == hostname:
                 return True
         return False
+
+    def get_host_addr(self, hostname: str) -> str:
+        hosts: List[OrchHostListModel] = self.host_ls()
+        for h in hosts:
+            if h.hostname == hostname:
+                return h.addr
+        raise UnknownHostError(f"Host '{hostname}' is not known.")
 
     async def wait_host_added(self, hostname: str) -> None:
         while not self.host_exists(hostname):

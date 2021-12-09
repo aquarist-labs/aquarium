@@ -12,6 +12,7 @@
 # GNU General Public License for more details.
 
 from logging import Logger
+from typing import Any
 
 from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.logger import logger as fastapi_logger
@@ -19,7 +20,7 @@ from fastapi.routing import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr
 
 logger: Logger = fastapi_logger
@@ -37,6 +38,7 @@ async def login(
     request: Request,
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
+    gate: Any = Depends(install_gate),
 ) -> LoginReplyModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
     authenticated = await user_mgr.authenticate(
@@ -55,7 +57,9 @@ async def login(
 
 @router.post("/logout")
 async def logout(
-    request: Request, token: JWT = Depends(jwt_auth_scheme)
+    request: Request,
+    token: JWT = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> None:
     deny_list = JWTDenyList(request.app.state.gstate.store)
     await deny_list.load()

@@ -12,13 +12,13 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import Dict
+from typing import Any, Dict
 
 from fastapi import Depends, Request
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.resources.devices import DeviceHostModel
 
 logger: Logger = fastapi_logger
@@ -32,6 +32,8 @@ router: APIRouter = APIRouter(prefix="/devices", tags=["devices"])
     response_model=Dict[str, DeviceHostModel],
 )
 def get_per_host_devices(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> Dict[str, DeviceHostModel]:
     return request.app.state.gstate.devices.devices_per_host

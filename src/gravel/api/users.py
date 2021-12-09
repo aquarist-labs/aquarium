@@ -12,13 +12,13 @@
 # GNU General Public License for more details.
 
 from logging import Logger
-from typing import List
+from typing import Any, List
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.logger import logger as fastapi_logger
 from fastapi.routing import APIRouter
 
-from gravel.api import jwt_auth_scheme
+from gravel.api import install_gate, jwt_auth_scheme
 from gravel.controllers.auth import JWT, UserMgr, UserModel
 
 logger: Logger = fastapi_logger
@@ -28,7 +28,9 @@ router: APIRouter = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("/", name="Get list of users", response_model=List[UserModel])
 async def enumerate_users(
-    request: Request, _=Depends(jwt_auth_scheme)
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> List[UserModel]:
     user_mgr = UserMgr(request.app.state.gstate.store)
     return await user_mgr.enumerate()
@@ -36,7 +38,10 @@ async def enumerate_users(
 
 @router.post("/create", name="Create a new user")
 async def create_user(
-    user: UserModel, request: Request, _=Depends(jwt_auth_scheme)
+    user: UserModel,
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> None:
     user_mgr = UserMgr(request.app.state.gstate.store)
     if await user_mgr.exists(user.username):
@@ -49,7 +54,10 @@ async def create_user(
 
 @router.get("/{username}", name="Get a user by name", response_model=UserModel)
 async def get_user(
-    username: str, request: Request, _=Depends(jwt_auth_scheme)
+    username: str,
+    request: Request,
+    jwt: Any = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> UserModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
     if not await user_mgr.exists(username):
@@ -61,7 +69,10 @@ async def get_user(
 
 @router.delete("/{username}", name="Delete a user by name")
 async def delete_user(
-    username: str, request: Request, token: JWT = Depends(jwt_auth_scheme)
+    username: str,
+    request: Request,
+    token: JWT = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> None:
     user_mgr = UserMgr(request.app.state.gstate.store)
     if not await user_mgr.exists(username):
@@ -83,6 +94,7 @@ async def patch_user(
     update_user: UserModel,
     request: Request,
     token: JWT = Depends(jwt_auth_scheme),
+    gate: Any = Depends(install_gate),
 ) -> UserModel:
     user_mgr = UserMgr(request.app.state.gstate.store)
     user = await user_mgr.get(username)

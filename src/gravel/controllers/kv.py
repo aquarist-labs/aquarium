@@ -65,6 +65,8 @@ class KV:
     def __init__(self):
         if "rados" not in sys.modules:
             raise MissingSystemDependency("python3-rados module not found.")
+
+    def init(self) -> None:
         # TODO: this should be created somewhere else (src/gravel/controllers/config.py?)
         var_lib_aquarium: Path = Path("/var/lib/aquarium")
         if not var_lib_aquarium.exists():

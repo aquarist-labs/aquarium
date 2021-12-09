@@ -15,8 +15,10 @@ from typing import Optional
 
 from fastapi import HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
+from starlette import status as status_codes
 
 from gravel.controllers.auth import JWT, JWTDenyList, JWTMgr, UserMgr, UserModel
+from gravel.controllers.deployment.mgr import DeploymentMgr
 
 
 class JWTAuthSchema(OAuth2PasswordBearer):
@@ -25,9 +27,25 @@ class JWTAuthSchema(OAuth2PasswordBearer):
 
     async def __call__(self, request: Request) -> Optional[JWT]:  # type: ignore[override]
         state = request.app.state
-        # Disable authentication as long as the node is not ready.
-        if not state.nodemgr.deployment_state.ready:
-            return None
+
+        # Refuse authenticating while node is not deployed.
+        dep: DeploymentMgr = state.deployment
+        if not dep.deployed:
+            raise HTTPException(
+                status_code=status_codes.HTTP_405_METHOD_NOT_ALLOWED,
+                detail="Method not available before deployment.",
+            )
+
+        if (
+            state.nodemgr is None
+            or state.gstate is None
+            or not state.nodemgr.ready
+        ):
+            raise HTTPException(
+                status_code=status_codes.HTTP_425_TOO_EARLY,
+                detail="Node is not ready yet.",
+            )
+
         # Get and validate the token.
         token = JWTMgr.get_token_from_cookie(request)
         if token is None:
@@ -61,4 +79,18 @@ class JWTAuthSchema(OAuth2PasswordBearer):
         return raw_token
 
 
+class InstallGateKeeper:
+    def __init__(self):
+        pass
+
+    def __call__(self, request: Request) -> None:
+        dep: DeploymentMgr = request.app.state.deployment
+        if not dep.installed:
+            raise HTTPException(
+                status_code=status_codes.HTTP_405_METHOD_NOT_ALLOWED,
+                detail="Node hasn't been installed.",
+            )
+
+
 jwt_auth_scheme = JWTAuthSchema()
+install_gate = InstallGateKeeper()

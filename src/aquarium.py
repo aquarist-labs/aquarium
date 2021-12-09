@@ -13,20 +13,32 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import asyncio
+import faulthandler
 import logging
 import logging.config
 import os
+import signal
+import sys
+from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
 
-from gravel.api import auth, devices, local, nodes, orch, status, users
+from gravel.api import auth, deploy, devices, local, nodes, orch, status, users
 from gravel.cephadm.cephadm import Cephadm
 from gravel.controllers.ceph.ceph import Ceph, Mgr, Mon
+from gravel.controllers.config import Config
+from gravel.controllers.deployment.mgr import (
+    DeploymentError,
+    DeploymentMgr,
+    InitError,
+)
 from gravel.controllers.gstate import GlobalState, setup_logging
 from gravel.controllers.inventory.inventory import Inventory
+from gravel.controllers.kv import KV
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.resources.devices import Devices
 from gravel.controllers.resources.network import Network
@@ -36,20 +48,21 @@ from gravel.controllers.resources.storage import Storage
 logger: logging.Logger = fastapi_logger
 
 
-async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
-    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
-    setup_logging(lvl)
-    logger.info("Aquarium startup!")
+faulthandler.register(signal.SIGUSR1.value)
 
-    gstate: GlobalState = GlobalState()
 
-    # init node mgr
-    logger.info("starting node manager")
-    nodemgr: NodeMgr = NodeMgr(gstate)
-
+def gstate_preinit(gstate: GlobalState) -> None:
+    """Things that do not require persistent state to work."""
     # Prep cephadm
-    cephadm: Cephadm = Cephadm(gstate.config.options.containers)
+    cephadm: Cephadm = Cephadm()
     gstate.add_cephadm(cephadm)
+    gstate.preinit()
+
+
+def gstate_init(gstate: GlobalState, nodemgr: NodeMgr) -> None:
+    """Things requiring persistent state to work."""
+
+    gstate.cephadm.set_config(gstate.config.options.containers)
 
     # Set up Ceph connections
     ceph: Ceph = Ceph()
@@ -85,19 +98,99 @@ async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
     network: Network = Network(gstate.config.options.network.probe_interval)
     gstate.add_network(network)
 
+    gstate.init()
+
+
+_shutting_down: bool = False
+_main_task: Optional[asyncio.Task] = None
+
+
+async def aquarium_main_task(
+    app: FastAPI,
+    config: Config,
+    kvstore: KV,
+    gstate: GlobalState,
+    nodemgr: NodeMgr,
+    deployment: DeploymentMgr,
+) -> None:
+    logger.debug("Starting main Aquarium task.")
+
+    app.state.deployment = deployment
+
+    while not _shutting_down and not deployment.installed:
+        logger.debug("Waiting for node to be installed.")
+        await asyncio.sleep(1.0)
+
+    if _shutting_down:
+        return
+
+    assert deployment.installed
+
+    try:
+        await deployment.init()
+    except InitError as e:
+        logger.error(f"Unable to init node: {e.message}")
+        sys.exit(1)
+
+    logger.info("Init Node Manager.")
+    config.init()
+    kvstore.init()
+    gstate_init(gstate, nodemgr)
+    nodemgr.init()
+
+    logger.info("Starting Node Manager.")
     await nodemgr.start()
     await gstate.start()
 
-    # Add instances into FastAPI's state:
-    aquarium_api.state.gstate = gstate
-    aquarium_api.state.nodemgr = nodemgr
+    logger.info("Post-Init Deployment.")
+    deployment.postinit(gstate, nodemgr)
+
+    app.state.gstate = gstate
+    app.state.nodemgr = nodemgr
+
+
+async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
+    lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
+    setup_logging(lvl)
+    logger.info("Aquarium startup!")
+
+    deployment = DeploymentMgr()
+
+    try:
+        await deployment.preinit()
+    except DeploymentError as e:
+        logger.error(f"Unable to pre-init the node: {e.message}")
+        sys.exit(1)
+
+    config: Config = Config()
+    kvstore: KV = KV()
+    gstate: GlobalState = GlobalState(config, kvstore)
+    nodemgr: NodeMgr = NodeMgr(gstate)
+
+    gstate_preinit(gstate)
+
+    global _main_task
+    _main_task = asyncio.create_task(
+        aquarium_main_task(
+            aquarium_api, config, kvstore, gstate, nodemgr, deployment
+        )
+    )
 
 
 async def aquarium_shutdown(_: FastAPI, aquarium_api: FastAPI):
     logger.info("Aquarium shutdown!")
+
+    logger.info("Shutdown main task")
+    global _shutting_down, _main_task
+    _shutting_down = True
+    if _main_task is not None:
+        await _main_task
+
     await aquarium_api.state.gstate.shutdown()
     logger.info("shutting down node manager")
     await aquarium_api.state.nodemgr.shutdown()
+    logger.info("Stopping deployment task.")
+    await aquarium_api.state.deployment.shutdown()
 
 
 def aquarium_factory(
@@ -135,6 +228,10 @@ def aquarium_factory(
             "name": "users",
             "description": "Operations related to user management",
         },
+        {
+            "name": "deploy",
+            "description": "Operations related to the current deployment.",
+        },
     ]
 
     aquarium_app = FastAPI(docs_url=None)
@@ -162,6 +259,7 @@ def aquarium_factory(
     aquarium_api.include_router(devices.router)
     aquarium_api.include_router(auth.router)
     aquarium_api.include_router(users.router)
+    aquarium_api.include_router(deploy.router)
 
     #
     # mounts

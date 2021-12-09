@@ -79,10 +79,7 @@ class Devices(Ticker):
         await self.probe()
 
     async def _should_tick(self) -> bool:
-        return (
-            self.nodemgr.deployment_state.deployed
-            or self.nodemgr.deployment_state.ready
-        ) and self.nodemgr.started
+        return self.nodemgr.ready
 
     async def probe(self) -> None:
 

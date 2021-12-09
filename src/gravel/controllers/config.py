@@ -101,6 +101,7 @@ class Config:
         self.confpath = self._confdir.joinpath(Path("config.json"))
         logger.debug(f"Aquarium config dir: {self._confdir}")
 
+    def init(self) -> None:
         self._confdir.mkdir(0o700, parents=True, exist_ok=True)
 
         if not self.confpath.exists():
