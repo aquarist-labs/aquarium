@@ -75,7 +75,7 @@ routines:
         vagrant ssh -c "sudo systemctl status aquarium"
     - name: check api is accessible
       command: |
-        curl -f localhost:18080/api/local/status
+        curl -f localhost:18080/api/deploy/status
     - name: run cypress
       command: |
         cd aquarium/src/glass
