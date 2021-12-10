@@ -253,6 +253,9 @@ class KV:
         logger.debug(
             f"Got notify on config object {notify_id} {notifier_id} {watch_id} {key}"
         )
+        self._notify_watches(key)
+
+    def _notify_watches(self, key: str):
         if key not in self._watches:
             return
 
@@ -324,6 +327,10 @@ class KV:
             except Exception as e:
                 # e.g. RADOS state (You cannot perform that operation on a Rados object in state configuring.)
                 logger.exception(str(e))
+        else:
+            # When we're not connected to ioctx we should try to notify any
+            # watchers that we may be aware of via the cache
+            self._notify_watches(key)
 
         logger.debug(f"Writing {key}: {value} to local cache")
         self._db[key] = bvalue
