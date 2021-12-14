@@ -273,9 +273,10 @@ class Aquarium:
 
     async def main_loop(self):
         while not self._is_shutting_down:
+            if self.gstate.requesting_uvicorn_restart:
+                await self.restart_uvicorn()
+                self.gstate.reset_uvicorn_restart()
             await asyncio.sleep(1)
-            # TODO(jhesketh): Watch KV store and restart uvicorn if updates to
-            #                 certs.
 
     async def shutdown(self):
         logger.info("Aquarium shutdown!")
@@ -290,6 +291,7 @@ class Aquarium:
         await self.deployment.shutdown()
 
     async def start_uvicorn(self):
+        logger.debug("Starting uvicorn")
         # TODO(jhesketh): Check if we need https or not
         uvicorn_config = UvicornConfig(self.app, host="0.0.0.0", port=80)
         self.uvicorn = AquariumUvicorn(config=uvicorn_config)
@@ -298,11 +300,13 @@ class Aquarium:
         #                 instance will work to create http redirect.
 
     async def stop_uvicorn(self):
+        logger.debug("Stopping uvicorn")
         self.uvicorn.should_exit = True
         while self.uvicorn._running:
             await asyncio.sleep(0.1)
 
     async def restart_uvicorn(self):
+        logger.debug("Restarting uvicorn")
         await self.stop_uvicorn()
         await self.start_uvicorn()
 

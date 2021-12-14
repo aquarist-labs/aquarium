@@ -126,6 +126,7 @@ class GlobalState:
 
     _config: Config
     _is_shutting_down: bool
+    _requesting_uvicorn_restart: bool
     _tickers: Dict[str, Ticker]
     _kvstore: KV
     _preinited: bool
@@ -142,6 +143,7 @@ class GlobalState:
     def __init__(self, config: Config, kvstore: KV):
         self._config = config
         self._is_shutting_down = False
+        self._requesting_uvicorn_restart = False
         self._tickers = {}
         self._kvstore = kvstore
         self._preinited = False
@@ -228,6 +230,12 @@ class GlobalState:
     def get_ticker(self, desc: str) -> Ticker:
         return self._tickers[desc]
 
+    def request_restart_uvicorn(self) -> None:
+        self._requesting_uvicorn_restart = True
+
+    def reset_uvicorn_restart(self) -> None:
+        self._requesting_uvicorn_restart = False
+
     @property
     def config(self) -> Config:
         return self._config
@@ -235,3 +243,7 @@ class GlobalState:
     @property
     def store(self) -> KV:
         return self._kvstore
+
+    @property
+    def requesting_uvicorn_restart(self) -> bool:
+        return self._requesting_uvicorn_restart
