@@ -21,6 +21,8 @@ from pydantic import BaseModel, Field
 
 from gravel.api import install_gate, jwt_auth_scheme
 from gravel.cephadm.models import VolumeDeviceModel
+from gravel.controllers.config import SSLOptionsModel
+from gravel.controllers.gstate import GlobalState
 from gravel.controllers.inventory.nodeinfo import NodeInfoModel
 from gravel.controllers.nodes.mgr import NodeMgr
 from gravel.controllers.nodes.requirements import (
@@ -46,6 +48,12 @@ class EventModel(BaseModel):
     ts: int = Field(title="The Unix time stamp")
     severity: Literal["info", "warn", "danger"]
     message: str
+
+
+class SSLConfigModel(BaseModel):
+    use_ssl: bool = Field(False, title="Whether https is enabled.")
+    key_contents: str = Field(title="The SSL private key.")
+    cert_contents: str = Field(title="The SSL certificate.")
 
 
 @router.get(
@@ -185,6 +193,30 @@ async def get_events(
         },
     ]
     return [EventModel.parse_obj(event) for event in events]
+
+
+@router.get(
+    "/ssl",
+    name="Get current SSL configuration",
+    response_model=SSLOptionsModel,
+)
+async def get_ssl_config(
+    request: Request, _: Callable = Depends(jwt_auth_scheme)
+) -> SSLOptionsModel:
+    return request.app.state.gstate.config.options.ssl
+
+
+@router.post("/ssl", name="Update SSL configuration")
+async def apply_ssl_config(
+    request: Request,
+    req_params: SSLConfigModel,
+    _: Callable = Depends(jwt_auth_scheme),
+) -> bool:
+    request.app.state.gstate.config.write_ssl_key(req_params.key_contents)
+    request.app.state.gstate.config.write_ssl_cert(req_params.cert_contents)
+    request.app.state.gstate.config.options.ssl.use_ssl = req_params.use_ssl
+    request.app.state.gstate.request_restart_uvicorn()
+    return request.app.state.gstate.config.saveConfig()
 
 
 @router.post("/reboot", name="Reboot the system")

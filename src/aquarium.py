@@ -191,6 +191,9 @@ class Aquarium:
             logger.error(f"Unable to pre-init the node: {e.message}")
             sys.exit(1)
 
+        self.config.init()
+        self.kvstore.init()
+
         self._init_task = asyncio.create_task(self.init())
 
     async def init(self):
@@ -210,8 +213,6 @@ class Aquarium:
             sys.exit(1)
 
         logger.info("Init Node Manager.")
-        self.config.init()
-        self.kvstore.init()
         self.gstate_init()
         self.nodemgr.init()
 
@@ -292,8 +293,16 @@ class Aquarium:
 
     async def start_uvicorn(self):
         logger.debug("Starting uvicorn")
-        # TODO(jhesketh): Check if we need https or not
-        uvicorn_config = UvicornConfig(self.app, host="0.0.0.0", port=80)
+        if self.gstate.config.options.ssl.use_ssl:
+            uvicorn_config = UvicornConfig(
+                self.app,
+                host="0.0.0.0",
+                port=443,
+                ssl_keyfile=self.gstate.config.ssl_keypath,
+                ssl_certfile=self.gstate.config.ssl_certpath,
+            )
+        else:
+            uvicorn_config = UvicornConfig(self.app, host="0.0.0.0", port=80)
         self.uvicorn = AquariumUvicorn(config=uvicorn_config)
         asyncio.create_task(self.uvicorn.serve())
         # TODO(jhesketh): When in https mode, test if running a second uvicorn

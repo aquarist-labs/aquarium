@@ -77,6 +77,10 @@ class ContainersOptionsModel(BaseModel):
         return f"{self.registry}/{self.image}"
 
 
+class SSLOptionsModel(BaseModel):
+    use_ssl: bool = Field(False, title="Whether https is enabled.")
+
+
 class OptionsModel(BaseModel):
     inventory: InventoryOptionsModel = Field(InventoryOptionsModel())
     storage: StorageOptionsModel = Field(StorageOptionsModel())
@@ -85,6 +89,7 @@ class OptionsModel(BaseModel):
     network: NetworkOptionsModel = Field(NetworkOptionsModel())
     auth: AuthOptionsModel = Field(AuthOptionsModel())
     containers: ContainersOptionsModel = Field(ContainersOptionsModel())
+    ssl: SSLOptionsModel = Field(SSLOptionsModel())
 
 
 class ConfigModel(BaseModel):
@@ -99,6 +104,8 @@ class Config:
             path = _get_default_confdir()
         self._confdir = Path(path)
         self.confpath = self._confdir.joinpath(Path("config.json"))
+        self.ssl_keypath = self._confdir.joinpath(Path("ssl_key.pem"))
+        self.ssl_certpath = self._confdir.joinpath(Path("ssl_cert.pem"))
         logger.debug(f"Aquarium config dir: {self._confdir}")
 
     def init(self) -> None:
@@ -134,9 +141,21 @@ class Config:
         if len(keys) > 0:
             logger.warning("Using custom registry config from environment")
 
-    def _saveConfig(self, conf: ConfigModel) -> None:
+    def _saveConfig(self, conf: ConfigModel) -> bool:
         logger.debug(f"Writing Aquarium config: {self.confpath}")
         self.confpath.write_text(conf.json(indent=2))
+        return True
+
+    def saveConfig(self) -> bool:
+        return self._saveConfig(self.config)
+
+    def write_ssl_key(self, contents: str) -> None:
+        self.ssl_keypath.write_text(contents)
+        self.ssl_keypath.chmod(0o600)
+
+    def write_ssl_cert(self, contents: str) -> None:
+        self.ssl_certpath.write_text(contents)
+        self.ssl_certpath.chmod(0o644)
 
     @property
     def options(self) -> OptionsModel:
