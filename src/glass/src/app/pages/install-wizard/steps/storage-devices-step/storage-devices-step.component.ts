@@ -88,7 +88,9 @@ export class StorageDevicesStepComponent implements OnInit {
   ngOnInit(): void {
     this.deployService.devices().subscribe({
       next: (ddr: DeployDevicesReply) => {
-        const disks = _.cloneDeep(ddr.devices);
+        const disks = _.cloneDeep(
+          _.filter(ddr.devices, (device) => device.rejected_reasons.length === 0)
+        );
 
         // Update the selection.
         const selected: TableEntry[] = [];

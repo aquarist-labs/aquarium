@@ -82,10 +82,14 @@ export class InstallBootstrapPageComponent implements OnInit {
         switch (dsr.status.state.deployment) {
           case DeploymentStateEnum.none:
             this.deployService.devices().subscribe((ddr: DeployDevicesReply) => {
-              if (!ddr.devices.length) {
+              const devices = _.filter(
+                ddr.devices,
+                (device) => device.rejected_reasons.length === 0
+              );
+              if (!devices.length) {
                 this.handleError(TEXT('No storage devices found.'), true);
               } else {
-                this.devices = ddr.devices;
+                this.devices = devices;
               }
             });
             break;
