@@ -25,8 +25,8 @@ import {
   DatatableColumn
 } from '~/app/shared/models/datatable-column.type';
 import { BytesToSizePipe } from '~/app/shared/pipes/bytes-to-size.pipe';
+import { DeployDevicesReply, DeployService } from '~/app/shared/services/api/deploy.service';
 import { Disk } from '~/app/shared/services/api/local.service';
-import { DiskSolution, NodesService } from '~/app/shared/services/api/nodes.service';
 
 type TableEntry = {
   path?: string;
@@ -83,12 +83,12 @@ export class StorageDevicesStepComponent implements OnInit {
   ];
   public selected: TableEntry[] = [];
 
-  constructor(private nodesService: NodesService) {}
+  constructor(private deployService: DeployService) {}
 
   ngOnInit(): void {
-    this.nodesService.deploymentDiskSolution().subscribe({
-      next: (solution: DiskSolution) => {
-        const disks = _.cloneDeep(solution.storage);
+    this.deployService.devices().subscribe({
+      next: (ddr: DeployDevicesReply) => {
+        const disks = _.cloneDeep(ddr.devices);
 
         // Update the selection.
         const selected: TableEntry[] = [];
