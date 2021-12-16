@@ -1,38 +1,36 @@
 {
-    "localhost_qualified": {
-        "qualified": true,
-        "impossible": false,
-        "cpu": {
-            "qualified": true,
-            "min_threads": 2,
-            "actual_threads": 2,
-            "error": "",
-            "status": 0
-        },
-        "mem": {
-            "qualified": true,
-            "min_mem": 2147483648,
-            "actual_mem": 4107534336,
-            "error": "",
-            "status": 0
-        },
-        "disks": {
-            "available": {
-                "qualified": true,
-                "min": 1,
-                "actual": 4,
-                "error": "",
-                "status": 0
-            },
-            "install": {
-                "qualified": true,
-                "min": 10737418240,
-                "actual": 10737418240,
-                "error": "",
-                "status": 0
-            }
-        }
+  "requirements": {
+    "qualified": true,
+    "impossible": false,
+    "cpu": {
+      "qualified": true,
+      "min_threads": 2,
+      "actual_threads": 2,
+      "error": "",
+      "status": 0
     },
-    "inited": true,
-    "node_stage": 0
+    "mem": {
+      "qualified": true,
+      "min_mem": 2147483648,
+      "actual_mem": 4107534336,
+      "error": "",
+      "status": 0
+    },
+    "disks": {
+      "available": {
+        "qualified": true,
+        "min": 1,
+        "actual": 4,
+        "error": "",
+        "status": 0
+      },
+      "install": {
+        "qualified": true,
+        "min": 10737418240,
+        "actual": 10737418240,
+        "error": "",
+        "status": 0
+      }
+    }
+  }
 }
