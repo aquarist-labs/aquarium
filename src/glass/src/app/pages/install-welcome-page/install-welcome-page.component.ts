@@ -86,10 +86,9 @@ export class InstallWelcomePageComponent implements OnInit {
       (res: DeployRequirementsReply) => {
         this.checked = true;
         const requirements = res.requirements;
+        this.qualified = requirements.qualified;
+        this.impossible = requirements.impossible;
         if (!requirements.qualified) {
-          this.qualified = requirements.qualified;
-          this.impossible = requirements.impossible;
-
           this.status = [
             {
               qualified: requirements.cpu.qualified,
