@@ -89,39 +89,40 @@ export enum StatusStageEnum {
 }
 
 export type DisksQualifiedStatus = {
-  qualified: boolean;
-  min: number;
-  actual: number;
-  error: string;
-  status: 0 | 1 | 2;
+  qualified: boolean; // Resource meets requirements.
+  min: number; // Minimum of resource.
+  actual: number; // Actual quantity of resource.
+  error: string; // Error message.
+  status: 0 | 1 | 2; // Error status code.
 };
 
-export type NodeStatus = {
+export type NodeStatusReply = {
   localhost_qualified?: {
     qualified: boolean;
     impossible: boolean;
     cpu: {
-      qualified: boolean;
-      min_threads: number;
-      actual_threads: number;
-      error: string;
-      status: 0 | 1;
+      // CPU qualification details.
+      qualified: boolean; // The CPU is sufficient.
+      min_threads: number; // Minimum number of CPU threads.
+      actual_threads: number; // Actual number of CPU threads.
+      error: string; // CPU didn't meet requirements.
+      status: 0 | 1; // Status code.
     };
     mem: {
-      qualified: boolean;
-      min_mem: number;
-      actual_mem: number;
-      error: string;
-      status: 0 | 1;
+      // Memory qualification details.
+      qualified: boolean; // The memory is sufficient.
+      min_mem: number; // Minimum amount of memory (bytes).
+      actual_mem: number; // Actual amount of memory (bytes).
+      error: string; // Memory didn't meet requirements.
+      status: 0 | 1; // Status code.
     };
     disks: {
-      available: DisksQualifiedStatus;
-      install: DisksQualifiedStatus;
+      // Disk qualification details.
+      available: DisksQualifiedStatus; // Host's available disks.
+      install: DisksQualifiedStatus; // Host's install disk.
     };
   };
   inited: boolean;
-  /* eslint-disable @typescript-eslint/naming-convention */
-  node_stage: StatusStageEnum;
 };
 
 export type Event = {
@@ -156,8 +157,8 @@ export class LocalNodeService {
   /**
    * Get node's status
    */
-  public status(): Observable<NodeStatus> {
-    return this.http.get<NodeStatus>(`${this.url}/status`);
+  public status(): Observable<NodeStatusReply> {
+    return this.http.get<NodeStatusReply>(`${this.url}/status`);
   }
 
   /**

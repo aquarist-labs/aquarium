@@ -23,9 +23,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import { InstallCreateWizardPageComponent } from '~/app/pages/install-wizard/install-create-wizard-page/install-create-wizard-page.component';
 import { InstallJoinWizardPageComponent } from '~/app/pages/install-wizard/install-join-wizard-page/install-join-wizard-page.component';
 import { HostStepComponent } from '~/app/pages/install-wizard/steps/host-step/host-step.component';
-import { LocalDevicesStepComponent } from '~/app/pages/install-wizard/steps/local-devices-step/local-devices-step.component';
 import { NtpStepComponent } from '~/app/pages/install-wizard/steps/ntp-step/ntp-step.component';
 import { RegistrationStepComponent } from '~/app/pages/install-wizard/steps/registration-step/registration-step.component';
+import { StorageDevicesStepComponent } from '~/app/pages/install-wizard/steps/storage-devices-step/storage-devices-step.component';
 import { SharedModule } from '~/app/shared/shared.module';
 
 @NgModule({
@@ -34,7 +34,7 @@ import { SharedModule } from '~/app/shared/shared.module';
     InstallJoinWizardPageComponent,
     NtpStepComponent,
     HostStepComponent,
-    LocalDevicesStepComponent,
+    StorageDevicesStepComponent,
     RegistrationStepComponent
   ],
   imports: [

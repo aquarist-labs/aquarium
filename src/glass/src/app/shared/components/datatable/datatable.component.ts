@@ -104,6 +104,9 @@ export class DatatableComponent implements OnInit, OnDestroy {
   @Input()
   selectionType: 'single' | 'multi' | 'none' = 'none';
 
+  @Input()
+  selected: Array<DatatableData> = [];
+
   @Output()
   loadData = new EventEmitter();
 
@@ -119,7 +122,6 @@ export class DatatableComponent implements OnInit, OnDestroy {
   protected _data: Array<DatatableData> = [];
   protected subscriptions: Subscription = new Subscription();
 
-  private selected: Array<DatatableData> = [];
   private sortableColumns: string[] = [];
   private tableData: DatatableData[] = [];
 
@@ -257,10 +259,6 @@ export class DatatableComponent implements OnInit, OnDestroy {
       : css + 'sort-descending';
   }
 
-  getSelected(): DatatableData[] {
-    return this.selected;
-  }
-
   reloadData(): void {
     this.loadData.emit();
     this.updateSelection();
@@ -294,7 +292,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
     this.selectionChange.emit(this.selected);
   }
 
-  private updateSelection(): void {
+  updateSelection(): void {
     const updatedSelection: Array<DatatableData> = [];
     this.selected.forEach((selectedItem) => {
       const item = _.find(this.data, [this.identifier, selectedItem[this.identifier]]);
@@ -302,7 +300,7 @@ export class DatatableComponent implements OnInit, OnDestroy {
         updatedSelection.push(item);
       }
     });
-    this.selected = updatedSelection;
+    this.selected.splice(0, this.selected.length, ...updatedSelection);
   }
 
   private getSortProp(column: DatatableColumn): string {

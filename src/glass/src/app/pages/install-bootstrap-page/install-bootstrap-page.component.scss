@@ -1,0 +1,9 @@
+@import 'styles.scss';
+
+.card {
+  width: 80%;
+
+  .card-actions {
+    @extend .float-right;
+  }
+}

@@ -8,6 +8,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CoreModule } from '~/app/core/core.module';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
+import { InstallBootstrapPageComponent } from '~/app/pages/install-bootstrap-page/install-bootstrap-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
 import { InstallWelcomePageComponent } from '~/app/pages/install-welcome-page/install-welcome-page.component';
 import { InstallWizardModule } from '~/app/pages/install-wizard/install-wizard.module';
@@ -36,7 +37,8 @@ import { SharedModule } from '~/app/shared/shared.module';
     NetworkFormComponent,
     StorageDevicesPageComponent,
     ShutdownPageComponent,
-    StorageSmartFormComponent
+    StorageSmartFormComponent,
+    InstallBootstrapPageComponent
   ],
   imports: [
     CommonModule,

@@ -44,26 +44,7 @@ describe('InstallCreateWizardPageComponent', () => {
 
   it('should show notification only once [1]', fakeAsync(() => {
     httpTesting
-      .expectOne({ url: 'api/nodes/deployment/status', method: 'GET' })
-      .error(new ErrorEvent('Unknown error'), { status: 500 });
-    tick(5);
-    expect(toastrService.error).toHaveBeenCalledTimes(1);
-    flush();
-  }));
-
-  it('should show notification only once [2]', fakeAsync(() => {
-    httpTesting
-      .expectOne({ url: 'api/local/status', method: 'GET' })
-      .error(new ErrorEvent('Unknown error'), { status: 500 });
-    tick(5);
-    expect(toastrService.error).toHaveBeenCalledTimes(1);
-    flush();
-  }));
-
-  it('should show notification only once [3]', fakeAsync(() => {
-    component.finishDeployment();
-    httpTesting
-      .match('api/nodes/deployment/finished')[0]
+      .expectOne({ url: 'api/deploy/status', method: 'GET' })
       .error(new ErrorEvent('Unknown error'), { status: 500 });
     tick(5);
     expect(toastrService.error).toHaveBeenCalledTimes(1);

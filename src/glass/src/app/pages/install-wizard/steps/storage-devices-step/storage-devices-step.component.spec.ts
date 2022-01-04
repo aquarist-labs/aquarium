@@ -16,12 +16,12 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { LocalDevicesStepComponent } from '~/app/pages/install-wizard/steps/local-devices-step/local-devices-step.component';
+import { StorageDevicesStepComponent } from '~/app/pages/install-wizard/steps/storage-devices-step/storage-devices-step.component';
 import { PagesModule } from '~/app/pages/pages.module';
 
-describe('LocalDevicesStepComponent', () => {
-  let component: LocalDevicesStepComponent;
-  let fixture: ComponentFixture<LocalDevicesStepComponent>;
+describe('StorageDevicesStepComponent', () => {
+  let component: StorageDevicesStepComponent;
+  let fixture: ComponentFixture<StorageDevicesStepComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,7 +30,7 @@ describe('LocalDevicesStepComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LocalDevicesStepComponent);
+    fixture = TestBed.createComponent(StorageDevicesStepComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
