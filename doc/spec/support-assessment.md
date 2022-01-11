@@ -1,8 +1,10 @@
 # Support Assessment Dashboard: Infrastructure
 
+(Related discussions: https://github.com/aquarist-labs/forum/discussions/24)
+
 ## Problem Description
 
-The support assessment dashboard is a feature giving end users insight
+The support assessment dashboard is a feature that gives end-users insight
 into how well their cluster conforms to a support envelope based on
 continuously measuring and evaluating system state. This document
 proposes infrastructure to effectively do this.
@@ -39,8 +41,11 @@ instead of metrics `client{version="23.42"} 42`.
 Rules on data from logs and audit events will require another approach
 and are out of scope of this change.
 
-A Bubbles extra manages and configures Prometheus and collects alerts
+A Bubbles Extra[^1] manages and configures Prometheus and collects alerts
 for presentation.
+
+[^1] Bubbles extension mechanism for non-upstream code
+([Source ](https://github.com/ceph/bubbles/tree/main)).
 
 ### Bubbles
 
@@ -117,13 +122,14 @@ available from Prometheus directly.
 
 ### Cephadm Configchecks
 
-Configuration checks build into the cephadm manager module. Tightly
-integrated with the module for rule execution and command handling.
-Creates an in memory copy of relevant cluster state. Has no query or
-rule engine abstraction on top of the gathered data. Checks are
-Python code processing the gathered data directly. Failing
-checks raise Ceph health warnings. Manager commands can enable and
-disable individual checks. Check code is part of the checker.
+Configuration checks build into the Ceph cephadm manager module
+([`pybind/mgr/cephadm/configchecks.py`](https://github.com/ceph/ceph/blob/master/src/pybind/mgr/cephadm/configchecks.py)).
+Tightly integrated with the module for rule execution and command
+handling. Creates an in memory copy of relevant cluster state. Has no
+query or rule engine abstraction on top of the gathered data. Checks
+are Python code processing the gathered data directly. Failing checks
+raise Ceph health warnings. Manager commands can enable and disable
+individual checks. Check code is part of the checker.
 
 Supported checks:
 - Consistent kernel security modules
@@ -151,7 +157,7 @@ historical queries is challenging.
 
 ## Why Prometheus?
 
-Prometheus a de facto industry standard time series database and
+Prometheus is a de facto industry standard time series database and
 alerting system. It is stable and has good performance. We can
 leverage [many](https://prometheus.io/docs/instrumenting/exporters/) existing exporters. PromQL is widely understood and
 allows interactive rule development. Custom exporters are easy to
@@ -171,7 +177,7 @@ it first.
 
 ## Status
 
-Proposed. Prototype demoed.
+Proposed. [Prototype demoed](https://github.com/aquarist-labs/forum/discussions/24#discussioncomment-1947494).
 
 ## Milestones
 
