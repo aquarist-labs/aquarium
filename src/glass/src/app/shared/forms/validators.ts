@@ -58,13 +58,23 @@ export class GlassValidators {
    */
   static hostAddress(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
+      const err = { hostAddress: true };
       if (_.isEmpty(control.value)) {
         return null;
       }
+      let s: string = control.value
+      const fields = s.split(":")
+      const host: string = fields[0];
+      if (fields.length > 2) {
+        return err;
+      } else if (fields.length == 2 && !validator.isInt(fields[1])) {
+        return err;
+      }
+
       const valid =
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        validator.isIP(control.value) || validator.isFQDN(control.value, { require_tld: false });
-      return !valid ? { hostAddress: true } : null;
+        validator.isIP(host) || validator.isFQDN(host, { require_tld: false });
+      return !valid ? err : null;
     };
   }
 
