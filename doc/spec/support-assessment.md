@@ -44,8 +44,7 @@ and are out of scope of this change.
 A Bubbles Extra[^1] manages and configures Prometheus and collects alerts
 for presentation.
 
-[^1] Bubbles extension mechanism for non-upstream code
-([Source ](https://github.com/ceph/bubbles/tree/main)).
+[^1]: Bubbles extension mechanism for non-upstream code ([Source ](https://github.com/ceph/bubbles/tree/main)).
 
 ### Bubbles
 
