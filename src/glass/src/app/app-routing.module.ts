@@ -13,14 +13,17 @@
  * GNU General Public License for more details.
  */
 /* eslint-disable max-len */
-import { NgModule } from '@angular/core';
-import { Route, RouterModule, Routes } from '@angular/router';
+import { Injectable, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, Route, RouterModule, Routes } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
+import * as _ from 'lodash';
+import { EMPTY } from 'rxjs';
 
 import { BlankLayoutComponent } from '~/app/core/layouts/blank-layout/blank-layout.component';
 import { InstallerLayoutComponent } from '~/app/core/layouts/installer-layout/installer-layout.component';
 import { MainLayoutComponent } from '~/app/core/layouts/main-layout/main-layout.component';
 import { DashboardPageComponent } from '~/app/pages/dashboard-page/dashboard-page.component';
+import { EmptyPageComponent } from '~/app/pages/empty-page/empty-page.component';
 import { HostsPageComponent } from '~/app/pages/hosts-page/hosts-page.component';
 import { InstallBootstrapPageComponent } from '~/app/pages/install-bootstrap-page/install-bootstrap-page.component';
 import { InstallModePageComponent } from '~/app/pages/install-mode-page/install-mode-page.component';
@@ -36,8 +39,50 @@ import { StorageDevicesPageComponent } from '~/app/pages/storage-devices-page/st
 import { StorageSmartFormComponent } from '~/app/pages/storage-devices-page/storage-smart-form/storage-smart-form.component';
 import { UsersFormComponent } from '~/app/pages/users-page/users-form/users-form.component';
 import { UsersPageComponent } from '~/app/pages/users-page/users-page.component';
+import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
+import { Status, StatusService } from '~/app/shared/services/api/status.service';
 import { AuthGuardService } from '~/app/shared/services/auth-guard.service';
+import { DialogService } from '~/app/shared/services/dialog.service';
+import { NotificationService } from '~/app/shared/services/notification.service';
 import { StatusRouteGuardService } from '~/app/shared/services/status-route-guard.service';
+
+@Injectable()
+export class BubblesRedirectResolver implements Resolve<any> {
+  constructor(
+    private dialogService: DialogService,
+    private notificationService: NotificationService,
+    private statusService: StatusService
+  ) {}
+
+  resolve(route: ActivatedRouteSnapshot): any {
+    const url = decodeURIComponent(route.paramMap.get('url')!);
+    if (_.isString(url)) {
+      this.statusService.status().subscribe((status: Status) => {
+        const bubblesUrl: string | null = _.get(status, 'cluster.mgrmap.services.bubbles', null);
+        if (!_.isString(bubblesUrl)) {
+          this.notificationService.show(TEXT('Bubbles is not accessible.'), {
+            type: 'error'
+          });
+        } else {
+          this.dialogService.open(
+            DialogComponent,
+            (res: boolean) => {
+              if (res) {
+                window.open(`${_.trimEnd(bubblesUrl, '/')}/#${url}`, '_blank');
+              }
+            },
+            {
+              type: 'okCancel',
+              icon: 'info',
+              message: TEXT('This will redirect you to Bubbles.')
+            }
+          );
+        }
+      });
+    }
+    return EMPTY;
+  }
+}
 
 const installerRoute: Route = {
   path: 'installer',
@@ -143,6 +188,13 @@ const glassRoutes: Routes = [
       { path: 'login', component: LoginPageComponent },
       { path: 'shutdown', component: ShutdownPageComponent },
       {
+        path: 'bubblesRedirect/:url',
+        resolve: {
+          url: BubblesRedirectResolver
+        },
+        component: EmptyPageComponent
+      },
+      {
         path: '404',
         component: NotFoundPageComponent
       },
@@ -157,6 +209,7 @@ const glassRoutes: Routes = [
       useHash: true
     })
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [BubblesRedirectResolver]
 })
 export class AppRoutingModule {}

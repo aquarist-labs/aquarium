@@ -9,6 +9,12 @@
   <div class="vr"></div>
   <glass-breadcrumbs></glass-breadcrumbs>
   <span fxFlex></span>
+  <button class="btn btn-simple"
+          title="{{ 'Switch to Bubbles' | translate }}"
+          (click)="onSwitchToBubbles()">
+    <i class="mdi mdi-home-switch"></i>
+  </button>
+  <div class="vr"></div>
   <glass-language-button></glass-language-button>
   <div ngbDropdown>
     <button class="btn btn-simple"

@@ -210,6 +210,10 @@ class CephPGMapModel(BaseModel):
     write_op_per_sec: int = Field(0, title="Client write operations per second")
 
 
+class CephMGRMapModel(BaseModel):
+    services: Dict[str, Any]
+
+
 class CephStatusModel(BaseModel):
     fsid: str
     election_epoch: int
@@ -218,6 +222,7 @@ class CephStatusModel(BaseModel):
     quorum_age: int
     health: CephHealthStatusModel
     pgmap: CephPGMapModel
+    mgrmap: CephMGRMapModel
 
 
 class CephOSDPoolRecoveryStatsModel(BaseModel):
