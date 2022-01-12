@@ -62,12 +62,12 @@ export class GlassValidators {
       if (_.isEmpty(control.value)) {
         return null;
       }
-      let s: string = control.value
-      const fields = s.split(":")
+      const s: string = control.value;
+      const fields = s.split(':');
       const host: string = fields[0];
       if (fields.length > 2) {
         return err;
-      } else if (fields.length == 2 && !validator.isInt(fields[1])) {
+      } else if (fields.length === 2 && !validator.isInt(fields[1])) {
         return err;
       }
 
