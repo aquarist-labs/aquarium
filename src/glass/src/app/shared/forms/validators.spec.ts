@@ -33,8 +33,7 @@ describe('GlassValidators', () => {
 
     it('should validate addr [3]', () => {
       control?.setValue('bar:80');
-      expect(control?.invalid).toBeTruthy();
-      expect(control?.errors).toEqual({ hostAddress: true });
+      expect(control?.valid).toBeTruthy();
     });
 
     it('should not validate addr [1]', () => {
