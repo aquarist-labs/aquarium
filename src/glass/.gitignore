@@ -49,3 +49,6 @@ Thumbs.db
 /cypress/screenshots
 /cypress/videos
 /cypress/reports
+
+# Angular development server
+proxy.conf.json
