@@ -113,9 +113,9 @@ describe('DatatableComponent', () => {
   it('should calculate the columns if not set', () => {
     fixture.detectChanges();
     expect(component.columns[0].cols).toBe(6);
-    expect(component.columns[0].css).toBe('col-6');
+    expect(component.columns[0].css).toBe('glass-text-no-overflow col-6');
     expect(component.columns[1].cols).toBe(6);
-    expect(component.columns[1].css).toBe('flex-fill');
+    expect(component.columns[1].css).toBe('glass-text-no-overflow flex-fill');
   });
 
   it('should use column style in template', () => {
@@ -129,9 +129,9 @@ describe('DatatableComponent', () => {
     component.columns[1].cols = 5;
     fixture.detectChanges();
     expect(component.columns[0].cols).toBe(7);
-    expect(component.columns[0].css).toBe('flex-fill');
+    expect(component.columns[0].css).toBe('glass-text-no-overflow flex-fill');
     expect(component.columns[1].cols).toBe(5);
-    expect(component.columns[1].css).toBe('col-5');
+    expect(component.columns[1].css).toBe('glass-text-no-overflow col-5');
   });
 
   it('should throw error if more than 12 cols need to be used', () => {
@@ -154,15 +154,15 @@ describe('DatatableComponent', () => {
   it('should not override a given css style for the column', () => {
     component.columns[0].css = 'custom-style';
     fixture.detectChanges();
-    expect(component.columns[0].css).toBe('custom-style col-6');
+    expect(component.columns[0].css).toBe('glass-text-no-overflow custom-style col-6');
   });
 
   it('should enlarge the first highest col setting if set cols are less than or equal to 12', () => {
     component.columns[0].cols = 6;
     component.columns[1].cols = 3;
     fixture.detectChanges();
-    expect(component.columns[0].css).toBe('flex-fill');
-    expect(component.columns[1].css).toBe('col-3');
+    expect(component.columns[0].css).toBe('glass-text-no-overflow flex-fill');
+    expect(component.columns[1].css).toBe('glass-text-no-overflow col-3');
   });
 
   it('should use a different compare property', () => {

@@ -83,6 +83,9 @@
 .glass-text-no-decoration {
   text-decoration: none;
 }
+.glass-text-no-overflow {
+  overflow-x: hidden;
+}
 
 .glass-cursor-help {
   cursor: help;
