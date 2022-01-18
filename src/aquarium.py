@@ -26,6 +26,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from fastapi.staticfiles import StaticFiles
+from uvicorn import Config as UvicornConfig  # type: ignore
+from uvicorn import Server as UvicornServer  # type: ignore
 
 from gravel.api import auth, deploy, devices, local, nodes, orch, status, users
 from gravel.cephadm.cephadm import Cephadm
@@ -46,9 +48,6 @@ from gravel.controllers.resources.status import Status
 from gravel.controllers.resources.storage import Storage
 
 logger: logging.Logger = fastapi_logger
-
-from uvicorn.config import Config as UvicornConfig
-from uvicorn.server import Server as UvicornServer
 
 faulthandler.register(signal.SIGUSR1.value)
 

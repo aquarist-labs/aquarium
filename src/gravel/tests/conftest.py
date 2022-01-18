@@ -355,9 +355,10 @@ def app(caplog: Any, aquarium_startup: FastAPI, aquarium_shutdown: FastAPI):
     caplog.set_level(logging.DEBUG)
     import aquarium
 
-    return aquarium.aquarium_factory(
-        startup_method=aquarium_startup, shutdown_method=aquarium_shutdown
-    )
+    # TODO(jhesketh): FIX ME!
+    # return aquarium.aquarium_factory(
+    #     startup_method=aquarium_startup, shutdown_method=aquarium_shutdown
+    # )
 
 
 @pytest.fixture
