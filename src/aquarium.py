@@ -179,8 +179,6 @@ class Aquarium:
 
         await self.stop_uvicorn()
         await self.shutdown()
-        # await self.gstate.shutdown()
-        # await self.nodemgr.shutdown()
 
     async def bootstrap(self):
         logger.debug("Starting main Aquarium task.")
@@ -291,6 +289,9 @@ class Aquarium:
         logger.info("Stopping deployment task.")
         await self.deployment.shutdown()
 
+        logger.info("Closing KVStore")
+        await self.kvstore.close()
+
     async def start_uvicorn(self):
         logger.debug("Starting uvicorn")
         if self.gstate.config.options.ssl.use_ssl:
@@ -337,6 +338,7 @@ def main():
 
     aqr = Aquarium()
     asyncio.run(aqr.run())
+    os._exit(0)
 
 
 if __name__ == "__main__":
