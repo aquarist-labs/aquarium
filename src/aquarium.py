@@ -47,16 +47,15 @@ from gravel.controllers.resources.storage import Storage
 
 logger: logging.Logger = fastapi_logger
 
+from uvicorn.config import Config as UvicornConfig
+from uvicorn.server import Server as UvicornServer
 
 faulthandler.register(signal.SIGUSR1.value)
 
-
-def gstate_preinit(gstate: GlobalState) -> None:
-    """Things that do not require persistent state to work."""
-    # Prep cephadm
-    cephadm: Cephadm = Cephadm()
-    gstate.add_cephadm(cephadm)
-    gstate.preinit()
+HANDLED_SIGNALS = (
+    signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
+    signal.SIGTERM,  # Unix signal 15. Sent by `kill <pid>`.
+)
 
 
 def gstate_init(gstate: GlobalState, nodemgr: NodeMgr) -> None:
@@ -101,188 +100,224 @@ def gstate_init(gstate: GlobalState, nodemgr: NodeMgr) -> None:
     gstate.init()
 
 
-_shutting_down: bool = False
-_main_task: Optional[asyncio.Task] = None
+class AquariumUvicorn(UvicornServer):
+    async def serve(self, sockets=None):
+        self._running = True
+        await super().serve(sockets)
+        self._running = False
 
-
-async def aquarium_main_task(
-    app: FastAPI,
-    config: Config,
-    kvstore: KV,
-    gstate: GlobalState,
-    nodemgr: NodeMgr,
-    deployment: DeploymentMgr,
-) -> None:
-    logger.debug("Starting main Aquarium task.")
-
-    app.state.deployment = deployment
-    app.state.nodemgr = nodemgr
-
-    while not _shutting_down and not deployment.installed:
-        logger.debug("Waiting for node to be installed.")
-        await asyncio.sleep(1.0)
-
-    if _shutting_down:
+    def install_signal_handlers(self) -> None:
+        # Do not allow uvicorn to install any signal handlers. We'll handle
+        # signals ourselves inside the Aquarium class.
         return
 
-    assert deployment.installed
 
-    try:
-        await deployment.init()
-    except InitError as e:
-        logger.error(f"Unable to init node: {e.message}")
-        sys.exit(1)
+class Aquarium:
+    def __init__(self):
+        logger.info("Aquarium startup!")
 
-    logger.info("Init Node Manager.")
-    config.init()
-    kvstore.init()
-    gstate_init(gstate, nodemgr)
-    nodemgr.init()
+        self._is_shutting_down: bool = False
+        self._static_dir: str = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "glass/dist/"
+        )
 
-    logger.info("Starting Node Manager.")
-    await nodemgr.start()
-    await gstate.start()
+        self.deployment = DeploymentMgr()
+        self.config: Config = Config()
+        self.kvstore: KV = KV()
+        self.cephadm: Cephadm = Cephadm()
 
-    logger.info("Post-Init Deployment.")
-    deployment.postinit(gstate, nodemgr)
+        self.gstate: GlobalState = GlobalState(self.config, self.kvstore)
+        self.gstate.add_cephadm(self.cephadm)
+        self.gstate.preinit()
 
-    app.state.gstate = gstate
+        self.nodemgr: NodeMgr = NodeMgr(self.gstate)
+
+        self.app = self.app_factory()
+
+    def app_factory(self):
+        api_tags_metadata = [
+            {
+                "name": "local",
+                "description": "Operations local to the node "
+                "where the endpoint is being invoked.",
+            },
+            {
+                "name": "orch",
+                "description": "Operations related to Ceph cluster orchestration.",
+            },
+            {
+                "name": "status",
+                "description": "Allows obtaining operation status information.",
+            },
+            {
+                "name": "nodes",
+                "description": "Perform Aquarium Cluster node operations",
+            },
+            {
+                "name": "devices",
+                "description": "Obtain and perform operations on cluster devices",
+            },
+            {
+                "name": "auth",
+                "description": "Operations related to user authentication",
+            },
+            {
+                "name": "users",
+                "description": "Operations related to user management",
+            },
+            {
+                "name": "deploy",
+                "description": "Operations related to the current deployment.",
+            },
+        ]
+
+        aquarium_app = FastAPI(docs_url=None)
+        aquarium_api = FastAPI(
+            title="Project Aquarium",
+            description="Project Aquarium is a SUSE-sponsored open source project "
+            + "aiming at becoming an easy to use, rock solid storage "
+            + "appliance based on Ceph.",
+            version="1.0.0",
+            openapi_tags=api_tags_metadata,
+        )
+
+        aquarium_api.state.deployment = self.deployment
+        aquarium_api.state.gstate = self.gstate
+        aquarium_api.state.nodemgr = self.nodemgr
+
+        aquarium_api.include_router(local.router)
+        aquarium_api.include_router(orch.router)
+        aquarium_api.include_router(status.router)
+        aquarium_api.include_router(nodes.router)
+        aquarium_api.include_router(devices.router)
+        aquarium_api.include_router(auth.router)
+        aquarium_api.include_router(users.router)
+        aquarium_api.include_router(deploy.router)
+
+        #
+        # mounts
+        #   these should be the last things to be done, so fastapi is aware of
+        #   everything that comes before.
+        #
+        # api calls go here.
+        aquarium_app.mount("/api", aquarium_api, name="api")
+        # mounting root "/" must be the last thing, so it does not override "/api".
+        if self._static_dir:
+            aquarium_app.mount(
+                "/",
+                StaticFiles(directory=self._static_dir, html=True),
+                name="static",
+            )
+
+        return aquarium_app
+
+    async def run(self):
+        self.install_signal_handlers()
+
+        await self.bootstrap()
+        await self.start_uvicorn()
+
+        await self.main_loop()
+
+        await self.stop_uvicorn()
+        await self.shutdown()
+        # await self.gstate.shutdown()
+        # await self.nodemgr.shutdown()
+
+    async def bootstrap(self):
+        logger.debug("Starting main Aquarium task.")
+
+        try:
+            await self.deployment.preinit()
+        except DeploymentError as e:
+            logger.error(f"Unable to pre-init the node: {e.message}")
+            sys.exit(1)
+
+        self._init_task = asyncio.create_task(self.init())
+
+    async def init(self):
+        while not self._is_shutting_down and not self.deployment.installed:
+            logger.debug("Waiting for node to be installed.")
+            await asyncio.sleep(1.0)
+
+        if self._is_shutting_down:
+            return
+
+        assert self.deployment.installed
+
+        try:
+            await self.deployment.init()
+        except InitError as e:
+            logger.error(f"Unable to init node: {e.message}")
+            sys.exit(1)
+
+        logger.info("Init Node Manager.")
+        self.config.init()
+        self.kvstore.init()
+        gstate_init(self.gstate, self.nodemgr)
+        self.nodemgr.init()
+
+        logger.info("Starting Node Manager.")
+        await self.nodemgr.start()
+        await self.gstate.start()
+
+        logger.info("Post-Init Deployment.")
+        self.deployment.postinit(self.gstate, self.nodemgr)
+
+    async def main_loop(self):
+        while not self._is_shutting_down:
+            await asyncio.sleep(1)
+            # TODO(jhesketh): Watch KV store and restart uvicorn if updates to
+            #                 certs.
+
+    async def shutdown(self):
+        logger.info("Aquarium shutdown!")
+        if self._init_task is not None:
+            await self._init_task
+
+        logger.info("shutting down gstate")
+        await self.gstate.shutdown()
+        logger.info("shutting down node manager")
+        await self.nodemgr.shutdown()
+        logger.info("Stopping deployment task.")
+        await self.deployment.shutdown()
+
+    async def start_uvicorn(self):
+        # TODO(jhesketh): Check if we need https or not
+        uvicorn_config = UvicornConfig(self.app, host="0.0.0.0", port=80)
+        self.uvicorn = AquariumUvicorn(config=uvicorn_config)
+        asyncio.create_task(self.uvicorn.serve())
+        # TODO(jhesketh): When in https mode, test if running a second uvicorn
+        #                 instance will work to create http redirect.
+
+    async def stop_uvicorn(self):
+        self.uvicorn.should_exit = True
+        while self.uvicorn._running:
+            await asyncio.sleep(0.1)
+
+    async def restart_uvicorn(self):
+        await self.stop_uvicorn()
+        await self.start_uvicorn()
+
+    def stop(self):
+        self._is_shutting_down = True
+
+    def install_signal_handlers(self) -> None:
+        loop = asyncio.get_event_loop()
+        for sig in HANDLED_SIGNALS:
+            loop.add_signal_handler(sig, self.handle_exit, sig, None)
+
+    def handle_exit(self, sig, frame):
+        self.stop()
 
 
-async def aquarium_startup(_: FastAPI, aquarium_api: FastAPI):
+def main():
     lvl = "INFO" if not os.getenv("AQUARIUM_DEBUG") else "DEBUG"
     setup_logging(lvl)
-    logger.info("Aquarium startup!")
 
-    deployment = DeploymentMgr()
-
-    try:
-        await deployment.preinit()
-    except DeploymentError as e:
-        logger.error(f"Unable to pre-init the node: {e.message}")
-        sys.exit(1)
-
-    config: Config = Config()
-    kvstore: KV = KV()
-    gstate: GlobalState = GlobalState(config, kvstore)
-    nodemgr: NodeMgr = NodeMgr(gstate)
-
-    gstate_preinit(gstate)
-
-    global _main_task
-    _main_task = asyncio.create_task(
-        aquarium_main_task(
-            aquarium_api, config, kvstore, gstate, nodemgr, deployment
-        )
-    )
-
-
-async def aquarium_shutdown(_: FastAPI, aquarium_api: FastAPI):
-    logger.info("Aquarium shutdown!")
-
-    logger.info("Shutdown main task")
-    global _shutting_down, _main_task
-    _shutting_down = True
-    if _main_task is not None:
-        await _main_task
-
-    await aquarium_api.state.gstate.shutdown()
-    logger.info("shutting down node manager")
-    await aquarium_api.state.nodemgr.shutdown()
-    logger.info("Stopping deployment task.")
-    await aquarium_api.state.deployment.shutdown()
-
-
-def aquarium_factory(
-    startup_method=aquarium_startup,
-    shutdown_method=aquarium_shutdown,
-    static_dir=None,
-):
-    api_tags_metadata = [
-        {
-            "name": "local",
-            "description": "Operations local to the node "
-            "where the endpoint is being invoked.",
-        },
-        {
-            "name": "orch",
-            "description": "Operations related to Ceph cluster orchestration.",
-        },
-        {
-            "name": "status",
-            "description": "Allows obtaining operation status information.",
-        },
-        {
-            "name": "nodes",
-            "description": "Perform Aquarium Cluster node operations",
-        },
-        {
-            "name": "devices",
-            "description": "Obtain and perform operations on cluster devices",
-        },
-        {
-            "name": "auth",
-            "description": "Operations related to user authentication",
-        },
-        {
-            "name": "users",
-            "description": "Operations related to user management",
-        },
-        {
-            "name": "deploy",
-            "description": "Operations related to the current deployment.",
-        },
-    ]
-
-    aquarium_app = FastAPI(docs_url=None)
-    aquarium_api = FastAPI(
-        title="Project Aquarium",
-        description="Project Aquarium is a SUSE-sponsored open source project "
-        + "aiming at becoming an easy to use, rock solid storage "
-        + "appliance based on Ceph.",
-        version="1.0.0",
-        openapi_tags=api_tags_metadata,
-    )
-
-    @aquarium_app.on_event("startup")  # type: ignore
-    async def on_startup():
-        await startup_method(aquarium_app, aquarium_api)
-
-    @aquarium_app.on_event("shutdown")  # type: ignore
-    async def on_shutdown():
-        await shutdown_method(aquarium_app, aquarium_api)
-
-    aquarium_api.include_router(local.router)
-    aquarium_api.include_router(orch.router)
-    aquarium_api.include_router(status.router)
-    aquarium_api.include_router(nodes.router)
-    aquarium_api.include_router(devices.router)
-    aquarium_api.include_router(auth.router)
-    aquarium_api.include_router(users.router)
-    aquarium_api.include_router(deploy.router)
-
-    #
-    # mounts
-    #   these should be the last things to be done, so fastapi is aware of
-    #   everything that comes before.
-    #
-    # api calls go here.
-    aquarium_app.mount("/api", aquarium_api, name="api")
-    # mounting root "/" must be the last thing, so it does not override "/api".
-    if static_dir:
-        aquarium_app.mount(
-            "/", StaticFiles(directory=static_dir, html=True), name="static"
-        )
-
-    return aquarium_app
-
-
-def app_factory():
-    static_dir = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "glass/dist/"
-    )
-    return aquarium_factory(aquarium_startup, aquarium_shutdown, static_dir)
+    aqr = Aquarium()
+    asyncio.run(aqr.run())
 
 
 if __name__ == "__main__":
-    uvicorn.run("aquarium:app_factory", host="0.0.0.0", port=80, factory=True)
+    main()

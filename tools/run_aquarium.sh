@@ -87,7 +87,7 @@ pushd ${AQUARIUM_DIR}/src &>/dev/null
 $is_debug && export AQUARIUM_DEBUG=1
 $has_config && export AQUARIUM_CONFIG_DIR=${config_path}
 
-uvicorn aquarium:app_factory --factory --host 0.0.0.0 --port ${port}
+./aquarium.py
 
 popd &>/dev/null
 
