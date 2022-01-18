@@ -58,48 +58,6 @@ HANDLED_SIGNALS = (
 )
 
 
-def gstate_init(gstate: GlobalState, nodemgr: NodeMgr) -> None:
-    """Things requiring persistent state to work."""
-
-    gstate.cephadm.set_config(gstate.config.options.containers)
-
-    # Set up Ceph connections
-    ceph: Ceph = Ceph()
-    ceph_mgr: Mgr = Mgr(ceph)
-    gstate.add_ceph_mgr(ceph_mgr)
-    ceph_mon: Mon = Mon(ceph)
-    gstate.add_ceph_mon(ceph_mon)
-
-    # Set up all of the tickers
-    devices: Devices = Devices(
-        gstate.config.options.devices.probe_interval,
-        nodemgr,
-        ceph_mgr,
-        ceph_mon,
-    )
-    gstate.add_devices(devices)
-
-    status: Status = Status(
-        gstate.config.options.status.probe_interval, gstate, nodemgr
-    )
-    gstate.add_status(status)
-
-    inventory: Inventory = Inventory(
-        gstate.config.options.inventory.probe_interval, nodemgr, gstate
-    )
-    gstate.add_inventory(inventory)
-
-    storage: Storage = Storage(
-        gstate.config.options.storage.probe_interval, nodemgr, ceph_mon
-    )
-    gstate.add_storage(storage)
-
-    network: Network = Network(gstate.config.options.network.probe_interval)
-    gstate.add_network(network)
-
-    gstate.init()
-
-
 class AquariumUvicorn(UvicornServer):
     async def serve(self, sockets=None):
         self._running = True
@@ -254,7 +212,7 @@ class Aquarium:
         logger.info("Init Node Manager.")
         self.config.init()
         self.kvstore.init()
-        gstate_init(self.gstate, self.nodemgr)
+        self.gstate_init()
         self.nodemgr.init()
 
         logger.info("Starting Node Manager.")
@@ -263,6 +221,55 @@ class Aquarium:
 
         logger.info("Post-Init Deployment.")
         self.deployment.postinit(self.gstate, self.nodemgr)
+
+    def gstate_init(self) -> None:
+        """Things requiring persistent state to work."""
+
+        self.gstate.cephadm.set_config(self.gstate.config.options.containers)
+
+        # Set up Ceph connections
+        ceph: Ceph = Ceph()
+        ceph_mgr: Mgr = Mgr(ceph)
+        self.gstate.add_ceph_mgr(ceph_mgr)
+        ceph_mon: Mon = Mon(ceph)
+        self.gstate.add_ceph_mon(ceph_mon)
+
+        # Set up all of the tickers
+        devices: Devices = Devices(
+            self.gstate.config.options.devices.probe_interval,
+            self.nodemgr,
+            ceph_mgr,
+            ceph_mon,
+        )
+        self.gstate.add_devices(devices)
+
+        status: Status = Status(
+            self.gstate.config.options.status.probe_interval,
+            self.gstate,
+            self.nodemgr,
+        )
+        self.gstate.add_status(status)
+
+        inventory: Inventory = Inventory(
+            self.gstate.config.options.inventory.probe_interval,
+            self.nodemgr,
+            self.gstate,
+        )
+        self.gstate.add_inventory(inventory)
+
+        storage: Storage = Storage(
+            self.gstate.config.options.storage.probe_interval,
+            self.nodemgr,
+            ceph_mon,
+        )
+        self.gstate.add_storage(storage)
+
+        network: Network = Network(
+            self.gstate.config.options.network.probe_interval
+        )
+        self.gstate.add_network(network)
+
+        self.gstate.init()
 
     async def main_loop(self):
         while not self._is_shutting_down:
