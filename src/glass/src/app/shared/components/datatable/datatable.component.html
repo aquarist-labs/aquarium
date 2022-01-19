@@ -19,7 +19,10 @@
       <td *ngFor="let column of columns"
           [class]="column.css"
           [ngStyle]="{'text-align': !column?.align ? 'start' : column?.align}">
-        <div *ngIf="!(column.cellTemplateName || column.cellTemplate)">{{ renderCellValue(row, column) }}</div>
+        <ng-template *ngIf="!(column.cellTemplateName || column.cellTemplate)"
+                     [ngTemplateOutlet]="defaultTpl"
+                     [ngTemplateOutletContext]="{ value: renderCellValue(row, column) }">
+        </ng-template>
         <ng-template *ngIf="column.cellTemplate"
                      [ngTemplateOutlet]="column.cellTemplate"
                      [ngTemplateOutletContext]="{ row: row, column: column, value: column.prop ? renderCellValue(row, column) : undefined,
@@ -70,6 +73,11 @@
                   (pageChange)="reloadData()">
   </ngb-pagination>
 </div>
+
+<ng-template #defaultTpl
+             let-value="value">
+  <span [title]="value">{{ value }}</span>
+</ng-template>
 
 <ng-template #rowSelectTpl
              let-value="value"
