@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
+import { Router } from '@angular/router';
 import { marker as TEXT } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { DialogComponent } from '~/app/shared/components/dialog/dialog.component';
@@ -20,9 +21,16 @@ export class TopBarComponent {
   constructor(
     private authService: AuthService,
     private authStorageService: AuthStorageService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private router: Router
   ) {
     this.username = this.authStorageService.getUsername();
+  }
+
+  onSwitchToBubbles(): void {
+    this.router.navigateByUrl(`/bubblesRedirect/${encodeURIComponent('/')}`, {
+      skipLocationChange: true
+    });
   }
 
   onToggleNavigation(): void {

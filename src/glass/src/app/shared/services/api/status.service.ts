@@ -12,28 +12,61 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-export interface HealthCheckSummary {
+export type HealthCheckSummary = {
   message: string;
   count: number;
-}
+};
 
-export interface HealthStatus {
+export type HealthStatus = {
   status: string;
   checks: { [id: string]: HealthCheckSummary };
-}
+};
+
+export type PGState = {
+  state_name: string;
+  count: number;
+};
+
+export type PGMap = {
+  pgs_by_state: PGState[];
+  num_pgs: number;
+  num_pools: number;
+  num_objects: number;
+  // storage statistics
+  data_bytes: number;
+  bytes_used: number;
+  bytes_avail: number;
+  bytes_total: number;
+  // pg statistics
+  inactive_pgs_ratio: number;
+  degraded_objects: number;
+  degraded_total: number;
+  degraded_ratio: number;
+  // client io
+  read_bytes_sec: number;
+  write_bytes_sec: number;
+  read_op_per_sec: number;
+  write_op_per_sec: number;
+};
+
+export type MGRMap = {
+  services: Record<string, any>;
+};
 
 export interface ClusterStatus {
   fsid: string;
-  /* eslint-disable @typescript-eslint/naming-convention */
   election_epoch: number;
   quorum: number[];
   quorum_names: string[];
   quorum_age: number;
   health: HealthStatus;
+  pgmap: PGMap;
+  mgrmap: MGRMap;
 }
 
 export type Status = {
