@@ -85,6 +85,10 @@ export class StorageDevicesStepComponent implements OnInit {
 
   constructor(private deployService: DeployService) {}
 
+  get completed(): boolean {
+    return this.selected.length > 0;
+  }
+
   ngOnInit(): void {
     this.deployService.devices().subscribe({
       next: (ddr: DeployDevicesReply) => {
@@ -106,10 +110,6 @@ export class StorageDevicesStepComponent implements OnInit {
         this.selected.splice(0, this.selected.length, ...selected);
       }
     });
-  }
-
-  get completed(): boolean {
-    return this.selected.length > 0;
   }
 
   updateContext(): void {

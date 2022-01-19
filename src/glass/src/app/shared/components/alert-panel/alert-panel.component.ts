@@ -27,6 +27,10 @@ export class AlertPanelComponent implements OnInit {
   @Input()
   type: 'success' | 'info' | 'warning' | 'danger' | 'hint' = 'danger';
 
+  public bsType = 'danger';
+  public icons = Icon;
+  public _noColor = false;
+
   @Input()
   get noColor(): boolean {
     return this._noColor;
@@ -34,10 +38,6 @@ export class AlertPanelComponent implements OnInit {
   set noColor(value: BooleanInput) {
     this._noColor = coerceBooleanProperty(value);
   }
-
-  public bsType = 'danger';
-  public icons = Icon;
-  public _noColor = false;
 
   ngOnInit(): void {
     switch (this.type) {

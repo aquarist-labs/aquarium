@@ -5,6 +5,10 @@ import _ from 'lodash';
   selector: '[autofocus]' // eslint-disable-line
 })
 export class AutofocusDirective implements AfterViewInit {
+  private focus = true;
+
+  constructor(private elementRef: ElementRef) {}
+
   @Input()
   public set autofocus(condition: any) {
     this.focus =
@@ -17,10 +21,6 @@ export class AutofocusDirective implements AfterViewInit {
       condition !== undefined &&
       condition !== 'undefined';
   }
-
-  private focus = true;
-
-  constructor(private elementRef: ElementRef) {}
 
   ngAfterViewInit() {
     const el: HTMLInputElement = this.elementRef.nativeElement;
