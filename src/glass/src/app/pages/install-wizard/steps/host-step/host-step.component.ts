@@ -144,6 +144,10 @@ export class HostStepComponent implements AfterViewInit, OnDestroy {
 
   private subscription?: Subscription;
 
+  get completed(): boolean {
+    return this.form?.formGroup?.valid ?? false;
+  }
+
   ngAfterViewInit(): void {
     if (this.context && this.form) {
       // Populate form fields with current values.
@@ -153,10 +157,6 @@ export class HostStepComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
-  }
-
-  get completed(): boolean {
-    return this.form?.formGroup?.valid ?? false;
   }
 
   updateContext(): void {

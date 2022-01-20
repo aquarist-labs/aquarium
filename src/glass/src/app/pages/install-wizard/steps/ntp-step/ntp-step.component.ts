@@ -89,6 +89,10 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
   private defaultNtpAddress = 'pool.ntp.org';
   private subscription?: Subscription;
 
+  get completed(): boolean {
+    return this.form?.formGroup?.valid ?? false;
+  }
+
   ngAfterViewInit(): void {
     if (this.context && this.form) {
       // Populate form fields with current values.
@@ -104,10 +108,6 @@ export class NtpStepComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
-  }
-
-  get completed(): boolean {
-    return this.form?.formGroup?.valid ?? false;
   }
 
   updateContext(): void {

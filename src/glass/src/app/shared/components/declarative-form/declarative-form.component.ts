@@ -63,6 +63,21 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     private notificationService: NotificationService
   ) {}
 
+  get values(): DeclarativeFormValues {
+    const values = this.formGroup?.getRawValue() ?? {};
+    _.forEach(this.getFields(), (field: FormFieldConfig) => {
+      const value = values[field.name!];
+      if (value) {
+        values[field.name!] = this.convertToRaw(value, field);
+      }
+    });
+    return values;
+  }
+
+  get valid(): boolean {
+    return this.formGroup?.valid ?? false;
+  }
+
   private static createFormControl(field: FormFieldConfig): FormControl {
     const validators: Array<ValidatorFn> = [];
     const asyncValidator: Array<AsyncValidatorFn> = [];
@@ -216,21 +231,6 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     if (_.isFunction(buttonConfig.click)) {
       buttonConfig.click(buttonConfig, this.values);
     }
-  }
-
-  get values(): DeclarativeFormValues {
-    const values = this.formGroup?.getRawValue() ?? {};
-    _.forEach(this.getFields(), (field: FormFieldConfig) => {
-      const value = values[field.name!];
-      if (value) {
-        values[field.name!] = this.convertToRaw(value, field);
-      }
-    });
-    return values;
-  }
-
-  get valid(): boolean {
-    return this.formGroup?.valid ?? false;
   }
 
   patchValues(values: DeclarativeFormValues, markAsDirty: boolean = true): void {
