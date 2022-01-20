@@ -51,7 +51,7 @@ class EventModel(BaseModel):
 
 
 class SSLConfigModel(BaseModel):
-    use_ssl: bool = Field(False, title="Whether https is enabled.")
+    use_ssl: bool = Field(False, title="Whether HTTPS is enabled.")
     key_contents: str = Field(title="The SSL private key.")
     cert_contents: str = Field(title="The SSL certificate.")
 

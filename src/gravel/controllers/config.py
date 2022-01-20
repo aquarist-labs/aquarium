@@ -78,7 +78,7 @@ class ContainersOptionsModel(BaseModel):
 
 
 class SSLOptionsModel(BaseModel):
-    use_ssl: bool = Field(False, title="Whether https is enabled.")
+    use_ssl: bool = Field(False, title="Whether HTTPS is enabled.")
 
 
 class OptionsModel(BaseModel):
