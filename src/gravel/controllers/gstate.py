@@ -19,7 +19,7 @@ import time
 import typing
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Dict
+from typing import Dict, Optional
 
 from fastapi.logger import logger as fastapi_logger
 
@@ -139,6 +139,7 @@ class GlobalState:
     cephadm: Cephadm
     ceph_mgr: Mgr
     ceph_mon: Mon
+    tick_task: Optional[asyncio.Task]
 
     def __init__(self, config: Config, kvstore: KV):
         self._config = config
@@ -148,6 +149,7 @@ class GlobalState:
         self._kvstore = kvstore
         self._preinited = False
         self._inited = False
+        self.tick_task = None
 
     def preinit(self) -> None:
         self._preinited = True
@@ -198,7 +200,8 @@ class GlobalState:
         self._is_shutting_down = True
         await self._kvstore.close()
         logger.info("shutdown!")
-        await self.tick_task
+        if self.tick_task:
+            await self.tick_task
 
     async def tick(self) -> None:
         while not self._is_shutting_down:
