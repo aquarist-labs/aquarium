@@ -32,7 +32,6 @@ describe('NtpStepComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(NtpStepComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {

@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  */
 import { Clipboard } from '@angular/cdk/clipboard';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -48,7 +48,7 @@ let nextUniqueId = 0;
   templateUrl: './declarative-form.component.html',
   styleUrls: ['./declarative-form.component.scss']
 })
-export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDestroy {
+export class DeclarativeFormComponent implements AfterViewInit, DeclarativeForm, OnInit, OnDestroy {
   @Input()
   config?: DeclarativeFormConfig;
 
@@ -168,6 +168,10 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
         }
       }
     );
+  }
+
+  ngAfterViewInit(): void {
+    const fields: Array<FormFieldConfig> = this.getFields();
     // Initialize field 'modifiers' that are applied when the specified
     // constraint succeeds.
     _.forEach(
@@ -193,7 +197,7 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
     );
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
