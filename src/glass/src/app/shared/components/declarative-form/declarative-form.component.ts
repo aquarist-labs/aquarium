@@ -258,6 +258,10 @@ export class DeclarativeFormComponent implements DeclarativeForm, OnInit, OnDest
       : false;
   }
 
+  noOrder(): number {
+    return 0;
+  }
+
   private getFields(): Array<FormFieldConfig> {
     const flatten = (fields: Array<FormFieldConfig>): Array<FormFieldConfig> =>
       _.flatMap(
