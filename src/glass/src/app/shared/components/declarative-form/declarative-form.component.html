@@ -281,7 +281,7 @@
                       [ngClass]="{'is-invalid': showError(field.name, frm)}"
                       [formControlName]="field.name"
                       [required]="field.validators?.required!">
-                <option *ngFor="let option of field.options | keyvalue"
+                <option *ngFor="let option of field.options | keyvalue:noOrder"
                         [value]="option.key"
                         [selected]="option.key === field.value">
                   {{ option.value | toString | translate }}
