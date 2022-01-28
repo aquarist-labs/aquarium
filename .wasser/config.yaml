@@ -26,6 +26,7 @@ routines:
         sudo zypper install -y qemu-kvm system-group-wheel polkit
     - reboot
     - wait_host
+    - uptime
     - checkout:
         dir: aquarium
     - name: setup dev environment
