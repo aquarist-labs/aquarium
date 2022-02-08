@@ -141,7 +141,7 @@ environment upon booting the image.
 
 ### Running a MicroOS image on Vagrant
 
-Assuming we've succesfully built a MicroOS image, getting a `Vagrant` setup up
+Assuming we've successfully built a MicroOS image, getting a `Vagrant` setup up
 and running should not be much of a hurdle.
 
 1. run `./tools/aqua create [--box BOXNAME] [--image IMAGENAME] <NAME>`
