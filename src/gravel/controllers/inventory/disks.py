@@ -145,7 +145,9 @@ async def _get_storage_devices(hwdev: HWEntryModel) -> List[DiskDevice]:
     assert hwdev.cls == "storage"
     assert hwdev.children is not None and len(hwdev.children) > 0
 
-    coros = [_get_disk_device(disk) for disk in hwdev.children]
+    coros = [
+        _get_disk_device(disk) for disk in hwdev.children if disk.id != "cdrom"
+    ]
     return list(await asyncio.gather(*coros))
 
 
