@@ -97,6 +97,7 @@ dependencies_build_python_opensuse=(
   "libffi-devel"
   "sqlite3-devel"
   "libvirt-devel"
+  "patch"
 )
 
 dependencies_build_python_deb=(
