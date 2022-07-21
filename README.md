@@ -1,6 +1,6 @@
 # Project Aquarium
 
-![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Faquarist-labs.github.io%2F)
+**This project is no longer maintained**
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/aquarist-labs/aquarium?style=social)
 
